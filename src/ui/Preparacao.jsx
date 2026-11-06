@@ -10,13 +10,18 @@ import { useLive } from './hooks.js';
 import { Campos } from './fields.jsx';
 import { sugerirParadigmas } from '../paradigmas.js';
 import { ResultadoBusca } from './Paradigmas.jsx';
-import { updateFields } from '../db.js';
+import { updateFields, softDelete } from '../db.js';
+import { guardarAnexo, LIMITE_NUVEM } from '../paradigmas.js';
+import { obterAnexo } from '../sync.js';
 
 export function Preparacao({ rec }) {
   const sintese = CAMPOS_SINTESE.filter(([k]) => k !== 'roteiro' && k !== 'analiseEpi');
+  const vazio = !(rec.data.funcoes || '').trim() && !(rec.data.pedidos || '').trim();
   return (
     <div class="grade">
-      <ImportarIA rec={rec} />
+      <ArquivoDoProcesso rec={rec} />
+      <ImportarIA rec={rec} abertoInicial={vazio} />
+      <h2 class="largo subtitulo-etapa">Conferência dos dados extraídos</h2>
       <section class="bloco largo">
         <h3>Síntese dos autos</h3>
         {sintese.map(([k, label]) => <TF rec={rec} k={k} label={label} area />)}
@@ -61,8 +66,40 @@ export function EquipamentosCaso({ rec, titulo = 'Equipamentos a levar / utiliza
   );
 }
 
-function ImportarIA({ rec }) {
-  const [aberto, setAberto] = useState(false);
+function ArquivoDoProcesso({ rec }) {
+  const lista = useLive(async () => (await db.records.where('[caseId+kind]').equals([rec.id, 'anexo']).toArray())
+    .filter((r) => !r.deleted && r.data.descricao === 'autos').sort((a, b) => a.createdAt - b.createdAt), [rec.id], []);
+  const [msg, setMsg] = useState('');
+  const anexar = async (e) => {
+    const arqs = [...e.currentTarget.files];
+    e.currentTarget.value = '';
+    for (const f of arqs) await guardarAnexo(f, 'autos', rec.id);
+    avisarAlteracao();
+    setMsg(arqs.some((f) => f.size > LIMITE_NUVEM) ? 'Arquivo com mais de 39 MB: fica guardado só neste aparelho (não vai para a nuvem).' : '');
+  };
+  const abrir = async (r) => {
+    try { const b = await obterAnexo(r.id); window.open(URL.createObjectURL(b), '_blank'); } catch (err) { setMsg(err.message); }
+  };
+  const remover = async (r) => { if (confirm(`Remover "${r.data.nome}" do caso?`)) { await softDelete(r.id); avisarAlteracao(); } };
+  const mb = (n) => `${(n / 1048576).toFixed(1).replace('.', ',')} MB`;
+  return (
+    <section class="bloco largo passo-etapa">
+      <h3><span class="num-passo">A</span> Arquivo do processo (PDF)</h3>
+      <p class="dica">Guarde aqui o PDF completo dos autos (pode ser mais de um arquivo). Ele fica no caso, para abrir no tablet ou no PC e anexar no Claude.</p>
+      {lista.map((r) => (
+        <div class="linha-arquivo">
+          <span>📄 {r.data.nome} <small>({mb(r.data.tamanho || 0)}{r.data.soLocal ? ' · só neste aparelho' : ''})</small></span>
+          <span><button type="button" class="mini" onClick={() => abrir(r)}>Abrir</button> <button type="button" class="mini perigo" onClick={() => remover(r)}>✕</button></span>
+        </div>
+      ))}
+      <label class="botao-arquivo">{lista.length ? '＋ Anexar outro PDF' : '＋ Anexar PDF do processo'}<input type="file" accept="application/pdf,.pdf" multiple hidden onChange={anexar} /></label>
+      {msg && <p class="alerta-txt">{msg}</p>}
+    </section>
+  );
+}
+
+function ImportarIA({ rec, abertoInicial = false }) {
+  const [aberto, setAberto] = useState(abertoInicial);
   const [texto, setTexto] = useState('');
   const [previa, setPrevia] = useState(null);
   const [erro, setErro] = useState('');
@@ -88,21 +125,22 @@ function ImportarIA({ rec }) {
 
   if (!aberto) {
     return (
-      <section class="bloco largo destaque">
+      <section class="bloco largo destaque passo-etapa">
         <div class="linha-botoes entre">
-          <div><b>Pré-relatório com IA</b><br /><small>Extraia os dados dos autos no Claude e cole o resultado aqui; o app preenche os campos e gera o pré-relatório no timbrado.</small></div>
+          <div><b class="titulo-passo"><span class="num-passo">B</span> Extrair os dados dos autos com o Claude</b><br /><small>Já feito? Os dados estão abaixo para conferir. Pode repetir a extração quando chegarem novos documentos.</small></div>
           <button type="button" onClick={() => setAberto(true)}>Abrir</button>
         </div>
       </section>
     );
   }
   return (
-    <section class="bloco largo destaque">
-      <h3>Preencher a partir dos autos (IA)</h3>
+    <section class="bloco largo destaque passo-etapa">
+      <h3><span class="num-passo">B</span> Extrair os dados dos autos com o Claude</h3>
       <ol class="passos">
-        <li>Toque em <b>Copiar instrução</b>, abra o Claude, cole a instrução e anexe os PDFs dos autos.</li>
-        <li>Copie a resposta inteira (o bloco JSON) e cole no campo abaixo.</li>
-        <li>Confira a prévia e aplique. Campos já preenchidos não são alterados, a menos que você marque "substituir".</li>
+        <li>Toque em <b>Copiar instrução</b>.</li>
+        <li>Abra uma conversa nova no Claude, cole a instrução e anexe o PDF do processo (o mesmo guardado no item A).</li>
+        <li>Quando o Claude responder, copie a resposta inteira (o bloco que começa com <code>{'{'}</code>) e cole no campo abaixo.</li>
+        <li>Toque em <b>Ler e mostrar prévia</b> e depois em <b>Aplicar ao caso</b>. O app preenche cadastro, síntese, períodos, documentos, EPIs e quesitos. Campos que você já preencheu não são alterados, a menos que marque "substituir".</li>
       </ol>
       <label class="campo"><span class="rotulo">Situação (escolhida pelo tipo do caso; pode trocar)</span>
         <select value={situacao} onChange={(e) => setSituacao(e.currentTarget.value)}>

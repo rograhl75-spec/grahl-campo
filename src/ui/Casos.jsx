@@ -52,7 +52,7 @@ export function Casos() {
   const novo = async () => {
     const r = await createRecord('caso', null, { ...NOVO_CASO, objeto: [] });
     avisarAlteracao();
-    ir(`/caso/${r.id}/resumo`);
+    ir(`/caso/${r.id}/cadastro`);
   };
 
   if (!casos) return <p class="vazio">Carregando…</p>;
@@ -89,7 +89,7 @@ export function Casos() {
               const dias = diasAte(data);
               const [sig, cls] = siglaTipo(c.data);
               return (
-                <a class={`agenda-item ${dias <= 3 ? 'urgente' : dias <= 7 ? 'breve' : ''}`} href={`#/caso/${c.id}/resumo`}>
+                <a class={`agenda-item ${dias <= 3 ? 'urgente' : dias <= 7 ? 'breve' : ''}`} href={`#/caso/${c.id}/cadastro`}>
                   <div class="agenda-data">
                     <b>{dataBR(data).slice(0, 5)}</b>
                     <small>{dias === 0 ? 'hoje' : dias === 1 ? 'amanhã' : `em ${dias} dias`}</small>
@@ -131,7 +131,7 @@ function CartaoCaso({ c }) {
   const hoje = hojeIso();
   const datas = [['Diligência', d.dataDiligencia], ['Laudo', d.prazoLaudo], ['Manifestação', d.prazoManifestacao]].filter(([, x]) => x && x >= hoje).sort((a, b) => a[1].localeCompare(b[1]));
   return (
-    <a class={`cartao ${cls}`} href={`#/caso/${c.id}/resumo`}>
+    <a class={`cartao ${cls}`} href={`#/caso/${c.id}/cadastro`}>
       <div class="cartao-topo">
         <span class={`sigla ${cls}`} title={rotTipo}>{sig}</span>
         <span class="cartao-papel">{papelCurto(d.papel)}</span>

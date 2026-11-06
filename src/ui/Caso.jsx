@@ -12,25 +12,47 @@ import { Campo } from './Campo.jsx';
 import { Fotos } from './Fotos.jsx';
 import { Documentos } from './Documentos.jsx';
 
-const ABAS = [
-  ['resumo', '📋 Resumo'], ['preparacao', '📚 Preparação'], ['quesitos', '❓ Quesitos'],
-  ['campo', '🦺 Campo'], ['fotos', '📷 Fotos'], ['documentos', '📄 Documentos'],
+// Etapas do caso, na ordem do trabalho
+export const ETAPAS = [
+  { k: 'cadastro', n: 1, rot: 'Cadastro', o: 'confira o tipo e a sua atuação; número e partes podem vir dos autos (etapa 2)' },
+  { k: 'autos', n: 2, rot: 'Autos', o: 'anexe o PDF do processo e extraia os dados com o Claude' },
+  { k: 'quesitos', n: 3, rot: 'Quesitos', o: 'confira os quesitos das partes e do Juízo' },
+  { k: 'campo', n: 4, rot: 'Campo', o: 'registre a diligência, os postos e as medições' },
+  { k: 'fotos', n: 5, rot: 'Fotos', o: 'confira as fotos e as legendas' },
+  { k: 'documentos', n: 6, rot: 'Documentos', o: 'gere as petições, o laudo ou o parecer' },
 ];
+const ALIAS = { resumo: 'cadastro', preparacao: 'autos' };
+
+export function etapasFeitas(c, cont) {
+  return {
+    cadastro: !!(c.tipoAtuacao && c.papel && (c.numero || c.autorNome)),
+    autos: !!((cont.autos || 0) > 0 || (cont.periodo || 0) > 0 || (c.funcoes || '').trim()),
+    quesitos: (cont.quesito || 0) > 0 || !!c.semQuesitos,
+    campo: !!c.vistoriaData,
+    fotos: (cont.foto || 0) > 0,
+    documentos: ['Aguardando manifestação / esclarecimentos', 'Concluído', 'Arquivado'].includes(c.fase),
+  };
+}
 
 export function Caso({ id, aba }) {
   const rec = useLive(() => db.records.get(id), [id], null);
   const contagem = useLive(async () => {
     const filhos = await db.records.where('caseId').equals(id).toArray();
     const c = {};
-    for (const f of filhos) if (!f.deleted) c[f.kind] = (c[f.kind] || 0) + 1;
+    for (const f of filhos) {
+      if (f.deleted) continue;
+      c[f.kind] = (c[f.kind] || 0) + 1;
+      if (f.kind === 'anexo' && f.data.descricao === 'autos') c.autos = (c.autos || 0) + 1;
+    }
     return c;
   }, [id], {});
   if (rec === null) return <p class="vazio">Carregando…</p>;
   if (!rec) return <div class="pagina"><p class="vazio grande">Caso não encontrado neste aparelho. <a href="#/">Voltar</a></p></div>;
   if (rec.deleted) return <div class="pagina"><p class="vazio grande">Este caso está na lixeira. Restaure em <a href="#/config/lixeira">Configurações → Lixeira</a>.</p></div>;
 
-  const abas = [...ABAS];
-  if (rec.data.legado) abas.push(['antigo', '🗂 App antigo']);
+  aba = ALIAS[aba] || aba;
+  const feitas = etapasFeitas(rec.data, contagem);
+  const proxima = ETAPAS.find((e) => !feitas[e.k]);
   const n = { quesitos: contagem.quesito, fotos: contagem.foto, campo: (contagem.posto || 0) + (contagem.medicao || 0) || undefined };
   return (
     <div class="pagina caso">
@@ -47,13 +69,19 @@ export function Caso({ id, aba }) {
           <div class="caso-sub">{rec.data.numero || 'sem número'}{rec.data.juizo ? ` · ${rec.data.juizo}` : ''}</div>
         </div>
       </div>
-      <nav class="abas">
-        {abas.map(([k, rot]) => (
-          <a href={`#/caso/${id}/${k}`} class={aba === k ? 'ativo' : ''}>{rot}{n[k] ? <span class="contador">{n[k]}</span> : null}</a>
+      <nav class="abas etapas">
+        {ETAPAS.map((e) => (
+          <a href={`#/caso/${id}/${e.k}`} class={`${aba === e.k ? 'ativo' : ''} ${feitas[e.k] ? 'feita' : ''}`}>
+            <span class="num">{feitas[e.k] ? '✓' : e.n}</span>{e.rot}{n[e.k] ? <span class="contador">{n[e.k]}</span> : null}
+          </a>
         ))}
+        {rec.data.legado && <a href={`#/caso/${id}/antigo`} class={`extra ${aba === 'antigo' ? 'ativo' : ''}`}>🗂 App antigo</a>}
       </nav>
-      {aba === 'resumo' && <Resumo rec={rec} />}
-      {aba === 'preparacao' && <Preparacao rec={rec} />}
+      {proxima && proxima.k !== aba && (
+        <a class="proximo-passo" href={`#/caso/${id}/${proxima.k}`}>➜ Próximo passo: <b>{proxima.n}. {proxima.rot}</b> – {proxima.o}</a>
+      )}
+      {aba === 'cadastro' && <Resumo rec={rec} />}
+      {aba === 'autos' && <Preparacao rec={rec} />}
       {aba === 'quesitos' && <Quesitos rec={rec} />}
       {aba === 'campo' && <Campo rec={rec} />}
       {aba === 'fotos' && <Fotos rec={rec} />}
@@ -72,13 +100,14 @@ function Resumo({ rec }) {
   };
   return (
     <div class="grade">
+      <p class="dica largo">Comece marcando o <b>tipo</b> e a <b>sua atuação</b>. Número do processo, partes e prazos podem ser preenchidos automaticamente na etapa <b>2. Autos</b>, a partir do PDF do processo; aqui você só confere.</p>
       <section class="bloco">
         <h3>Classificação</h3>
         <Opcoes rec={rec} k="tipoAtuacao" label="Tipo" opcoes={TIPO_ATUACAO} />
         <Opcoes rec={rec} k="papel" label="Minha atuação" opcoes={PAPEL} />
         <Sel rec={rec} k="justica" label="Justiça / órgão" opcoes={JUSTICA} />
         <Sel rec={rec} k="materia" label="Matéria" opcoes={MATERIA} />
-        <Chips rec={rec} k="objeto" label="Objeto" opcoes={OBJETO} />
+        <Chips rec={rec} k="objeto" label="Objeto da perícia (azul = marcado; toque para marcar ou desmarcar)" opcoes={OBJETO} />
         <Sel rec={rec} k="fase" label="Fase" opcoes={FASE} vazio={false} />
         {rec.data.faseLegado && <p class="dica">Fase no app antigo: {rec.data.faseLegado}</p>}
       </section>

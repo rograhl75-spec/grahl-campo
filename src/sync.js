@@ -201,7 +201,13 @@ async function enviarFotos() {
     const rec = await db.records.get(b.id);
     if (!rec) continue;
     const anexo = b.mime && b.mime !== 'image/jpeg';
-    await uploadBytes(anexo ? anexoRef(b.id) : fotoRef(b.id), b.blob, { contentType: anexo ? b.mime : 'image/jpeg' });
+    try {
+      await uploadBytes(anexo ? anexoRef(b.id) : fotoRef(b.id), b.blob, { contentType: anexo ? b.mime : 'image/jpeg' });
+    } catch (e) {
+      // arquivo grande demais para as regras: fica só no aparelho, sem travar a fila
+      if (anexo && /unauthorized|permission/i.test(String(e.code || e.message))) { await db.blobs.update(b.id, { uploaded: 2 }); continue; }
+      throw e;
+    }
     await db.blobs.update(b.id, { uploaded: 1 });
     await refreshPending();
   }

@@ -114,9 +114,11 @@ export async function adicionarParadigmas(veiculos, { anexoId = '' } = {}) {
   return criados;
 }
 
-export async function guardarAnexo(file, descricao = '') {
-  const rec = await createRecord('anexo', null, { nome: file.name, tamanho: file.size, mime: file.type || 'application/pdf', descricao });
-  await db.blobs.put({ id: rec.id, blob: file, uploaded: 0, mime: file.type || 'application/pdf' });
+export const LIMITE_NUVEM = 39 * 1024 * 1024; // acima disso o arquivo fica só neste aparelho
+export async function guardarAnexo(file, descricao = '', caseId = null) {
+  const soLocal = file.size > LIMITE_NUVEM;
+  const rec = await createRecord('anexo', caseId, { nome: file.name, tamanho: file.size, mime: file.type || 'application/pdf', descricao, soLocal });
+  await db.blobs.put({ id: rec.id, blob: file, uploaded: soLocal ? 2 : 0, mime: file.type || 'application/pdf' });
   return rec.id;
 }
 

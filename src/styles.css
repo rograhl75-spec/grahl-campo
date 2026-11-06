@@ -248,3 +248,16 @@ body.modo-campo .item-topo { min-height: 70px; }
   .abas { top: 0; position: static; }
   .marca img { height: 36px; }
 }
+
+/* ---------- etapas do caso ---------- */
+.abas.etapas a { display: inline-flex; align-items: center; gap: 8px; }
+.abas.etapas .num { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: #E2E8F0; color: var(--azul); font-size: .85rem; }
+.abas.etapas a.feita .num { background: #2E7D4F; color: #fff; }
+.abas.etapas a.ativo .num { background: #C9A227; color: #1B365D; }
+.abas.etapas a.extra { margin-left: auto; }
+.proximo-passo { display: block; margin: 4px 0 14px; padding: 10px 14px; border-radius: 12px; background: #FFF6DD; border: 1px solid #E6CF8A; color: #1B365D; text-decoration: none; }
+.passo-etapa h3, .passo-etapa .titulo-passo { display: flex; align-items: center; gap: 8px; }
+.num-passo { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--azul); color: #fff; font-size: .85rem; flex: none; }
+.subtitulo-etapa { font-size: 1.05rem; color: var(--suave); margin: 10px 0 0; }
+.linha-arquivo { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--borda); }
+.docs .passo-docs { color: var(--suave); margin: -6px 0 10px; font-size: .92rem; }

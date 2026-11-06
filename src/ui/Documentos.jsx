@@ -11,6 +11,14 @@ const SUGESTAO_REDACAO = (c) => (c.papel === 'Perito do Juízo' ? 'laudo'
   : /Assistente/i.test(c.papel || '') ? 'parecerAT'
     : c.tipoAtuacao === 'Extrajudicial' ? 'ltcat' : 'laudo');
 
+const QUANDO = {
+  '1. Início do caso': 'Logo após extrair os dados dos autos (etapa 2).',
+  '2. Antes da diligência': 'Com a data da vistoria definida.',
+  '3. Depois da diligência': 'Com o campo e as fotos registrados (etapas 4 e 5).',
+  '4. Laudo / parecer': 'O Word traz a estrutura e os quadros prontos. Para o texto completo, use também "Redigir com o Claude", logo abaixo.',
+  '5. Recebimento dos honorários': 'Após a entrega do laudo.',
+};
+
 export function Documentos({ rec }) {
   const [ocupado, setOcupado] = useState('');
   const [msg, setMsg] = useState('');
@@ -44,14 +52,15 @@ export function Documentos({ rec }) {
 
   const recomendados = CATALOGO.filter((d) => d.rec(c));
   const outros = CATALOGO.filter((d) => !d.rec(c));
-  const grupos = (lista) => [...new Set(lista.map((d) => d.grupo))].map((g) => [g, lista.filter((d) => d.grupo === g)]);
+  const grupos = (lista) => [...new Set(lista.map((d) => d.grupo))].sort().map((g) => [g, lista.filter((d) => d.grupo === g)]);
 
   return (
     <div class="docs">
-      <p class="dica largo">Documentos em Word no seu papel timbrado, preenchidos com os dados do caso. O que depende da sua análise sai marcado em amarelo.</p>
+      <p class="dica largo">Os documentos estão na ordem em que costumam ser usados e saem em Word no seu papel timbrado, já preenchidos com os dados das etapas anteriores. O que depende da sua análise sai marcado em amarelo. Aparecem só os modelos que servem para este tipo de caso.</p>
       {grupos(recomendados).map(([g, lista]) => (
         <section class="grupo-docs">
           <h3>{g}</h3>
+          {QUANDO[g] && <p class="passo-docs">{QUANDO[g]}</p>}
           <div class="grade-docs">
             {lista.map((d) => <CartaoDoc d={d} ocupado={ocupado} gerar={gerar} contas={contas} contaSel={contaSel} recId={rec.id} />)}
           </div>
@@ -109,9 +118,9 @@ function LevarParaClaude({ rec }) {
   };
   return (
     <section class="grupo-docs">
-      <h3>Redigir com o Claude</h3>
+      <h3>Redigir com o Claude (texto completo do laudo ou parecer)</h3>
       <div class="bloco destaque">
-        <p>Copia o caso inteiro (autos, campo, medições, quesitos com anotações e seus critérios técnicos) com a instrução de redação do documento escolhido.</p>
+        <p>Copia tudo o que está no caso (síntese dos autos, campo, medições, paradigmas, quesitos com anotações e seus critérios técnicos) com a instrução de redação do documento escolhido. Cole no Claude e anexe o PDF do processo (etapa 2).</p>
         <label class="campo"><span class="rotulo">Documento a redigir</span>
           <select value={tipo} onChange={(e) => setTipo(e.currentTarget.value)}>
             {OPCOES_REDACAO.map(([k, r]) => <option value={k}>{r}</option>)}

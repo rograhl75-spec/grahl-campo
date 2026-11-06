@@ -34,6 +34,13 @@ async function atualizarDadosPadrao() {
   await setMeta('dadosPadraoV', 2);
 }
 
+async function atualizarDadosPadraoV3() {
+  if ((await getMeta('dadosPadraoV')) >= 3) return;
+  await mergeIncoming(normalize({ id: PERFIL_ID, kind: 'perfil', caseId: null, createdAt: Date.now(), data: { cidade: PERFIL_PADRAO.cidade },
+    ts: { cidade: 3 } }), { markDirtyIfLocalNewer: true });
+  await setMeta('dadosPadraoV', 3);
+}
+
 async function iniciar() {
   try {
     await db.open();
@@ -43,6 +50,7 @@ async function iniciar() {
   }
   await semearEquipamentos();
   await atualizarDadosPadrao();
+  await atualizarDadosPadraoV3();
   const recuperados = await walRecuperar();
   if (recuperados) console.info(`${recuperados} campo(s) recuperados do registro de segurança.`);
   requestPersistentStorage();

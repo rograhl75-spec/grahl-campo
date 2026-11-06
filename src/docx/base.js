@@ -39,7 +39,7 @@ export const PERFIL_PADRAO = {
   titulos: 'Engenheiro Químico e Engenheiro de Segurança do Trabalho',
   crea: 'CREA-SC nº 10392239/D',
   vistoCrea: 'visto CREA-PR nº 081075',
-  cidade: 'Londrina – PR',
+  cidade: 'Londrina/PR',
 };
 
 export function credencial(perfil) {
@@ -53,36 +53,119 @@ export function partes(c) {
   const prev = contextoLegal(c).prev === true;
   const inss = prev || c.materia === 'Acidentária';
   return {
-    autor: trab ? 'Reclamante' : inss ? 'Autor(a) / Segurado(a)' : 'Requerente',
+    autor: trab ? 'Reclamante' : inss ? 'Autor' : 'Requerente',
     reu: trab ? 'Reclamada' : inss ? 'Réu' : 'Requerido(a)',
-    autorCurto: trab ? 'Reclamante' : 'Autor(a)',
+    autorCurto: trab ? 'Reclamante' : inss ? 'Autor' : 'Requerente',
     reuCurto: trab ? 'Reclamada' : inss ? 'INSS' : 'Requerido(a)',
     trab, prev,
   };
 }
 
+// artigos conforme a parte: "o Reclamante", "a Reclamada", "o Autor", "o INSS"
+export function art(nome) {
+  const fem = /Reclamada|Requerida/.test(nome || '');
+  return { o: fem ? 'a' : 'o', pelo: fem ? 'pela' : 'pelo', do: fem ? 'da' : 'do', O: fem ? 'A' : 'O' };
+}
+
 export function papelAssinatura(c) {
   const pt = partes(c);
   if (c.papel === 'Perito do Juízo') return 'Perito do Juízo';
-  if (/autor/i.test(c.papel || '')) return `Assistente Técnico do(a) ${pt.autorCurto}`;
-  if (/réu/i.test(c.papel || '')) return `Assistente Técnico da ${pt.reuCurto}`;
+  if (/autor/i.test(c.papel || '')) return `Assistente Técnico ${art(pt.autorCurto).do} ${pt.autorCurto}`;
+  if (/réu/i.test(c.papel || '')) return `Assistente Técnico ${art(pt.reuCurto).do} ${pt.reuCurto}`;
   return 'Responsável Técnico';
 }
 
+// "EXCELENTÍSSIMO SENHOR JUIZ FEDERAL DA ...", "... JUIZ DO TRABALHO DA ...", "... DOUTOR JUIZ DE DIREITO DA ..."
 export function enderecamentoTexto(c) {
   const j = v(c.juizo);
   const cidade = v(c.comarca).split(/[\/–-]/)[0].trim().toLowerCase();
   const comarca = v(c.comarca) && !(cidade && j.toLowerCase().includes(cidade)) ? ` – ${c.comarca}` : '';
-  return `EXCELENTÍSSIMO SENHOR DOUTOR JUIZ ${j ? 'DA ' + j : '[[VARA / JUÍZO]]'}${comarca}`;
+  const just = c.justica || '';
+  const trat = /Federal/i.test(just) ? 'EXCELENTÍSSIMO SENHOR JUIZ FEDERAL'
+    : /Trabalho/i.test(just) ? 'EXCELENTÍSSIMO SENHOR JUIZ DO TRABALHO'
+      : /Estadual/i.test(just) ? 'EXCELENTÍSSIMO SENHOR DOUTOR JUIZ DE DIREITO' : 'EXCELENTÍSSIMO SENHOR DOUTOR JUIZ';
+  return `${trat} ${j ? 'DA ' + j : '[[VARA / JUÍZO]]'}${comarca}`;
 }
 
 export function linhasProcesso(c, extra = []) {
   const pt = partes(c);
-  return [['Processo nº', ou(c.numero, 'número do processo')], [pt.autor, c.autorNome], [pt.reu, c.reuNome], ...extra];
+  const classe = v(c.classe) ? `${c.classe} nº` : 'Processo nº';
+  return [[classe, ou(c.numero, 'número do processo')], ['Juízo Deprecante', c.juizoDeprecante], [pt.autor, c.autorNome], [pt.reu, c.reuNome], ...extra];
 }
 
 export function qualificacaoCurta(perfil) {
-  return `**${perfil.nome}**, ${perfil.titulos}, ${credencial(perfil)}`;
+  const visto = perfil.vistoCrea ? ` (${perfil.vistoCrea})` : '';
+  return `**${perfil.nome}**, ${perfil.titulos}, ${perfil.crea}${visto}`;
+}
+
+// ---------- contas bancárias (duas, escolhidas a cada petição) ----------
+export function contasDoPerfil(perfil) {
+  const out = [];
+  if (v(perfil.conta1) || v(perfil.dadosBancarios)) out.push({ id: 'conta1', rotulo: perfil.conta1Rotulo || 'Conta 1', dados: perfil.conta1 || perfil.dadosBancarios });
+  if (v(perfil.conta2)) out.push({ id: 'conta2', rotulo: perfil.conta2Rotulo || 'Conta 2', dados: perfil.conta2 });
+  return out;
+}
+export function dadosDaConta(perfil, escolha) {
+  const contas = contasDoPerfil(perfil);
+  const c = contas.find((x) => x.id === escolha) || contas[0];
+  return c ? c.dados : '[[dados bancários – cadastre em Configurações → Meus dados]]';
+}
+
+// ---------- datas e valores por extenso ----------
+const DIAS_SEMANA = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
+export function dataPorExtenso(iso, { semana = false } = {}) {
+  const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return '';
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  const txt = d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
+  return semana ? `${txt} (${DIAS_SEMANA[d.getDay()]})` : txt;
+}
+export function horaPorExtenso(hhmm) {
+  const m = String(hhmm || '').match(/^(\d{1,2}):(\d{2})/);
+  if (!m) return v(hhmm);
+  return `${Number(m[1])}h${m[2] === '00' ? '' : m[2]}`;
+}
+
+const UN = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove', 'dez', 'onze', 'doze', 'treze', 'quatorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito', 'dezenove'];
+const DEZ = ['', '', 'vinte', 'trinta', 'quarenta', 'cinquenta', 'sessenta', 'setenta', 'oitenta', 'noventa'];
+const CEM = ['', 'cento', 'duzentos', 'trezentos', 'quatrocentos', 'quinhentos', 'seiscentos', 'setecentos', 'oitocentos', 'novecentos'];
+function ate999(n) {
+  if (n === 0) return '';
+  if (n === 100) return 'cem';
+  const c = Math.floor(n / 100), r = n % 100, d = Math.floor(r / 10), u = r % 10;
+  const partes = [];
+  if (c) partes.push(CEM[c]);
+  if (r) partes.push(r < 20 ? UN[r] : [DEZ[d], u ? UN[u] : ''].filter(Boolean).join(' e '));
+  return partes.join(' e ');
+}
+export function numeroPorExtenso(n, { feminino = false } = {}) {
+  n = Math.floor(Number(n));
+  if (!isFinite(n) || n <= 0) return '';
+  if (feminino && n < 1000) return ate999(n).replace(/\bum$/, 'uma').replace(/\bdois$/, 'duas').replace(/^duzentos/, 'duzentas');
+  if (n < 1000) return ate999(n);
+  const mil = Math.floor(n / 1000), r = n % 1000;
+  return [mil === 1 ? 'mil' : `${ate999(mil)} mil`, r ? ate999(r) : ''].filter(Boolean).join(r < 100 || r % 100 === 0 ? ' e ' : ' ');
+}
+export function reaisPorExtenso(valor) {
+  const total = Math.round(Number(valor) * 100);
+  if (!isFinite(total) || total < 0) return '';
+  const inteiro = Math.floor(total / 100), cent = total % 100;
+  const mil = Math.floor(inteiro / 1000), resto = inteiro % 1000;
+  const p = [];
+  if (mil) p.push(mil === 1 ? 'mil' : `${ate999(mil)} mil`);
+  if (resto) p.push(ate999(resto));
+  let txt = p.length === 2 && (resto < 100 || resto % 100 === 0) ? p.join(' e ') : p.join(' ');
+  if (inteiro) txt += inteiro === 1 ? ' real' : ' reais';
+  if (cent) txt += `${inteiro ? ' e ' : ''}${ate999(cent)} ${cent === 1 ? 'centavo' : 'centavos'}`;
+  return txt.trim();
+}
+export function moeda(n) {
+  return Number(n).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }).replace(/\u00a0/g, ' ');
+}
+export function lerValor(t) {
+  const s = String(t ?? '').replace(/[^\d,.-]/g, '');
+  if (!s) return NaN;
+  return Number(s.includes(',') ? s.replace(/\./g, '').replace(',', '.') : s);
 }
 
 export function qualificacaoCompleta(perfil) {
@@ -95,11 +178,12 @@ export function qualificacaoCompleta(perfil) {
   return partesQ.join(', ');
 }
 
-export function blocoAssinatura(d, { c, perfil }, papel) {
+export function blocoAssinatura(d, { c, perfil }, papel, { linha = false } = {}) {
   return d.assinatura({
     local: perfil.cidade || 'Londrina – PR',
     nome: perfil.nome,
-    linhas: [perfil.titulos, credencial(perfil), papel || papelAssinatura(c)],
+    linha,
+    linhas: [perfil.titulos, credencial(perfil).replace(' – visto', ' – Visto'), papel || papelAssinatura(c)],
   });
 }
 

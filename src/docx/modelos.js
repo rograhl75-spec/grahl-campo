@@ -10,8 +10,9 @@ import {
   quadroPeriodos, quadroEpis, quadroDocumentos, quadroCriteriosRuido, quadroConfrontoRuido, quadroMedicoesRuido,
   quadroMedicoesGenerico, medicoesPorAgente, nomePostoFn, profissiografia, figurasDoCaso, respostasQuesitos, capaTecnica,
   quadroCriteriosCalor, quadroCriteriosVibracao, documentosARequerer,
+  art, dadosDaConta, dataPorExtenso, horaPorExtenso, reaisPorExtenso, numeroPorExtenso, moeda, lerValor,
 } from './base.js';
-import { p, run } from './ooxml.js';
+import { p, run, rich } from './ooxml.js';
 
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 
@@ -408,7 +409,7 @@ export async function parecerAssistente(caseId) {
   const lado = /réu/i.test(c.papel || '') ? pt.reuCurto : pt.autorCurto;
   const d = new Doc();
   d.enderecamento(enderecamentoTexto(c), linhasProcesso(c, [['Referência', c.refLaudo ? `Laudo pericial (${c.refLaudo})` : '[[ID do laudo pericial]]']]));
-  d.texto(`${qualificacaoCurta(perfil)}, assistente técnico indicado pela ${lado}${c.vistoriaData ? `, tendo acompanhado a diligência pericial realizada em ${dataBR(c.vistoriaData)}` : ''}, vem, respeitosamente, à presença de Vossa Excelência, apresentar **MANIFESTAÇÃO TÉCNICA SOBRE O LAUDO PERICIAL**${c.peritoJuizo ? ` elaborado por ${c.peritoJuizo}` : ''}, pelos fundamentos técnicos expostos a seguir.`);
+  d.texto(`${qualificacaoCurta(perfil)}, assistente técnico indicado ${art(lado).pelo} ${lado}${c.vistoriaData ? `, tendo acompanhado a diligência pericial realizada em ${dataBR(c.vistoriaData)}` : ''}, vem, respeitosamente, à presença de Vossa Excelência, apresentar **MANIFESTAÇÃO TÉCNICA SOBRE O LAUDO PERICIAL**${c.peritoJuizo ? ` elaborado por ${c.peritoJuizo}` : ''}, pelos fundamentos técnicos expostos a seguir.`);
   d.sumario();
   d.h1('1', 'Síntese do laudo e dos pontos analisados');
   d.redigir('resumo da conclusão do laudo e da posição desta assistência (concorda / impugna) por agente.');
@@ -493,9 +494,9 @@ export async function peticaoIndicacaoAT(caseId) {
   const origemLado = /réu/i.test(c.papel || '') ? 'Réu / Reclamada' : 'Autor / Reclamante';
   const d = new Doc();
   d.enderecamento(enderecamentoTexto(c), linhasProcesso(c, [['Perito do Juízo', c.peritoJuizo]]));
-  d.texto(`${qualificacaoCompleta(perfil)}, vem, respeitosamente, à presença de Vossa Excelência, na qualidade de **assistente técnico indicado pela ${lado}**, nos termos ${pt.trab ? 'do art. 3º da Lei nº 5.584/1970 e ' : ''}dos arts. 465, § 1º, II, e 466, § 1º, do Código de Processo Civil${c.despachoRef ? `, em atenção a ${c.despachoRef}` : ''}, expor e requerer o que segue.`);
+  d.texto(`${qualificacaoCompleta(perfil)}, vem, respeitosamente, à presença de Vossa Excelência, na qualidade de **assistente técnico indicado ${art(lado).pelo} ${lado}**, nos termos ${pt.trab ? 'do art. 3º da Lei nº 5.584/1970 e ' : ''}dos arts. 465, § 1º, II, e 466, § 1º, do Código de Processo Civil${c.despachoRef ? `, em atenção a ${c.despachoRef}` : ''}, expor e requerer o que segue.`);
   d.h1('1.', 'Da indicação do assistente técnico', { novaPagina: false });
-  d.texto(`O signatário foi indicado pela ${lado} para acompanhar, como seu assistente técnico, a prova pericial de ${(c.objeto || []).join(' e ').toLowerCase() || '[[objeto]]'} determinada por este Juízo${c.peritoJuizo ? `, a cargo do Sr. Perito ${c.peritoJuizo}` : ''}.`);
+  d.texto(`O signatário foi indicado ${art(lado).pelo} ${lado} para acompanhar, como seu assistente técnico, a prova pericial de ${(c.objeto || []).join(' e ').toLowerCase() || '[[objeto]]'} determinada por este Juízo${c.peritoJuizo ? `, a cargo do Sr. Perito ${c.peritoJuizo}` : ''}.`);
   d.texto('Requer seja o signatário cadastrado nos autos e que o Sr. Perito comunique a data, o horário e o local da diligência com antecedência, também pelos contatos acima, de modo a assegurar o acompanhamento previsto no art. 466, § 2º, do CPC.');
   d.texto('No desempenho da função, o assistente técnico poderá valer-se dos meios previstos no art. 473, § 3º, do CPC, inclusive registro fotográfico, obtenção de informações e solicitação de documentos em poder das partes.');
   d.h1('2.', 'Dos documentos necessários à perícia', { novaPagina: false });
@@ -505,41 +506,178 @@ export async function peticaoIndicacaoAT(caseId) {
   d.h1('3.', 'Do pedido de avaliações no local', { novaPagina: false });
   d.redigir('pedir diligência com operação normal e a reprodução das tarefas críticas; avaliações quantitativas no próprio local.');
   d.h1('4.', 'Dos quesitos', { novaPagina: false });
-  d.texto(`A ${lado}, por seu assistente técnico, apresenta os seguintes quesitos, sem prejuízo de quesitos suplementares (art. 469 do CPC):`);
+  d.texto(`${art(lado).O} ${lado}, por seu assistente técnico, apresenta os seguintes quesitos, sem prejuízo de quesitos suplementares (art. 469 do CPC):`);
   const qs = dados.quesitos.filter((q) => q.data.origem === origemLado);
   if (qs.length) qs.forEach((q, i) => d.texto(`${q.data.numero || i + 1}. ${q.data.texto}`, { recuo: false }));
   else d.redigir(`quesitos (cadastre na aba Quesitos com origem "${origemLado}").`);
   d.h1('5.', 'Dos requerimentos finais', { novaPagina: false });
-  d.texto(`Diante do exposto, requer:\na) o cadastramento do signatário como assistente técnico da ${lado}, com a sua intimação, pelos contatos indicados, da data, do horário e do local da diligência pericial;\nb) a intimação da parte para apresentar ao Sr. Perito os documentos relacionados no item 2;\nc) a realização da diligência na forma do item 3;\nd) o recebimento dos quesitos do item 4, sem prejuízo da apresentação de quesitos suplementares.`);
+  d.texto(`Diante do exposto, requer:\na) o cadastramento do signatário como assistente técnico ${art(lado).do} ${lado}, com a sua intimação, pelos contatos indicados, da data, do horário e do local da diligência pericial;\nb) a intimação da parte para apresentar ao Sr. Perito os documentos relacionados no item 2;\nc) a realização da diligência na forma do item 3;\nd) o recebimento dos quesitos do item 4, sem prejuízo da apresentação de quesitos suplementares.`);
   d.add(p([run('Nestes termos,\npede deferimento.')], { first: 709, before: 240 }));
   blocoAssinatura(d, dados);
   return finalizar(d, { titulo: 'Petição – indicação de assistente técnico', arquivo: 'Peticao_indicacao_AT', c });
 }
 
+// ---------- auxiliares das petições do perito ----------
+function introPerito(perfil, c, acao) {
+  const ref = v(c.despachoRef) ? `, em atenção ao ${c.despachoRef}` : '';
+  return `${qualificacaoCurta(perfil)}, perito judicial nomeado nos autos em epígrafe, vem, respeitosamente, à presença de Vossa Excelência${ref}, ${acao}`;
+}
+function fecho(d, dados, papel = 'Perito Judicial') {
+  d.add(p([run('Nestes termos,')], { first: 709, before: 240, after: 0 }));
+  d.add(p([run('pede deferimento.')], { first: 709, after: 120 }));
+  return blocoAssinatura(d, dados, papel, { linha: true });
+}
+function travessao(d, texto, nivel = 1) {
+  d.add(p([run('–\t'), ...[rich(texto)]], { left: 1069 + nivel * 360, hanging: 284, after: 40 }));
+}
+function listaPeriodos(periodos) {
+  const ps = periodos.filter((r) => r.data.inicio).map((r) => `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`);
+  if (ps.length <= 1) return ps.join('');
+  return `${ps.slice(0, -1).join(', ')} e ${ps[ps.length - 1]}`;
+}
+function anosSomados(periodos) {
+  let dias = 0;
+  for (const r of periodos) {
+    if (!r.data.inicio) continue;
+    const i = new Date(r.data.inicio), f = r.data.fim ? new Date(r.data.fim) : new Date();
+    if (f > i) dias += (f - i) / 86400000;
+  }
+  return Math.floor(dias / 365.25);
+}
+const VEZES = { 2: '2 (duas)', 3: '3 (três)' };
+function fundamentoCJF(c) {
+  return /Federal/i.test(c.justica || '') || /delegada/i.test(c.justica || '');
+}
+
+// ======================================================================
+// AGENDAMENTO DA VISTORIA PERICIAL (padrão: petição 5024131-16.2021)
+// ======================================================================
 export async function peticaoAgendamento(caseId) {
   const dados = await carregar(caseId);
   const { c, perfil } = dados;
+  const pt = partes(c);
+  const ctx = { prev: pt.prev };
   const d = new Doc();
   d.enderecamento(enderecamentoTexto(c), linhasProcesso(c));
-  d.texto(`${qualificacaoCurta(perfil)}, perito nomeado nos autos em epígrafe${c.despachoRef ? `, em atenção a ${c.despachoRef}` : ''}, vem, respeitosamente, à presença de Vossa Excelência, informar a data da diligência pericial e requerer o que segue.`);
-  d.h1('1.', 'Da diligência pericial', { novaPagina: false });
-  d.texto(`A diligência pericial será realizada no dia **${ou(dataBR(c.dataDiligencia), 'data')}**, às **${ou(c.horaDiligencia, 'horário')}**, no seguinte local: **${ou([c.vistoriaLocal, c.vistoriaEndereco].filter(Boolean).join(', '), 'local e endereço')}**.`);
-  d.texto('Requer a intimação das partes e de seus assistentes técnicos, nos termos do art. 474 do CPC, e a expedição de ofício à empresa para franquear o acesso ao local e designar acompanhante que conheça as atividades.');
-  d.h1('2.', 'Dos documentos', { novaPagina: false });
-  d.texto('Requer seja a empresa intimada a disponibilizar ao perito, até a data da diligência, os seguintes documentos:');
-  const docsAg = documentosARequerer({ prev: partes(c).prev });
-  docsAg.forEach((t, i) => d.texto(`${String.fromCharCode(97 + i)}) ${t}${i < docsAg.length - 1 ? ';' : '.'}`));
-  d.add(p([run('Nestes termos,\npede deferimento.')], { first: 709, before: 240 }));
-  blocoAssinatura(d, dados, 'Perito do Juízo');
-  return finalizar(d, { titulo: 'Petição – agendamento da diligência', arquivo: 'Peticao_agendamento', c });
+  d.texto(introPerito(perfil, c, 'informar e requerer o que segue.'));
+
+  d.h1('1.', 'Do agendamento da vistoria pericial', { novaPagina: false });
+  const data = dataPorExtenso(c.dataDiligencia, { semana: true }) || '[[data da vistoria]]';
+  const hora = horaPorExtenso(c.horaDiligencia) || '[[horário]]';
+  d.texto(`Comunica-se que a vistoria pericial fica designada para o dia **${data}**, às **${hora}**, a ser realizada nas dependências da empresa:`);
+  const local = [v(c.vistoriaLocal).toUpperCase() || '[[EMPRESA]]', ...String(c.vistoriaEndereco || '[[endereço – cidade/UF – CEP]]').split(/\n|\s*;\s*/).filter(Boolean)];
+  local.forEach((l, i) => d.add(p([run(l, { b: i === 0 })], { left: 1418, after: i === local.length - 1 ? 200 : 0, align: 'left' })));
+  const periodos = listaPeriodos(dados.periodos);
+  const item = v(c.itensVistoria) ? `, conforme determinado ${/[e,]/.test(c.itensVistoria) ? 'nos itens' : 'no item'} ${c.itensVistoria} do referido despacho` : '';
+  d.texto(pt.prev
+    ? `A vistoria destina-se a examinar as condições de trabalho do autor${periodos ? ` nos períodos de ${periodos}` : ' [[nos períodos de ...]]'}${item}.`
+    : `A vistoria destina-se a examinar as condições de trabalho do ${pt.autorCurto.toLowerCase()}${c.dataAjuizamento && pt.trab ? ` no período imprescrito (a partir de ${menosCincoAnos(c.dataAjuizamento)})` : ''}${item}.`);
+
+  d.h1('2.', 'Dos requerimentos', { novaPagina: false });
+  d.texto('Diante do exposto, requer-se:');
+  d.texto(`a) a intimação das partes e de seus assistentes técnicos, caso indicados, para que, querendo, compareçam ao ato na data, horário e local acima;`);
+  d.texto(`b) a intimação do ${pt.autorCurto.toLowerCase()} para comparecimento pessoal, a fim de prestar informações sobre os setores, atividades, máquinas e rotina de trabalho ${pt.prev ? 'nos períodos em análise' : 'no período discutido'};`);
+  const empresa = v(c.vistoriaLocal) || '[[empresa]]';
+  d.texto(`c) a expedição de ofício à empresa ${empresa}${v(c.itemOficio) ? `, nos termos do item ${c.itemOficio} do despacho` : ''}, comunicando a data e o horário da vistoria e solicitando:`);
+  travessao(d, 'o acesso do perito, das partes e dos assistentes técnicos aos setores em que o ' + pt.autorCurto.toLowerCase() + ' laborou;');
+  travessao(d, 'a designação de representante com conhecimento do processo produtivo e, se possível, do profissional responsável pela segurança do trabalho;');
+  const agentes = v(c.agentesAlegados).replace(/\n+/g, ', ').replace(/;\s*/g, ', ');
+  const docs = ctx.prev
+    ? `PPP do autor; LTCAT, PPRA/PGR e demais laudos ambientais existentes; relatórios de avaliações quantitativas dos agentes ambientais${agentes ? `, em especial de ${agentes}` : ''}; fichas de entrega de EPI e respectivos Certificados de Aprovação (CA); registro de funções/setores e descrição de cargos do autor; e fichas com dados de segurança (FISPQ/FDS) dos produtos químicos utilizados`
+    : `PGR (e PPRA, para o período anterior a 2022), PCMSO e laudos de insalubridade e periculosidade; relatórios de avaliações quantitativas dos agentes ambientais${agentes ? `, em especial de ${agentes}` : ''}; fichas de entrega de EPI e respectivos Certificados de Aprovação (CA); ordens de serviço e descrição de cargo; e fichas com dados de segurança (FISPQ/FDS) dos produtos químicos utilizados`;
+  travessao(d, `a disponibilização, no dia do ato, dos documentos relativos ${ctx.prev ? 'aos períodos em análise' : 'ao período discutido'}: ${docs}.`);
+
+  if (v(c.prazoLaudoDias)) {
+    d.h1('3.', 'Do prazo para entrega do laudo', { novaPagina: false });
+    const n = Number(String(c.prazoLaudoDias).replace(/\D/g, ''));
+    d.texto(`Ressalta-se que o laudo pericial será entregue no prazo de ${n} (${numeroPorExtenso(n)}) dias após a realização da vistoria${v(c.itemPrazoLaudo) ? `, conforme item ${c.itemPrazoLaudo} do despacho` : ''}.`);
+  }
+  fecho(d, dados);
+  return finalizar(d, { titulo: 'Petição – agendamento de vistoria', arquivo: 'Peticao_agendamento_vistoria', c });
 }
 
-export async function peticaoHonorarios(caseId) {
+// ======================================================================
+// MAJORAÇÃO DE HONORÁRIOS (padrão: petições 5015376-66.2022 e 5002237-15.2026)
+// ======================================================================
+export async function peticaoMajoracao(caseId) {
   const dados = await carregar(caseId);
   const { c, perfil } = dados;
   const d = new Doc();
   d.enderecamento(enderecamentoTexto(c), linhasProcesso(c));
-  d.texto(`${qualificacaoCurta(perfil)}, nomeado perito nos autos em epígrafe${c.despachoRef ? ` (${c.despachoRef})` : ''}, vem, respeitosamente, à presença de Vossa Excelência, **aceitar o encargo** e apresentar **proposta de honorários periciais**, nos termos do art. 465, § 2º, do Código de Processo Civil.`);
+  d.texto(introPerito(perfil, c, 'requerer a majoração dos honorários periciais, pelos fundamentos a seguir expostos.'));
+  let n = 0;
+  const sec = (t) => { n += 1; d.h1(`${n}.`, t, { novaPagina: false }); };
+
+  const tabela = lerValor(c.honorariosTabela);
+  const fixados = lerValor(c.honorariosFixados);
+  const mult = Number(c.honorariosMultiplicador || 2);
+  const cjf = fundamentoCJF(c);
+  sec('Dos honorários fixados');
+  const vezesFix = isFinite(fixados) && isFinite(tabela) && tabela > 0 ? Math.round(fixados / tabela) : 1;
+  d.texto(`No ${v(c.honorariosItem) || '[[item]]'} do referido despacho, os honorários periciais foram fixados em ${isFinite(fixados) ? moeda(fixados) : '[[valor]]'}, ${vezesFix > 1 ? `correspondentes a ${vezesFix === 2 ? 'duas' : vezesFix} vezes o valor máximo` : 'valor máximo'} ${cjf ? 'previsto na Tabela II da Resolução nº 305/2014 do Conselho da Justiça Federal, com as alterações da Resolução CJF nº 937/2025' : 'previsto na tabela aplicável [[norma do tribunal]]'}.`);
+
+  const fora = c.foraDomicilio === 'Sim';
+  if (fora) {
+    sec('Do local de realização da perícia');
+    d.texto(`A perícia deverá ser realizada na empresa ${v(c.vistoriaLocal) || '[[empresa]]'}, situada na ${v(c.vistoriaEndereco) || '[[endereço e município]]'}, ou seja, fora do domicílio profissional deste perito, estabelecido em ${(perfil.cidade || 'Londrina – PR').replace(' – ', '/')}.`);
+    d.texto('O ato em outro município impõe ao perito deslocamento rodoviário de ida e volta, com custos de combustível e de uso de veículo próprio, além do tempo de viagem e do transporte dos equipamentos de medição. Esses custos não são ressarcidos de forma autônoma e recaem integralmente sobre os honorários.');
+  }
+
+  sec('Da complexidade do exame');
+  const motivos = [];
+  const per = dados.periodos.filter((r) => r.data.inicio);
+  const anos = anosSomados(per);
+  const lista = listaPeriodos(per);
+  if (c.similaridade === 'Sim') {
+    d.texto(`Trata-se${fora ? ', ainda,' : ''} de perícia por similaridade, em empresa paradigma que substitui a empregadora original${v(c.empresaOriginal) ? ` (${c.empresaOriginal})` : ''}${lista ? `, sobre ${per.length > 1 ? 'os períodos' : 'o período'} de ${lista}` : ''}. Isso exige reconstituir as condições de trabalho da época, verificar a equivalência entre ambientes e processos e analisar se as avaliações feitas no paradigma se aplicam ao caso.`);
+  } else if (per.length) {
+    d.texto(`A perícia${v(c.vistoriaLocal) ? `, a ser realizada em ${c.vistoriaLocal},` : ''} abrange ${per.length > 1 ? `${per.length} períodos de trabalho que somam mais de ${anos} anos` : `período de trabalho de mais de ${anos} anos`} (${lista}). Esse intervalo torna o exame mais complexo do que uma perícia comum, pelos seguintes motivos:`);
+    const maisAntigo = per.map((r) => r.data.inicio).sort()[0];
+    if (maisAntigo && new Date(maisAntigo) < new Date(Date.now() - 10 * 365.25 * 86400000)) {
+      motivos.push(`é preciso reconstituir as condições de trabalho de ${anos >= 20 ? 'mais de duas décadas' : 'longo período'}, considerando as alterações de leiaute, equipamentos, processos e medidas de controle ao longo do tempo`);
+    }
+  } else {
+    d.redigir('descrever a perícia e os motivos de complexidade.');
+  }
+  const qJuizo = dados.quesitos.filter((q) => q.data.origem === 'Juízo').length;
+  const agentesMed = [...new Set(dados.medicoes.map((m) => m.data.agente))];
+  const agentesTxt = agentesMed.length ? agentesMed.join(', ').toLowerCase() : v(c.agentesAlegados).replace(/\n+/g, ', ').toLowerCase();
+  if (qJuizo >= 3) motivos.push(`o Juízo formulou ${qJuizo} (${numeroPorExtenso(qJuizo)}) quesitos detalhados${agentesTxt ? `, que exigem avaliações de ${agentesTxt}` : ''}, além da análise da eficácia de EPI e EPC`);
+  const empresas = [...new Set(per.map((r) => v(r.data.empresa)).filter(Boolean))];
+  if (empresas.length > 1) motivos.push(`envolve ${numeroPorExtenso(empresas.length, { feminino: true })} empresas (${empresas.join('; ')}), com setores diversos e documentação ambiental própria de cada período`);
+  for (const l of String(c.complexidadeExtra || '').split('\n').map((x) => x.replace(/^[-•\d.)\s]+/, '').trim()).filter(Boolean)) motivos.push(l);
+  if (c.similaridade !== 'Sim') {
+    if (motivos.length) motivos.forEach((m, i) => d.texto(`${String.fromCharCode(97 + i)}) ${m}${i < motivos.length - 1 ? ';' : '.'}`));
+    else d.redigir('motivos de complexidade (cadastre em "Outros motivos de complexidade").');
+  } else if (motivos.length) {
+    motivos.forEach((m, i) => d.texto(`${String.fromCharCode(97 + i)}) ${m}${i < motivos.length - 1 ? ';' : '.'}`));
+  }
+
+  sec('Do fundamento para a majoração');
+  const criterios = [fora && 'o local de realização fora do domicílio do perito', 'a complexidade do exame'].filter(Boolean);
+  if (cjf) {
+    d.texto(`O art. 28 da Resolução CJF nº 305/2014, com a redação dada pela Resolução CJF nº 937/2025, autoriza o magistrado a fixar os honorários acima do limite máximo da tabela, em até 3 (três) vezes, considerando, entre outros critérios, a especialização do perito, a complexidade do exame e o local de sua realização. No caso, ${criterios.length > 1 ? `estão presentes ao mesmo tempo ${criterios.reverse().join(' e ')}, o que justifica a fixação ${mult === 3 ? 'no patamar máximo admitido pela norma' : 'acima do limite da tabela'}` : `verifica-se ${criterios[0]}`}.`);
+  } else {
+    d.redigir('fundamento normativo da tabela do tribunal (ex.: Resolução TJPR) e critérios presentes.');
+  }
+
+  sec('Do pedido');
+  const pedido = isFinite(tabela) ? mult * tabela : NaN;
+  d.texto(`Diante do exposto, requer-se a majoração dos honorários periciais para ${VEZES[mult] || mult} vezes o valor máximo da ${cjf ? 'Tabela II' : 'tabela'}, ou seja, ${isFinite(pedido) ? `${moeda(pedido)} (${reaisPorExtenso(pedido)}) (${mult} × ${moeda(tabela)})` : '[[valor]]'}${cjf ? ', nos termos do art. 28 da Resolução CJF nº 305/2014, com a redação da Resolução CJF nº 937/2025' : ''}.`);
+  if (!v(c.dataDiligencia)) d.texto(`A data e o horário da vistoria serão informados oportunamente${v(c.itensVistoria) ? `, para os fins ${/[e,]/.test(c.itensVistoria) ? 'dos itens' : 'do item'} ${c.itensVistoria} do despacho` : ''}.`);
+  fecho(d, dados);
+  return finalizar(d, { titulo: 'Petição – majoração de honorários', arquivo: 'Peticao_majoracao_honorarios', c });
+}
+
+// ======================================================================
+// ACEITE E PROPOSTA DE HONORÁRIOS (Justiça Estadual / Trabalho)
+// ======================================================================
+export async function peticaoHonorarios(caseId, { conta } = {}) {
+  const dados = await carregar(caseId);
+  const { c, perfil } = dados;
+  const d = new Doc();
+  d.enderecamento(enderecamentoTexto(c), linhasProcesso(c));
+  d.texto(introPerito(perfil, c, '**aceitar o encargo** e apresentar **proposta de honorários periciais**, nos termos do art. 465, § 2º, do Código de Processo Civil.'));
   d.h1('1.', 'Do aceite', { novaPagina: false });
   d.texto('O signatário declara aceitar o encargo e não possuir impedimento ou suspeição para atuar no feito (arts. 148, 156 e 467 do CPC).');
   d.h1('2.', 'Da proposta de honorários', { novaPagina: false });
@@ -547,12 +685,32 @@ export async function peticaoHonorarios(caseId) {
   d.quadro('Estimativa de horas técnicas', [['Etapa', 'Horas'], ['Análise dos autos e planejamento', '[[h]]'], ['Deslocamento', '[[h]]'],
     ['Diligência, vistoria e avaliações ambientais', '[[h]]'], ['Elaboração do laudo e respostas aos quesitos', '[[h]]'], ['Total', '[[h]]']],
   { larguras: [0.75, 0.25] });
-  d.texto('Propõe-se o valor de **[[R$ valor]]**, [[a ser depositado / conforme tabela do tribunal – ajustar à gratuidade da justiça]].');
+  const prop = lerValor(c.honorariosFixados);
+  d.texto(`Propõe-se o valor de **${isFinite(prop) ? `${moeda(prop)} (${reaisPorExtenso(prop)})` : '[[R$ valor]]'}**.`);
   d.h1('3.', 'Dos dados para pagamento', { novaPagina: false });
-  d.texto(perfil.dadosBancarios || '[[dados bancários]]');
-  d.add(p([run('Nestes termos,\npede deferimento.')], { first: 709, before: 240 }));
-  blocoAssinatura(d, dados, 'Perito do Juízo');
+  d.texto('Para o depósito ou a transferência dos honorários, indica-se a conta abaixo:');
+  d.add(p(dadosDaConta(perfil, conta), { left: 1418, align: 'left' }));
+  fecho(d, dados);
   return finalizar(d, { titulo: 'Petição – aceite e honorários', arquivo: 'Peticao_honorarios', c });
+}
+
+// ======================================================================
+// PEDIDO DE PAGAMENTO / LIBERAÇÃO DOS HONORÁRIOS
+// ======================================================================
+export async function peticaoPagamento(caseId, { conta } = {}) {
+  const dados = await carregar(caseId);
+  const { c, perfil } = dados;
+  const d = new Doc();
+  d.enderecamento(enderecamentoTexto(c), linhasProcesso(c));
+  d.texto(introPerito(perfil, c, 'requerer o pagamento dos honorários periciais, pelos fundamentos a seguir expostos.'));
+  d.h1('1.', 'Dos trabalhos periciais', { novaPagina: false });
+  d.texto(`A vistoria pericial foi realizada em ${dataBR(c.vistoriaData) || '[[data]]'} e o laudo pericial foi juntado aos autos em [[data – evento / mov.]], encerrando-se os trabalhos periciais.`);
+  d.h1('2.', 'Do pedido', { novaPagina: false });
+  const val = lerValor(c.honorariosFixados);
+  d.texto(`Diante do exposto, requer-se ${fundamentoCJF(c) ? 'a expedição da requisição de pagamento dos honorários periciais fixados' : 'a liberação dos honorários periciais depositados, mediante expedição de alvará ou transferência,'}${isFinite(val) ? ` no valor de ${moeda(val)} (${reaisPorExtenso(val)})` : ''}, com crédito na conta abaixo:`);
+  d.add(p(dadosDaConta(perfil, conta), { left: 1418, align: 'left' }));
+  fecho(d, dados);
+  return finalizar(d, { titulo: 'Petição – pagamento de honorários', arquivo: 'Peticao_pagamento_honorarios', c });
 }
 
 void ORIGEM_QUESITO;

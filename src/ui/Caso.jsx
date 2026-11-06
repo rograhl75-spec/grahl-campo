@@ -1,7 +1,7 @@
 import { db, softDelete } from '../db.js';
 import { avisarAlteracao } from '../sync.js';
 import {
-  TIPO_ATUACAO, JUSTICA, MATERIA, PAPEL, OBJETO, FASE, CAMPOS_PROCESSO, CAMPOS_PARTES, CAMPOS_PRAZOS, tituloCaso,
+  TIPO_ATUACAO, JUSTICA, MATERIA, PAPEL, OBJETO, FASE, CAMPOS_PROCESSO, CAMPOS_PARTES, CAMPOS_PRAZOS, CAMPOS_HONORARIOS, tituloCaso,
 } from '../schema.js';
 import { useLive, ir } from './hooks.js';
 import { siglaTipo, FASE_COR } from './Casos.jsx';
@@ -94,6 +94,13 @@ function Resumo({ rec }) {
         <h3>Datas e prazos</h3>
         <Campos rec={rec} campos={CAMPOS_PRAZOS} />
       </section>
+      {rec.data.papel === 'Perito do Juízo' && (
+        <section class="bloco">
+          <h3>Honorários e itens do despacho</h3>
+          <p class="dica">Usados nas petições de majoração de honorários e de agendamento da vistoria.</p>
+          <Campos rec={rec} campos={CAMPOS_HONORARIOS} />
+        </section>
+      )}
       <section class="bloco perigo-zona">
         <button type="button" class="perigo" onClick={excluir}>Mover caso para a lixeira</button>
       </section>

@@ -2,7 +2,10 @@ import { useState } from 'preact/hooks';
 import { CATALOGO } from '../docx/reports.js';
 import { exportarBackup, baixarArquivo, carimbo } from '../backup.js';
 import { OPCOES_REDACAO, exportarParaClaude } from '../aiimport.js';
-import { gravarTudoAgora } from './fields.jsx';
+import { gravarTudoAgora, salvar } from './fields.jsx';
+import { db } from '../db.js';
+import { PERFIL_ID, contasDoPerfil, PERFIL_PADRAO } from '../docx/base.js';
+import { useLive } from './hooks.js';
 
 const SUGESTAO_REDACAO = (c) => (c.papel === 'Perito do Juízo' ? 'laudo'
   : /Assistente/i.test(c.papel || '') ? 'parecerAT'
@@ -14,11 +17,15 @@ export function Documentos({ rec }) {
   const [verTodos, setVerTodos] = useState(false);
   const c = rec.data;
 
+  const perfil = useLive(async () => ({ ...PERFIL_PADRAO, ...((await db.records.get(PERFIL_ID)) || { data: {} }).data }), [], PERFIL_PADRAO);
+  const contas = contasDoPerfil(perfil);
+  const contaSel = c.contaBancaria || (contas[0] && contas[0].id) || '';
+
   const gerar = async (doc) => {
     gravarTudoAgora();
     setOcupado(doc.id); setMsg('');
     try {
-      const r = await doc.fn(rec.id);
+      const r = await doc.fn(rec.id, { conta: contaSel });
       baixarArquivo(r.blob, r.nome);
       setMsg(`✓ ${r.nome} gerado. Ao abrir no Word, confirme "Sim" para atualizar o sumário e as listas. Trechos em amarelo são para você completar.${r.faltando ? ` Atenção: ${r.faltando} foto(s) ainda não baixadas neste aparelho ficaram de fora.` : ''}`);
     } catch (e) {
@@ -46,14 +53,14 @@ export function Documentos({ rec }) {
         <section class="grupo-docs">
           <h3>{g}</h3>
           <div class="grade-docs">
-            {lista.map((d) => <CartaoDoc d={d} ocupado={ocupado} gerar={gerar} />)}
+            {lista.map((d) => <CartaoDoc d={d} ocupado={ocupado} gerar={gerar} contas={contas} contaSel={contaSel} recId={rec.id} />)}
           </div>
         </section>
       ))}
       {outros.length > 0 && (
         <section class="grupo-docs">
           <button type="button" class="sec" onClick={() => setVerTodos(!verTodos)}>{verTodos ? 'Ocultar' : 'Mostrar'} outros modelos ({outros.length})</button>
-          {verTodos && <div class="grade-docs">{outros.map((d) => <CartaoDoc d={d} ocupado={ocupado} gerar={gerar} />)}</div>}
+          {verTodos && <div class="grade-docs">{outros.map((d) => <CartaoDoc d={d} ocupado={ocupado} gerar={gerar} contas={contas} contaSel={contaSel} recId={rec.id} />)}</div>}
         </section>
       )}
       <LevarParaClaude rec={rec} />
@@ -69,11 +76,18 @@ export function Documentos({ rec }) {
   );
 }
 
-function CartaoDoc({ d, ocupado, gerar }) {
+function CartaoDoc({ d, ocupado, gerar, contas = [], contaSel, recId }) {
   return (
     <div class="bloco doc">
       <h4>{d.titulo}</h4>
       <p>{d.desc}</p>
+      {d.usaConta && (contas.length ? (
+        <label class="campo"><span class="rotulo">Conta para os honorários</span>
+          <select value={contaSel} onChange={(e) => salvar(recId, 'contaBancaria', e.currentTarget.value)}>
+            {contas.map((ct) => <option value={ct.id}>{ct.rotulo}</option>)}
+          </select>
+        </label>
+      ) : <p class="alerta-txt">Cadastre as contas em Configurações → Meus dados.</p>)}
       <button type="button" class="primario" disabled={!!ocupado} onClick={() => gerar(d)}>{ocupado === d.id ? 'Gerando…' : 'Gerar Word'}</button>
     </div>
   );

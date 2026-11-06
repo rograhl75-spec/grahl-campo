@@ -51,15 +51,33 @@ export const CONDICAO_CALOR = [
 
 // Campos do caso agrupados para as telas (chave, rótulo, tipo)
 export const CAMPOS_PROCESSO = [
+  ['classe', 'Classe (ex.: Procedimento Comum, Carta Precatória, Ação Trabalhista – Rito Ordinário)', 'text'],
   ['numero', 'Número do processo', 'text'],
-  ['juizo', 'Vara / Juízo', 'text'],
+  ['juizo', 'Vara / Juízo (como sai no endereçamento, ex.: "6ª Vara Federal de Londrina – Seção Judiciária do Paraná")', 'text'],
+  ['juizoDeprecante', 'Juízo deprecante (carta precatória)', 'text'],
   ['comarca', 'Comarca / Subseção', 'text'],
   ['dataAjuizamento', 'Data de ajuizamento', 'date'],
   ['valorCausa', 'Valor da causa', 'text'],
   ['rito', 'Rito', 'text'],
   ['peritoJuizo', 'Perito do Juízo (quando atuo como assistente)', 'text'],
   ['refLaudo', 'Laudo analisado (ID / mov. / fls.)', 'text'],
-  ['despachoRef', 'Despacho / ata de referência (ex.: "ata de audiência de 27/10/2026 (fls. 2704)")', 'text'],
+  ['despachoRef', 'Despacho de referência (ex.: "despacho do evento 56" ou "despacho/decisão de 28/09/2026")', 'text'],
+];
+
+// Honorários e itens do despacho (perito do juízo)
+export const CAMPOS_HONORARIOS = [
+  ['honorariosItem', 'Item do despacho que fixou os honorários (ex.: "item 1.2")', 'text'],
+  ['honorariosFixados', 'Valor fixado (R$)', 'text'],
+  ['honorariosTabela', 'Valor máximo da tabela (R$) – ex.: 362,00', 'text'],
+  ['honorariosMultiplicador', 'Majoração pedida (vezes o máximo da tabela)', 'select', ['2', '3']],
+  ['foraDomicilio', 'Perícia fora do meu domicílio profissional?', 'select', ['Sim', 'Não']],
+  ['similaridade', 'Perícia por similaridade (empresa paradigma)?', 'select', ['Sim', 'Não']],
+  ['empresaOriginal', 'Empregadora original (quando por similaridade)', 'text'],
+  ['complexidadeExtra', 'Outros motivos de complexidade (um por linha)', 'area'],
+  ['itensVistoria', 'Itens do despacho sobre vistoria e partes (ex.: "2 e 3")', 'text'],
+  ['itemOficio', 'Item do despacho sobre o ofício à empresa (ex.: "6")', 'text'],
+  ['prazoLaudoDias', 'Prazo para entrega do laudo após a vistoria (dias)', 'text'],
+  ['itemPrazoLaudo', 'Item do despacho sobre o prazo do laudo (ex.: "3")', 'text'],
 ];
 
 export const CAMPOS_PERFIL = [
@@ -73,7 +91,10 @@ export const CAMPOS_PERFIL = [
   ['telefone', 'Telefone', 'text'],
   ['email', 'E-mail', 'text'],
   ['cidade', 'Cidade (local da assinatura)', 'text'],
-  ['dadosBancarios', 'Dados bancários para honorários', 'area'],
+  ['conta1Rotulo', 'Conta 1 – nome curto (ex.: "Pessoa física – Banco do Brasil")', 'text'],
+  ['conta1', 'Conta 1 – dados (banco, agência, conta, titular, CPF/CNPJ, PIX)', 'area'],
+  ['conta2Rotulo', 'Conta 2 – nome curto (ex.: "Grahl Consultoria – Sicredi")', 'text'],
+  ['conta2', 'Conta 2 – dados (banco, agência, conta, titular, CPF/CNPJ, PIX)', 'area'],
 ];
 
 export const CAMPOS_PARTES = [

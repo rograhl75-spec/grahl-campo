@@ -152,11 +152,12 @@ export class Doc {
   // Endereçamento ao juízo (petições, laudos e pareceres judiciais)
   enderecamento(texto, linhasProcesso = []) {
     this.add(p([run(String(texto).toUpperCase(), { b: true })], { align: 'both', after: 480 }));
-    for (const [k, v] of linhasProcesso) if (!vazio(v)) this.add(p([run(`${k}: `, { b: true }), rich(v)], { align: 'left', after: 0 }));
+    for (const [k, v] of linhasProcesso) if (!vazio(v)) this.add(p([run(/nº$/.test(k) ? `${k} ` : `${k}: `, { b: true }), rich(v)], { align: 'left', after: 0 }));
     return this.add(p('', { after: 240 }));
   }
-  assinatura({ local = 'Londrina – PR', data = dataExtenso(), nome = 'ROGÉRIO GRAHL', linhas = [] } = {}) {
-    this.add(p([run(`${local}, ${data}.`)], { align: 'right', before: 240, after: 720, keepNext: true }));
+  assinatura({ local = 'Londrina – PR', data = dataExtenso(), nome = 'ROGÉRIO GRAHL', linhas = [], linha = false } = {}) {
+    this.add(p([run(`${local}, ${data}.`)], { align: 'right', before: 240, after: linha ? 480 : 720, keepNext: true }));
+    if (linha) this.add(p([run('_____________________________________')], { align: 'center', after: 0, keepNext: true }));
     this.add(p([run(nome, { b: true })], { align: 'center', after: 0, keepNext: true }));
     linhas.forEach((l, i) => this.add(p([run(l, { size: 11 })], { align: 'center', after: 0, keepNext: i < linhas.length - 1 })));
     return this;

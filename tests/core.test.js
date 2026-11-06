@@ -129,3 +129,20 @@ describe('separação trabalhista × previdenciário nas instruções', () => {
     expect(criteriosPara({ materia: 'Trabalhista' }, 'at-laudo')).toContain('NR-15, Anexo 1');
   });
 });
+
+import { reaisPorExtenso, lerValor, dataPorExtenso, horaPorExtenso } from '../src/docx/base.js';
+describe('valores e datas por extenso', () => {
+  it('reais', () => {
+    expect(reaisPorExtenso(724)).toBe('setecentos e vinte e quatro reais');
+    expect(reaisPorExtenso(1110)).toBe('mil cento e dez reais');
+    expect(reaisPorExtenso(1500)).toBe('mil e quinhentos reais');
+    expect(reaisPorExtenso(362)).toBe('trezentos e sessenta e dois reais');
+    expect(reaisPorExtenso(2000.5)).toBe('dois mil reais e cinquenta centavos');
+    expect(lerValor('R$ 1.110,00')).toBe(1110);
+  });
+  it('datas', () => {
+    expect(dataPorExtenso('2026-11-24', { semana: true })).toBe('24 de novembro de 2026 (terça-feira)');
+    expect(horaPorExtenso('15:30')).toBe('15h30');
+    expect(horaPorExtenso('09:00')).toBe('9h');
+  });
+});

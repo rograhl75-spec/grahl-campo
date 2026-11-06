@@ -1,7 +1,7 @@
 import { useState } from 'preact/hooks';
 import { db, createRecord, softDelete, updateFields } from '../db.js';
 import { avisarAlteracao } from '../sync.js';
-import { CAMPOS_POSTO, AGENTES_MEDICAO } from '../schema.js';
+import { CAMPOS_POSTO, AGENTES_MEDICAO, contextoLegal } from '../schema.js';
 import { CAMPOS_MEDICAO, CAMPOS_MEDICAO_COMUNS, calculados } from '../medicoes.js';
 import { lerGps } from '../photos.js';
 import { TF, Campos, salvar } from './fields.jsx';
@@ -86,7 +86,7 @@ export function Campo({ rec }) {
             {aberto === p.id && (
               <div class="item-corpo">
                 <Campos rec={p} campos={CAMPOS_POSTO} />
-                <Medicoes caseId={rec.id} postoId={p.id} />
+                <Medicoes caseId={rec.id} postoId={p.id} ctx={contextoLegal(rec.data)} />
                 <div class="campo">
                   <span class="rotulo">Fotos deste posto</span>
                   <BotoesFoto caseId={rec.id} postoId={p.id} />
@@ -101,7 +101,7 @@ export function Campo({ rec }) {
 
       <section class="bloco largo">
         <h3>Medições sem posto vinculado</h3>
-        <Medicoes caseId={rec.id} postoId="" />
+        <Medicoes caseId={rec.id} postoId="" ctx={contextoLegal(rec.data)} />
       </section>
 
       <section class="bloco largo">
@@ -132,7 +132,7 @@ function equipPadrao(equip, agente) {
   return e ? e.id : '';
 }
 
-function Medicoes({ caseId, postoId }) {
+function Medicoes({ caseId, postoId, ctx = {} }) {
   const lista = useLive(async () => (await db.records.where('[caseId+kind]').equals([caseId, 'medicao']).toArray())
     .filter((r) => !r.deleted && (r.data.postoId || '') === postoId).sort((a, b) => a.createdAt - b.createdAt), [caseId, postoId], []);
   const equip = useLive(async () => (await db.records.where('kind').equals('equip').toArray()).filter((e) => !e.deleted), [], []);
@@ -155,7 +155,7 @@ function Medicoes({ caseId, postoId }) {
   return (
     <div class="medicoes">
       {lista.map((m) => {
-        const calc = calculados(m);
+        const calc = calculados(m, ctx);
         const principal = m.data.lavg ? `Lavg ${m.data.lavg}` : m.data.aren ? `aren ${m.data.aren}` : m.data.tbn ? `tbn ${m.data.tbn} / tg ${m.data.tg || '?'}` : (m.data.valor || '');
         return (
           <div class={`item med ${aberta === m.id ? 'aberto' : ''}`} key={m.id}>

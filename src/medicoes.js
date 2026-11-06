@@ -57,13 +57,17 @@ export const CAMPOS_MEDICAO_COMUNS = [
   ['obs', 'Observações da medição', 'area'],
 ];
 
-// Valores calculados exibidos em campo
-export function calculados(m) {
+// Valores calculados exibidos em campo.
+// ctx.prev: true = previdenciário (NEN); false = trabalhista (dose / Lavg da NR-15);
+// indefinido = mostra os dois (tela de campo).
+export function calculados(m, ctx = {}) {
   const d = m.data || m;
   const out = [];
   if (d.agente === 'Ruído') {
     const nen = nenQ5(d.lavg, d.jornada);
-    if (isFinite(nen)) out.push(['NEN (q=5)', `${fmt(nen)} dB(A)`, 'NEN = Lavg + 16,61 × log(TE/480)']);
+    if (ctx.prev !== false && isFinite(nen)) out.push(['NEN (q=5) – previdenciário', `${fmt(nen)} dB(A)`, 'NEN = Lavg + 16,61 × log(TE/480)']);
+    const dose = num(d.dose);
+    if (ctx.prev !== true && isFinite(dose)) out.push(['Situação – NR-15, Anexo 1 (trabalhista)', `dose de ${fmt(dose)}% – ${dose > 100 ? 'acima' : 'dentro'} do limite de tolerância`, 'limite: dose de 100% (85 dB(A) para 8 h, q = 5)']);
     const ld = lavgDaDose(d.dose, d.tempoAmostragem);
     if (isFinite(ld)) out.push(['Lavg calculado pela dose', `${fmt(ld)} dB(A)`, 'Conferência: 85 + 16,61 × log(D / (100 × T/480))']);
     const ci = num(d.calibInicial), cf = num(d.calibFinal);
@@ -77,7 +81,7 @@ export function calculados(m) {
   return out;
 }
 
-export function resumoMedicao(m) {
+export function resumoMedicao(m, ctx = {}) {
   const d = m.data || m;
   const campos = CAMPOS_MEDICAO[d.agente] || CAMPOS_MEDICAO.Outro;
   const partes = [];
@@ -87,7 +91,7 @@ export function resumoMedicao(m) {
     partes.push(`${rot.replace(/\s*\(ex\.:[^)]*\)/, '')}: ${v}`);
     void tipo; void opcoes;
   }
-  for (const [rot, val] of calculados(m)) partes.push(`${rot}: ${val}`);
+  for (const [rot, val] of calculados(m, ctx)) partes.push(`${rot.replace(/ – previdenciário$/, '').replace(/ \(trabalhista\)$/, '')}: ${val}`);
   if (d.horaInicio && d.horaFim) partes.push(`Horário: ${d.horaInicio} às ${d.horaFim}`);
   else if (d.horaInicio) partes.push(`Início: ${d.horaInicio}`);
   return partes.join('; ');

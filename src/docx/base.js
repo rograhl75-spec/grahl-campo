@@ -1,7 +1,7 @@
 import { db, caseChildren } from '../db.js';
 import { resumoMedicao, calculados } from '../medicoes.js';
 import { nenQ5, num, fmt } from '../calc.js';
-import { ORIGEM_QUESITO } from '../schema.js';
+import { ORIGEM_QUESITO, contextoLegal } from '../schema.js';
 import { Doc, p, run, montarDocx } from './ooxml.js';
 
 export const PERFIL_ID = 'perfil';
@@ -49,12 +49,14 @@ export function credencial(perfil) {
 // Rótulos das partes conforme a matéria
 export function partes(c) {
   const trab = c.materia === 'Trabalhista' || c.justica === 'Justiça do Trabalho';
-  const prev = c.materia === 'Previdenciária' || c.materia === 'Acidentária';
+  // prev = finalidade de tempo especial (legislação previdenciária); acidentária só muda os rótulos
+  const prev = contextoLegal(c).prev === true;
+  const inss = prev || c.materia === 'Acidentária';
   return {
-    autor: trab ? 'Reclamante' : prev ? 'Autor(a) / Segurado(a)' : 'Requerente',
-    reu: trab ? 'Reclamada' : prev ? 'Réu' : 'Requerido(a)',
+    autor: trab ? 'Reclamante' : inss ? 'Autor(a) / Segurado(a)' : 'Requerente',
+    reu: trab ? 'Reclamada' : inss ? 'Réu' : 'Requerido(a)',
     autorCurto: trab ? 'Reclamante' : 'Autor(a)',
-    reuCurto: trab ? 'Reclamada' : prev ? 'INSS' : 'Requerido(a)',
+    reuCurto: trab ? 'Reclamada' : inss ? 'INSS' : 'Requerido(a)',
     trab, prev,
   };
 }
@@ -193,23 +195,71 @@ export function quadroConfrontoRuido(d, dados) {
 }
 
 // ---------- medições por agente ----------
-export function quadroMedicoesRuido(d, ms, eq, nomePosto) {
+export function quadroMedicoesRuido(d, ms, eq, nomePosto, ctx = {}) {
   if (!ms.length) return d;
-  return d.quadro('Resultados – Ruído', [['Posto / trabalhador', 'Amostragem', 'Dose', 'Lavg (q = 5)', 'Jornada', 'NEN (q = 5)'],
+  const e0 = ms[0] && eq.get(ms[0].data.equipamentoId);
+  const fonte = `Elaborado pelo autor. ${e0 ? `Dosímetro ${e0.data.modelo}, série ${e0.data.serie}; ` : ''}critério 85 dB(A), limiar 80 dB(A), q = 5, circuito A, resposta lenta.`;
+  if (ctx.prev) {
+    return d.quadro('Resultados – Ruído', [['Posto / trabalhador', 'Amostragem', 'Dose', 'Lavg (q = 5)', 'Jornada', 'NEN (q = 5)'],
+      ...ms.map((m) => {
+        const x = m.data;
+        const n = nenQ5(x.lavg, x.jornada);
+        return [[nomePosto(x.postoId), x.posicao].filter(Boolean).join(' – '), [x.tempoAmostragem, x.horaInicio && x.horaFim && `${x.horaInicio}–${x.horaFim}`].filter(Boolean).join(', '),
+          x.dose ? `${x.dose}%` : '', x.lavg ? `${x.lavg} dB(A)` : '', x.jornada || '', isFinite(n) ? `${fmt(n)} dB(A)` : ''];
+      })], { larguras: [0.28, 0.18, 0.1, 0.15, 0.12, 0.17], alinhar: 'left', tam: 9, fonte });
+  }
+  // trabalhista: NR-15, Anexo 1 – dose e nível médio; NEN não se aplica
+  return d.quadro('Resultados – Ruído (NR-15, Anexo 1)', [['Posto / trabalhador', 'Amostragem', 'Jornada', 'Dose', 'Lavg (q = 5)', 'Situação'],
     ...ms.map((m) => {
       const x = m.data;
-      const n = nenQ5(x.lavg, x.jornada);
+      const dose = num(x.dose);
       return [[nomePosto(x.postoId), x.posicao].filter(Boolean).join(' – '), [x.tempoAmostragem, x.horaInicio && x.horaFim && `${x.horaInicio}–${x.horaFim}`].filter(Boolean).join(', '),
-        x.dose ? `${x.dose}%` : '', x.lavg ? `${x.lavg} dB(A)` : '', x.jornada || '', isFinite(n) ? `${fmt(n)} dB(A)` : ''];
-    })], { larguras: [0.28, 0.18, 0.1, 0.15, 0.12, 0.17], alinhar: 'left', tam: 9,
-    fonte: `Elaborado pelo autor. ${ms[0] && eq.get(ms[0].data.equipamentoId) ? `Dosímetro ${eq.get(ms[0].data.equipamentoId).data.modelo}, série ${eq.get(ms[0].data.equipamentoId).data.serie}; ` : ''}critério 85 dB(A), limiar 80 dB(A), q = 5, circuito A, resposta lenta.` });
+        x.jornada || '', x.dose ? `${x.dose}%` : '', x.lavg ? `${x.lavg} dB(A)` : '', isFinite(dose) ? (dose > 100 ? 'Acima do LT' : 'Dentro do LT') : '[[conferir]]'];
+    })], { larguras: [0.27, 0.17, 0.12, 0.11, 0.15, 0.18], alinhar: 'left', tam: 9, fonte });
 }
 
-export function quadroMedicoesGenerico(d, titulo, ms, nomePosto) {
+export function quadroMedicoesGenerico(d, titulo, ms, nomePosto, ctx = {}) {
   if (!ms.length) return d;
   return d.quadro(titulo, [['Posto / atividade', 'Resultados'],
-    ...ms.map((m) => [nomePosto(m.data.postoId), [resumoMedicao(m), m.data.obs].filter(Boolean).join('\n')])],
+    ...ms.map((m) => [nomePosto(m.data.postoId), [resumoMedicao(m, ctx), m.data.obs].filter(Boolean).join('\n')])],
   { larguras: [0.3, 0.7], alinhar: 'left', tam: 9.5 });
+}
+
+// ---------- critérios por período (somente previdenciário) ----------
+export function quadroCriteriosCalor(d) {
+  return d.quadro('Critérios – Calor', [['Período', 'Critério e fundamento'],
+    ['Até 05/03/1997', 'Cód. 1.1.1 do Decreto 53.831/1964: operações em locais com temperatura excessivamente alta, proveniente de fontes artificiais; jornada normal em locais com TE acima de 28 °C'],
+    ['06/03/1997 a 10/12/2019', 'Cód. 2.0.4 dos Decretos 2.172/1997 e 3.048/1999: exposição ao calor acima dos limites de tolerância da NR-15, Anexo 3 (redação original – IBUTG e quadros de regime e taxa metabólica)'],
+    ['A partir de 11/12/2019', 'Cód. 2.0.4 do Decreto 3.048/1999, com os limites da NR-15, Anexo 3, na redação da Portaria SEPRT nº 1.359/2019 (NHO-06)'],
+  ], { larguras: [0.27, 0.73], fonte: 'Elaborado pelo autor. O Decreto 3.048/1999 prevalece sobre redação mais restritiva da IN INSS (hierarquia normativa).' });
+}
+
+export function quadroCriteriosVibracao(d) {
+  return d.quadro('Critérios – Vibração', [['Período', 'Critério e fundamento'],
+    ['Até 05/03/1997', 'Cód. 1.1.5 do Decreto 53.831/1964 (trepidação): operadores de perfuratrizes e marteletes pneumáticos e outros; máquinas a ar comprimido acima de 120 golpes por minuto'],
+    ['06/03/1997 a 12/08/2014', 'Cód. 2.0.2 dos Decretos 2.172/1997 e 3.048/1999: trabalhos com perfuratrizes e marteletes pneumáticos. Fora dessas atividades, apresentam-se as duas leituras, inclusive pela ISO (VCI: fronteira superior da zona de cautela da ISO 2631-1; VMB: 5 m/s², Diretiva 2002/44/CE)'],
+    ['A partir de 13/08/2014', 'Cód. 2.0.2 do Decreto 3.048/1999, com os limites da NR-15, Anexo 8 (Portaria MTE nº 1.297/2014), avaliados conforme as NHO-09 (VCI) e NHO-10 (VMB)'],
+  ], { larguras: [0.27, 0.73] });
+}
+
+// documentos a requerer conforme a finalidade
+export function documentosARequerer(ctx = {}) {
+  if (ctx.prev) {
+    return [
+      'PPP do(a) segurado(a) e LTCAT ou laudos ambientais contemporâneos a cada período (PPRA, PGR, PCMSO, laudos de insalubridade da época)',
+      'ficha de registro de empregado, descrição de cargo e ordens de serviço',
+      'avaliações quantitativas dos agentes ambientais, com metodologia, equipamentos e certificados de calibração',
+      'fichas de entrega de EPI com os números de CA e comprovantes de troca (para os períodos a partir de 03/12/1998)',
+      'Fichas com Dados de Segurança (FDS/FISPQ) dos produtos químicos utilizados',
+    ];
+  }
+  return [
+    'PPRA (até 2021) e PGR com inventário de riscos e plano de ação (a partir de 2022), PCMSO e laudo de insalubridade e periculosidade, abrangendo o período discutido',
+    'avaliações quantitativas dos agentes ambientais, com metodologia, equipamentos e certificados de calibração',
+    'fichas de entrega de EPI com os números de CA, comprovantes de troca e registros de treinamento (NR-6)',
+    'descrição de cargo, ordens de serviço (NR-1) e relação dos empregados do setor',
+    'Fichas com Dados de Segurança (FDS/FISPQ) dos produtos químicos utilizados',
+  ];
 }
 
 export function medicoesPorAgente(dados) {

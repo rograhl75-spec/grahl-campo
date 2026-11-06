@@ -202,3 +202,11 @@ export const NOVO_CASO = {
   objeto: [],
   fase: 'A preparar',
 };
+
+// Finalidade do caso: decide qual legislação os documentos e as instruções usam.
+// true = previdenciário (tempo especial); false = trabalhista / servidor; undefined = outro.
+export function contextoLegal(c = {}) {
+  if (c.tipoAtuacao === 'Extrajudicial' || c.materia === 'Previdenciária') return { prev: true };
+  if (c.materia === 'Trabalhista' || c.materia === 'Administrativa (servidor)' || c.justica === 'Justiça do Trabalho' || /Fazenda/i.test(c.justica || '')) return { prev: false };
+  return {};
+}

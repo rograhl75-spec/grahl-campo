@@ -108,3 +108,24 @@ describe('organizar nomes importados', () => {
     expect(sugerirLimpeza({ autorNome: 'Fulano', reuNome: 'Empresa Ltda' })).toBe(null);
   });
 });
+
+import { montarPrompt, criteriosPara } from '../src/aiimport.js';
+describe('separação trabalhista × previdenciário nas instruções', () => {
+  it('trabalhista não leva critérios previdenciários', () => {
+    const t = montarPrompt('perito-trab', { materia: 'Trabalhista' });
+    expect(t).toContain('NR-15, Anexo 1');
+    expect(t).not.toContain('NEN > 85');
+    expect(t).not.toContain('cód. 3.0.1');
+    expect(t).not.toContain('GFIP');
+  });
+  it('previdenciário não leva critérios trabalhistas', () => {
+    const t = montarPrompt('perito-prev', { materia: 'Previdenciária' });
+    expect(t).toContain('NEN > 85');
+    expect(t).not.toContain('Brief & Scala');
+    expect(t).not.toContain('área de isolamento');
+  });
+  it('assistente técnico segue a matéria do caso', () => {
+    expect(criteriosPara({ materia: 'Previdenciária', papel: 'Assistente técnico do autor / reclamante' }, 'at-laudo')).toContain('tempus regit actum');
+    expect(criteriosPara({ materia: 'Trabalhista' }, 'at-laudo')).toContain('NR-15, Anexo 1');
+  });
+});

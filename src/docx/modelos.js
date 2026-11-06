@@ -9,6 +9,7 @@ import {
   qualificacaoCurta, qualificacaoCompleta, blocoAssinatura, credencial, equipamentosUsados, quadroEquipamentos, quadroDiligencia,
   quadroPeriodos, quadroEpis, quadroDocumentos, quadroCriteriosRuido, quadroConfrontoRuido, quadroMedicoesRuido,
   quadroMedicoesGenerico, medicoesPorAgente, nomePostoFn, profissiografia, figurasDoCaso, respostasQuesitos, capaTecnica,
+  quadroCriteriosCalor, quadroCriteriosVibracao, documentosARequerer,
 } from './base.js';
 import { p, run } from './ooxml.js';
 
@@ -16,8 +17,56 @@ const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 
 function eqMap(dados) { return new Map(dados.equipamentos.map((e) => [e.id, e])); }
 
-// Seção de avaliação: um subtítulo por agente medido + os agentes alegados sem medição
+// Avaliação dos agentes. Cada finalidade usa só a sua legislação:
+// - trabalhista: NR-15 / NR-16 na redação vigente em cada período;
+// - previdenciária: Decretos 53.831/1964, 2.172/1997 e 3.048/1999 e IN 128/2022,
+//   com a NR-15 apenas como referência técnica dos limites, quando o decreto a ela remete.
 function avaliacaoAgentes(d, dados, base, { previdenciario }) {
+  return previdenciario ? avaliacaoPrevidenciaria(d, dados, base) : avaliacaoTrabalhista(d, dados, base);
+}
+
+function avaliacaoTrabalhista(d, dados, base) {
+  const ctx = { prev: false };
+  const g = medicoesPorAgente(dados);
+  const nome = nomePostoFn(dados.postos);
+  const eq = eqMap(dados);
+  let n = 0;
+  const sub = (t) => { n += 1; d.h2(`${base}.${n}`, t); };
+  if (g['Ruído']) {
+    sub('Ruído contínuo ou intermitente (NR-15, Anexo 1)');
+    d.texto('Limite de tolerância de 85 dB(A) para jornada de 8 horas, com incremento de duplicação de dose q = 5 (NR-15, Anexo 1). A insalubridade caracteriza-se quando a dose diária supera 100%.');
+    quadroMedicoesRuido(d, g['Ruído'], eq, nome, ctx);
+    d.redigir('análise do ruído e da neutralização pelo protetor auricular (item 15.4.1, "b", da NR-15: CA válido, NRRsf, fichas de entrega, periodicidade de troca, treinamento).');
+  }
+  if (g['Calor (IBUTG)']) {
+    sub('Calor (NR-15, Anexo 3)');
+    d.texto('Até 10/12/2019 aplica-se o Anexo 3 na redação original (IBUTG, quadros de regime de trabalho e de taxa metabólica; entre linhas do quadro, usa-se a linha imediatamente superior, sem interpolar). A partir de 11/12/2019, a redação da Portaria SEPRT nº 1.359/2019, com avaliação conforme a NHO-06 e IBUTG ajustado pela vestimenta; a exposição ao calor a céu aberto sem fonte artificial não caracteriza insalubridade nessa redação.');
+    quadroMedicoesGenerico(d, 'Resultados – Calor', g['Calor (IBUTG)'], nome, ctx);
+    d.redigir('taxa metabólica, regime de trabalho e descanso, limite aplicável ao período e conclusão.');
+  }
+  for (const k of ['Vibração de corpo inteiro (VCI)', 'Vibração de mãos e braços (VMB)']) {
+    if (!g[k]) continue;
+    sub(`${k} (NR-15, Anexo 8)`);
+    d.texto('A partir de 13/08/2014, NR-15, Anexo 8, na redação da Portaria MTE nº 1.297/2014, com avaliação conforme as NHO-09 (VCI) e NHO-10 (VMB). Antes dessa data, o Anexo 8 na redação original remetia às normas ISO 2631 e ISO/DIS 5349.');
+    quadroMedicoesGenerico(d, `Resultados – ${k}`, g[k], nome, ctx);
+    d.redigir('aren e VDVR normalizados para a jornada e conclusão.');
+  }
+  for (const k of ['Agente químico', 'Outro']) {
+    if (!g[k]) continue;
+    sub(k === 'Outro' ? 'Outros agentes avaliados' : 'Agentes químicos (NR-15, Anexos 11, 12 ou 13)');
+    quadroMedicoesGenerico(d, k === 'Outro' ? 'Outros registros' : 'Resultados – Agentes químicos', g[k], nome, ctx);
+    d.redigir('enquadramento no anexo aplicável (Anexo 11 quantitativo – jornada > 48 h: correção do limite por Brief & Scala; Anexo 13 qualitativo; álcali cáustico: referência pH 11,5).');
+  }
+  if (v(dados.c.agentesAlegados)) {
+    sub(n ? 'Demais agentes alegados' : 'Agentes alegados');
+    d.texto(`Agentes indicados nos autos: ${dados.c.agentesAlegados.replace(/\n+/g, '; ')}`);
+    d.redigir('avaliação de cada agente no anexo correspondente da NR-15 (insalubridade) ou da NR-16 (periculosidade, anexos em algarismos romanos), na redação vigente no período.');
+  }
+  if (!n) d.redigir('avaliação dos agentes (cadastre as medições na aba Campo).');
+}
+
+function avaliacaoPrevidenciaria(d, dados, base) {
+  const ctx = { prev: true };
   const g = medicoesPorAgente(dados);
   const nome = nomePostoFn(dados.postos);
   const eq = eqMap(dados);
@@ -25,53 +74,46 @@ function avaliacaoAgentes(d, dados, base, { previdenciario }) {
   const sub = (t) => { n += 1; d.h2(`${base}.${n}`, t); };
   if (g['Ruído']) {
     sub('Ruído');
-    if (previdenciario) quadroCriteriosRuido(d);
-    else d.texto('Limite de tolerância de 85 dB(A) para 8 horas, com incremento de duplicação de dose q = 5 (NR-15, Anexo 1).');
-    quadroMedicoesRuido(d, g['Ruído'], eq, nome);
-    if (previdenciario) quadroConfrontoRuido(d, dados);
-    d.redigir(previdenciario ? 'análise do ruído por período (fonte, habitualidade e permanência; EPI não descaracteriza – STF, Tema 555).' : 'análise do ruído e da neutralização pelo protetor auricular (CA, NRRsf, fichas de entrega).');
+    quadroCriteriosRuido(d);
+    quadroMedicoesRuido(d, g['Ruído'], eq, nome, ctx);
+    quadroConfrontoRuido(d, dados);
+    d.redigir('fonte, habitualidade e permanência por período; o EPI não descaracteriza o ruído (STF, Tema 555).');
   }
   if (g['Calor (IBUTG)']) {
     sub('Calor');
-    d.texto(previdenciario
-      ? 'Enquadramento pelo cód. 2.0.4 do Anexo IV do Decreto 3.048/1999, que prevalece sobre a redação mais restritiva da IN INSS (hierarquia normativa). O IBUTG medido é ajustado pela vestimenta (NHO-06) e comparado com o limite.'
-      : 'Avaliação conforme a NR-15, Anexo 3, e a NHO-06; IBUTG ajustado pela vestimenta e comparado com o limite para a taxa metabólica (linha imediatamente superior do quadro, sem interpolar).');
-    quadroMedicoesGenerico(d, 'Resultados – Calor', g['Calor (IBUTG)'], nome);
-    d.redigir('taxa metabólica, regime de trabalho e conclusão.');
+    quadroCriteriosCalor(d);
+    quadroMedicoesGenerico(d, 'Resultados – Calor', g['Calor (IBUTG)'], nome, ctx);
+    d.redigir('fonte de calor, taxa metabólica e limite aplicável a cada período.');
   }
-  for (const k of ['Vibração de corpo inteiro (VCI)', 'Vibração de mãos e braços (VMB)']) {
-    if (!g[k]) continue;
-    sub(k);
-    d.texto(previdenciario
-      ? 'Até 13/08/2014 apresentam-se as duas leituras, inclusive pela norma ISO (VCI: fronteira superior da zona de cautela da ISO 2631-1; VMB: 5 m/s², Diretiva 2002/44/CE); a partir de 13/08/2014, NR-15, Anexo 8, com as NHO-09 e NHO-10.'
-      : 'Avaliação conforme a NR-15, Anexo 8, e as NHO-09 (VCI) e NHO-10 (VMB).');
-    quadroMedicoesGenerico(d, `Resultados – ${k}`, g[k], nome);
-    d.redigir('aren e VDVR normalizados para a jornada e conclusão.');
+  const vib = ['Vibração de corpo inteiro (VCI)', 'Vibração de mãos e braços (VMB)'].filter((k) => g[k]);
+  if (vib.length) {
+    sub('Vibração');
+    quadroCriteriosVibracao(d);
+    for (const k of vib) quadroMedicoesGenerico(d, `Resultados – ${k}`, g[k], nome, ctx);
+    d.redigir('aren e VDVR normalizados para a jornada; leitura pelo critério de cada período.');
   }
   for (const k of ['Agente químico', 'Outro']) {
     if (!g[k]) continue;
     sub(k === 'Outro' ? 'Outros agentes avaliados' : 'Agentes químicos');
-    quadroMedicoesGenerico(d, k === 'Outro' ? 'Outros registros' : 'Resultados – Agentes químicos', g[k], nome);
-    d.redigir(previdenciario ? 'enquadramento (óleos minerais: somente cód. 1.0.17; avaliação qualitativa quando não há limite).' : 'enquadramento no anexo da NR-15 aplicável (jornada > 48 h: correção do limite por Brief & Scala).');
+    quadroMedicoesGenerico(d, k === 'Outro' ? 'Outros registros' : 'Resultados – Agentes químicos', g[k], nome, ctx);
+    d.redigir('enquadramento no Anexo IV do Decreto 3.048/1999 (até 05/03/1997, Decreto 53.831/1964); óleos minerais: somente cód. 1.0.17; avaliação qualitativa quando a nocividade decorre da simples exposição (art. 287 da IN 128/2022).');
   }
   if (v(dados.c.agentesAlegados)) {
     sub(n ? 'Demais agentes alegados' : 'Agentes alegados');
-    d.texto(`Agentes indicados nos autos: ${dados.c.agentesAlegados.replace(/\n+/g, '; ')}`);
-    d.redigir(previdenciario
-      ? 'avaliação de cada agente alegado. Biológicos: somente o rol de atividades do cód. 3.0.1 do Anexo IV (não usar o Anexo 14 da NR-15).'
-      : 'avaliação de cada agente alegado no anexo correspondente da NR-15 / NR-16.');
+    d.texto(`Agentes indicados: ${dados.c.agentesAlegados.replace(/\n+/g, '; ')}`);
+    d.redigir('avaliação de cada agente pelo decreto vigente no período. Biológicos: somente o rol de atividades do cód. 3.0.1 do Anexo IV (não se usa o Anexo 14 da NR-15).');
   }
   if (!n) d.redigir('avaliação dos agentes (cadastre as medições na aba Campo).');
 }
 
 // ======================================================================
-// LAUDO PERICIAL (perito do juízo) – trabalhista, Fazenda Pública, cível
+// LAUDO PERICIAL TRABALHISTA (perito do juízo) – Justiça do Trabalho,
+// Fazenda Pública (servidor) e cível: NR-15 / NR-16, CLT art. 189-195
 // ======================================================================
 export async function laudoPericial(caseId) {
   const dados = await carregar(caseId);
   const { c, perfil } = dados;
   const pt = partes(c);
-  const prev = pt.prev;
   const d = new Doc();
   d.enderecamento(enderecamentoTexto(c), linhasProcesso(c));
   d.texto(`${qualificacaoCurta(perfil)}, perito nomeado e compromissado nos autos do processo em epígrafe, tendo realizado as vistorias, os levantamentos técnicos e as diligências necessárias, vem, respeitosamente, à presença de Vossa Excelência, apresentar o presente **LAUDO TÉCNICO PERICIAL**, consubstanciado nas informações e análises a seguir expostas.`);
@@ -90,9 +132,9 @@ export async function laudoPericial(caseId) {
   d.h2('2.1', 'Determinação judicial (objeto da perícia)');
   d.redigir('transcrever ou resumir o despacho que determinou a perícia (ID / mov.).');
   d.h2('2.2', 'Objetivo técnico');
-  d.texto(`Em atendimento à determinação judicial, o presente laudo tem por objetivo apurar as reais condições do ambiente e das atividades laborais desenvolvidas pela parte ${pt.autorCurto.toLowerCase()}, para a caracterização ou descaracterização de ${(c.objeto || []).join(', ').toLowerCase() || '[[objeto]]'}.`);
+  d.texto(`Em atendimento à determinação judicial, o presente laudo tem por objetivo apurar as reais condições do ambiente e das atividades laborais desenvolvidas pela parte ${pt.autorCurto.toLowerCase()}, para a caracterização ou descaracterização de ${(c.objeto || []).join(', ').toLowerCase() || '[[objeto]]'}, nos termos dos arts. 189 a 195 da CLT e das NR-15 e NR-16, na redação vigente em cada período${pt.trab && c.dataAjuizamento ? ` do período imprescrito (a partir de ${menosCincoAnos(c.dataAjuizamento)})` : ''}.`);
   d.h2('2.3', 'Metodologia');
-  d.texto('Em atendimento ao art. 473, inciso III, do Código de Processo Civil, a metodologia consistiu em análise dos autos, inspeção *in loco*, entrevista com as partes e avaliações ambientais, quando cabíveis, conforme as Normas Regulamentadoras e as Normas de Higiene Ocupacional da FUNDACENTRO.');
+  d.texto('Em atendimento ao art. 473, inciso III, do Código de Processo Civil, a metodologia consistiu em análise dos autos, inspeção *in loco*, entrevista com as partes e avaliações ambientais, quando cabíveis, conforme a NR-15, a NR-16 e as Normas de Higiene Ocupacional da FUNDACENTRO.');
   d.texto('A conclusão deste laudo fundamenta-se exclusivamente na norma técnica. Eventuais entendimentos jurisprudenciais aplicáveis são registrados para apreciação do Juízo.');
 
   d.h1('3', 'Descrição do ambiente e das atividades laborais');
@@ -109,13 +151,13 @@ export async function laudoPericial(caseId) {
   quadroEpis(d, dados.epis);
   if (c.analiseEpi) d.texto(c.analiseEpi);
   d.h2('4.3', 'Conclusão técnica quanto à neutralização');
-  d.redigir('neutralização ou não (CA válido, periodicidade de troca, treinamento, uso efetivo).');
+  d.redigir('neutralização ou não (item 15.4.1 da NR-15 e NR-6: CA válido, periodicidade de troca, treinamento, uso efetivo).');
 
-  d.h1('5', prev ? 'Avaliação técnica dos agentes' : 'Avaliação técnica dos agentes (NR-15 e NR-16)');
-  avaliacaoAgentes(d, dados, '5', { previdenciario: prev });
+  d.h1('5', 'Avaliação técnica dos agentes (NR-15 e NR-16)');
+  avaliacaoAgentes(d, dados, '5', { previdenciario: false });
 
   d.h1('6', 'Conclusão pericial');
-  d.redigir(`conclusão por agente e por período${pt.trab ? ' (grau de insalubridade e/ou periculosidade)' : ''}.`);
+  d.redigir('conclusão por agente e por período (grau de insalubridade e/ou periculosidade).');
 
   d.h1('7', 'Respostas aos quesitos');
   d.texto('Em atendimento ao art. 473, inciso IV, do Código de Processo Civil, passa-se a responder aos quesitos formulados, com remissão às análises do corpo deste laudo.');
@@ -128,6 +170,84 @@ export async function laudoPericial(caseId) {
   const { lista, faltando } = await figurasDoCaso(dados);
   if (lista.length) { d.h1('', 'Anexo I – Relatório fotográfico da diligência'); d.figuras(lista); }
   const r = await finalizar(d, { titulo: 'Laudo técnico pericial', arquivo: 'Laudo_pericial', c });
+  return { ...r, faltando };
+}
+
+// ======================================================================
+// LAUDO PERICIAL PREVIDENCIÁRIO (perito do juízo) – tempo especial:
+// Lei 8.213/1991, Decretos 53.831/1964, 2.172/1997 e 3.048/1999, IN 128/2022
+// ======================================================================
+export async function laudoPrevidenciario(caseId) {
+  const dados = await carregar(caseId);
+  const { c, perfil } = dados;
+  const pt = partes(c);
+  const d = new Doc();
+  d.enderecamento(enderecamentoTexto(c), linhasProcesso(c));
+  d.texto(`${qualificacaoCurta(perfil)}, perito nomeado e compromissado nos autos do processo em epígrafe, tendo realizado as vistorias, os levantamentos técnicos e as diligências necessárias, vem, respeitosamente, à presença de Vossa Excelência, apresentar o presente **LAUDO TÉCNICO PERICIAL**, destinado à verificação das condições especiais de trabalho para fins previdenciários.`);
+  d.sumario();
+
+  d.h1('1', 'Identificação e dados da diligência pericial');
+  d.h2('1.1', 'Dados do processo');
+  d.identificacao([['Processo', c.numero], ['Juízo', [c.juizo, c.comarca].filter(Boolean).join(' – ')], [pt.autor, c.autorNome], ['CPF / NIT', c.autorCpf], [pt.reu, c.reuNome],
+    ['Objeto', (c.objeto || []).join(', ')]]);
+  d.h2('1.2', 'Períodos controvertidos');
+  quadroPeriodos(d, dados.periodos, 'Vínculos e períodos controvertidos');
+  d.h2('1.3', 'Data, hora e local da vistoria');
+  quadroDiligencia(d, c);
+  d.h2('1.4', 'Instrumentos utilizados');
+  quadroEquipamentos(d, equipamentosUsados(dados));
+
+  d.h1('2', 'Objeto e metodologia');
+  d.h2('2.1', 'Determinação judicial (objeto da perícia)');
+  d.redigir('transcrever ou resumir o despacho que determinou a perícia (evento / mov.).');
+  d.h2('2.2', 'Metodologia');
+  d.texto('Em atendimento ao art. 473, inciso III, do Código de Processo Civil, a metodologia consistiu em análise dos autos, inspeção *in loco* e avaliações ambientais, seguindo as NHO da FUNDACENTRO e os limites de tolerância do Anexo IV do Regulamento da Previdência Social ou, na sua falta, da NR-15, quando o decreto a ela remete (art. 288 da IN 128/2022). [[Perícia direta / indireta por similaridade – ajustar.]]');
+  d.texto('A conclusão fundamenta-se exclusivamente na norma técnica; entendimentos jurisprudenciais são registrados para apreciação do Juízo.');
+
+  d.h1('3', 'Fundamentação por período');
+  d.texto('O enquadramento observa a legislação vigente à época da prestação do serviço (*tempus regit actum*).');
+  d.quadro('Forma de enquadramento, prova e medidas de controle', [['Período', 'Enquadramento', 'Documentos', 'Permanência', 'EPC / EPI'],
+    ['Até 28/04/1995', 'Categoria profissional ou agente nocivo', 'Formulário; laudo para ruído', 'Não exigida para categoria', 'Não considerados'],
+    ['29/04/1995 a 13/10/1996', 'Agente nocivo', 'Formulário; laudo para ruído', 'Exigida', 'Não considerados'],
+    ['14/10/1996 a 02/12/1998', 'Agente nocivo', 'Formulário com base em LTCAT', 'Exigida', 'EPC informado; EPI não considerado'],
+    ['03/12/1998 a 31/12/2003', 'Agente nocivo', 'Formulário com base em LTCAT ou PPP', 'Exigida', 'EPC e EPI considerados'],
+    ['A partir de 01/01/2004', 'Agente nocivo', 'PPP com base em LTCAT', 'Exigida', 'EPC e EPI considerados; NHO obrigatórias']],
+  { larguras: [0.2, 0.18, 0.24, 0.14, 0.24], tam: 9, fonte: 'Elaborado pelo autor com base em Brasil (2022, arts. 274, 285, 286, 289 e 291).' });
+
+  d.h1('4', 'Ambiente de trabalho e profissiografia');
+  d.texto(c.funcoes || '');
+  dados.periodos.forEach((r, i) => {
+    d.h2(`4.${i + 1}`, `${r.data.empresa || 'Empresa'} – ${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`);
+    d.texto(r.data.atividades || '[[atividades do período]]');
+  });
+  profissiografia(d, dados.postos);
+
+  d.h1('5', 'Avaliação dos agentes nocivos');
+  avaliacaoAgentes(d, dados, '5', { previdenciario: true });
+
+  d.h1('6', 'Medidas de controle');
+  d.texto('Considera-se o EPC que elimina ou neutraliza a nocividade (art. 290 da IN 128/2022). O EPI só é considerado a partir de 03/12/1998 e quando atendidos, cumulativamente, os requisitos do art. 291. Para ruído, o EPI não descaracteriza a especialidade (STF, Tema 555).');
+  quadroEpis(d, dados.epis);
+  d.redigir('análise dos requisitos do art. 291 por período.');
+
+  d.h1('7', 'Conclusão');
+  if (dados.periodos.length) {
+    d.quadro('Conclusão por período', [['Período', 'Agente(s)', 'Código', 'Caracteriza'],
+      ...dados.periodos.map((r) => [`${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`, r.data.agentes || '[[agentes]]', '[[cód.]]', '[[S/N]]'])],
+    { larguras: [0.26, 0.38, 0.18, 0.18] });
+  }
+  d.redigir('conclusão por período: exposição habitual e permanente, não ocasional nem intermitente, a agentes nocivos – caracteriza / não caracteriza.');
+
+  d.h1('8', 'Respostas aos quesitos');
+  d.texto('Em atendimento ao art. 473, inciso IV, do Código de Processo Civil, passa-se a responder aos quesitos formulados, com remissão às análises do corpo deste laudo.');
+  respostasQuesitos(d, dados.quesitos, '8', c);
+
+  d.h1('9', 'Encerramento e anexos');
+  d.texto('Nada mais havendo a relatar no âmbito da Engenharia de Segurança do Trabalho, este Perito dá por encerrados os trabalhos periciais, colocando-se à disposição do Juízo e das partes para os esclarecimentos que se fizerem necessários.');
+  blocoAssinatura(d, dados, 'Perito do Juízo');
+  const { lista, faltando } = await figurasDoCaso(dados);
+  if (lista.length) { d.h1('', 'Anexo I – Relatório fotográfico da diligência'); d.figuras(lista); }
+  const r = await finalizar(d, { titulo: 'Laudo técnico pericial previdenciário', arquivo: 'Laudo_pericial_previdenciario', c });
   return { ...r, faltando };
 }
 
@@ -246,9 +366,8 @@ export async function parecerPrevidenciario(caseId) {
   quadroPeriodos(d, dados.periodos, 'Vínculos avaliados');
   d.h1('4', 'Fundamentação legal e jurisprudencial');
   d.h2('4.1', 'Enquadramento por período (tempus regit actum)');
-  d.redigir('enquadramento por categoria até 28/04/1995 e por agente depois.');
-  d.h2('4.2', 'Ruído');
-  quadroCriteriosRuido(d);
+  d.texto('O enquadramento observa a legislação previdenciária vigente à época da prestação do serviço: por categoria profissional até 28/04/1995 e por exposição a agentes nocivos a partir de 29/04/1995. Os critérios de cada agente, por período, constam do item 7.');
+  d.redigir('ajustes específicos do caso (categoria do segurado, EC 103/2019).');
   d.h1('5', 'Metodologia');
   d.redigir('etapas; avaliação por similaridade (quando aplicável); normalização pela jornada efetiva; instrumentação.');
   quadroEquipamentos(d, equipamentosUsados(dados));
@@ -308,7 +427,7 @@ export async function parecerAssistente(caseId) {
   profissiografia(d, dados.postos);
   const g = medicoesPorAgente(dados);
   const nome = nomePostoFn(dados.postos);
-  if (g['Ruído']) quadroMedicoesRuido(d, g['Ruído'], eqMap(dados), nome);
+  if (g['Ruído']) quadroMedicoesRuido(d, g['Ruído'], eqMap(dados), nome, { prev: pt.prev });
   d.h1(String(n + 2), 'Quesitos de esclarecimento');
   d.texto('Com base no exposto, requer-se que o Sr. Perito responda, de forma fundamentada, aos seguintes quesitos de esclarecimento:');
   const compl = dados.quesitos.filter((q) => q.data.origem === 'Complementares');
@@ -365,13 +484,6 @@ export async function parecerPreventivo(caseId) {
 // ======================================================================
 // PETIÇÕES
 // ======================================================================
-const DOCS_PADRAO = [
-  'PPRA (até 2021) e PGR com inventário de riscos e plano de ação (a partir de 2022), LTCAT e PCMSO, abrangendo todo o período discutido',
-  'avaliações quantitativas dos agentes ambientais, com metodologia, equipamentos e certificados de calibração',
-  'fichas de entrega de EPI com os números de CA, comprovantes de troca e registros de treinamento',
-  'PPP do(a) trabalhador(a) e descrição de cargo / ordens de serviço',
-  'Fichas com Dados de Segurança (FDS/FISPQ) dos produtos químicos utilizados',
-];
 
 export async function peticaoIndicacaoAT(caseId) {
   const dados = await carregar(caseId);
@@ -388,7 +500,7 @@ export async function peticaoIndicacaoAT(caseId) {
   d.texto('No desempenho da função, o assistente técnico poderá valer-se dos meios previstos no art. 473, § 3º, do CPC, inclusive registro fotográfico, obtenção de informações e solicitação de documentos em poder das partes.');
   d.h1('2.', 'Dos documentos necessários à perícia', { novaPagina: false });
   d.texto(`Para que a perícia retrate as reais condições de trabalho${c.dataAjuizamento && pt.trab ? ` no período imprescrito (a partir de ${menosCincoAnos(c.dataAjuizamento)})` : ''}, requer seja a parte intimada a apresentar ao Sr. Perito, até a data da diligência, os documentos abaixo:`);
-  const docs = v(c.roteiro) ? c.roteiro.split('\n').map((l) => l.replace(/^[-•\d.)\s]+/, '').trim()).filter(Boolean) : DOCS_PADRAO;
+  const docs = v(c.roteiro) ? c.roteiro.split('\n').map((l) => l.replace(/^[-•\d.)\s]+/, '').trim()).filter(Boolean) : documentosARequerer({ prev: pt.prev });
   docs.forEach((t, i) => d.texto(`${String.fromCharCode(97 + i)}) ${t}${i < docs.length - 1 ? ';' : '.'}`));
   d.h1('3.', 'Do pedido de avaliações no local', { novaPagina: false });
   d.redigir('pedir diligência com operação normal e a reprodução das tarefas críticas; avaliações quantitativas no próprio local.');
@@ -415,7 +527,8 @@ export async function peticaoAgendamento(caseId) {
   d.texto('Requer a intimação das partes e de seus assistentes técnicos, nos termos do art. 474 do CPC, e a expedição de ofício à empresa para franquear o acesso ao local e designar acompanhante que conheça as atividades.');
   d.h1('2.', 'Dos documentos', { novaPagina: false });
   d.texto('Requer seja a empresa intimada a disponibilizar ao perito, até a data da diligência, os seguintes documentos:');
-  DOCS_PADRAO.forEach((t, i) => d.texto(`${String.fromCharCode(97 + i)}) ${t}${i < DOCS_PADRAO.length - 1 ? ';' : '.'}`));
+  const docsAg = documentosARequerer({ prev: partes(c).prev });
+  docsAg.forEach((t, i) => d.texto(`${String.fromCharCode(97 + i)}) ${t}${i < docsAg.length - 1 ? ';' : '.'}`));
   d.add(p([run('Nestes termos,\npede deferimento.')], { first: 709, before: 240 }));
   blocoAssinatura(d, dados, 'Perito do Juízo');
   return finalizar(d, { titulo: 'Petição – agendamento da diligência', arquivo: 'Peticao_agendamento', c });

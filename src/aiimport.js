@@ -1,5 +1,5 @@
 import { db, createRecord, updateFields, caseChildren } from './db.js';
-import { ORIGEM_QUESITO } from './schema.js';
+import { ORIGEM_QUESITO, contextoLegal } from './schema.js';
 import { resumoMedicao } from './medicoes.js';
 
 // ======================================================================
@@ -8,19 +8,41 @@ import { resumoMedicao } from './medicoes.js';
 // resposta num JSON que o app lê e distribui pelas abas do caso.
 // ======================================================================
 
-export const CRITERIOS = `CRITÉRIOS TÉCNICOS FIXOS DO SIGNATÁRIO (aplicar sempre)
-- Ruído (previdenciário): q = 5 sempre. Até 05/03/1997: Lavg > 80 dB(A) (cód. 1.1.6 do Decreto 53.831/64). De 06/03/1997 a 18/11/2003: Lavg > 90 dB(A) — a legislação remetia ao Anexo 1 da NR-15 na íntegra, compara-se o Lavg. A partir de 19/11/2003: somente o NEN > 85 dB(A), calculado conforme a jornada com q = 5. TWA não é usado. Valores com uma casa decimal.
-- Calor (previdenciário): Decreto 3.048/99, cód. 2.0.4, que prevalece sobre a IN INSS mais restritiva (hierarquia normativa). IBUTG ajustado pela vestimenta (NHO-06). Anexo 3 antigo da NR-15: taxa metabólica entre linhas → linha imediatamente superior, sem interpolar. Trabalhista: calor a céu aberto sem fonte artificial após 11/12/2019 não caracteriza.
-- Agentes biológicos (previdenciário): não usar o Anexo 14 da NR-15; aplicar somente o rol de atividades do cód. 3.0.1 do Anexo IV do Decreto 3.048/99.
-- Óleos minerais / diesel (previdenciário): citar somente o cód. 1.0.17 do Anexo IV.
-- Vibração: Anexo 8 da NR-15 a partir de 13/08/2014; de 1997 a 2014 (fora de perfuratriz/martelete) apresentar as duas leituras, inclusive pela ISO (VCI: fronteira superior da zona de cautela da ISO 2631-1; VMB: 5 m/s², Diretiva 2002/44/CE).
-- Químicos com jornada > 48 h: corrigir o limite (Brief & Scala). Álcali cáustico: referência pH 11,5 (NBR 14725:2023).
-- Anexos da NR-16 em algarismos romanos.
+// Critérios separados por finalidade: não se mistura legislação trabalhista
+// (insalubridade/periculosidade) com previdenciária (tempo especial).
+export const CRITERIOS_GERAIS = `CRITÉRIOS GERAIS DO SIGNATÁRIO
 - O laudo conclui sempre pela norma técnica, nunca pela jurisprudência; súmulas e temas ficam apenas registrados para o juiz decidir.
-- Não usar testemunhas. Não citar o advogado do segurado. Datas de vínculo: a CTPS prevalece sobre o CNIS.
-- PPP: código GFIP 04 quando houver enquadramento como especial; o PPP em papel vai só até a entrada do eSocial (SST).
-- Ao usar laudo extrajudicial de outro segurado como paradigma, não citar o nome desse segurado.
+- Não usar testemunhas. Não citar o advogado do segurado / reclamante.
+- Valores medidos com uma casa decimal; resultados próximos do limite arredondados conforme a NHO.
 - Equipamentos do signatário: dosímetro Inlite DoseMax V2, medidor de IBUTG Inlite iTemp, medidor de vibração Inlite AxPro, calibrador acústico Inlite CalPro.`;
+
+export const CRITERIOS_TRAB = `FINALIDADE TRABALHISTA (insalubridade / periculosidade – CLT arts. 189 a 195, NR-15 e NR-16; para servidor estatutário, a lei do ente, que em regra remete à NR-15/NR-16 – cite a lei local)
+- Use SOMENTE a legislação trabalhista, na redação vigente em cada período analisado (período imprescrito: ajuizamento – 5 anos). NÃO use decretos previdenciários, códigos do Anexo IV, IN INSS, PPP/LTCAT como critério de enquadramento, nem NEN.
+- Ruído: NR-15, Anexo 1 – limite de 85 dB(A) para 8 h, q = 5; caracteriza com dose diária acima de 100%. Neutralização pelo protetor (item 15.4.1, "b", da NR-15 e NR-6: CA válido, NRRsf, fichas de entrega, troca, treinamento).
+- Calor: NR-15, Anexo 3 – até 10/12/2019 redação original (IBUTG; taxa metabólica entre linhas do quadro → linha imediatamente superior, sem interpolar); a partir de 11/12/2019, Portaria SEPRT 1.359/2019 (NHO-06, IBUTG ajustado pela vestimenta); calor a céu aberto sem fonte artificial depois de 11/12/2019 não caracteriza.
+- Vibração: NR-15, Anexo 8 – a partir de 13/08/2014 (Portaria MTE 1.297/2014, NHO-09/10); antes, redação original.
+- Químicos: Anexo 11 (quantitativo; jornada > 48 h: correção do limite por Brief & Scala), Anexo 13 (qualitativo); álcali cáustico: referência pH 11,5 (NBR 14725:2023).
+- Biológicos: NR-15, Anexo 14; área de isolamento: adequação mês a mês – havendo no mês frequência intermitente na área de isolamento, grau máximo naquele mês.
+- Periculosidade: NR-16, anexos escritos em algarismos romanos; troca de cilindro de GLP de empilhadeira não está listada no Anexo II (enquadramento só por jurisprudência, que fica apenas registrada).`;
+
+export const CRITERIOS_PREV = `FINALIDADE PREVIDENCIÁRIA (tempo especial – Lei 8.213/1991, Decretos 53.831/1964, 83.080/1979, 2.172/1997 e 3.048/1999, IN PRES/INSS 128/2022)
+- Use a legislação previdenciária vigente À ÉPOCA de cada período (tempus regit actum). A NR-15 entra apenas como referência técnica de limites quando o decreto do período a ela remete. NÃO use conceitos trabalhistas como critério: grau de insalubridade, adicional, período imprescrito, neutralização da NR-15, Súmulas do TST.
+- Ruído: q = 5 sempre. Até 05/03/1997: Lavg > 80 dB(A) (cód. 1.1.6 do Decreto 53.831/64). De 06/03/1997 a 18/11/2003: Lavg > 90 dB(A) (cód. 2.0.1) – a legislação remetia ao Anexo 1 da NR-15 na íntegra, compara-se o Lavg. A partir de 19/11/2003: somente o NEN > 85 dB(A), calculado conforme a jornada com q = 5. TWA não é usado. EPI não descaracteriza o ruído (STF, Tema 555).
+- Calor: até 05/03/1997, cód. 1.1.1 do Decreto 53.831/64 (fonte artificial, TE acima de 28 °C); depois, cód. 2.0.4 do Decreto 3.048/99 com os limites do Anexo 3 da NR-15 na redação do período (original até 10/12/2019; Portaria SEPRT 1.359/2019 depois). O Decreto 3.048/99 prevalece sobre a IN INSS mais restritiva (hierarquia normativa). IBUTG ajustado pela vestimenta (NHO-06).
+- Vibração: até 05/03/1997, cód. 1.1.5 do Decreto 53.831/64 (perfuratrizes e marteletes); de 06/03/1997 a 12/08/2014, cód. 2.0.2 – fora de perfuratriz/martelete, apresentar as duas leituras, inclusive pela ISO (VCI: fronteira superior da zona de cautela da ISO 2631-1; VMB: 5 m/s², Diretiva 2002/44/CE); a partir de 13/08/2014, limites do Anexo 8 da NR-15.
+- Agentes biológicos: não usar o Anexo 14 da NR-15; somente o rol de atividades do cód. 3.0.1 do Anexo IV do Decreto 3.048/99.
+- Óleos minerais / diesel: citar somente o cód. 1.0.17 do Anexo IV.
+- Medidas de controle: EPC (art. 290) e EPI somente a partir de 03/12/1998, com os requisitos cumulativos do art. 291 da IN 128/2022.
+- Marcos: 28/04/1995 (fim do enquadramento por categoria), 05/03/1997, 03/12/1998, 18/11/2003, 13/08/2014, 13/11/2019 (EC 103/2019).
+- Datas de vínculo: a CTPS prevalece sobre o CNIS. PPP: código GFIP 04 quando houver enquadramento; o PPP em papel vai só até a entrada do eSocial (SST). Laudo de outro segurado usado como paradigma: não citar o nome desse segurado.`;
+
+export function criteriosPara(c = {}, situacaoId = '') {
+  const prev = situacaoId === 'perito-prev' || situacaoId === 'extra-ltcat' || contextoLegal(c).prev === true;
+  return [CRITERIOS_GERAIS, prev ? CRITERIOS_PREV : CRITERIOS_TRAB].join('\n\n');
+}
+
+// compatibilidade
+export const CRITERIOS = [CRITERIOS_GERAIS, CRITERIOS_TRAB, CRITERIOS_PREV].join('\n\n');
 
 const REGRAS_EXTRACAO = `REGRAS DE EXTRAÇÃO
 1. Fidelidade aos autos: extraia apenas o que está nos documentos. Não invente, não deduza, não presuma. O que não estiver nos documentos fica vazio ("").
@@ -63,7 +85,7 @@ Em "preliminares", liste por período o que falta comprovar. Em "roteiro", o pla
   {
     id: 'perito-faz', titulo: 'Perito do Juízo – Fazenda Pública (adicional de servidor)',
     foco: `Sou o PERITO DO JUÍZO numa ação de servidor público contra o ente (Estado/Município) na Vara da Fazenda Pública / Juizado Especial da Fazenda Pública, sobre adicional de insalubridade/periculosidade.
-FOCO: cargo e lotação do servidor, unidades onde trabalhou no período discutido, atividades, agentes alegados, legislação local do adicional citada nas peças (sem concluir por ela), laudos e documentos do ente. Em "preliminares", os pontos controvertidos; em "roteiro", as unidades a vistoriar e os documentos a solicitar.`,
+FOCO: cargo, regime (estatutário ou celetista) e lotação do servidor, unidades onde trabalhou no período discutido, atividades, agentes alegados, a lei do ente que rege o adicional e a que norma técnica ela remete, laudos e documentos do ente. Não use legislação previdenciária. Em "preliminares", os pontos controvertidos; em "roteiro", as unidades a vistoriar e os documentos a solicitar.`,
   },
   {
     id: 'at-estudo', titulo: 'Assistente técnico – estudo do processo e quesitos (antes da perícia)',
@@ -87,6 +109,7 @@ Em "preliminares", as pendências e documentos a pedir ao segurado antes da vist
 export function situacaoDoCaso(c) {
   if (c.tipoAtuacao === 'Extrajudicial' || /extrajudicial/i.test(c.papel || '')) return 'extra-ltcat';
   if (/Assistente/i.test(c.papel || '')) return c.refLaudo || /laudo|manifesta|esclarec/i.test(c.fase || '') ? 'at-laudo' : 'at-estudo';
+  // (os critérios do assistente técnico seguem a matéria do caso: trabalhista ou previdenciária)
   if (/Fazenda/i.test(c.justica || '') || c.materia === 'Administrativa (servidor)') return 'perito-faz';
   if (c.materia === 'Previdenciária' || c.materia === 'Acidentária') return 'perito-prev';
   return 'perito-trab';
@@ -95,7 +118,7 @@ export function situacaoDoCaso(c) {
 export function montarPrompt(situacaoId, c = {}) {
   const s = SITUACOES.find((x) => x.id === situacaoId) || SITUACOES[0];
   const ctx = [c.papel && `Minha atuação neste caso: ${c.papel}.`, c.numero && `Processo: ${c.numero}.`].filter(Boolean).join(' ');
-  return [s.foco, ctx, CRITERIOS, REGRAS_EXTRACAO, FORMATO].filter(Boolean).join('\n\n');
+  return [s.foco, ctx, criteriosPara(c, s.id), REGRAS_EXTRACAO, FORMATO].filter(Boolean).join('\n\n');
 }
 
 // compatibilidade
@@ -213,7 +236,7 @@ export async function exportarParaClaude(caseId, tipo) {
   }
   if (medicoes.length) {
     L.push('\n## Medições');
-    medicoes.forEach((m) => L.push(`- [${m.data.agente}] posto: ${nomePosto.get(m.data.postoId) || 'geral'}; equipamento: ${eq.get(m.data.equipamentoId)?.modelo || '?'}; ${resumoMedicao(m)}${m.data.obs ? `; obs.: ${m.data.obs}` : ''}`));
+    medicoes.forEach((m) => L.push(`- [${m.data.agente}] posto: ${nomePosto.get(m.data.postoId) || 'geral'}; equipamento: ${eq.get(m.data.equipamentoId)?.modelo || '?'}; ${resumoMedicao(m, contextoLegal(c))}${m.data.obs ? `; obs.: ${m.data.obs}` : ''}`));
   }
   if (quesitos.length) {
     L.push('\n## Quesitos (texto literal) e anotações de campo');
@@ -225,7 +248,7 @@ export async function exportarParaClaude(caseId, tipo) {
 
 Use os dados do caso abaixo (coletados por mim nos autos e na diligência) como base factual. Não invente dados: o que faltar, marque como [[pendência]] para eu completar. Formatação: documento técnico no meu papel timbrado, fonte Abadi, espaçamento 1,5, texto justificado, títulos numerados em azul, cada título principal em página nova, sumário, quadros numerados com título acima e fonte abaixo.
 
-${CRITERIOS}
+${criteriosPara(c, tipo === 'ltcat' || tipo === 'parprev' ? 'extra-ltcat' : '')}
 
 ---
 ${L.join('\n')}`;

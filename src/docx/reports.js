@@ -1,4 +1,4 @@
-import { ORIGEM_QUESITO } from '../schema.js';
+import { ORIGEM_QUESITO, contextoLegal } from '../schema.js';
 import { p, run } from './ooxml.js';
 import {
   Doc, carregar, finalizar, dataBR, menosCincoAnos, partes, credencial, papelAssinatura, equipamentosUsados, quadroEquipamentos,
@@ -6,7 +6,7 @@ import {
   quadroMedicoesGenerico, medicoesPorAgente, nomePostoFn, profissiografia, figurasDoCaso, capaTecnica, blocoAssinatura,
 } from './base.js';
 import {
-  laudoPericial, ltcatPpp, parecerPrevidenciario, parecerAssistente, parecerPreventivo, peticaoIndicacaoAT, peticaoAgendamento, peticaoHonorarios,
+  laudoPericial, laudoPrevidenciario, ltcatPpp, parecerPrevidenciario, parecerAssistente, parecerPreventivo, peticaoIndicacaoAT, peticaoAgendamento, peticaoHonorarios,
 } from './modelos.js';
 
 export { dataBR };
@@ -14,6 +14,7 @@ export { dataBR };
 const ehPerito = (c) => c.papel === 'Perito do Juízo';
 const ehAT = (c) => /Assistente/i.test(c.papel || '');
 const ehExtra = (c) => c.tipoAtuacao === 'Extrajudicial' || /extrajudicial/i.test(c.papel || '');
+const ehPrev = (c) => contextoLegal(c).prev === true;
 
 // ---------------- PRÉ-RELATÓRIO (varia conforme a situação) ----------------
 export async function gerarPreRelatorio(caseId) {
@@ -117,8 +118,9 @@ export async function gerarRegistroDiligencia(caseId) {
   const eq = new Map(dados.equipamentos.map((e) => [e.id, e]));
   if (dados.medicoes.length) {
     d.h1('4', 'Medições', { novaPagina: false });
-    if (g['Ruído']) quadroMedicoesRuido(d, g['Ruído'], eq, nome);
-    for (const [k, ms] of Object.entries(g)) if (k !== 'Ruído') quadroMedicoesGenerico(d, `Resultados – ${k}`, ms, nome);
+    const ctx = contextoLegal(c);
+    if (g['Ruído']) quadroMedicoesRuido(d, g['Ruído'], eq, nome, ctx);
+    for (const [k, ms] of Object.entries(g)) if (k !== 'Ruído') quadroMedicoesGenerico(d, `Resultados – ${k}`, ms, nome, ctx);
   }
   const resp = dados.quesitos.filter((q) => (q.data.resposta || '').trim());
   if (resp.length) {
@@ -157,11 +159,12 @@ export const CATALOGO = [
   { id: 'indic', grupo: 'Petições', titulo: 'Indicação de assistente técnico e quesitos', desc: 'Qualificação, documentos necessários, avaliações no local, quesitos e requerimentos.', fn: peticaoIndicacaoAT, rec: ehAT },
   { id: 'reg', grupo: 'Campo', titulo: 'Registro da diligência', desc: 'Data, local, presentes, equipamentos com calibração, postos, medições e anotações dos quesitos.', fn: gerarRegistroDiligencia, rec: () => true },
   { id: 'foto', grupo: 'Campo', titulo: 'Relatório fotográfico', desc: 'Fotos numeradas, duas por linha, com legenda, data/hora e GPS.', fn: gerarRelatorioFotografico, rec: () => true },
-  { id: 'laudo', grupo: 'Laudo / parecer', titulo: 'Laudo pericial', desc: 'Estrutura completa do laudo do perito: diligência, metodologia, ambiente, EPC/EPI, agentes, conclusão e respostas aos quesitos.', fn: laudoPericial, rec: ehPerito },
+  { id: 'laudo', grupo: 'Laudo / parecer', titulo: 'Laudo pericial trabalhista', desc: 'Insalubridade e periculosidade (CLT, NR-15 e NR-16 na redação de cada período): diligência, metodologia, ambiente, EPC/EPI e neutralização, agentes, conclusão e quesitos.', fn: laudoPericial, rec: (c) => ehPerito(c) && !ehPrev(c) },
+  { id: 'laudoprev', grupo: 'Laudo / parecer', titulo: 'Laudo pericial previdenciário', desc: 'Tempo especial (Decretos 53.831/64, 2.172/97 e 3.048/99, IN 128/2022): fundamentação por período, profissiografia por vínculo, critérios por período, medidas de controle (art. 291), conclusão por período e quesitos.', fn: laudoPrevidenciario, rec: (c) => ehPerito(c) && ehPrev(c) },
   { id: 'parecerAT', grupo: 'Laudo / parecer', titulo: 'Parecer de assistente técnico / impugnação', desc: 'Síntese do laudo, análise por agente, quesitos de esclarecimento e requerimentos.', fn: parecerAssistente, rec: ehAT },
-  { id: 'prevent', grupo: 'Laudo / parecer', titulo: 'Parecer preventivo para a empresa', desc: 'Avaliação de risco, análise crítica da documentação de SST e recomendações.', fn: parecerPreventivo, rec: (c) => /réu/i.test(c.papel || '') },
+  { id: 'prevent', grupo: 'Laudo / parecer', titulo: 'Parecer preventivo para a empresa', desc: 'Avaliação de risco, análise crítica da documentação de SST e recomendações.', fn: parecerPreventivo, rec: (c) => /réu/i.test(c.papel || '') && !ehPrev(c) },
   { id: 'ltcat', grupo: 'Laudo / parecer', titulo: 'LTCAT + PPP', desc: 'Modelo do LTCAT extrajudicial (IN 128/2022): identificação, condições, fundamentação, profissiografia, agentes, conclusão e anexos.', fn: ltcatPpp, rec: ehExtra },
-  { id: 'parprev', grupo: 'Laudo / parecer', titulo: 'Parecer técnico previdenciário', desc: 'Avaliação das condições especiais por vínculo, para o segurado ou o advogado.', fn: parecerPrevidenciario, rec: (c) => ehExtra(c) || c.materia === 'Previdenciária' },
+  { id: 'parprev', grupo: 'Laudo / parecer', titulo: 'Parecer técnico previdenciário', desc: 'Avaliação das condições especiais por vínculo, para o segurado ou o advogado.', fn: parecerPrevidenciario, rec: (c) => ehPrev(c) && !ehPerito(c) },
 ];
 
 void figurasDoCaso; void blocoAssinatura;

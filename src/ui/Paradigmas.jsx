@@ -223,6 +223,7 @@ function Importar() {
     try {
       const r = await importarBaseJson(JSON.parse(await f.text()));
       avisarAlteracao();
+      if (r.falhas.length) { setMsgBase(`Erro: ${r.falhas.length} item(ns) não gravados – ${r.falhas.slice(0, 3).join(' | ')}. Mande um print desta mensagem.`); return; }
       setMsgBase(r.veiculos + r.similares + r.familias
         ? `✓ Importação concluída: ${r.veiculos} veículo(s), ${r.similares} similar(es) e ${r.familias} família(s) novos ou atualizados. O que você já editou no app foi mantido.`
         : '✓ Importação concluída: a base já estava atualizada neste aparelho, nada mudou.');

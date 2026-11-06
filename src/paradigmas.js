@@ -65,13 +65,16 @@ async function gravarImportado(rec) {
 export async function importarBaseJson(obj) {
   if (!obj || !Array.isArray(obj.veiculos)) throw new Error('Arquivo sem a lista "veiculos".');
   const familias = new Map();
+  const falhas = [];
   let nv = 0, ns = 0;
   for (const v of obj.veiculos) {
     const d = veiculoParaDados(v);
     if (!d.codigo) continue;
     const fam = (v.caracteristicas || {}).familia;
     if (fam && !familias.has(fam)) familias.set(fam, s((v.caracteristicas || {}).familia_descricao));
-    if (await gravarImportado(registro(`par-${slug(d.codigo)}`, 'paradigma', d))) nv++;
+    try {
+      if (await gravarImportado(registro(`par-${slug(d.codigo)}`, 'paradigma', d))) nv++;
+    } catch (e) { falhas.push(`${d.codigo}: ${e.message || e}`); }
   }
   for (const x of obj.similares || []) {
     const d = {
@@ -80,7 +83,9 @@ export async function importarBaseJson(obj) {
       status: s(x.status), obs: s(x.obs),
     };
     const id = `sim-${slug(`${d.marca} ${d.modelo}`)}`;
-    if (await gravarImportado(registro(id, 'similar', d))) ns++;
+    try {
+      if (await gravarImportado(registro(id, 'similar', d))) ns++;
+    } catch (e) { falhas.push(`${d.marca} ${d.modelo}: ${e.message || e}`); }
   }
   for (const [cod, desc] of familias) {
     const id = `fam-${slug(cod)}`;
@@ -90,7 +95,7 @@ export async function importarBaseJson(obj) {
     const id = 'cfg-paradigmas';
     await gravarImportado(registro(id, 'config', { regraCertMeses: String(obj.regra_alerta_certificado_meses) }));
   }
-  return { veiculos: nv, similares: ns, familias: familias.size };
+  return { veiculos: nv, similares: ns, familias: familias.size, lidos: obj.veiculos.length, falhas };
 }
 
 // Novos paradigmas vindos de laudos antigos (JSON extraído pelo Claude)

@@ -17,16 +17,29 @@ export function App() {
       <header class="topo">
         <a class="marca" href="#/" title="Casos">
           <img src={`${import.meta.env.BASE_URL}logo-sm.png`} alt="GRAHL" />
-          <span>Campo</span>
+          <span class="marca-txt">Campo<small>Perícias</small></span>
         </a>
         <nav>
           <a href="#/" class={partes[0] === '' || partes[0] === 'caso' ? 'ativo' : ''}>Casos</a>
           <a href="#/config" class={partes[0] === 'config' ? 'ativo' : ''}>Configurações</a>
         </nav>
+        <ModoCampo />
         <SyncBadge />
       </header>
       <main>{tela}</main>
     </div>
+  );
+}
+
+function ModoCampo() {
+  const ler = () => { try { return localStorage.getItem('modoCampo') === '1'; } catch (e) { return false; } };
+  const [on, setOn] = useState(ler());
+  useEffect(() => { document.body.classList.toggle('modo-campo', on); }, [on]);
+  const alterna = () => { const n = !on; setOn(n); try { localStorage.setItem('modoCampo', n ? '1' : '0'); } catch (e) { /* ignore */ } };
+  return (
+    <button type="button" class={`modo-btn ${on ? 'on' : ''}`} onClick={alterna} title="Letras e botões maiores, alto contraste">
+      {on ? '☀ Modo campo ligado' : '☀ Modo campo'}
+    </button>
   );
 }
 

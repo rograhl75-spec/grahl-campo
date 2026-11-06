@@ -4,6 +4,7 @@ import { db, getMeta, setMeta, requestPersistentStorage, mergeIncoming } from '.
 import { normalize } from './merge.js';
 import { EQUIPAMENTOS_INICIAIS } from './schema.js';
 import { iniciarSync } from './sync.js';
+import { PERFIL_ID, PERFIL_PADRAO } from './docx/base.js';
 import { walRecuperar } from './wal.js';
 import { App } from './ui/App.jsx';
 import './styles.css';
@@ -21,6 +22,18 @@ async function semearEquipamentos() {
   await setMeta('equipSemeados', true);
 }
 
+// Atualiza dados de fábrica (CalPro, perfil) sem sobrescrever o que você editou:
+// os valores entram com horário "antigo" e qualquer edição sua prevalece.
+async function atualizarDadosPadrao() {
+  if ((await getMeta('dadosPadraoV')) >= 2) return;
+  const calpro = EQUIPAMENTOS_INICIAIS[3];
+  await mergeIncoming(normalize({ id: 'equip-calpro', kind: 'equip', caseId: null, createdAt: Date.now(), data: calpro,
+    ts: Object.fromEntries(Object.keys(calpro).map((k) => [k, 2])) }), { markDirtyIfLocalNewer: true });
+  await mergeIncoming(normalize({ id: PERFIL_ID, kind: 'perfil', caseId: null, createdAt: Date.now(), data: PERFIL_PADRAO,
+    ts: Object.fromEntries(Object.keys(PERFIL_PADRAO).map((k) => [k, 2])) }), { markDirtyIfLocalNewer: true });
+  await setMeta('dadosPadraoV', 2);
+}
+
 async function iniciar() {
   try {
     await db.open();
@@ -29,6 +42,7 @@ async function iniciar() {
     return;
   }
   await semearEquipamentos();
+  await atualizarDadosPadrao();
   const recuperados = await walRecuperar();
   if (recuperados) console.info(`${recuperados} campo(s) recuperados do registro de segurança.`);
   requestPersistentStorage();

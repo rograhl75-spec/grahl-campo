@@ -1,7 +1,7 @@
 import { useState } from 'preact/hooks';
 import { db } from '../db.js';
 import { CAMPOS_SINTESE, CAMPOS_PERIODO, CAMPOS_DOC, CAMPOS_EPI } from '../schema.js';
-import { PROMPT_IA, lerJsonIA, aplicarIA } from '../aiimport.js';
+import { SITUACOES, situacaoDoCaso, montarPrompt, lerJsonIA, aplicarIA } from '../aiimport.js';
 import { avisarAlteracao } from '../sync.js';
 import { dataBR } from '../docx/reports.js';
 import { TF, salvar } from './fields.jsx';
@@ -62,9 +62,11 @@ function ImportarIA({ rec }) {
   const [erro, setErro] = useState('');
   const [substituir, setSubstituir] = useState(false);
   const [msg, setMsg] = useState('');
+  const [situacao, setSituacao] = useState(situacaoDoCaso(rec.data));
+  const prompt = montarPrompt(situacao, rec.data);
 
   const copiar = async () => {
-    try { await navigator.clipboard.writeText(PROMPT_IA); setMsg('Instrução copiada. Cole no Claude junto com os PDFs dos autos.'); }
+    try { await navigator.clipboard.writeText(prompt); setMsg('Instrução copiada. Cole no Claude junto com os PDFs dos autos.'); }
     catch (e) { setMsg('Não foi possível copiar automaticamente; selecione o texto abaixo.'); }
   };
   const ler = () => {
@@ -96,11 +98,16 @@ function ImportarIA({ rec }) {
         <li>Copie a resposta inteira (o bloco JSON) e cole no campo abaixo.</li>
         <li>Confira a prévia e aplique. Campos já preenchidos não são alterados, a menos que você marque "substituir".</li>
       </ol>
+      <label class="campo"><span class="rotulo">Situação (escolhida pelo tipo do caso; pode trocar)</span>
+        <select value={situacao} onChange={(e) => setSituacao(e.currentTarget.value)}>
+          {SITUACOES.map((x) => <option value={x.id}>{x.titulo}</option>)}
+        </select>
+      </label>
       <div class="linha-botoes">
-        <button type="button" onClick={copiar}>Copiar instrução</button>
+        <button type="button" class="primario" onClick={copiar}>Copiar instrução</button>
         <button type="button" class="sec" onClick={() => setAberto(false)}>Fechar</button>
       </div>
-      <details><summary>Ver a instrução</summary><pre class="prompt">{PROMPT_IA}</pre></details>
+      <details><summary>Ver a instrução</summary><pre class="prompt">{prompt}</pre></details>
       <label class="campo campo-area"><span class="rotulo">Resposta da IA (JSON)</span>
         <textarea rows={6} value={texto} onInput={(e) => setTexto(e.currentTarget.value)} placeholder='{"processo": {...}, "quesitos": [...]}' />
       </label>

@@ -3,17 +3,21 @@ import { db, getMeta, setMeta, restore } from '../db.js';
 import { onSyncState, parseConfig, iniciarSync, entrar, sair, sincronizarAgora, avisarAlteracao } from '../sync.js';
 import { exportarBackup, importarBackup, baixarArquivo, carimbo } from '../backup.js';
 import { migrarDoFirebase, migrarDeZip } from '../migrate.js';
-import { CAMPOS_EQUIP, tituloCaso } from '../schema.js';
+import { CAMPOS_EQUIP, CAMPOS_PERFIL, tituloCaso } from '../schema.js';
+import { listarSugestoes, aplicarSugestoes } from '../organizar.js';
+import { PERFIL_ID } from '../docx/base.js';
+import { Campos } from './fields.jsx';
 import { dataBR } from '../docx/reports.js';
 import { RecordList } from './RecordList.jsx';
 import { useLive } from './hooks.js';
 
-const ABAS = [['nuvem', 'Nuvem'], ['backup', 'Backup'], ['antigo', 'App antigo'], ['equipamentos', 'Equipamentos'], ['lixeira', 'Lixeira'], ['aparelho', 'Este aparelho']];
+const ABAS = [['meus-dados', 'Meus dados'], ['nuvem', 'Nuvem'], ['backup', 'Backup'], ['antigo', 'App antigo'], ['equipamentos', 'Equipamentos'], ['lixeira', 'Lixeira'], ['aparelho', 'Este aparelho']];
 
 export function Config({ aba }) {
   return (
     <div class="pagina">
       <nav class="abas">{ABAS.map(([k, r]) => <a href={`#/config/${k}`} class={aba === k ? 'ativo' : ''}>{r}</a>)}</nav>
+      {aba === 'meus-dados' && <MeusDados />}
       {aba === 'nuvem' && <Nuvem />}
       {aba === 'backup' && <Backup />}
       {aba === 'antigo' && <Antigo />}
@@ -160,6 +164,7 @@ function Antigo() {
           onChange={(e) => { const f = e.currentTarget.files[0]; e.currentTarget.value = ''; if (f) rodar((l) => migrarDeZip(f, l)); }} /></label>
       </section>
       {log.length > 0 && <section class="bloco largo"><pre class="log">{log.join('\n')}</pre></section>}
+      <OrganizarNomes />
     </div>
   );
 }
@@ -219,5 +224,53 @@ function Aparelho() {
       )}
       <p class="dica">Versão {__APP_VERSION__}. Não limpe os "dados do site" no Chrome sem antes conferir que está tudo sincronizado ou com backup.</p>
     </section></div>
+  );
+}
+
+function MeusDados() {
+  const rec = useLive(() => db.records.get(PERFIL_ID), [], null);
+  if (!rec) return <p class="vazio">Carregando…</p>;
+  return (
+    <div class="grade"><section class="bloco largo">
+      <h3>Meus dados (saem nos documentos)</h3>
+      <p class="dica">Usados na qualificação das petições, na capa e na assinatura dos laudos. CPF, RG e dados bancários ficam só no seu aparelho e na sua nuvem.</p>
+      <div class="linha2"><Campos rec={rec} campos={CAMPOS_PERFIL} /></div>
+    </section></div>
+  );
+}
+
+function OrganizarNomes() {
+  const [lista, setLista] = useState(null);
+  const [msg, setMsg] = useState('');
+  const verificar = async () => { setMsg(''); setLista(await listarSugestoes()); };
+  const aplicar = async () => {
+    const n = await aplicarSugestoes(lista);
+    avisarAlteracao();
+    setMsg(`✓ ${n} caso(s) organizados. O texto original foi guardado em Observações (aba Preparação) de cada caso.`);
+    setLista(null);
+  };
+  return (
+    <section class="bloco largo">
+      <h3>Organizar nomes dos casos importados</h3>
+      <p>Separa o CPF, o CNPJ e as partes adicionais que vieram juntos no campo de nome (ex.: "Fulano, CPF 000…") e os coloca nos campos próprios. Você vê a sugestão antes de aplicar.</p>
+      <button type="button" onClick={verificar}>Verificar casos</button>
+      {lista && !lista.length && <p class="vazio">Nenhum caso precisa de ajuste.</p>}
+      {lista && lista.length > 0 && (
+        <>
+          <table class="legado"><tbody>
+            {lista.map((s) => (
+              <tr><td>
+                {Object.entries(s.mud).filter(([k]) => k !== 'observacoes').map(([k, val]) => (
+                  <div><b>{k}</b>: <s>{String(s.antes[k] || '—').slice(0, 120)}</s> → {val}</div>
+                ))}
+                {s.mud.observacoes && <div class="dica">Vai para Observações: {s.mud.observacoes.split('\n').slice(-2).join(' · ').slice(0, 200)}</div>}
+              </td></tr>
+            ))}
+          </tbody></table>
+          <div class="linha-botoes"><button type="button" class="primario" onClick={aplicar}>Aplicar a {lista.length} caso(s)</button></div>
+        </>
+      )}
+      {msg && <p class="ok-msg">{msg}</p>}
+    </section>
   );
 }

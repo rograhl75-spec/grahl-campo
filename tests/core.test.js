@@ -95,3 +95,16 @@ describe('mapeamento do app antigo', () => {
     expect(fotos).toHaveLength(1);
   });
 });
+
+import { sugerirLimpeza } from '../src/organizar.js';
+describe('organizar nomes importados', () => {
+  it('separa CPF e CNPJ do nome e guarda o original', () => {
+    const r = sugerirLimpeza({ autorNome: 'Marcia Fernanda Marcelino, CPF 033.452.159-93', reuNome: 'Instituto da Coluna S/S Ltda, 21.331.753/0001-50, e os sócios Fulano' });
+    expect(r.autorNome).toBe('Marcia Fernanda Marcelino');
+    expect(r.autorCpf).toBe('033.452.159-93');
+    expect(r.reuNome).toBe('Instituto da Coluna S/S Ltda');
+    expect(r.reuCnpj).toBe('21.331.753/0001-50');
+    expect(r.observacoes).toContain('os sócios Fulano');
+    expect(sugerirLimpeza({ autorNome: 'Fulano', reuNome: 'Empresa Ltda' })).toBe(null);
+  });
+});

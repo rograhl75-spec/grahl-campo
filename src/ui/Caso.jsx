@@ -4,6 +4,7 @@ import {
   TIPO_ATUACAO, JUSTICA, MATERIA, PAPEL, OBJETO, FASE, CAMPOS_PROCESSO, CAMPOS_PARTES, CAMPOS_PRAZOS, tituloCaso,
 } from '../schema.js';
 import { useLive, ir } from './hooks.js';
+import { siglaTipo, FASE_COR } from './Casos.jsx';
 import { Campos, Chips, Opcoes, Sel } from './fields.jsx';
 import { Preparacao } from './Preparacao.jsx';
 import { Quesitos } from './Quesitos.jsx';
@@ -12,8 +13,8 @@ import { Fotos } from './Fotos.jsx';
 import { Documentos } from './Documentos.jsx';
 
 const ABAS = [
-  ['resumo', 'Resumo'], ['preparacao', 'Preparação'], ['quesitos', 'Quesitos'],
-  ['campo', 'Campo'], ['fotos', 'Fotos'], ['documentos', 'Documentos'],
+  ['resumo', '📋 Resumo'], ['preparacao', '📚 Preparação'], ['quesitos', '❓ Quesitos'],
+  ['campo', '🦺 Campo'], ['fotos', '📷 Fotos'], ['documentos', '📄 Documentos'],
 ];
 
 export function Caso({ id, aba }) {
@@ -29,15 +30,21 @@ export function Caso({ id, aba }) {
   if (rec.deleted) return <div class="pagina"><p class="vazio grande">Este caso está na lixeira. Restaure em <a href="#/config/lixeira">Configurações → Lixeira</a>.</p></div>;
 
   const abas = [...ABAS];
-  if (rec.data.legado) abas.push(['antigo', 'App antigo']);
+  if (rec.data.legado) abas.push(['antigo', '🗂 App antigo']);
   const n = { quesitos: contagem.quesito, fotos: contagem.foto, campo: (contagem.posto || 0) + (contagem.medicao || 0) || undefined };
   return (
     <div class="pagina caso">
       <div class="caso-topo">
         <a class="voltar" href="#/">‹ Casos</a>
-        <div>
-          <h1>{tituloCaso(rec.data)}</h1>
-          <div class="caso-sub">{rec.data.numero || 'sem número'} · {rec.data.papel} · <b>{rec.data.fase}</b></div>
+        <div class="caso-id">
+          <div class="cartao-topo">
+            <span class={`sigla ${siglaTipo(rec.data)[1]}`}>{siglaTipo(rec.data)[0]}</span>
+            <span class="cartao-papel">{rec.data.papel}</span>
+            <span class={`fase ${FASE_COR[rec.data.fase] || 'f-prep'}`}>{rec.data.fase || 'A preparar'}</span>
+          </div>
+          <h1>{rec.data.autorNome || rec.data.contratante || 'Caso sem nome'}</h1>
+          {rec.data.reuNome && <div class="caso-reu">× {rec.data.reuNome}</div>}
+          <div class="caso-sub">{rec.data.numero || 'sem número'}{rec.data.juizo ? ` · ${rec.data.juizo}` : ''}</div>
         </div>
       </div>
       <nav class="abas">

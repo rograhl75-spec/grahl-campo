@@ -57,6 +57,23 @@ export const CAMPOS_PROCESSO = [
   ['dataAjuizamento', 'Data de ajuizamento', 'date'],
   ['valorCausa', 'Valor da causa', 'text'],
   ['rito', 'Rito', 'text'],
+  ['peritoJuizo', 'Perito do Juízo (quando atuo como assistente)', 'text'],
+  ['refLaudo', 'Laudo analisado (ID / mov. / fls.)', 'text'],
+  ['despachoRef', 'Despacho / ata de referência (ex.: "ata de audiência de 27/10/2026 (fls. 2704)")', 'text'],
+];
+
+export const CAMPOS_PERFIL = [
+  ['nome', 'Nome (como sai nos documentos)', 'text'],
+  ['titulos', 'Formação', 'text'],
+  ['crea', 'Registro principal', 'text'],
+  ['vistoCrea', 'Visto', 'text'],
+  ['cpf', 'CPF (sai na petição de indicação)', 'text'],
+  ['rg', 'RG', 'text'],
+  ['endereco', 'Endereço profissional', 'text'],
+  ['telefone', 'Telefone', 'text'],
+  ['email', 'E-mail', 'text'],
+  ['cidade', 'Cidade (local da assinatura)', 'text'],
+  ['dadosBancarios', 'Dados bancários para honorários', 'area'],
 ];
 
 export const CAMPOS_PARTES = [
@@ -166,8 +183,8 @@ export const EQUIPAMENTOS_INICIAIS = [
     dataCalibracao: '2025-05-29', obs: 'Acelerômetros: ACL-1 (VMB) 1462; ACL-2 (VCI) 1356.', ordem: 3,
   },
   {
-    nome: 'Calibrador acústico', fabricante: 'Inlite', modelo: 'CalPro', serie: '',
-    certificado: '', laboratorio: '', dataCalibracao: '', obs: 'Preencher com os dados do certificado.', ordem: 4,
+    nome: 'Calibrador acústico (IEC 60942, classe 1)', fabricante: 'Inlite', modelo: 'CalPro', serie: '25098232',
+    certificado: '0138/2025', laboratorio: 'Teslab – Calibração & Ensaio (RBC, CAL 0793)', dataCalibracao: '2025-03-26', obs: '', ordem: 4,
   },
 ];
 

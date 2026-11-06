@@ -41,9 +41,20 @@ export function parseConfig(text) {
   return obj;
 }
 
+// Projeto Firebase da GRAHL (estes dados não são senha: a proteção está no
+// login Google e nas regras de segurança do Firestore/Storage).
+export const FIREBASE_PADRAO = {
+  apiKey: 'AIzaSyCbLcMj-PoQsaqYOrbIF-d5T1NkeSXDpmA',
+  authDomain: 'grahl-pericias-app.firebaseapp.com',
+  projectId: 'grahl-pericias-app',
+  storageBucket: 'grahl-pericias-app.firebasestorage.app',
+  messagingSenderId: '917585497215',
+  appId: '1:917585497215:web:b6a1c7ca7011150e96034a',
+};
+
 export async function iniciarSync() {
   await refreshPending();
-  const cfg = await getMeta('firebaseConfig');
+  const cfg = (await getMeta('firebaseConfig')) || FIREBASE_PADRAO;
   if (!cfg) { set({ configured: false }); return; }
   try {
     app = getApps()[0] || initializeApp(cfg);

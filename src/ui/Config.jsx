@@ -61,7 +61,6 @@ function Nuvem() {
         {s.configured && !s.user && (
           <div class="linha-botoes">
             <button type="button" class="primario" onClick={() => entrar().catch((e) => setMsg(e.message))}>Entrar com Google</button>
-            <button type="button" class="sec" onClick={remover}>Remover configuração</button>
           </div>
         )}
         {s.user && (

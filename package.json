@@ -1,0 +1,29 @@
+{
+  "name": "grahl-campo",
+  "version": "2.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest run",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dexie": "^4.0.11",
+    "firebase": "^11.6.0",
+    "jszip": "^3.10.1",
+    "preact": "^10.26.4"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.1",
+    "fake-indexeddb": "^6.0.0",
+    "vite": "^6.2.6",
+    "vite-plugin-pwa": "^0.21.2",
+    "vitest": "^3.1.1"
+  },
+  "type": "module"
+}

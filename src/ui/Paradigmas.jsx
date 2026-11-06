@@ -210,15 +210,23 @@ function Importar() {
   const [previa, setPrevia] = useState(null);
   const [anexoId, setAnexoId] = useState('');
   const [nomeAnexo, setNomeAnexo] = useState('');
+  const [msgBase, setMsgBase] = useState('');
+  const total = useLive(async () => {
+    const l = await db.records.where('kind').anyOf('paradigma', 'similar').toArray();
+    return { v: l.filter((r) => r.kind === 'paradigma' && !r.deleted).length, s: l.filter((r) => r.kind === 'similar' && !r.deleted).length };
+  }, [], { v: 0, s: 0 });
 
   const importarBase = async (e) => {
     const f = e.currentTarget.files[0]; e.currentTarget.value = '';
     if (!f) return;
+    setMsgBase('⏳ Importando…');
     try {
       const r = await importarBaseJson(JSON.parse(await f.text()));
       avisarAlteracao();
-      setMsg(`✓ Base importada: ${r.veiculos} veículo(s), ${r.similares} similar(es), ${r.familias} família(s) novos ou atualizados. O que você já editou no app foi mantido.`);
-    } catch (err) { setMsg('Erro: ' + err.message); }
+      setMsgBase(r.veiculos + r.similares + r.familias
+        ? `✓ Importação concluída: ${r.veiculos} veículo(s), ${r.similares} similar(es) e ${r.familias} família(s) novos ou atualizados. O que você já editou no app foi mantido.`
+        : '✓ Importação concluída: a base já estava atualizada neste aparelho, nada mudou.');
+    } catch (err) { setMsgBase('Erro: ' + err.message); }
   };
   const anexar = async (e) => {
     const f = e.currentTarget.files[0]; e.currentTarget.value = '';
@@ -238,7 +246,9 @@ function Importar() {
       <section class="bloco largo">
         <h3>Importar a base (arquivo JSON)</h3>
         <p>Use o arquivo <code>cadastro_veiculos_medidos.json</code>. Pode importar de novo depois de atualizar a planilha: nada é duplicado e o que você editou no app prevalece.</p>
-        <label class="botao-arquivo">Escolher arquivo JSON<input type="file" accept=".json,application/json" hidden onChange={importarBase} /></label>
+        <p><b>No banco agora:</b> {total.v} veículo(s) medido(s) e {total.s} similar(es). Com a nuvem conectada, basta importar em um aparelho: os outros recebem a base sozinhos.</p>
+        <label class="botao-arquivo">Escolher arquivo JSON<input type="file" accept=".json,application/json,text/plain,*/*" hidden onChange={importarBase} /></label>
+        {msgBase && <p class={msgBase.startsWith('Erro') ? 'erro-msg' : 'ok-msg'}>{msgBase}</p>}
       </section>
       <section class="bloco largo destaque">
         <h3>Incluir laudos antigos</h3>

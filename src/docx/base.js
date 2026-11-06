@@ -3,6 +3,7 @@ import { resumoMedicao, calculados } from '../medicoes.js';
 import { nenQ5, num, fmt } from '../calc.js';
 import { ORIGEM_QUESITO, contextoLegal } from '../schema.js';
 import { Doc, p, run, montarDocx } from './ooxml.js';
+import { nenParaJornada, arenParaJornada, vdvrParaJornada, certificadoVencido, rotuloParadigma, num as numP } from '../paradigmas.js';
 
 export const PERFIL_ID = 'perfil';
 
@@ -28,10 +29,13 @@ export async function carregar(caseId) {
   const [quesitos, periodos, documentos, epis, postos, medicoes, fotos] = await Promise.all(kinds.map((k) => caseChildren(caseId, k)));
   const equipamentos = (await db.records.where('kind').equals('equip').toArray()).filter((e) => !e.deleted)
     .sort((a, b) => (a.data.ordem || 0) - (b.data.ordem || 0));
+  const paradigmas = new Map((await db.records.where('kind').equals('paradigma').toArray()).filter((r) => !r.deleted).map((r) => [r.data.codigo, r]));
+  const cfgPar = await db.records.get('cfg-paradigmas');
   const perfilRec = await db.records.get(PERFIL_ID);
   const perfil = { ...PERFIL_PADRAO, ...(perfilRec ? perfilRec.data : {}) };
   periodos.sort((a, b) => String(a.data.inicio || '').localeCompare(String(b.data.inicio || '')));
-  return { id: caseId, c: caso.data, quesitos, periodos, documentos, epis, postos, medicoes, fotos, equipamentos, perfil };
+  return { id: caseId, c: caso.data, quesitos, periodos, documentos, epis, postos, medicoes, fotos, equipamentos, perfil, paradigmas,
+    regraCertMeses: Number((cfgPar && cfgPar.data.regraCertMeses) || 24) };
 }
 
 export const PERFIL_PADRAO = {
@@ -438,3 +442,118 @@ export function capaTecnica(d, { titulo, subtitulo, linha2, pares, perfil, data 
 }
 
 export { Doc, calculados };
+
+
+// ======================================================================
+// Paradigmas por vínculo (motorista / operador): quadros e memórias de cálculo
+// no padrão do parecer do signatário (similaridade, normalização pela jornada)
+// ======================================================================
+
+const f2 = (x) => (isFinite(x) ? x.toFixed(2).replace('.', ',') : '—');
+const vinculoNome = (r, i) => `V${i + 1} – ${r.data.empresa || ''}`.trim();
+const per = (r) => `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`;
+
+export function usaParadigmas(dados) {
+  return dados.periodos.some((r) => r.data.paradigmaRuido || r.data.paradigmaVibracao);
+}
+
+export function quadrosParadigmasMetodologia(d, dados) {
+  if (!usaParadigmas(dados)) return false;
+  const P = dados.paradigmas;
+  d.texto('A quantificação do ruído e da vibração usa medições realizadas pelo signatário em veículos com as mesmas características técnicas dos conduzidos pelo requerente (prova emprestada, art. 372 do CPC). A similaridade considera, nesta ordem: posição do motor, geração e isolamento da cabine, suspensão da cabine e do assento, configuração do veículo e tipo de via predominante.');
+  d.quadro('Veículos do requerente e paradigmas de medição', [['Vínculo', 'Veículo do requerente', 'Família técnica', 'Veículo efetivamente medido', 'Fonte (processo e data)', 'Jornada do laudo'],
+    ...dados.periodos.map((r, i) => {
+      const pr = P.get(r.data.paradigmaRuido), pv = P.get(r.data.paradigmaVibracao);
+      const medido = [pr && `Ruído: ${rotuloParadigma(pr)}`, pv && pv !== pr && `VCI: ${rotuloParadigma(pv)}`].filter(Boolean).join('\n')
+        || '[[PESQUISAR: sem paradigma no banco]]';
+      const fontes = [...new Set([pr, pv].filter(Boolean).map((x) => x.data.citacao))].join('\n');
+      return [vinculoNome(r, i), [r.data.veiculoMarca, r.data.veiculoModelo, r.data.veiculoAno].filter(Boolean).join(' ') || '[[veículo]]',
+        (pr || pv) ? `${(pr || pv).data.familia}` : '', medido, fontes, (pr || pv) ? `${(pr || pv).data.jornadaLaudo || '?'} h` : ''];
+    })], { larguras: [0.15, 0.17, 0.1, 0.22, 0.26, 0.1], tam: 8.5, alinhar: 'left', fonte: 'Banco de paradigmas do signatário.' });
+  d.quadro('Equações de normalização pela jornada', [['Grandeza', 'Equação'],
+    ['Ruído (q = 5)', 'NEN = Lavg + 16,61 · log(T / 8)'], ['Vibração – aceleração', 'aren(T) = arep · √(T / 8)'], ['Vibração – dose', 'VDVR(T) = VDVR(laudo) · (T / Tlaudo)^0,25']],
+  { larguras: [0.35, 0.65], fonte: 'Manual de Aposentadoria Especial do INSS (2017); NHO-09.' });
+  d.texto('Até 18/11/2003 o valor comparado ao limite é o Lavg, pois a legislação remetia integralmente ao Anexo 1 da NR-15; a partir de 19/11/2003, somente o NEN, normalizado para a jornada.');
+  d.quadro('Tempo de condução adotado por vínculo', [['Vínculo', 'Período', 'Condução (T)', 'Base da informação'],
+    ...dados.periodos.map((r, i) => [vinculoNome(r, i), per(r), r.data.conducaoH ? `${r.data.conducaoH} h` : '[[T]]', r.data.conducaoBase || '[[base da informação]]'])],
+  { larguras: [0.22, 0.2, 0.13, 0.45], alinhar: 'left' });
+  const usados = [...new Set(dados.periodos.flatMap((r) => [r.data.paradigmaRuido, r.data.paradigmaVibracao]).filter(Boolean))].map((c) => P.get(c)).filter(Boolean);
+  if (usados.length) {
+    d.quadro('Instrumentação dos paradigmas', [['Paradigma', 'Fonte', 'Equipamento, número de série e calibração'],
+      ...usados.map((p) => {
+        const x = p.data;
+        const partes = [];
+        if (x.ruidoEquip) partes.push(`${x.ruidoEquip}, SN ${x.ruidoSerie || '?'}, certificado ${x.ruidoCert || 'n/i'} (${x.ruidoCertData || '?'})${certificadoVencido(x.ruidoCertData, x.dataMedicao, dados.regraCertMeses) ? ` [[VERIFICAR: certificado com mais de ${dados.regraCertMeses} meses na data da medição]]` : ''}`);
+        if (x.calibEquip) partes.push(`calibrador ${x.calibEquip}, SN ${x.calibSerie || '?'}${x.calibCertData ? ` (${x.calibCertData})` : ''}`);
+        if (x.vibEquip) partes.push(`${x.vibEquip}, série ${x.vibSerie || '?'}${x.vibCertData ? ` (calibrado em ${x.vibCertData})` : ''}${certificadoVencido(x.vibCertData, x.dataMedicao, dados.regraCertMeses) ? ` [[VERIFICAR: certificado com mais de ${dados.regraCertMeses} meses]]` : ''}`);
+        return [rotuloParadigma(p), x.citacao || '', partes.join('; ') || '[[instrumentação]]'];
+      })], { larguras: [0.22, 0.28, 0.5], tam: 8.5, alinhar: 'left', fonte: 'Relatórios de medição dos laudos de origem.' });
+  }
+  return true;
+}
+
+// Janelas de vibração (previdenciário)
+const LIM_ISO_AREN = 0.9; // fronteira superior da zona de cautela, ISO 2631-1 (8 h)
+const LIM_ISO_VDV = 17;
+const LIM_NR15_AREN = 1.1;
+const LIM_NR15_VDV = 21;
+
+function subperiodosVibracao(r) {
+  const ini = r.data.inicio, fim = r.data.fim || new Date().toISOString().slice(0, 10);
+  const J = [{ ini: '0000-01-01', fim: '1997-03-05', crit: 'cod115' }, { ini: '1997-03-06', fim: '2014-08-12', crit: 'iso' }, { ini: '2014-08-13', fim: '9999-12-31', crit: 'nr15' }];
+  return J.map((j) => ({ ini: ini > j.ini ? ini : j.ini, fim: fim < j.fim ? fim : j.fim, crit: j.crit })).filter((x) => ini && x.ini <= x.fim);
+}
+
+export function memoriasParadigmas(d, dados) {
+  if (!usaParadigmas(dados)) return false;
+  const P = dados.paradigmas;
+  const linhasR = [];
+  dados.periodos.forEach((r, i) => {
+    const p = P.get(r.data.paradigmaRuido);
+    if (!r.data.paradigmaRuido) return;
+    for (const sp of subperiodosRuido([r])) {
+      const lavg = p ? numP(p.data.lavg) : NaN;
+      const T = numP(r.data.conducaoH);
+      const nen = sp.janela.crit === 'NEN' && isFinite(T) ? nenParaJornada(lavg, T) : NaN;
+      const valor = sp.janela.crit === 'Lavg' ? lavg : nen;
+      const supera = isFinite(valor) ? (Math.round(valor * 100) / 100 > sp.janela.lim ? 'SIM' : 'NÃO') : '[[?]]';
+      linhasR.push([`V${i + 1} – ${dataBR(sp.ini)} a ${dataBR(sp.fim)}`, p ? `${p.data.marca} ${p.data.modelo}`.trim() : `[[${r.data.paradigmaRuido}?]]`,
+        f2(lavg), isFinite(T) ? `${String(r.data.conducaoH).replace('.', ',')} h` : '[[T]]', sp.janela.crit === 'NEN' ? f2(nen) : '—',
+        `${sp.janela.crit} > ${sp.janela.lim}`, f2(valor), supera]);
+    }
+  });
+  if (linhasR.length) {
+    d.h3('Memória de cálculo do ruído (q = 5)');
+    d.quadro('Memória de cálculo do ruído (q = 5)', [['Subperíodo', 'Paradigma', 'Lavg (dB(A))', 'T', 'NEN (dB(A))', 'Critério da época', 'Valor comparado', 'Supera?'], ...linhasR],
+      { larguras: [0.2, 0.15, 0.1, 0.08, 0.1, 0.13, 0.12, 0.12], tam: 8.5, alinhar: 'left' });
+  }
+  const linhasV = [];
+  dados.periodos.forEach((r, i) => {
+    if (!r.data.paradigmaVibracao) return;
+    const p = P.get(r.data.paradigmaVibracao);
+    const T = numP(r.data.conducaoH);
+    const arep = p ? numP(p.data.arep || p.data.arenLaudo) : NaN;
+    const aren = arenParaJornada(arep, T);
+    const vdv = p ? vdvrParaJornada(p.data.vdvrLaudo, T, p.data.jornadaLaudo || 8) : NaN;
+    for (const sp of subperiodosVibracao(r)) {
+      let crit, res;
+      if (sp.crit === 'cod115') { crit = 'Cód. 1.1.5 (Dec. 53.831/64)'; res = '[[avaliar: perfuratrizes e marteletes]]'; }
+      else if (sp.crit === 'iso') {
+        crit = 'ISO 2631-1 – ZPS';
+        res = !isFinite(aren) ? 'Sem dados' : (aren > LIM_ISO_AREN || (isFinite(vdv) && vdv > LIM_ISO_VDV)) ? 'Acima da ZPS' : 'Dentro da ZPS';
+      } else {
+        crit = 'NR-15, Anexo 8';
+        res = !isFinite(aren) ? 'Sem dados' : (aren > LIM_NR15_AREN || (isFinite(vdv) && vdv > LIM_NR15_VDV)) ? 'Acima do LE' : 'Abaixo do LE';
+      }
+      linhasV.push([`V${i + 1} – ${dataBR(sp.ini)} a ${dataBR(sp.fim)}`, p ? `${p.data.marca} ${p.data.modelo}`.trim() : 'Sem dados', f2(arep),
+        isFinite(T) ? `${String(r.data.conducaoH).replace('.', ',')} h` : '[[T]]', f2(aren), f2(vdv), crit, res]);
+    }
+  });
+  if (linhasV.length) {
+    d.h3('Memória de cálculo da vibração de corpo inteiro');
+    d.quadro('Memória de cálculo da vibração de corpo inteiro', [['Subperíodo', 'Paradigma', 'arep (m/s²)', 'T', 'aren(T) (m/s²)', 'VDVR(T)', 'Critério da época', 'Resultado'], ...linhasV],
+      { larguras: [0.2, 0.15, 0.09, 0.07, 0.1, 0.09, 0.15, 0.15], tam: 8.5, alinhar: 'left',
+        fonte: `Elaborado pelo autor. ZPS: fronteira superior da zona de cautela da ISO 2631-1 (aren ${String(LIM_ISO_AREN).replace('.', ',')} m/s² ou VDV ${LIM_ISO_VDV} m/s^1,75); NR-15, Anexo 8: limite de exposição aren 1,1 m/s² ou VDVR 21,0 m/s^1,75.` });
+  }
+  return true;
+}

@@ -169,7 +169,7 @@ function Antigo() {
   );
 }
 
-const NOMES_KIND = { caso: 'Caso', quesito: 'Quesito', periodo: 'Período', documento: 'Documento', epi: 'EPI', posto: 'Posto', medicao: 'Medição', foto: 'Foto', equip: 'Equipamento' };
+const NOMES_KIND = { paradigma: 'Paradigma', similar: 'Similar', familia: 'Família', anexo: 'Anexo', caso: 'Caso', quesito: 'Quesito', periodo: 'Período', documento: 'Documento', epi: 'EPI', posto: 'Posto', medicao: 'Medição', foto: 'Foto', equip: 'Equipamento' };
 
 function Lixeira() {
   const itens = useLive(async () => {
@@ -180,7 +180,7 @@ function Lixeira() {
   const resumo = (r) => {
     const d = r.data;
     if (r.kind === 'caso') return tituloCaso(d);
-    return d.nome || d.descricao || d.legenda || d.texto || d.empresa || d.tipo || d.agente || '';
+    return (r.kind === 'paradigma' ? `${d.codigo} ${d.marca} ${d.modelo}` : '') || d.nome || d.descricao || d.legenda || d.texto || d.empresa || d.tipo || d.agente || '';
   };
   return (
     <div class="grade"><section class="bloco largo">

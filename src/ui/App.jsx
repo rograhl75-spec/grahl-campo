@@ -4,6 +4,7 @@ import { useHash, ir } from './hooks.js';
 import { Casos } from './Casos.jsx';
 import { Caso } from './Caso.jsx';
 import { Config } from './Config.jsx';
+import { Paradigmas } from './Paradigmas.jsx';
 
 export function App() {
   const hash = useHash();
@@ -11,6 +12,7 @@ export function App() {
   let tela;
   if (partes[0] === 'caso' && partes[1]) tela = <Caso key={partes[1]} id={decodeURIComponent(partes[1])} aba={partes[2] || 'resumo'} />;
   else if (partes[0] === 'config') tela = <Config aba={partes[1] || 'nuvem'} />;
+  else if (partes[0] === 'paradigmas') tela = <Paradigmas aba={partes[1] || 'veiculos'} />;
   else tela = <Casos />;
   return (
     <div class="app">
@@ -21,6 +23,7 @@ export function App() {
         </a>
         <nav>
           <a href="#/" class={partes[0] === '' || partes[0] === 'caso' ? 'ativo' : ''}>Casos</a>
+          <a href="#/paradigmas" class={partes[0] === 'paradigmas' ? 'ativo' : ''}>Paradigmas</a>
           <a href="#/config" class={partes[0] === 'config' ? 'ativo' : ''}>Configurações</a>
         </nav>
         <ModoCampo />

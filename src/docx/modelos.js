@@ -9,7 +9,7 @@ import {
   qualificacaoCurta, qualificacaoCompleta, blocoAssinatura, credencial, equipamentosUsados, quadroEquipamentos, quadroDiligencia,
   quadroPeriodos, quadroEpis, quadroDocumentos, quadroCriteriosRuido, quadroConfrontoRuido, quadroMedicoesRuido,
   quadroMedicoesGenerico, medicoesPorAgente, nomePostoFn, profissiografia, figurasDoCaso, respostasQuesitos, capaTecnica,
-  quadroCriteriosCalor, quadroCriteriosVibracao, documentosARequerer,
+  quadroCriteriosCalor, quadroCriteriosVibracao, documentosARequerer, quadrosParadigmasMetodologia, memoriasParadigmas, usaParadigmas,
   art, dadosDaConta, dataPorExtenso, horaPorExtenso, reaisPorExtenso, numeroPorExtenso, moeda, lerValor,
 } from './base.js';
 import { p, run, rich } from './ooxml.js';
@@ -204,6 +204,7 @@ export async function laudoPrevidenciario(caseId) {
   d.h2('2.2', 'Metodologia');
   d.texto('Em atendimento ao art. 473, inciso III, do Código de Processo Civil, a metodologia consistiu em análise dos autos, inspeção *in loco* e avaliações ambientais, seguindo as NHO da FUNDACENTRO e os limites de tolerância do Anexo IV do Regulamento da Previdência Social ou, na sua falta, da NR-15, quando o decreto a ela remete (art. 288 da IN 128/2022). [[Perícia direta / indireta por similaridade – ajustar.]]');
   d.texto('A conclusão fundamenta-se exclusivamente na norma técnica; entendimentos jurisprudenciais são registrados para apreciação do Juízo.');
+  if (usaParadigmas(dados)) { d.h2('2.3', 'Avaliação por similaridade (paradigmas)'); quadrosParadigmasMetodologia(d, dados); }
 
   d.h1('3', 'Fundamentação por período');
   d.texto('O enquadramento observa a legislação vigente à época da prestação do serviço (*tempus regit actum*).');
@@ -225,6 +226,7 @@ export async function laudoPrevidenciario(caseId) {
 
   d.h1('5', 'Avaliação dos agentes nocivos');
   avaliacaoAgentes(d, dados, '5', { previdenciario: true });
+  memoriasParadigmas(d, dados);
 
   d.h1('6', 'Medidas de controle');
   d.texto('Considera-se o EPC que elimina ou neutraliza a nocividade (art. 290 da IN 128/2022). O EPI só é considerado a partir de 03/12/1998 e quando atendidos, cumulativamente, os requisitos do art. 291. Para ruído, o EPI não descaracteriza a especialidade (STF, Tema 555).');
@@ -318,7 +320,9 @@ export async function ltcatPpp(caseId) {
   d.h2('5.2', 'Medidas de controle');
   d.texto('Considera-se adotado o EPC que elimina ou neutraliza a nocividade (art. 290 da IN 128/2022). O EPI só é considerado a partir de 03/12/1998 e quando atendidos, cumulativamente, os requisitos do art. 291. Para ruído, o EPI não descaracteriza a especialidade (STF, Tema 555); para os demais agentes, a dúvida sobre a eficácia favorece o segurado (STJ, Tema 1090).');
   quadroEpis(d, dados.epis);
+  if (usaParadigmas(dados)) { d.h2('', 'Avaliação por similaridade (paradigmas)'); quadrosParadigmasMetodologia(d, dados); }
   avaliacaoAgentes(d, { ...dados }, '5', { previdenciario: true });
+  memoriasParadigmas(d, dados);
 
   d.h1('6', 'Conclusão');
   d.h2('6.1', 'Síntese do enquadramento');
@@ -371,7 +375,7 @@ export async function parecerPrevidenciario(caseId) {
   d.redigir('ajustes específicos do caso (categoria do segurado, EC 103/2019).');
   d.h1('5', 'Metodologia');
   d.redigir('etapas; avaliação por similaridade (quando aplicável); normalização pela jornada efetiva; instrumentação.');
-  quadroEquipamentos(d, equipamentosUsados(dados));
+  if (!quadrosParadigmasMetodologia(d, dados)) quadroEquipamentos(d, equipamentosUsados(dados));
   d.h1('6', 'Descrição das atividades por vínculo');
   dados.periodos.forEach((r, i) => {
     d.h2(`6.${i + 1}`, `V${i + 1} – ${r.data.empresa || 'Empresa'} – ${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`);
@@ -381,10 +385,11 @@ export async function parecerPrevidenciario(caseId) {
   profissiografia(d, dados.postos);
   d.h1('7', 'Avaliação técnica');
   avaliacaoAgentes(d, dados, '7', { previdenciario: true });
+  memoriasParadigmas(d, dados);
   d.h2('', 'EPI e EPC');
   quadroEpis(d, dados.epis);
   d.h1('8', 'Quadro conclusivo');
-  quadroConfrontoRuido(d, dados);
+  if (!usaParadigmas(dados)) quadroConfrontoRuido(d, dados);
   d.quadro('Quadro conclusivo por vínculo', [['Vínculo', 'Período', 'Agente(s)', 'Conclusão'],
     ...dados.periodos.map((r, i) => [`V${i + 1} – ${r.data.empresa || ''}`, `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`, r.data.agentes || '[[agentes]]', '[[especial / comum]]'])],
   { larguras: [0.3, 0.24, 0.26, 0.2] });

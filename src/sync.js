@@ -97,6 +97,17 @@ if (typeof window !== 'undefined') {
 
 function colRef() { return collection(fs, 'usuarios', auth.currentUser.uid, 'registros'); }
 function fotoRef(id) { return sref(st, `usuarios/${auth.currentUser.uid}/fotos/${id}.jpg`); }
+function anexoRef(id) { return sref(st, `usuarios/${auth.currentUser.uid}/anexos/${id}`); }
+
+// Anexos (PDF de laudos antigos etc.): baixados da nuvem só quando abertos
+export async function obterAnexo(id) {
+  const local = await db.blobs.get(id);
+  if (local) return local.blob;
+  if (!auth || !auth.currentUser) throw new Error('Arquivo não está neste aparelho. Entre na nuvem para baixá-lo.');
+  const blob = await getBlob(anexoRef(id));
+  await db.blobs.put({ id, blob, uploaded: 1, mime: blob.type || 'application/pdf' });
+  return blob;
+}
 
 async function começar() {
   parar();
@@ -189,7 +200,8 @@ async function enviarFotos() {
   for (const b of pend) {
     const rec = await db.records.get(b.id);
     if (!rec) continue;
-    await uploadBytes(fotoRef(b.id), b.blob, { contentType: 'image/jpeg' });
+    const anexo = b.mime && b.mime !== 'image/jpeg';
+    await uploadBytes(anexo ? anexoRef(b.id) : fotoRef(b.id), b.blob, { contentType: anexo ? b.mime : 'image/jpeg' });
     await db.blobs.update(b.id, { uploaded: 1 });
     await refreshPending();
   }

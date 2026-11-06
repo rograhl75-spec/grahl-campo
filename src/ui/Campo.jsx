@@ -4,6 +4,7 @@ import { avisarAlteracao } from '../sync.js';
 import { CAMPOS_POSTO, AGENTES_MEDICAO, contextoLegal } from '../schema.js';
 import { CAMPOS_MEDICAO, CAMPOS_MEDICAO_COMUNS, calculados } from '../medicoes.js';
 import { lerGps } from '../photos.js';
+import { promoverMedicao } from '../paradigmas.js';
 import { TF, Campos, salvar } from './fields.jsx';
 import { useLive } from './hooks.js';
 import { EquipamentosCaso } from './Preparacao.jsx';
@@ -86,7 +87,7 @@ export function Campo({ rec }) {
             {aberto === p.id && (
               <div class="item-corpo">
                 <Campos rec={p} campos={CAMPOS_POSTO} />
-                <Medicoes caseId={rec.id} postoId={p.id} ctx={contextoLegal(rec.data)} />
+                <Medicoes caseId={rec.id} postoId={p.id} ctx={contextoLegal(rec.data)} caso={rec} />
                 <div class="campo">
                   <span class="rotulo">Fotos deste posto</span>
                   <BotoesFoto caseId={rec.id} postoId={p.id} />
@@ -101,7 +102,7 @@ export function Campo({ rec }) {
 
       <section class="bloco largo">
         <h3>Medições sem posto vinculado</h3>
-        <Medicoes caseId={rec.id} postoId="" ctx={contextoLegal(rec.data)} />
+        <Medicoes caseId={rec.id} postoId="" ctx={contextoLegal(rec.data)} caso={rec} />
       </section>
 
       <section class="bloco largo">
@@ -132,7 +133,7 @@ function equipPadrao(equip, agente) {
   return e ? e.id : '';
 }
 
-function Medicoes({ caseId, postoId, ctx = {} }) {
+function Medicoes({ caseId, postoId, ctx = {}, caso }) {
   const lista = useLive(async () => (await db.records.where('[caseId+kind]').equals([caseId, 'medicao']).toArray())
     .filter((r) => !r.deleted && (r.data.postoId || '') === postoId).sort((a, b) => a.createdAt - b.createdAt), [caseId, postoId], []);
   const equip = useLive(async () => (await db.records.where('kind').equals('equip').toArray()).filter((e) => !e.deleted), [], []);
@@ -183,6 +184,15 @@ function Medicoes({ caseId, postoId, ctx = {} }) {
                   </div>
                 )}
                 <Campos rec={m} campos={CAMPOS_MEDICAO_COMUNS.slice(2)} />
+                {caso && (m.data.agente === 'Ruído' || /corpo inteiro/.test(m.data.agente || '')) && (
+                  m.data.paradigmaId
+                    ? <p class="ok-msg">✓ Incluída no banco de paradigmas. <a href="#/paradigmas/veiculos">Ver</a></p>
+                    : <button type="button" class="mini" onClick={async () => {
+                      const r = await promoverMedicao(caso, m, equip.find((e) => e.id === m.data.equipamentoId));
+                      avisarAlteracao();
+                      alert(`Incluída no banco de paradigmas como ${r.data.codigo} (situação "Revisar"). Complete marca, modelo, família e características em Paradigmas.`);
+                    }}>➕ Incluir no banco de paradigmas</button>
+                )}
               </div>
             )}
           </div>

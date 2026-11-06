@@ -7,6 +7,10 @@ import { dataBR } from '../docx/reports.js';
 import { TF, salvar } from './fields.jsx';
 import { RecordList } from './RecordList.jsx';
 import { useLive } from './hooks.js';
+import { Campos } from './fields.jsx';
+import { sugerirParadigmas } from '../paradigmas.js';
+import { ResultadoBusca } from './Paradigmas.jsx';
+import { updateFields } from '../db.js';
 
 export function Preparacao({ rec }) {
   const sintese = CAMPOS_SINTESE.filter(([k]) => k !== 'roteiro' && k !== 'analiseEpi');
@@ -18,7 +22,9 @@ export function Preparacao({ rec }) {
         {sintese.map(([k, label]) => <TF rec={rec} k={k} label={label} area />)}
       </section>
       <RecordList kind="periodo" caseId={rec.id} campos={CAMPOS_PERIODO} titulo="Contratos / períodos" novo="Adicionar período"
-        resumo={(r) => [r.data.empresa, r.data.inicio && `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`, r.data.cargo].filter(Boolean).join(' · ')} />
+        resumo={(r) => [r.data.empresa, r.data.inicio && `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`, r.data.cargo,
+          (r.data.paradigmaRuido || r.data.paradigmaVibracao) && `paradigmas ${[r.data.paradigmaRuido, r.data.paradigmaVibracao].filter(Boolean).join('/')}`].filter(Boolean).join(' · ')}
+        extra={(r) => <VeiculoDoPeriodo r={r} />} />
       <RecordList kind="documento" caseId={rec.id} campos={CAMPOS_DOC} titulo="Documentos técnicos analisados" novo="Adicionar documento"
         resumo={(r) => [r.data.tipo, r.data.identificacao].filter(Boolean).join(' – ')} />
       <RecordList kind="epi" caseId={rec.id} campos={CAMPOS_EPI} titulo="Ficha de EPIs" novo="Adicionar EPI"
@@ -123,5 +129,30 @@ function ImportarIA({ rec }) {
       )}
       {msg && <p class="ok-msg">{msg}</p>}
     </section>
+  );
+}
+
+export const CAMPOS_VEICULO_PERIODO = [
+  ['veiculoTipo', 'Tipo do veículo / máquina', 'text'], ['veiculoMarca', 'Marca', 'text'], ['veiculoModelo', 'Modelo', 'text'], ['veiculoAno', 'Ano', 'text'],
+  ['conducaoH', 'Tempo diário de condução / operação (h)', 'num'], ['conducaoBase', 'Base da informação (ex.: entrevista de 20/10/2026; jornada 04h–22h menos paradas)', 'text'],
+  ['paradigmaRuido', 'Paradigma de ruído (código, ex.: M01)', 'text'], ['paradigmaVibracao', 'Paradigma de vibração (código)', 'text'],
+];
+
+function VeiculoDoPeriodo({ r }) {
+  const [aberto, setAberto] = useState(!!(r.data.veiculoModelo || r.data.paradigmaRuido));
+  const [res, setRes] = useState(null);
+  const buscar = async () => setRes(await sugerirParadigmas({ marca: r.data.veiculoMarca, modelo: r.data.veiculoModelo, tipo: r.data.veiculoTipo }));
+  const escolher = async (tipo, p) => {
+    await updateFields(r.id, tipo === 'ruido' ? { paradigmaRuido: p.data.codigo } : { paradigmaVibracao: p.data.codigo });
+    avisarAlteracao();
+  };
+  if (!aberto) return <button type="button" class="mini" onClick={() => setAberto(true)}>🚚 Veículo e paradigma (motorista / operador)</button>;
+  return (
+    <div class="bloco destaque" style="margin-top:8px">
+      <h4>Veículo do requerente neste período</h4>
+      <div class="linha2"><Campos rec={r} campos={CAMPOS_VEICULO_PERIODO} /></div>
+      <button type="button" onClick={buscar}>Sugerir paradigmas pelo banco</button>
+      {res && <ResultadoBusca res={res} onEscolher={escolher} />}
+    </div>
   );
 }

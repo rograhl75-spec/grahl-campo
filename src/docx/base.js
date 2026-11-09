@@ -161,7 +161,9 @@ export function juizoLimpo(c) {
 export function enderecamentoTexto(c) {
   const j = juizoLimpo(c).juizo;
   const cidade = v(c.comarca).split(/[\/–-]/)[0].trim().toLowerCase();
-  const comarca = v(c.comarca) && !(cidade && j.toLowerCase().includes(cidade)) ? ` – ${c.comarca}` : '';
+  // a vara federal já traz a cidade ("6ª Vara Federal de Londrina"): não repete a comarca nem o local da perícia
+  const comarcaLimpa = v(c.comarca).split(/;/)[0].replace(/\s*\([^)]*\)/g, '').trim();
+  const comarca = comarcaLimpa && !(cidade && j.toLowerCase().includes(cidade)) && !/vara\b.*\bde\s+\S/i.test(j) ? ` – ${comarcaLimpa}` : '';
   const just = c.justica || '';
   const trat = /Federal/i.test(just) ? 'EXCELENTÍSSIMO SENHOR JUIZ FEDERAL'
     : /Trabalho/i.test(just) ? 'EXCELENTÍSSIMO SENHOR JUIZ DO TRABALHO'
@@ -873,4 +875,15 @@ export function refDespachos(c) {
   }
   const seg = t.split(/;\s*/)[0].replace(/\s*\(.*$/, '').trim();
   return /^(decisão|sentença|r\.)/i.test(seg) ? `à ${seg}` : `ao ${seg}`;
+}
+
+// Perícia por similaridade e empresa da vistoria, também quando só constam do texto do despacho
+// ("perícia por similaridade na Pennacchi")
+export function ehSimilaridade(c) {
+  return c.similaridade === 'Sim' || (c.similaridade !== 'Não' && (!!v(c.empresaOriginal) || /similaridade|paradigma/i.test(v(c.despachoRef))));
+}
+export function empresaDoDespacho(c) {
+  const t = `${v(c.despachoRef)} ${v(c.observacoes)} ${v(c.roteiro)}`;
+  const m = t.match(/(?:similaridade|vistoria|per[íi]cia)\s+(?:ser[áa]\s+realizada\s+)?(?:na|no|em)\s+(?:empresa\s+)?([A-ZÁÉÍÓÚÂÊÔÃÕÇ][\wÀ-ÿ&.\- ]{2,60}?)(?=\s*[);,:]|\s+[–-]\s|\s+(?:em|no|na)\s+[A-Z]|$)/);
+  return m ? m[1].trim() : '';
 }

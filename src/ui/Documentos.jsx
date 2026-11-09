@@ -5,7 +5,7 @@ import { OPCOES_REDACAO, exportarParaClaude } from '../aiimport.js';
 import { gravarTudoAgora, salvar, TF, Sel } from './fields.jsx';
 import { FORMAS_PAGAMENTO } from '../schema.js';
 import { db } from '../db.js';
-import { PERFIL_ID, contasDoPerfil, PERFIL_PADRAO } from '../docx/base.js';
+import { PERFIL_ID, contasDoPerfil, PERFIL_PADRAO, ehSimilaridade, empresaDoDespacho } from '../docx/base.js';
 import { useLive } from './hooks.js';
 
 const SUGESTAO_REDACAO = (c) => (c.papel === 'Perito do Juízo' ? 'laudo'
@@ -129,12 +129,13 @@ function DadosAgendamento({ rec }) {
     } catch (e) { setMsg(`Não foi possível buscar (${e.message}). Digite o endereço.`); }
   };
   // por similaridade a vistoria é na empresa paradigma, não na empregadora original
-  const empresas = c.similaridade === 'Sim' ? [] : [...new Set([c.reuNome && !/INSS|Instituto Nacional/i.test(c.reuNome) ? c.reuNome : ''].filter(Boolean))];
+  const simil = ehSimilaridade(c);
+  const empresas = [...new Set([empresaDoDespacho(c), !simil && c.reuNome && !/INSS|Instituto Nacional/i.test(c.reuNome) ? c.reuNome : ''].filter(Boolean))];
   return (
     <div class="dados-agenda">
-      <TF rec={rec} k="vistoriaLocal" label={c.similaridade === 'Sim' ? 'Empresa da vistoria (paradigma)' : 'Empresa da vistoria'} />
+      <TF rec={rec} k="vistoriaLocal" label={simil ? 'Empresa da vistoria (paradigma – perícia por similaridade)' : 'Empresa da vistoria'} />
       {!String(c.vistoriaLocal || '').trim() && empresas.length > 0 && (
-        <div class="chips">{empresas.map((e) => <button type="button" class="chip" onClick={() => salvar(rec.id, 'vistoriaLocal', e)}>{e}</button>)}</div>
+        <div class="chips"><small class="dica">Dos autos:</small>{empresas.map((e) => <button type="button" class="chip" onClick={() => salvar(rec.id, 'vistoriaLocal', e)}>{e}</button>)}</div>
       )}
       <div class="com-botao"><TF rec={rec} k="vistoriaCnpj" label="CNPJ (para buscar o endereço)" inputMode="numeric" />
         <button type="button" class="mini" onClick={buscar}>🔎 Buscar</button></div>

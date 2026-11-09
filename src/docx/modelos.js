@@ -12,7 +12,7 @@ import {
   quadroCriteriosCalor, quadroCriteriosVibracao, documentosARequerer, quadrosParadigmasMetodologia, memoriasParadigmas, usaParadigmas,
   art, dadosDaConta, dataPorExtenso, horaPorExtenso, reaisPorExtenso, numeroPorExtenso, moeda, lerValor, nomeOrigemQuesito,
   quadroFormaEnquadramento, quadroRequisitosEpi, codigosEnquadramento, textoDeterminacao, nomeCurto,
-  apendicesDoCaso, textoIntegram, inserirApendices, tituloVinculo, descricaoVinculo, agentesCurtos, refDespachos,
+  apendicesDoCaso, textoIntegram, inserirApendices, tituloVinculo, descricaoVinculo, agentesCurtos, refDespachos, ehSimilaridade, empresaDoDespacho, empresaCurta,
 } from './base.js';
 import { comJurisprudencia, registroJurisprudencia, secaoReferencias } from './fontes.js';
 import { secaoPenosidade } from './penosidade.js';
@@ -657,14 +657,16 @@ export async function peticaoAgendamento(caseId) {
   d.h1('1.', 'Do agendamento da vistoria pericial', { novaPagina: false });
   const data = dataPorExtenso(c.dataDiligencia, { semana: true }) || '[[data da vistoria]]';
   const hora = horaPorExtenso(c.horaDiligencia) || '[[horário]]';
-  const simil = c.similaridade === 'Sim' || v(c.empresaOriginal);
+  const simil = ehSimilaridade(c);
+  const empresaV = v(c.vistoriaLocal) || empresaDoDespacho(c);
+  const origem = v(c.empresaOriginal) || [...new Set(dados.periodos.map((r) => empresaCurta(r.data.empresa)).filter(Boolean))].join(', ');
   d.texto(`Comunica-se que a vistoria pericial fica designada para o dia **${data}**, às **${hora}**, a ser realizada${simil ? ', por similaridade,' : ''} nas dependências da empresa${simil ? ' paradigma' : ''}:`);
-  const local = [v(c.vistoriaLocal).toUpperCase() || '[[EMPRESA]]', ...String(c.vistoriaEndereco || '[[endereço – cidade/UF – CEP]]').split(/\n|\s*;\s*/).filter(Boolean)];
+  const local = [empresaV.toUpperCase() || '[[EMPRESA]]', ...String(c.vistoriaEndereco || '[[endereço – cidade/UF – CEP]]').split(/\n|\s*;\s*/).filter(Boolean)];
   local.forEach((l, i) => d.add(p([run(l, { b: i === 0 })], { left: 1418, after: i === local.length - 1 ? 200 : 0, align: 'left' })));
   const periodos = listaPeriodos(dados.periodos);
   const item = v(c.itensVistoria) ? `, conforme determinado ${/[e,]/.test(c.itensVistoria) ? 'nos itens' : 'no item'} ${c.itensVistoria} do referido despacho` : '';
   d.texto(pt.prev
-    ? `A vistoria destina-se a examinar ${simil ? `, em ambiente e atividades similares aos da${v(c.empresaOriginal) ? ` ${v(c.empresaOriginal)}` : ' empregadora original'},` : ''} as condições de trabalho do autor${periodos ? ` nos períodos de ${periodos}` : ' [[nos períodos de ...]]'}${item}.`.replace('examinar ,', 'examinar,')
+    ? `A vistoria destina-se a examinar${simil ? `, em ambiente e atividades similares aos da${origem ? ` ${origem}` : ' empregadora original'},` : ''} as condições de trabalho do autor${periodos ? ` nos períodos de ${periodos}` : ' [[nos períodos de ...]]'}${item}.`.replace('examinar ,', 'examinar,')
     : `A vistoria destina-se a examinar as condições de trabalho do ${pt.autorCurto.toLowerCase()}${c.dataAjuizamento && pt.trab ? ` no período imprescrito (a partir de ${menosCincoAnos(c.dataAjuizamento)})` : ''}${item}.`);
 
   d.texto('A comunicação é feita para ciência das partes (art. 474 do CPC) e para assegurar aos assistentes técnicos o acompanhamento da diligência, com antecedência mínima de 5 (cinco) dias (art. 466, § 2º, do CPC).');
@@ -676,9 +678,9 @@ export async function peticaoAgendamento(caseId) {
   d.texto('Diante do exposto, requer-se:');
   d.texto(`a) a intimação das partes e de seus assistentes técnicos, caso indicados, para que, querendo, compareçam ao ato na data, horário e local acima;`);
   d.texto(`b) a intimação do ${pt.autorCurto.toLowerCase()} para comparecimento pessoal, a fim de prestar informações sobre os setores, atividades, máquinas e rotina de trabalho ${pt.prev ? 'nos períodos em análise' : 'no período discutido'};`);
-  const empresa = v(c.vistoriaLocal) || '[[empresa]]';
+  const empresa = empresaV || '[[empresa]]';
   d.texto(`c) a expedição de ofício à empresa ${empresa}${v(c.itemOficio) ? `, nos termos do item ${c.itemOficio} do despacho` : ''}, comunicando a data e o horário da vistoria e solicitando:`);
-  const simil2 = c.similaridade === 'Sim' || v(c.empresaOriginal);
+  const simil2 = simil;
   travessao(d, simil2 ? `o acesso do perito, das partes e dos assistentes técnicos aos setores com atividades similares às exercidas pelo ${pt.autorCurto.toLowerCase()};`
     : `o acesso do perito, das partes e dos assistentes técnicos aos setores em que o ${pt.autorCurto.toLowerCase()} laborou;`);
   travessao(d, 'a designação de representante com conhecimento do processo produtivo e, se possível, do profissional responsável pela segurança do trabalho;');

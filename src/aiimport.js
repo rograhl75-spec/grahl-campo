@@ -63,12 +63,13 @@ const REGRAS_EXTRACAO = `REGRAS DE EXTRAÇÃO
 3. Quesitos: TRANSCREVA TODOS NA ÍNTEGRA, palavra por palavra, um item por quesito, com origem e número.
 4. EPIs: liste cada item das fichas (descrição, CA, data de entrega, observações sobre periodicidade, assinatura e validade do CA).
 5. Datas no formato AAAA-MM-DD. Não inclua nomes de advogados.
-6. PROCESSO EM ANDAMENTO: se os autos já contêm laudo pericial, parecer, registro ou ata de diligência, preencha também "andamento", "diligencia", "postos" (com as medições de cada posto) e, em cada quesito, a "resposta" dada no laudo, transcrita fielmente (sem resumir). Se não houver laudo nem diligência, deixe esses blocos vazios. Medições: um item por medição, com os valores exatamente como no laudo (número com vírgula ou ponto, sem unidade) e o equipamento (marca, modelo, série, certificado) em "equipamento". Traga a data e os horários de início e fim de cada medição como constam no laudo ou no relatório do equipamento: eles são usados para conferir o horário da diligência.`;
+6. PROCESSO EM ANDAMENTO: se os autos já contêm laudo pericial, parecer, registro ou ata de diligência, preencha também "andamento", "diligencia", "postos" (com as medições de cada posto) e, em cada quesito, a "resposta" dada no laudo, transcrita fielmente (sem resumir). Se não houver laudo nem diligência, deixe esses blocos vazios. Medições: um item por medição, com os valores exatamente como no laudo (número com vírgula ou ponto, sem unidade) e o equipamento (marca, modelo, série, certificado) em "equipamento". Traga a data e os horários de início e fim de cada medição como constam no laudo ou no relatório do equipamento: eles são usados para conferir o horário da diligência.
+7. LOCAL DA PERÍCIA: se o despacho ou os autos indicarem onde será feita a vistoria (a empresa empregadora ou, na perícia por similaridade, a empresa paradigma) e o endereço, preencha "diligencia.vistoriaLocal" (razão social), "diligencia.vistoriaEndereco" (rua, número, bairro, cidade/UF, CEP) e "diligencia.vistoriaCnpj", mesmo que a diligência ainda não tenha ocorrido. Na perícia por similaridade, preencha também "processo.similaridade" = "Sim" e "processo.empresaOriginal" com a empregadora original.`;
 
 const FORMATO = `FORMATO DA RESPOSTA
 Responda SOMENTE com um bloco JSON válido, sem texto antes ou depois, neste formato:
 {
-  "processo": {"numero": "", "juizo": "", "comarca": "", "dataAjuizamento": "", "valorCausa": "", "rito": "", "peritoJuizo": "", "refLaudo": "", "despachoRef": ""},
+  "processo": {"numero": "", "juizo": "", "comarca": "", "dataAjuizamento": "", "valorCausa": "", "rito": "", "peritoJuizo": "", "refLaudo": "", "despachoRef": "", "similaridade": "Sim | Não", "empresaOriginal": ""},
   "partes": {"autorNome": "", "autorCpf": "", "autorNascimento": "", "reuNome": "", "reuCnpj": ""},
   "sintese": {
     "funcoes": "cargos, funções, admissão, demissão, períodos",
@@ -82,7 +83,7 @@ Responda SOMENTE com um bloco JSON válido, sem texto antes ou depois, neste for
   "epis": [{"descricao": "", "ca": "", "dataEntrega": "", "obs": ""}],
   "quesitos": [{"origem": "Juízo | Autor / Reclamante | Réu / Reclamada | INSS | Complementares", "numero": "1", "texto": "", "resposta": "resposta dada no laudo, se já houver"}],
   "andamento": {"fase": "A preparar | Diligência agendada | Diligência realizada | Laudo / parecer em elaboração | Aguardando manifestação / esclarecimentos | Respondendo quesitos suplementares | Concluído", "laudoRefPerito": "ID/mov. do laudo", "laudoData": "", "conclusaoLaudo": "conclusão do laudo por agente e período, com as folhas", "honorariosFixados": "", "honorariosItem": "", "dataDiligencia": "", "horaDiligencia": ""},
-  "diligencia": {"vistoriaData": "", "vistoriaInicio": "HH:MM", "vistoriaFim": "HH:MM", "vistoriaLocal": "", "vistoriaEndereco": "", "vistoriaPresentes": "nome – função – quem representa, um por linha", "vistoriaCondicoes": "", "vistoriaNotas": "outras anotações da diligência e a folha do laudo onde está"},
+  "diligencia": {"vistoriaData": "", "vistoriaInicio": "HH:MM", "vistoriaFim": "HH:MM", "vistoriaLocal": "empresa onde será / foi a vistoria", "vistoriaEndereco": "", "vistoriaCnpj": "", "vistoriaPresentes": "nome – função – quem representa, um por linha", "vistoriaCondicoes": "", "vistoriaNotas": "outras anotações da diligência e a folha do laudo onde está"},
   "postos": [{"nome": "", "descricao": "", "infoTrabalhador": "", "infoEmpresa": "", "agentes": "", "jornada": "", "epc": "", "epi": "",
     "medicoes": [{"agente": "Ruído | Calor (IBUTG) | Vibração de corpo inteiro (VCI) | Vibração de mãos e braços (VMB) | Agente químico | Outro", "dataMedicao": "", "horaInicio": "", "horaFim": "", "equipamento": "",
       "tempoAmostragem": "", "jornada": "", "dose": "", "lavg": "", "lmax": "", "calibInicial": "", "calibFinal": "", "posicao": "",
@@ -162,7 +163,7 @@ export function montarPrompt(situacaoId, c = {}, perfil = {}) {
 export const PROMPT_IA = montarPrompt('perito-trab');
 
 const CAMPOS_CASO = {
-  processo: ['numero', 'juizo', 'comarca', 'dataAjuizamento', 'valorCausa', 'rito', 'peritoJuizo', 'refLaudo', 'despachoRef'],
+  processo: ['numero', 'juizo', 'comarca', 'dataAjuizamento', 'valorCausa', 'rito', 'peritoJuizo', 'refLaudo', 'despachoRef', 'similaridade', 'empresaOriginal'],
   partes: ['autorNome', 'autorCpf', 'autorNascimento', 'reuNome', 'reuCnpj'],
   sintese: ['funcoes', 'atividadesAlegadas', 'agentesAlegados', 'pedidos', 'defesa', 'preliminares', 'analiseEpi', 'roteiro', 'observacoes'],
 };
@@ -187,7 +188,9 @@ export function lerJsonIA(texto) {
   for (const [k, v] of Object.entries(pegar(and, ['laudoRefPerito', 'laudoData', 'conclusaoLaudo', 'honorariosFixados', 'honorariosItem', 'dataDiligencia', 'horaDiligencia']))) caso[k] = v;
   const fase = FASE.find((f) => f.toLowerCase() === s(and.fase).toLowerCase());
   if (fase && fase !== 'A preparar') caso.fase = fase;
-  Object.assign(caso, pegar(obj.diligencia, CAMPOS_DILIGENCIA.map(([k]) => k).filter((k) => k !== 'vistoriaGps')));
+  Object.assign(caso, pegar(obj.diligencia, [...CAMPOS_DILIGENCIA.map(([k]) => k).filter((k) => k !== 'vistoriaGps'), 'vistoriaCnpj']));
+  if (caso.similaridade && !/^(sim|não|nao)$/i.test(caso.similaridade)) delete caso.similaridade;
+  if (caso.similaridade) caso.similaridade = /^sim$/i.test(caso.similaridade) ? 'Sim' : 'Não';
   const agenteOk = (a) => AGENTES_MEDICAO.find((x) => x.toLowerCase().slice(0, 12) === s(a).toLowerCase().slice(0, 12)) || 'Outro';
   const KS_MED = ['dataMedicao', 'horaInicio', 'horaFim', 'tempoAmostragem', 'jornada', 'dose', 'lavg', 'lmax', 'calibInicial', 'calibFinal', 'posicao',
     'tbn', 'tbs', 'tg', 'ibutgLido', 'atividade', 'regime', 'veiculo', 'aren', 'vdv', 'eixo', 'tempoExposicao', 'descricao', 'metodo', 'valor', 'unidade', 'limite'];

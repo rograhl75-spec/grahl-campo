@@ -67,12 +67,16 @@ export async function adicionarFotos(caseId, files, { postoId = '', legenda = ''
   let ordem = existentes.reduce((m, f) => Math.max(m, f.data.ordem || 0), 0);
   const gps = await gpsRapido();
   const criadas = [];
+  const { lerExif } = await import('./fotosLaudo.js');
   for (const file of files) {
+    const exif = await lerExif(file); // data, hora e GPS gravados pela câmera, quando houver
     const { blob, thumb, w, h } = await processarFoto(file);
     ordem += 1;
     const rec = await createRecord('foto', caseId, {
-      postoId, legenda, gps, ordem, largura: w, altura: h,
-      tiradaEm: new Date(file.lastModified || Date.now()).toISOString(),
+      postoId, legenda, ordem, largura: w, altura: h,
+      gps: exif.gps || gps, gpsFonte: exif.gps ? 'foto' : (gps ? 'aparelho' : ''),
+      tiradaEm: exif.tiradaEm || new Date(file.lastModified || Date.now()).toISOString(),
+      tiradaEmFonte: exif.tiradaEm ? 'foto' : 'arquivo',
       nomeArquivo: file.name || '',
     });
     await db.blobs.put({ id: rec.id, blob, thumb, uploaded: 0 });

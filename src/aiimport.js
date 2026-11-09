@@ -50,7 +50,7 @@ const REGRAS_EXTRACAO = `REGRAS DE EXTRAÇÃO
 3. Quesitos: TRANSCREVA TODOS NA ÍNTEGRA, palavra por palavra, um item por quesito, com origem e número.
 4. EPIs: liste cada item das fichas (descrição, CA, data de entrega, observações sobre periodicidade, assinatura e validade do CA).
 5. Datas no formato AAAA-MM-DD. Não inclua nomes de advogados.
-6. PROCESSO EM ANDAMENTO: se os autos já contêm laudo pericial, parecer, registro ou ata de diligência, preencha também "andamento", "diligencia", "postos" (com as medições de cada posto) e, em cada quesito, a "resposta" dada no laudo, transcrita fielmente (sem resumir). Se não houver laudo nem diligência, deixe esses blocos vazios. Medições: um item por medição, com os valores exatamente como no laudo (número com vírgula ou ponto, sem unidade) e o equipamento (marca, modelo, série, certificado) em "equipamento".`;
+6. PROCESSO EM ANDAMENTO: se os autos já contêm laudo pericial, parecer, registro ou ata de diligência, preencha também "andamento", "diligencia", "postos" (com as medições de cada posto) e, em cada quesito, a "resposta" dada no laudo, transcrita fielmente (sem resumir). Se não houver laudo nem diligência, deixe esses blocos vazios. Medições: um item por medição, com os valores exatamente como no laudo (número com vírgula ou ponto, sem unidade) e o equipamento (marca, modelo, série, certificado) em "equipamento". Traga a data e os horários de início e fim de cada medição como constam no laudo ou no relatório do equipamento: eles são usados para conferir o horário da diligência.`;
 
 const FORMATO = `FORMATO DA RESPOSTA
 Responda SOMENTE com um bloco JSON válido, sem texto antes ou depois, neste formato:
@@ -251,6 +251,12 @@ export async function aplicarIA(caseId, dados, { substituir = false } = {}) {
         cont.medicoes += 1;
       }
     }
+    // horário da diligência ainda vazio: usa o das medições do laudo
+    const { evidenciasDaDiligencia, aplicarEvidencias } = await import('./fotosLaudo.js');
+    const atual = await db.records.get(caseId);
+    const ev = await evidenciasDaDiligencia(caseId, atual.data.vistoriaData || '');
+    const aj = await aplicarEvidencias(atual, ev);
+    cont.campos += Object.keys(aj).length;
   }
   return cont;
 }

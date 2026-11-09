@@ -5,6 +5,7 @@ import { CAMPOS_POSTO, AGENTES_MEDICAO, contextoLegal } from '../schema.js';
 import { CAMPOS_MEDICAO, CAMPOS_MEDICAO_COMUNS, calculados } from '../medicoes.js';
 import { lerGps } from '../photos.js';
 import { promoverMedicao } from '../paradigmas.js';
+import { evidenciasDaDiligencia, aplicarEvidencias } from '../fotosLaudo.js';
 import { TF, Campos, salvar } from './fields.jsx';
 import { useLive } from './hooks.js';
 import { EquipamentosCaso } from './Preparacao.jsx';
@@ -66,6 +67,7 @@ export function Campo({ rec }) {
         <div class="com-botao"><TF rec={rec} k="vistoriaGps" label="Coordenadas GPS" />
           <button type="button" class="mini" onClick={pegarGps}>📍 GPS</button></div>
         {gpsMsg && <small class="dica">{gpsMsg}</small>}
+        <HorariosPelasEvidencias rec={rec} />
         <TF rec={rec} k="vistoriaPresentes" label="Pessoas presentes (nome – função – quem representa)" area />
         <TF rec={rec} k="vistoriaCondicoes" label="Condições do dia (produção normal?, clima, paradas)" area rows={2} />
         <EquipamentosCaso rec={rec} titulo="Equipamentos utilizados" />
@@ -200,6 +202,37 @@ function Medicoes({ caseId, postoId, ctx = {}, caso }) {
       })}
       <div class="chips add-med">
         {AGENTES_MEDICAO.map((a) => <button type="button" class="chip" onClick={() => nova(a)}>＋ {a.replace(' de corpo inteiro', '').replace(' de mãos e braços', '')}</button>)}
+      </div>
+    </div>
+  );
+}
+
+// Confere início, término e local da diligência pelos horários das medições e das fotos
+function HorariosPelasEvidencias({ rec }) {
+  const ev = useLive(() => evidenciasDaDiligencia(rec.id, rec.data.vistoriaData || ''),
+    [rec.id, rec.data.vistoriaData, rec.updatedAt], null);
+  const [msg, setMsg] = useState('');
+  if (!ev || (!ev.fotos && !ev.medicoes)) return null;
+  const c = rec.data;
+  const difere = (ev.inicio && c.vistoriaInicio && ev.inicio < c.vistoriaInicio) || (ev.fim && c.vistoriaFim && ev.fim > c.vistoriaFim);
+  const falta = (ev.inicio && !c.vistoriaInicio) || (ev.fim && !c.vistoriaFim) || (ev.gps && !c.vistoriaGps) || (ev.data && !c.vistoriaData);
+  const usar = async (substituir) => {
+    const m = await aplicarEvidencias(rec, ev, { substituir });
+    avisarAlteracao();
+    setMsg(Object.keys(m).length ? '✓ Diligência ajustada.' : 'Nada a ajustar.');
+  };
+  return (
+    <div class={`evidencias ${difere ? 'alerta' : ''}`}>
+      <b>Horários registrados {ev.data ? `em ${ev.data.split('-').reverse().join('/')}` : ''}</b>
+      <div>{ev.medicoes ? `Medições: ${ev.medDe || '?'} às ${ev.medAte || '?'} (${ev.medicoes})` : ''}
+        {ev.fotos ? `${ev.medicoes ? ' · ' : ''}Fotos com data: ${ev.fotosDe} às ${ev.fotosAte} (${ev.fotos})` : ''}
+        {ev.gps ? ` · GPS das fotos: ${ev.gps}` : ''}</div>
+      {difere && <small class="alerta-txt">⚠ Há medição ou foto fora do horário informado da diligência ({c.vistoriaInicio || '?'} às {c.vistoriaFim || '?'}). Confira.</small>}
+      {ev.outrasDatas.length > 0 && <small class="alerta-txt">⚠ Também há fotos ou medições em outra(s) data(s): {ev.outrasDatas.map((d) => d.split('-').reverse().join('/')).join(', ')}.</small>}
+      <div class="linha-botoes">
+        {falta && <button type="button" class="mini" onClick={() => usar(false)}>Preencher o que falta</button>}
+        {difere && <button type="button" class="mini" onClick={() => usar(true)}>Usar {ev.inicio} às {ev.fim}</button>}
+        {msg && <small>{msg}</small>}
       </div>
     </div>
   );

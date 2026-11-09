@@ -1,6 +1,6 @@
 {
   "name": "grahl-campo",
-  "version": "2.8.0",
+  "version": "2.9.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -14,8 +14,10 @@
   "license": "ISC",
   "dependencies": {
     "dexie": "^4.0.11",
+    "exifr": "7.1.3",
     "firebase": "^11.6.0",
     "jszip": "^3.10.1",
+    "pdfjs-dist": "4.10.38",
     "preact": "^10.26.4"
   },
   "devDependencies": {

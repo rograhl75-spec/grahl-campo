@@ -28,3 +28,18 @@ describe('leitura de processo com laudo já protocolado', () => {
     expect(med.data.obs).toContain('Dosímetro X');
   });
 });
+
+describe('horários da diligência pelas medições e fotos', () => {
+  it('usa o menor início e o maior término do dia e o GPS da foto', async () => {
+    const { createRecord, db: dbx } = await import('../src/db.js');
+    const { evidenciasDaDiligencia, aplicarEvidencias } = await import('../src/fotosLaudo.js');
+    const caso = await createRecord('caso', null, { vistoriaInicio: '09:00' });
+    await createRecord('medicao', caso.id, { agente: 'Ruído', dataMedicao: '2025-02-20', horaInicio: '08:40', horaFim: '14:55' });
+    await createRecord('foto', caso.id, { tiradaEm: '2025-02-20T15:02:00', tiradaEmFonte: 'foto', gps: '-23.31, -51.16', gpsFonte: 'foto' });
+    await createRecord('foto', caso.id, { tiradaEm: '2026-11-09T10:00:00', tiradaEmFonte: 'arquivo' });
+    const ev = await evidenciasDaDiligencia(caso.id);
+    expect([ev.data, ev.inicio, ev.fim, ev.fotos, ev.medicoes]).toEqual(['2025-02-20', '08:40', '15:02', 1, 1]);
+    const m = await aplicarEvidencias(await dbx.records.get(caso.id), ev);
+    expect(m).toEqual({ vistoriaData: '2025-02-20', vistoriaFim: '15:02', vistoriaGps: '-23.31, -51.16 (GPS das fotos)' });
+  });
+});

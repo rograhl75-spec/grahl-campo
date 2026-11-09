@@ -261,3 +261,7 @@ body.modo-campo .item-topo { min-height: 70px; }
 .subtitulo-etapa { font-size: 1.05rem; color: var(--suave); margin: 10px 0 0; }
 .linha-arquivo { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--borda); }
 .docs .passo-docs { color: var(--suave); margin: -6px 0 10px; font-size: .92rem; }
+
+.evidencias { margin: 6px 0 12px; padding: 10px 12px; border-radius: 10px; background: #EEF4FB; border: 1px solid #C8D8EC; font-size: .92rem; display: grid; gap: 4px; }
+.evidencias.alerta { background: #FFF6DD; border-color: #E6CF8A; }
+.botao-arquivo.desativado { opacity: .6; pointer-events: none; }

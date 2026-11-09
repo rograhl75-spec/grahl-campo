@@ -12,6 +12,8 @@ import { EquipamentosCaso } from './Preparacao.jsx';
 import { guardarAnexo, LIMITE_NUVEM } from '../paradigmas.js';
 import { obterAnexo } from '../sync.js';
 import { DESC_APENDICE, LETRAS, tituloSugerido } from '../apendices.js';
+import { lerAnotacao, promptAnotacoes } from '../notas.js';
+import { lerJsonIA, aplicarIA } from '../aiimport.js';
 import { BotoesFoto, Miniaturas } from './Fotos.jsx';
 
 function hojeIso() { const d = new Date(); return new Date(d - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); }
@@ -52,6 +54,8 @@ export function Campo({ rec }) {
 
   return (
     <div class="grade campo-tela">
+      <AnotacoesDiligencia rec={rec} />
+
       <section class="bloco largo">
         <div class="linha-botoes entre">
           <h3>Diligência</h3>
@@ -290,6 +294,99 @@ function RelatoriosMedicao({ rec }) {
       ))}
       <label class="botao-arquivo">＋ Anexar relatório (PDF ou imagem)<input type="file" accept="application/pdf,.pdf,image/*" multiple hidden onChange={anexar} /></label>
       {msg && <p class="alerta-txt">{msg}</p>}
+    </section>
+  );
+}
+
+// Perícia já feita e laudo por escrever: anotações do Google Keep, Word ou PDF -> instrução para o Claude -> JSON -> caso
+function AnotacoesDiligencia({ rec }) {
+  const [aberto, setAberto] = useState(false);
+  const [textos, setTextos] = useState([]); // {nome, texto, aviso}
+  const [colado, setColado] = useState('');
+  const [json, setJson] = useState('');
+  const [previa, setPrevia] = useState(null);
+  const [msg, setMsg] = useState('');
+  const [erro, setErro] = useState('');
+  const [lendo, setLendo] = useState(false);
+  const guardadas = useLive(async () => (await db.records.where('[caseId+kind]').equals([rec.id, 'anexo']).toArray())
+    .filter((r) => !r.deleted && r.data.descricao === 'notas'), [rec.id], []);
+
+  const anexar = async (e) => {
+    const arqs = [...e.currentTarget.files];
+    e.currentTarget.value = '';
+    setLendo(true); setErro('');
+    const novos = [];
+    for (const f of arqs) {
+      try { novos.push(await lerAnotacao(f)); } catch (err) { novos.push({ nome: f.name, texto: '', aviso: `não foi possível ler (${err.message}); anexe ao Claude.` }); }
+      await guardarAnexo(f, 'notas', rec.id);
+    }
+    avisarAlteracao();
+    setTextos((t) => [...t, ...novos]);
+    setLendo(false);
+  };
+  const todos = () => [...textos, ...(colado.trim() ? [{ nome: 'Texto colado (Google Keep / outro)', texto: colado.trim() }] : [])];
+  const copiar = async () => {
+    const lista = todos();
+    if (!lista.length) { setErro('Anexe um arquivo ou cole o texto das anotações.'); return; }
+    const p = await promptAnotacoes(rec, lista);
+    try { await navigator.clipboard.writeText(p); setMsg('Instrução copiada com as anotações. Cole numa conversa nova no Claude (anexe também os relatórios dos medidores e as imagens, se houver) e traga a resposta para o campo abaixo.'); }
+    catch (err) { setErro('Não foi possível copiar automaticamente.'); }
+  };
+  const ler = () => { setErro(''); try { setPrevia(lerJsonIA(json)); } catch (err) { setPrevia(null); setErro(err.message); } };
+  const aplicar = async () => {
+    const r = await aplicarIA(rec.id, previa, { substituir: false, criarPeriodos: false });
+    if (previa.caso.fase && ['', undefined, 'A preparar', 'Diligência agendada', 'Diligência realizada'].includes(rec.data.fase)) await updateFields(rec.id, { fase: previa.caso.fase });
+    avisarAlteracao();
+    setMsg(`Aplicado: ${r.campos} campo(s) da diligência, ${r.postos} posto(s), ${r.medicoes} medição(ões), ${r.respostas} resposta(s). Os vínculos foram só completados (nada que você já tinha escrito foi trocado). Confira os postos e as medições abaixo.`);
+    setPrevia(null); setJson('');
+  };
+
+  if (!aberto) {
+    return (
+      <section class="bloco largo destaque">
+        <div class="linha-botoes entre">
+          <div><b>Perícia já feita? Importe as anotações da diligência</b><br /><small>Google Keep, Word, PDF ou texto: o app organiza diligência, postos, medições e entrevista, para você escrever o laudo.</small></div>
+          <button type="button" onClick={() => setAberto(true)}>Abrir</button>
+        </div>
+      </section>
+    );
+  }
+  return (
+    <section class="bloco largo destaque">
+      <h3>Importar anotações da diligência</h3>
+      <ol class="passos">
+        <li>Anexe os arquivos das anotações (Word .docx, PDF, .txt ou a exportação do Google Keep) <b>ou</b> cole o texto da nota do Keep no campo abaixo.</li>
+        <li>Toque em <b>Copiar instrução</b>: ela já leva o texto das anotações, os vínculos, os postos e os quesitos do caso.</li>
+        <li>Abra uma conversa nova no Claude, cole a instrução e anexe os relatórios dos medidores (DoseMax, AxPro, iTemp) e as fotos de anotações em papel, se houver.</li>
+        <li>Copie a resposta (o bloco que começa com <code>{'{'}</code>), cole em "Resposta do Claude", toque em <b>Ler e mostrar prévia</b> e depois em <b>Aplicar ao caso</b>.</li>
+      </ol>
+      <label class="botao-arquivo">{lendo ? 'Lendo…' : '＋ Anexar anotações (Word, PDF, texto, Keep)'}<input type="file" multiple hidden accept=".docx,.doc,.pdf,.txt,.html,.htm,.json,.md,image/*,application/pdf" onChange={anexar} /></label>
+      {textos.map((t, i) => (
+        <div class="linha-arquivo"><span>📝 {t.nome} <small>({t.texto ? `${t.texto.length.toLocaleString('pt-BR')} caracteres` : 'sem texto'}{t.aviso ? ` · ${t.aviso}` : ''})</small></span>
+          <button type="button" class="mini perigo" onClick={() => setTextos(textos.filter((_, k) => k !== i))}>✕</button></div>
+      ))}
+      {guardadas.length > 0 && <small class="dica">{guardadas.length} arquivo(s) de anotações guardado(s) no caso.</small>}
+      <label class="campo campo-area"><span class="rotulo">Texto da nota do Google Keep (ou outro texto)</span>
+        <textarea rows={5} value={colado} onInput={(e) => setColado(e.currentTarget.value)} placeholder="No Keep: abra a nota, selecione todo o texto, copie e cole aqui." />
+      </label>
+      <div class="linha-botoes">
+        <button type="button" class="primario" onClick={copiar} disabled={lendo}>Copiar instrução</button>
+        <button type="button" class="sec" onClick={() => setAberto(false)}>Fechar</button>
+      </div>
+      <label class="campo campo-area"><span class="rotulo">Resposta do Claude (JSON)</span>
+        <textarea rows={5} value={json} onInput={(e) => setJson(e.currentTarget.value)} placeholder='{"diligencia": {...}, "postos": [...]}' />
+      </label>
+      <div class="linha-botoes"><button type="button" onClick={ler} disabled={!json.trim()}>Ler e mostrar prévia</button></div>
+      {previa && (
+        <div class="previa">
+          <p><b>Prévia:</b> {Object.keys(previa.caso).length} campo(s) da diligência, {previa.postos.length} posto(s) com {previa.postos.reduce((n, p) => n + p.medicoes.length, 0)} medição(ões), {previa.periodos.length} vínculo(s) com informações da entrevista, {previa.quesitos.filter((q) => q.resposta).length} resposta(s) a quesitos.</p>
+          <ul>{previa.postos.map((p) => <li><b>{p.nome || 'posto sem nome'}</b>: {p.medicoes.map((m) => m.agente).join(', ') || 'sem medições'}</li>)}</ul>
+          <p class="dica">Nada do que já está preenchido será trocado; o app só completa campos vazios e acrescenta postos e medições novos.</p>
+          <div class="linha-botoes"><button type="button" class="primario" onClick={aplicar}>Aplicar ao caso</button></div>
+        </div>
+      )}
+      {erro && <p class="erro-msg">{erro}</p>}
+      {msg && <p class="ok-msg">{msg}</p>}
     </section>
   );
 }

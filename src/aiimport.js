@@ -91,6 +91,21 @@ Responda SOMENTE com um bloco JSON válido, sem texto antes ou depois, neste for
       "descricao": "", "metodo": "", "valor": "", "unidade": "", "limite": "", "obs": ""}]}]
 }`;
 
+// Anotações de diligência já realizada (aba Campo): só os blocos que a diligência alimenta
+export const FORMATO_DILIGENCIA = `FORMATO DA RESPOSTA
+Responda SOMENTE com um bloco JSON válido, sem texto antes ou depois, neste formato (omita o que não houver):
+{
+  "andamento": {"fase": "Laudo / parecer em elaboração", "dataDiligencia": "", "horaDiligencia": ""},
+  "diligencia": {"vistoriaData": "", "vistoriaInicio": "HH:MM", "vistoriaFim": "HH:MM", "vistoriaLocal": "", "vistoriaEndereco": "", "vistoriaPresentes": "nome – função – quem representa, um por linha", "vistoriaCondicoes": "", "vistoriaNotas": ""},
+  "periodos": [{"empresa": "igual à lista", "inicio": "igual à lista", "fim": "igual à lista", "atividades": "", "tipoTransporte": "", "jornadaSemanal": "", "noturnoPernoite": "", "cargaDescarga": "", "vias": "", "riscoAcidente": "", "cabine": "", "pausas": "", "pressao": "", "fisiologicas": ""}],
+  "quesitos": [{"origem": "", "numero": "", "texto": "", "resposta": ""}],
+  "postos": [{"nome": "", "descricao": "", "infoTrabalhador": "", "infoEmpresa": "", "agentes": "", "fontes": "", "viaPeriodicidade": "", "jornada": "", "epc": "", "epi": "",
+    "medicoes": [{"agente": "Ruído | Calor (IBUTG) | Vibração de corpo inteiro (VCI) | Vibração de mãos e braços (VMB) | Agente químico | Outro", "dataMedicao": "", "horaInicio": "", "horaFim": "", "equipamento": "",
+      "tempoAmostragem": "", "jornada": "", "dose": "", "lavg": "", "lmax": "", "calibInicial": "", "calibFinal": "", "posicao": "",
+      "tbn": "", "tbs": "", "tg": "", "ibutgLido": "", "atividade": "", "regime": "", "veiculo": "", "aren": "", "vdv": "", "eixo": "", "tempoExposicao": "",
+      "descricao": "", "metodo": "", "valor": "", "unidade": "", "limite": "", "obs": ""}]}]
+}`;
+
 export const SITUACOES = [
   {
     id: 'perito-trab', titulo: 'Perito do Juízo – trabalhista (insalubridade / periculosidade)',
@@ -198,7 +213,7 @@ export function lerJsonIA(texto) {
 }
 
 // Campos preenchidos não são sobrescritos (a menos que "substituir" esteja marcado).
-export async function aplicarIA(caseId, dados, { substituir = false } = {}) {
+export async function aplicarIA(caseId, dados, { substituir = false, criarPeriodos = true } = {}) {
   const caso = await db.records.get(caseId);
   const mudancas = {};
   for (const [k, v] of Object.entries(dados.caso)) {
@@ -215,9 +230,12 @@ export async function aplicarIA(caseId, dados, { substituir = false } = {}) {
     const KS = { periodos: ['empresa', 'inicio', 'fim'], documentos: ['tipo', 'identificacao'], epis: ['descricao', 'ca', 'dataEntrega'] }[lista];
     const chave = (d) => JSON.stringify(KS.map((k) => (k === 'empresa' ? normTxt(d[k]).slice(0, 30) : String(d[k] ?? '').toLowerCase().replace(/\s+/g, ' ').trim())));
     const vistos = new Map(existentes.map((r) => [chave(r.data), r]));
+    // vínculo com o nome da empresa escrito de outro jeito: reconhece pelas datas
+    const porDatas = new Map(lista === 'periodos' ? existentes.filter((r) => r.data.inicio).map((r) => [`${r.data.inicio}|${r.data.fim || ''}`, r]) : []);
     let ordem = existentes.length;
     for (const item of dados[lista]) {
-      const ja = vistos.get(chave(item));
+      const ja = vistos.get(chave(item)) || (lista === 'periodos' && item.inicio ? porDatas.get(`${item.inicio}|${item.fim || ''}`) : undefined);
+      if (!ja && lista === 'periodos' && !criarPeriodos) continue;
       if (ja) {
         // "substituir": o que vier preenchido corrige o registro existente; senão, só completa o que está vazio
         const novos = Object.fromEntries(Object.entries(item).filter(([k, val]) => String(val ?? '').trim()

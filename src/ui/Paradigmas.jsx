@@ -148,7 +148,7 @@ function Similares() {
       <RecordList kind="similar" caseId={null} titulo="Tabela de similares" novo="Adicionar veículo similar"
         campos={[['marca', 'Marca', 'text'], ['modelo', 'Modelo', 'text'], ['tipo', 'Tipo', 'text'], ['epoca', 'Época de fabricação', 'text'],
           ['familia', 'Família técnica', 'text'], ['paradigmaRuido', 'Paradigma de ruído (código, ex.: M01)', 'text'], ['paradigmaRuidoAlt', 'Paradigma de ruído alternativo', 'text'],
-          ['paradigmaVibracao', 'Paradigma de vibração', 'text'], ['status', 'Status (Medido / Proposta – validar / Validado…)', 'text'], ['obs', 'Observações', 'area']]}
+          ['paradigmaVibracao', 'Paradigma de vibração', 'text'], ['status', 'Status', 'select', ['Medido', 'Proposta – validar', 'Validado', 'Não usar']], ['obs', 'Observações', 'area']]}
         resumo={(r) => `${r.data.marca || ''} ${r.data.modelo || ''} · ${r.data.familia || '?'} · ruído ${r.data.paradigmaRuido || '—'} · VCI ${r.data.paradigmaVibracao || '—'} · ${r.data.status || ''}`} />
     </div></div>
   );

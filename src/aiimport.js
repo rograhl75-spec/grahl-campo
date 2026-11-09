@@ -36,7 +36,7 @@ export const CRITERIOS_PREV = `FINALIDADE PREVIDENCIÁRIA (tempo especial – Le
 - Agentes biológicos: não usar o Anexo 14 da NR-15; somente o rol de atividades do cód. 3.0.1 do Anexo IV do Decreto 3.048/99.
 - Óleos minerais / diesel: citar somente o cód. 1.0.17 do Anexo IV.
 - Medidas de controle: EPC (art. 290) e EPI somente a partir de 03/12/1998, com os requisitos cumulativos do art. 291 da IN 128/2022.
-- Penosidade (motorista de ônibus/caminhão e cobrador): até 28/04/1995, categoria profissional (cód. 2.4.4 do Decreto 53.831/64; cód. 2.4.2 do Anexo II do Decreto 83.080/79); depois, só em juízo, com perícia técnica individualizada que demonstre exposição habitual e permanente a condições concretas de desgaste (jornada e tempo de direção – CLT art. 235-C e CTB art. 67-C –, trabalho noturno, pernoites, carga/descarga, vias, cabine, ruído e vibração mesmo abaixo do limite, risco de acidente e de violência, pressão de prazos). Não vai para o PPP nem altera o código GFIP.
+- Penosidade (motorista de ônibus/caminhão e cobrador): até 28/04/1995, categoria profissional (cód. 2.4.4 do Decreto 53.831/64; cód. 2.4.2 do Anexo II do Decreto 83.080/79); depois, só em juízo, com perícia técnica individualizada que demonstre exposição habitual e permanente a condições concretas de desgaste (jornada e tempo de direção – CLT art. 235-C e CTB art. 67-C –, trabalho noturno, pernoites, carga/descarga, vias, cabine, ruído e vibração mesmo abaixo do limite, risco de acidente e de violência, pressão de prazos). Não vai para o PPP nem altera o código GFIP. Avaliação pela matriz do IAC nº 5 do TRF4 (veículo, trajetos, jornadas) acrescida das cargas, com base na entrevista do autor, sem remissão a limites de jornada da CLT ou do CTB; a convergência cumulativa dos fatores caracteriza trabalho excepcionalmente penoso; jornada de 12 h/dia ou mais pressupõe pressão de prazos e metas.
 - Marcos: 28/04/1995 (fim do enquadramento por categoria), 05/03/1997, 03/12/1998, 18/11/2003, 14/08/2014, 13/11/2019 (EC 103/2019).
 - Datas de vínculo: a CTPS prevalece sobre o CNIS. PPP: código GFIP 04 quando houver enquadramento; o PPP em papel vai só até a entrada do eSocial (SST). Laudo de outro segurado usado como paradigma: não citar o nome desse segurado.`;
 
@@ -77,7 +77,7 @@ Responda SOMENTE com um bloco JSON válido, sem texto antes ou depois, neste for
     "analiseEpi": "", "roteiro": "roteiro da vistoria e documentos a solicitar, um por linha começando com '- '",
     "observacoes": ""
   },
-  "periodos": [{"empresa": "", "cnpj": "", "inicio": "", "fim": "", "cargo": "", "setor": "", "atividades": "", "agentes": "", "fonte": "", "tipoTransporte": "só motorista/cobrador", "jornadaSemanal": "", "noturnoPernoite": "", "cargaDescarga": "", "vias": "", "riscoAcidente": ""}],
+  "periodos": [{"empresa": "", "cnpj": "", "inicio": "", "fim": "", "cargo": "", "setor": "", "atividades": "", "agentes": "", "fonte": "", "tipoTransporte": "só motorista/cobrador", "jornadaSemanal": "", "noturnoPernoite": "", "cargaDescarga": "", "vias": "", "riscoAcidente": "", "cabine": "", "pausas": "", "pressao": "", "fisiologicas": "acesso a sanitários, alimentação e descanso"}],
   "documentos": [{"tipo": "PPP | LTCAT | PGR / PPRA | Laudo pericial | Ficha de EPI | CTPS / CNIS | Outro", "identificacao": "", "analise": ""}],
   "epis": [{"descricao": "", "ca": "", "dataEntrega": "", "obs": ""}],
   "quesitos": [{"origem": "Juízo | Autor / Reclamante | Réu / Reclamada | INSS | Complementares", "numero": "1", "texto": "", "resposta": "resposta dada no laudo, se já houver"}],
@@ -189,7 +189,7 @@ export function lerJsonIA(texto) {
   return {
     caso,
     periodos: lista(obj.periodos).map((x) => ({ empresa: s(x.empresa), cnpj: s(x.cnpj), inicio: s(x.inicio), fim: s(x.fim), cargo: s(x.cargo), setor: s(x.setor), atividades: s(x.atividades), agentes: s(x.agentes), fonte: s(x.fonte),
-      ...Object.fromEntries(['tipoTransporte', 'jornadaSemanal', 'noturnoPernoite', 'cargaDescarga', 'vias', 'riscoAcidente'].map((k) => [k, s(x[k])]).filter(([, val]) => val)) })),
+      ...Object.fromEntries(['tipoTransporte', 'jornadaSemanal', 'noturnoPernoite', 'cargaDescarga', 'vias', 'riscoAcidente', 'cabine', 'pausas', 'pressao', 'fisiologicas'].map((k) => [k, s(x[k])]).filter(([, val]) => val)) })),
     documentos: lista(obj.documentos).map((x) => ({ tipo: s(x.tipo), identificacao: s(x.identificacao), analise: s(x.analise) })),
     epis: lista(obj.epis).map((x) => ({ descricao: s(x.descricao), ca: s(x.ca), dataEntrega: s(x.dataEntrega), obs: s(x.obs) })),
     quesitos: lista(obj.quesitos).map((x) => ({ origem: origem(x.origem), numero: s(x.numero), texto: s(x.texto), resposta: s(x.resposta) })).filter((q) => q.texto),

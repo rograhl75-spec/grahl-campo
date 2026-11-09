@@ -3,7 +3,7 @@
 // (ISO 2631-1 de 06/03/1997 a 13/08/2014; NR-15, Anexo 8, a partir de 14/08/2014).
 import { dataBR, postosDoPeriodo, nomeCurto } from './base.js';
 import { comJurisprudencia } from './fontes.js';
-import { coletado, avaliaPenosidade, vinculosMotorista } from './penosidade.js';
+import { avaliaPenosidade, vinculosMotorista, matrizIAC } from './penosidade.js';
 import { nenParaJornada, arenParaJornada, vdvrParaJornada } from '../paradigmas.js';
 import { num, fmt, nenQ5 } from '../calc.js';
 
@@ -22,7 +22,7 @@ function segmentos(r) {
 }
 
 // valores de ruído e VCI do vínculo: paradigma (normalizado para T) ou medição do posto que o representa
-function valores(r, dados) {
+export function valores(r, dados) {
   const T = num(r.data.conducaoH);
   const out = { T };
   const pr = r.data.paradigmaRuido && dados.paradigmas.get(r.data.paradigmaRuido);
@@ -120,15 +120,13 @@ export function conclusaoPrevidenciaria(d, dados, { tituloQuadro = 'Conclusão p
     const jur = comJurisprudencia(dados);
     const vs = vinculosMotorista(dados);
     const textos = vs.map((r) => {
-      const x = { ...r.data, ...coletado(r, dados) };
-      const f = [x.tipoTransporte && `transporte: ${x.tipoTransporte}`, x.conducaoH && `condução de cerca de ${String(x.conducaoH).replace('.', ',')} h/dia`,
-        x.jornadaSemanal && `jornada: ${x.jornadaSemanal}`, x.pausas && `pausas: ${x.pausas}`, x.noturnoPernoite && `trabalho noturno e pernoites: ${x.noturnoPernoite}`,
-        x.cargaDescarga && `carga e descarga: ${x.cargaDescarga}`, x.vias && `vias e trajetos: ${x.vias}`, x.cabine && `cabine: ${x.cabine}`,
-        x.riscoAcidente && `risco de acidentes e violência: ${x.riscoAcidente}`, x.pressao && `prazos e metas: ${x.pressao}`].filter(Boolean);
-      return f.length ? `**${r.data.empresa || 'Vínculo'} (${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}):** ${f.join('; ')}.${x.penosidadeConclusao ? ` ${x.penosidadeConclusao}` : ''}` : '';
+      const m = matrizIAC(r, dados);
+      const f = m.criterios.filter((c) => c.linhas.length).map((c) => `${c.titulo.replace(/^\d\. Análise d[oa]s? /, '').replace(/^./, (k) => k.toUpperCase())} – ${c.linhas.map((l) => l.replace(/^[^:]+: /, '')).join('; ')}`);
+      if (!f.length) return '';
+      return `**${r.data.empresa || 'Vínculo'} (${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}):** ${f.join('. ')}.${m.conclusao ? ` **${m.conclusao}**` : ''}`;
     }).filter(Boolean);
     if (textos.length) {
-      d.texto(`Quanto à penosidade da atividade de motorista após 28/04/1995, a perícia apurou, por vínculo, os seguintes fatores concretos de desgaste${jur ? ' (STJ, Tema 1307)' : ''}, detalhados no item de penosidade e registrados para a apreciação do Juízo:`);
+      d.texto(`Quanto à penosidade da atividade de motorista após 28/04/1995, a perícia avaliou cada vínculo pela matriz do IAC nº 5 do TRF4 (veículo, trajetos, cargas e jornadas)${jur ? ', em atenção ao Tema 1307 do STJ' : ''}, com base na entrevista do autor, na vistoria e nas medições. Em síntese:`);
       for (const t of textos) d.texto(`- ${t}`);
     }
   }

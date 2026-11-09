@@ -11,14 +11,47 @@ import {
   quadroMedicoesGenerico, medicoesPorAgente, nomePostoFn, profissiografia, figurasDoCaso, respostasQuesitos, capaTecnica,
   quadroCriteriosCalor, quadroCriteriosVibracao, documentosARequerer, quadrosParadigmasMetodologia, memoriasParadigmas, usaParadigmas,
   art, dadosDaConta, dataPorExtenso, horaPorExtenso, reaisPorExtenso, numeroPorExtenso, moeda, lerValor, nomeOrigemQuesito,
-  quadroFormaEnquadramento, quadroRequisitosEpi, codigosEnquadramento, textoDeterminacao,
+  quadroFormaEnquadramento, quadroRequisitosEpi, codigosEnquadramento, textoDeterminacao, nomeCurto,
 } from './base.js';
 import { comJurisprudencia, registroJurisprudencia, secaoReferencias } from './fontes.js';
 import { secaoPenosidade } from './penosidade.js';
-import { conclusaoPrevidenciaria } from './conclusao.js';
+import { conclusaoPrevidenciaria, avaliarPeriodos } from './conclusao.js';
 import { p, run, rich } from './ooxml.js';
 
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
+
+// perícia direta ou indireta por similaridade, a partir da aba Campo (local da vistoria), do campo
+// "similaridade" do caso e dos paradigmas vinculados
+function textoTipoPericia(dados) {
+  const { c } = dados;
+  const local = `${c.vistoriaLocal || ''} ${c.vistoriaCondicoes || ''}`;
+  const indireta = /indiret|similar|paradigma|terceir/i.test(local) || c.similaridade === 'Sim' || usaParadigmas(dados);
+  const veic = dados.postos.map((ps) => nomeCurto(ps.data.nome)).filter(Boolean);
+  if (!indireta) return 'A perícia foi realizada de forma direta, no local de trabalho e nos postos ocupados pela parte autora, com avaliação das condições ambientais e das atividades nele desenvolvidas.';
+  return `A perícia foi realizada de forma indireta, por similaridade, porque o ambiente e os veículos de origem não estão mais disponíveis nas condições da época. Foram avaliados${veic.length ? ` os seguintes postos e veículos, representativos dos utilizados pelo autor em cada vínculo: ${veic.join('; ')}` : ' postos e veículos representativos dos utilizados pelo autor em cada vínculo'}${usaParadigmas(dados) ? ', complementados por paradigmas de veículos similares (item 2.3)' : ''}. A semelhança de função, tipo de veículo e condições de operação está demonstrada no item 4, vínculo a vínculo.`;
+}
+
+// confronto da VCI com o critério de cada período (previdenciário), a partir da conclusão calculada
+function quadroConfrontoVci(d, dados) {
+  const linhas = avaliarPeriodos(dados).flatMap(({ r, segs }) => segs.flatMap((s) => s.itens.filter((i) => /^VCI/.test(i.t))
+    .map((i) => [`${r.data.empresa || ''}\n${dataBR(s.ini)} a ${dataBR(s.fim)}`, i.t.replace(/^VCI: /, ''), i.sup ? 'Supera' : 'Não supera'])));
+  if (!linhas.length) return false;
+  d.quadro('Confronto da vibração de corpo inteiro com o critério de cada período', [['Vínculo / período', 'Valores e critério', 'Resultado'], ...linhas],
+    { larguras: [0.3, 0.52, 0.18], tam: 9, fonte: 'Elaborado pelo autor. aren e VDVR referidos à exposição diária (NHO-09).' });
+  return true;
+}
+
+// trabalhista: confronto direto de cada medição com o Anexo 8 da NR-15
+function textoVibracaoTrab(d, ms, nome, k) {
+  const vmb = /mãos/.test(k);
+  for (const m of ms) {
+    const a = Number(String(m.data.aren || '').replace(',', '.')); const vd = Number(String(m.data.vdv || '').replace(',', '.'));
+    if (!isFinite(a) || String(m.data.aren || '').trim() === '') { d.redigir(`valores de ${nome(m.data.postoId)} e conclusão.`); continue; }
+    const f = (x) => x.toFixed(2).replace('.', ',');
+    const sup = vmb ? a > 5 : (a > 1.1 || (isFinite(vd) && vd > 21));
+    d.texto(`${nome(m.data.postoId)}: aren de ${f(a)} m/s²${!vmb && isFinite(vd) && String(m.data.vdv || '').trim() ? ` e VDVR de ${f(vd)} m/s^1,75` : ''}, ${sup ? 'acima' : 'abaixo'} do limite de exposição da NR-15, Anexo 8 (${vmb ? 'aren de 5 m/s²' : 'aren de 1,1 m/s² ou VDVR de 21,0 m/s^1,75'}); ${sup ? 'caracteriza-se a insalubridade em grau médio' : 'não se caracteriza a insalubridade por vibração'}, a partir de 14/08/2014.`);
+  }
+}
 
 function eqMap(dados) { return new Map(dados.equipamentos.map((e) => [e.id, e])); }
 
@@ -54,7 +87,7 @@ function avaliacaoTrabalhista(d, dados, base) {
     sub(`${k} (NR-15, Anexo 8)`);
     d.texto('A partir de 14/08/2014, NR-15, Anexo 8, na redação da Portaria MTE nº 1.297, de 13/08/2014 (DOU de 14/08/2014), com avaliação conforme as Normas de Higiene Ocupacional da FUNDACENTRO (NHO-09 para VCI e NHO-10 para VMB). Limites de exposição: VMB, aren de 5 m/s²; VCI, aren de 1,1 m/s² ou VDVR de 21,0 m/s^1,75. Antes dessa data, o Anexo 8 na redação original remetia às normas ISO 2631 e ISO/DIS 5349.');
     quadroMedicoesGenerico(d, `Resultados – ${k}`, g[k], nome, ctx);
-    d.redigir('aren e VDVR normalizados para a jornada e conclusão.');
+    textoVibracaoTrab(d, g[k], nome, k);
   }
   for (const k of ['Agente químico', 'Outro']) {
     if (!g[k]) continue;
@@ -98,8 +131,13 @@ function avaliacaoPrevidenciaria(d, dados, base, inicio = 0) {
     sub('Vibração');
     quadroCriteriosVibracao(d);
     for (const k of vib) quadroMedicoesGenerico(d, `Resultados – ${k}`, g[k], nome, ctx);
-    if (usaParadigmas(dados)) d.texto('Os valores de aren e VDVR normalizados para a jornada efetiva e a leitura pelo critério de cada período estão na memória de cálculo da vibração de corpo inteiro, adiante.');
-    else d.redigir('aren e VDVR normalizados para a jornada; leitura pelo critério de cada período.');
+    if (usaParadigmas(dados)) {
+      d.texto('Os valores de aren e VDVR normalizados para a jornada efetiva e a leitura pelo critério de cada período estão na memória de cálculo da vibração de corpo inteiro, adiante.');
+      quadroConfrontoVci(d, dados);
+    } else {
+      d.texto('Os valores de aren e VDVR do quadro acima referem-se à exposição diária do trabalhador, normalizados para a jornada conforme a NHO-09 da FUNDACENTRO. Cada vínculo é lido pelo critério vigente no período: até 05/03/1997, cód. 1.1.5 do Decreto 53.831/1964 (restrito a perfuratrizes e marteletes); de 06/03/1997 a 13/08/2014, fronteira superior da zona de cautela da ISO 2631-1 (aren de 0,9 m/s² ou VDV de 17 m/s^1,75); a partir de 14/08/2014, NR-15, Anexo 8 (aren de 1,1 m/s² ou VDVR de 21,0 m/s^1,75).');
+      quadroConfrontoVci(d, dados);
+    }
   }
   for (const k of ['Agente químico', 'Outro']) {
     if (!g[k]) continue;
@@ -218,7 +256,8 @@ export async function laudoPrevidenciario(caseId) {
   d.h2('2.1', 'Determinação judicial (objeto da perícia)');
   if (textoDeterminacao(dados, true)) d.texto(textoDeterminacao(dados, true)); else d.redigir('transcrever ou resumir o despacho que determinou a perícia (evento / mov.) – cadastre a referência do despacho na etapa 1.');
   d.h2('2.2', 'Metodologia');
-  d.texto('Em atendimento ao art. 473, inciso III, do Código de Processo Civil, a metodologia consistiu em análise dos autos, inspeção *in loco* e avaliações ambientais, seguindo as NHO da FUNDACENTRO e os limites de tolerância do Anexo IV do Regulamento da Previdência Social ou, na sua falta, da NR-15, quando o decreto a ela remete (art. 288 da IN 128/2022). [[Perícia direta / indireta por similaridade – ajustar.]]');
+  d.texto('Em atendimento ao art. 473, inciso III, do Código de Processo Civil, a metodologia consistiu em análise dos autos, inspeção *in loco* e avaliações ambientais, seguindo as NHO da FUNDACENTRO e os limites de tolerância do Anexo IV do Regulamento da Previdência Social ou, na sua falta, da NR-15, quando o decreto a ela remete (art. 288 da IN 128/2022).');
+  d.texto(textoTipoPericia(dados));
   d.texto(`A conclusão fundamenta-se exclusivamente na legislação previdenciária e nas normas técnicas indicadas${comJurisprudencia(dados) ? '; entendimentos jurisprudenciais são apenas registrados, em item próprio, para apreciação do Juízo' : ''}.`);
   if (usaParadigmas(dados)) { d.h2('2.3', 'Avaliação por similaridade (paradigmas)'); quadrosParadigmasMetodologia(d, dados); }
 

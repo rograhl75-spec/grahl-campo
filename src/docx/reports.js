@@ -6,7 +6,7 @@ import {
   quadroMedicoesGenerico, medicoesPorAgente, nomePostoFn, profissiografia, figurasDoCaso, capaTecnica, blocoAssinatura,
 } from './base.js';
 import {
-  laudoPericial, laudoPrevidenciario, ltcatPpp, parecerPrevidenciario, parecerAssistente, parecerPreventivo, peticaoIndicacaoAT, peticaoAgendamento, peticaoHonorarios, peticaoMajoracao, peticaoPagamento,
+  laudoPericial, laudoPrevidenciario, ltcatPpp, parecerPrevidenciario, parecerAssistente, parecerPreventivo, peticaoIndicacaoAT, peticaoAgendamento, peticaoHonorarios, peticaoMajoracao, peticaoAceiteArbitrados, peticaoPagamento,
 } from './modelos.js';
 
 export { dataBR };
@@ -156,6 +156,7 @@ export const CATALOGO = [
   { id: 'pre', grupo: '1. Início do caso', titulo: 'Pré-relatório', desc: 'Identificação, síntese dos autos, períodos (com a divisão pelos critérios de ruído), documentos, EPIs, quesitos e planejamento.', fn: gerarPreRelatorio, rec: () => true },
   { id: 'honor', grupo: '1. Início do caso', titulo: 'Aceite e proposta de honorários', desc: 'Aceite do encargo, estimativa de horas (art. 465, § 2º, do CPC) e conta para depósito.', fn: peticaoHonorarios, rec: (c) => ehPerito(c) && !/Federal/i.test(c.justica || ''), usaConta: true },
   { id: 'major', grupo: '1. Início do caso', titulo: 'Majoração de honorários', desc: 'Honorários fixados, local fora do domicílio, complexidade (períodos, quesitos, empresas, similaridade), art. 28 da Res. CJF 305/2014 e pedido com valor por extenso. Preencha "Honorários e itens do despacho" na etapa 1. Cadastro.', fn: peticaoMajoracao, rec: ehPerito },
+  { id: 'aceiteArb', grupo: '1. Início do caso', titulo: 'Aceite dos honorários arbitrados (majorados)', desc: 'Depois da decisão que arbitra os honorários: aceite do valor e dos termos (adiantamento e saldo), conta para o alvará após o depósito e compromisso de informar a data da perícia depois do levantamento, com a antecedência do despacho. Preencha os itens do despacho na etapa 1. Cadastro.', fn: peticaoAceiteArbitrados, rec: ehPerito, usaConta: true },
   { id: 'agenda', grupo: '2. Antes da diligência', titulo: 'Agendamento da vistoria pericial', desc: 'Data por extenso, empresa e endereço, períodos, intimação das partes e do autor, ofício à empresa com os documentos e prazo do laudo.', fn: peticaoAgendamento, rec: ehPerito },
   { id: 'pagto', grupo: '5. Recebimento dos honorários', titulo: 'Pagamento dos honorários', desc: 'Pedido de requisição de pagamento (JF) ou de liberação por alvará, com a conta escolhida.', fn: peticaoPagamento, rec: ehPerito, usaConta: true },
   { id: 'indic', grupo: '1. Início do caso', titulo: 'Indicação de assistente técnico e quesitos', desc: 'Qualificação, documentos necessários, avaliações no local, quesitos e requerimentos.', fn: peticaoIndicacaoAT, rec: ehAT },

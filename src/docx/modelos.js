@@ -524,7 +524,7 @@ export async function peticaoIndicacaoAT(caseId) {
 
 // ---------- auxiliares das petições do perito ----------
 function introPerito(perfil, c, acao) {
-  const ref = v(c.despachoRef) ? `, em atenção ao ${c.despachoRef}` : '';
+  const ref = v(c.despachoRef) ? `, em atenção ${/^(decisão|sentença|r\.)/i.test(v(c.despachoRef)) ? 'à' : 'ao'} ${c.despachoRef}` : '';
   return `${qualificacaoCurta(perfil)}, perito judicial nomeado nos autos em epígrafe, vem, respeitosamente, à presença de Vossa Excelência${ref}, ${acao}`;
 }
 function fecho(d, dados, papel = 'Perito Judicial') {
@@ -672,6 +672,68 @@ export async function peticaoMajoracao(caseId) {
   if (!v(c.dataDiligencia)) d.texto(`A data e o horário da vistoria serão informados oportunamente${v(c.itensVistoria) ? `, para os fins ${/[e,]/.test(c.itensVistoria) ? 'dos itens' : 'do item'} ${c.itensVistoria} do despacho` : ''}.`);
   fecho(d, dados);
   return finalizar(d, { titulo: 'Petição – majoração de honorários', arquivo: 'Peticao_majoracao_honorarios', c });
+}
+
+// ======================================================================
+// ACEITE DOS HONORÁRIOS ARBITRADOS (após a decisão que majora/arbitra)
+// Aceita o valor e os termos, aguarda o depósito, indica a conta para o
+// alvará e se compromete a informar a data da perícia após o levantamento.
+// ======================================================================
+const itemTxt = (x) => (v(x) ? (/^item/i.test(v(x)) ? v(x) : `item ${v(x)}`) : '');
+// "item 7, a" no meio da frase pede vírgula depois: "no item 7, a, da decisão"
+const itemMeio = (x) => { const t = itemTxt(x); return t && t.includes(',') ? `${t},` : t; };
+function pelo(quem) {
+  const q = v(quem);
+  if (!q) return '';
+  if (/^(o|a)\s/i.test(q)) return q.replace(/^o\s/i, 'pelo ').replace(/^a\s/i, 'pela ');
+  if (/^(pelo|pela)\s/i.test(q)) return q;
+  return `por ${q}`;
+}
+function valorExt(n) { return `${moeda(n)} (${reaisPorExtenso(n)})`; }
+
+export async function peticaoAceiteArbitrados(caseId, { conta } = {}) {
+  const dados = await carregar(caseId);
+  const { c, perfil } = dados;
+  const d = new Doc();
+  d.enderecamento(enderecamentoTexto(c), linhasProcesso(c));
+  d.texto(introPerito(perfil, c, '**aceitar os honorários periciais arbitrados** e os termos fixados para o seu pagamento, indicar a conta para o levantamento e requerer o que segue.'));
+
+  const fixados = lerValor(c.honorariosFixados);
+  let adiant = lerValor(c.honorariosAdiantamento);
+  if (!isFinite(adiant) && isFinite(fixados)) adiant = Math.round(fixados * 50) / 100;
+  const saldo = isFinite(fixados) && isFinite(adiant) ? Math.round((fixados - adiant) * 100) / 100 : NaN;
+  const pct = isFinite(fixados) && fixados > 0 && isFinite(adiant) ? Math.round((adiant / fixados) * 100) : NaN;
+  const depositante = pelo(c.honorariosDepositante);
+  const iFix = itemTxt(c.honorariosItem);
+
+  d.h1('1.', 'Do aceite dos honorários arbitrados', { novaPagina: false });
+  d.texto(`${iFix ? `No ${itemMeio(c.honorariosItem)} da referida decisão` : 'Na referida decisão'}, os honorários periciais foram arbitrados em **${isFinite(fixados) ? valorExt(fixados) : '[[valor arbitrado]]'}**, em acolhimento ao valor proposto pelo signatário.`);
+  d.texto(`O signatário declara **aceitar o valor arbitrado e os termos fixados**${itemTxt(c.itemAceite) ? ` no ${itemMeio(c.itemAceite).replace(/,$/, '')}` : ''}, ciente de que:`);
+  const termos = [];
+  if (isFinite(adiant)) termos.push(`receberá no início dos trabalhos o valor de ${valorExt(adiant)}${isFinite(pct) && pct < 100 ? `, correspondente a ${pct}% dos honorários` : ''}, a ser depositado${depositante ? ` ${depositante}` : ''} em conta judicial vinculada aos autos (art. 465, § 4º, do CPC)`);
+  else termos.push('receberá no início dos trabalhos [[valor do adiantamento]] (art. 465, § 4º, do CPC)');
+  if (isFinite(saldo) && saldo > 0) termos.push(`o saldo de ${valorExt(saldo)} será pago ao final, depois de entregue o laudo e prestados os esclarecimentos, por quem a sentença indicar`);
+  if (c.limiteTabelaPublico === 'Sim') termos.push('o pagamento eventualmente feito com recursos públicos observará o limite da tabela, com a majoração admitida');
+  termos.forEach((t, i) => d.texto(`${String.fromCharCode(97 + i)}) ${t}${i < termos.length - 1 ? ';' : '.'}`));
+
+  d.h1('2.', 'Da conta para o levantamento', { novaPagina: false });
+  d.texto(`Efetuado o depósito${itemTxt(c.itemDeposito) ? ` determinado no ${itemTxt(c.itemDeposito)}` : ''}, requer-se a expedição de alvará em favor do signatário do valor depositado, com os acréscimos da conta${itemTxt(c.itemAlvara) ? `, nos termos do ${itemTxt(c.itemAlvara)}` : ''}, ou a sua transferência para a conta abaixo:`);
+  d.add(p(dadosDaConta(perfil, conta), { left: 1418, align: 'left' }));
+
+  d.h1('3.', 'Da designação da diligência', { novaPagina: false });
+  const nDias = Number(String(c.antecedenciaDias || '').replace(/\D/g, ''));
+  d.texto(`Levantado o valor, o signatário indicará nos autos${nDias ? `, com antecedência mínima de ${nDias} (${numeroPorExtenso(nDias)}) dias úteis` : ''}, a data, o horário e o local de início dos trabalhos${itemTxt(c.itemDataPericia) ? `, conforme o ${itemTxt(c.itemDataPericia)}` : ''}, para a intimação das partes (art. 474 do CPC).`);
+
+  d.h1('4.', 'Dos requerimentos', { novaPagina: false });
+  d.texto('Diante do exposto, requer-se:');
+  const reqs = [
+    'o recebimento do presente aceite;',
+    `a intimação do signatário quando comprovado nos autos o depósito${itemTxt(c.itemDeposito) ? ` do ${itemTxt(c.itemDeposito)}` : ''};`,
+    'a expedição de alvará ou a transferência do valor depositado, com os acréscimos da conta, para a conta indicada no item 2, para início dos trabalhos.',
+  ];
+  reqs.forEach((t, i) => d.texto(`${String.fromCharCode(97 + i)}) ${t}`));
+  fecho(d, dados);
+  return finalizar(d, { titulo: 'Petição – aceite dos honorários arbitrados', arquivo: 'Peticao_aceite_honorarios_arbitrados', c });
 }
 
 // ======================================================================

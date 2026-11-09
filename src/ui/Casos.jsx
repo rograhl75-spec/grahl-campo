@@ -12,7 +12,7 @@ function hojeIso() { const d = new Date(); return new Date(d - d.getTimezoneOffs
 function diasAte(iso) { return Math.round((new Date(iso + 'T12:00:00') - new Date(hojeIso() + 'T12:00:00')) / 86400000); }
 
 export const FASE_COR = {
-  'A preparar': 'f-prep', 'Diligência agendada': 'f-agend', 'Diligência realizada': 'f-real', 'Laudo / parecer em elaboração': 'f-laudo',
+  'A preparar': 'f-prep', 'Aguardando depósito dos honorários': 'f-aguard', 'Diligência agendada': 'f-agend', 'Diligência realizada': 'f-real', 'Laudo / parecer em elaboração': 'f-laudo',
   'Aguardando manifestação / esclarecimentos': 'f-aguard', 'Concluído': 'f-ok', 'Arquivado': 'f-arq',
 };
 

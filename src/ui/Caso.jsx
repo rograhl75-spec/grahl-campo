@@ -126,7 +126,7 @@ function Resumo({ rec }) {
       {rec.data.papel === 'Perito do Juízo' && (
         <section class="bloco">
           <h3>Honorários e itens do despacho</h3>
-          <p class="dica">Usados nas petições de majoração de honorários e de agendamento da vistoria.</p>
+          <p class="dica">Usados nas petições de majoração, de aceite dos honorários arbitrados e de agendamento da vistoria.</p>
           <Campos rec={rec} campos={CAMPOS_HONORARIOS} />
         </section>
       )}

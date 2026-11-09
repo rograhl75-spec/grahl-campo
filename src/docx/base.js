@@ -88,7 +88,8 @@ export function enderecamentoTexto(c) {
   const trat = /Federal/i.test(just) ? 'EXCELENTÍSSIMO SENHOR JUIZ FEDERAL'
     : /Trabalho/i.test(just) ? 'EXCELENTÍSSIMO SENHOR JUIZ DO TRABALHO'
       : /Estadual/i.test(just) ? 'EXCELENTÍSSIMO SENHOR DOUTOR JUIZ DE DIREITO' : 'EXCELENTÍSSIMO SENHOR DOUTOR JUIZ';
-  return `${trat} ${j ? 'DA ' + j : '[[VARA / JUÍZO]]'}${comarca}`;
+  const prep = /^(juizado|juízo|juizo|foro|tribunal)\b/i.test(j) ? 'DO ' : 'DA ';
+  return `${trat} ${j ? prep + j : '[[VARA / JUÍZO]]'}${comarca}`;
 }
 
 export function linhasProcesso(c, extra = []) {

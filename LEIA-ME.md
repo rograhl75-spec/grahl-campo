@@ -31,6 +31,7 @@ O indicador no topo da tela mostra sempre o estado: *Salvo neste aparelho*, *Sem
   - **Pré-relatório:** capa, sumário e cada título principal em página nova.
   - **Registro da diligência.**
   - **Relatório fotográfico.**
+  - **Aceite dos honorários arbitrados (majorados):** depois da decisão que arbitra os honorários, aceita o valor e os termos (adiantamento e saldo), indica a conta para o alvará após o depósito e se compromete a informar a data da perícia após o levantamento, com a antecedência do despacho. Os itens do despacho ficam em 1. Cadastro → Honorários e itens do despacho. Há também a fase "Aguardando depósito dos honorários".
   - **Exportação do caso em ZIP.**
 - **Configurações:** nuvem, backup, importação do app antigo, equipamentos e certificados (DoseMax V2, iTemp e AxPro já cadastrados; falta preencher o CalPro), lixeira e armazenamento.
 

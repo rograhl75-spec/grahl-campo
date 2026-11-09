@@ -28,7 +28,7 @@ export const OBJETO = [
 ];
 
 export const FASE = [
-  'A preparar', 'Diligência agendada', 'Diligência realizada', 'Laudo / parecer em elaboração',
+  'A preparar', 'Aguardando depósito dos honorários', 'Diligência agendada', 'Diligência realizada', 'Laudo / parecer em elaboração',
   'Aguardando manifestação / esclarecimentos', 'Concluído', 'Arquivado',
 ];
 
@@ -74,6 +74,14 @@ export const CAMPOS_HONORARIOS = [
   ['similaridade', 'Perícia por similaridade (empresa paradigma)?', 'select', ['Sim', 'Não']],
   ['empresaOriginal', 'Empregadora original (quando por similaridade)', 'text'],
   ['complexidadeExtra', 'Outros motivos de complexidade (um por linha)', 'area'],
+  ['honorariosAdiantamento', 'Valor a receber no início dos trabalhos (R$) – em branco = 50% do fixado', 'text'],
+  ['honorariosDepositante', 'Quem faz o depósito (ex.: "o Município de Moreira Sales")', 'text'],
+  ['itemDeposito', 'Item do despacho que manda depositar (ex.: "7, b")', 'text'],
+  ['itemAceite', 'Item do despacho que intima o perito a aceitar (ex.: "7, c")', 'text'],
+  ['itemAlvara', 'Item do despacho sobre o alvará / levantamento (ex.: "7, d")', 'text'],
+  ['limiteTabelaPublico', 'Despacho limita à tabela o pagamento com recursos públicos?', 'select', ['Sim', 'Não']],
+  ['itemDataPericia', 'Item do despacho sobre a indicação da data da perícia (ex.: "7, g")', 'text'],
+  ['antecedenciaDias', 'Antecedência para informar a data (dias úteis) – ex.: 10', 'text'],
   ['itensVistoria', 'Itens do despacho sobre vistoria e partes (ex.: "2 e 3")', 'text'],
   ['itemOficio', 'Item do despacho sobre o ofício à empresa (ex.: "6")', 'text'],
   ['prazoLaudoDias', 'Prazo para entrega do laudo após a vistoria (dias)', 'text'],

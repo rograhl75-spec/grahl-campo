@@ -1,7 +1,7 @@
 import { db, caseChildren } from '../db.js';
 import { resumoMedicao, calculados } from '../medicoes.js';
 import { nenQ5, num, fmt } from '../calc.js';
-import { ORIGEM_QUESITO, contextoLegal, ehSuplementar } from '../schema.js';
+import { ORIGEM_QUESITO, contextoLegal, ehSuplementar , reuEhInss } from '../schema.js';
 import { Doc, p, run, rich, montarDocx } from './ooxml.js';
 import { nenParaJornada, arenParaJornada, vdvrParaJornada, certificadoVencido, rotuloParadigma, num as numP } from '../paradigmas.js';
 
@@ -116,7 +116,7 @@ export function credencial(perfil) {
 
 // Rótulos das partes conforme a matéria
 export function partes(c) {
-  const trab = c.materia === 'Trabalhista' || c.justica === 'Justiça do Trabalho';
+  const trab = (c.materia === 'Trabalhista' || c.justica === 'Justiça do Trabalho') && !(reuEhInss(c) && c.justica !== 'Justiça do Trabalho');
   // prev = finalidade de tempo especial (legislação previdenciária); acidentária só muda os rótulos
   const prev = contextoLegal(c).prev === true;
   const inss = prev || c.materia === 'Acidentária';
@@ -144,8 +144,22 @@ export function papelAssinatura(c) {
 }
 
 // "EXCELENTÍSSIMO SENHOR JUIZ FEDERAL DA ...", "... JUIZ DO TRABALHO DA ...", "... DOUTOR JUIZ DE DIREITO DA ..."
+// Juízo para o endereçamento: na carta precatória, o deprecado (onde a carta tramita), sem o nome do juiz,
+// sem a unidade de autuação entre parênteses e sem "Juízo Federal da" antes da vara
+export function juizoLimpo(c) {
+  let j = v(c.juizo);
+  let deprecante = v(c.juizoDeprecante);
+  const mDep = j.match(/deprecante\s*:\s*([^;]+)/i);
+  if (mDep && !deprecante) deprecante = mDep[1].trim();
+  const mDo = j.match(/deprecado\s*:\s*([^;]+)/i);
+  if (mDo) j = mDo[1];
+  else if (mDep) j = j.replace(/;?\s*deprecante\s*:[^;]+/i, '');
+  j = j.replace(/\s*\([^)]*\)/g, '').replace(/\s+[–-]\s+ju[ií]z[a]?\b.*$/i, '').replace(/\s+[–-]\s+(dr|dra)\.?\s.*$/i, '')
+    .replace(/^ju[ií]zo\s+(federal\s+)?d[ao]\s+(?=\d+ª|\d+º)/i, '').replace(/[;,.\s]+$/, '').trim();
+  return { juizo: j, deprecante };
+}
 export function enderecamentoTexto(c) {
-  const j = v(c.juizo);
+  const j = juizoLimpo(c).juizo;
   const cidade = v(c.comarca).split(/[\/–-]/)[0].trim().toLowerCase();
   const comarca = v(c.comarca) && !(cidade && j.toLowerCase().includes(cidade)) ? ` – ${c.comarca}` : '';
   const just = c.justica || '';
@@ -159,7 +173,7 @@ export function enderecamentoTexto(c) {
 export function linhasProcesso(c, extra = []) {
   const pt = partes(c);
   const classe = v(c.classe) ? `${c.classe} nº` : 'Processo nº';
-  return [[classe, ou(c.numero, 'número do processo')], ['Juízo Deprecante', c.juizoDeprecante], [pt.autor, c.autorNome], [pt.reu, c.reuNome], ...extra];
+  return [[classe, ou(c.numero, 'número do processo')], ['Juízo Deprecante', juizoLimpo(c).deprecante], [pt.autor, c.autorNome], [pt.reu, c.reuNome], ...extra];
 }
 
 export function qualificacaoCurta(perfil) {
@@ -834,4 +848,29 @@ export function descricaoVinculo(d, r, dados, { refVistoria = '' } = {}) {
   if (comp.length) d.texto(`Informações complementares do vínculo – ${comp.join('; ')}.`);
   const ps = postosDoPeriodo(r, dados);
   if (ps.length) d.texto(`Na perícia, este vínculo é representado ${ps.length > 1 ? 'pelos veículos/postos' : 'pelo veículo/posto'} ${ps.map((p) => nomeCurto(p.data.nome)).join('; ')}${refVistoria ? `, descrito${ps.length > 1 ? 's' : ''} no item ${refVistoria}` : ''}.`);
+}
+
+// "ruído acima do limite (ID 5, p. 6); calor..." -> "ruído, calor e poeira" (só os agentes, sem as fontes)
+const AGENTES_CONHECIDOS = [['ru[ií]do', 'ruído'], ['calor', 'calor'], ['vibra', 'vibração'], ['poeira|particulad|s[íi]lica', 'poeiras'],
+  ['qu[íi]mic|solvente|hidrocarbonet|[óo]leo|graxa|fumos?', 'agentes químicos'], ['biol[óo]g|esgoto|lixo|hospital', 'agentes biológicos'],
+  ['umidade', 'umidade'], ['frio', 'frio'], ['radia[çc]', 'radiações'], ['eletricidade|el[ée]tric', 'eletricidade'], ['inflam[áa]ve', 'inflamáveis'], ['explosiv', 'explosivos']];
+export function agentesCurtos(t) {
+  const txt = v(t);
+  if (!txt) return '';
+  const achados = AGENTES_CONHECIDOS.filter(([re]) => new RegExp(re, 'i').test(txt)).map(([, n]) => n);
+  if (!achados.length) return txt.length < 80 ? txt.replace(/\n+/g, ', ') : '';
+  return achados.length > 1 ? `${achados.slice(0, -1).join(', ')} e ${achados[achados.length - 1]}` : achados[0];
+}
+
+// referências do despacho para a abertura das petições: "às decisões dos eventos 10, 11 e 14"
+export function refDespachos(c) {
+  const t = v(c.despachoRef);
+  if (!t) return '';
+  const evs = [...new Set([...t.matchAll(/\bev(?:ento)?\.?\s*(\d+)/gi)].map((m) => Number(m[1])))].sort((a, b) => a - b);
+  if (evs.length) {
+    const lista = evs.length > 1 ? `${evs.slice(0, -1).join(', ')} e ${evs[evs.length - 1]}` : String(evs[0]);
+    return evs.length > 1 ? `às decisões dos eventos ${lista}` : `à decisão do evento ${lista}`;
+  }
+  const seg = t.split(/;\s*/)[0].replace(/\s*\(.*$/, '').trim();
+  return /^(decisão|sentença|r\.)/i.test(seg) ? `à ${seg}` : `ao ${seg}`;
 }

@@ -20,6 +20,7 @@ export function siglaTipo(d) {
   if (d.tipoAtuacao === 'Extrajudicial') return ['EXTRA', 't-extra', 'Extrajudicial'];
   if (/Fazenda/i.test(d.justica || '') || d.materia === 'Administrativa (servidor)') return ['FAZ', 't-faz', 'Fazenda Pública'];
   if (d.materia === 'Previdenciária' || d.materia === 'Acidentária') return ['PREV', 't-prev', d.materia];
+  if (/\bINSS\b|Instituto Nacional do Seguro Social/i.test(d.reuNome || '') && d.justica !== 'Justiça do Trabalho') return ['PREV', 't-prev', 'Previdenciária'];
   return ['TRAB', 't-trab', d.materia || 'Trabalhista'];
 }
 

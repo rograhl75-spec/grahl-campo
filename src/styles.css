@@ -265,3 +265,7 @@ body.modo-campo .item-topo { min-height: 70px; }
 .evidencias { margin: 6px 0 12px; padding: 10px 12px; border-radius: 10px; background: #EEF4FB; border: 1px solid #C8D8EC; font-size: .92rem; display: grid; gap: 4px; }
 .evidencias.alerta { background: #FFF6DD; border-color: #E6CF8A; }
 .botao-arquivo.desativado { opacity: .6; pointer-events: none; }
+a.botao { font-weight: 700; min-height: 50px; padding: 10px 20px; border-radius: 10px; border: 1px solid var(--azul-3); background: #fff; color: var(--azul);
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; margin-top: 8px; }
+.dados-agenda { margin: 8px 0 10px; padding: 10px 12px; border: 1px dashed var(--borda); border-radius: 10px; }
+.dados-agenda .chips { margin: -6px 0 10px; }

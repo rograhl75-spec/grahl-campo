@@ -64,6 +64,7 @@ export const CAMPOS_PROCESSO = [
   ['despachoRef', 'Despacho de referência (ex.: "despacho do evento 56" ou "despacho/decisão de 28/09/2026")', 'text'],
 ];
 
+export const FORMAS_PAGAMENTO = ['Adiantamento no início e saldo ao final', 'Integral após a entrega do laudo (sem adiantamento)', 'Ao final, pela parte sucumbente (Justiça do Trabalho)'];
 // Honorários e itens do despacho (perito do juízo)
 export const CAMPOS_HONORARIOS = [
   ['honorariosItem', 'Item do despacho que fixou os honorários (ex.: "item 1.2")', 'text'],
@@ -74,6 +75,7 @@ export const CAMPOS_HONORARIOS = [
   ['similaridade', 'Perícia por similaridade (empresa paradigma)?', 'select', ['Sim', 'Não']],
   ['empresaOriginal', 'Empregadora original (quando por similaridade)', 'text'],
   ['complexidadeExtra', 'Outros motivos de complexidade (um por linha)', 'area'],
+  ['honorariosForma', 'Forma de pagamento fixada no despacho', 'select', FORMAS_PAGAMENTO],
   ['honorariosAdiantamento', 'Valor a receber no início dos trabalhos (R$) – em branco = 50% do fixado', 'text'],
   ['honorariosDepositante', 'Quem faz o depósito (ex.: "o Município de Moreira Sales")', 'text'],
   ['itemDeposito', 'Item do despacho que manda depositar (ex.: "7, b")', 'text'],
@@ -254,8 +256,11 @@ export const NOVO_CASO = {
 
 // Finalidade do caso: decide qual legislação os documentos e as instruções usam.
 // true = previdenciário (tempo especial); false = trabalhista / servidor; undefined = outro.
+export const reuEhInss = (c = {}) => /\bINSS\b|Instituto Nacional do Seguro Social/i.test(c.reuNome || '');
 export function contextoLegal(c = {}) {
   if (c.tipoAtuacao === 'Extrajudicial' || c.materia === 'Previdenciária') return { prev: true };
+  // ação contra o INSS fora da Justiça do Trabalho é previdenciária, mesmo com a matéria marcada errada
+  if (reuEhInss(c) && c.justica !== 'Justiça do Trabalho' && c.materia !== 'Acidentária') return { prev: true };
   if (c.materia === 'Trabalhista' || c.materia === 'Administrativa (servidor)' || c.justica === 'Justiça do Trabalho' || /Fazenda/i.test(c.justica || '')) return { prev: false };
   return {};
 }

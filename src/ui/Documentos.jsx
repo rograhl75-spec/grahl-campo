@@ -2,7 +2,8 @@ import { useState } from 'preact/hooks';
 import { CATALOGO } from '../docx/reports.js';
 import { exportarBackup, baixarArquivo, carimbo } from '../backup.js';
 import { OPCOES_REDACAO, exportarParaClaude } from '../aiimport.js';
-import { gravarTudoAgora, salvar } from './fields.jsx';
+import { gravarTudoAgora, salvar, TF, Sel } from './fields.jsx';
+import { FORMAS_PAGAMENTO } from '../schema.js';
 import { db } from '../db.js';
 import { PERFIL_ID, contasDoPerfil, PERFIL_PADRAO } from '../docx/base.js';
 import { useLive } from './hooks.js';
@@ -63,14 +64,14 @@ export function Documentos({ rec }) {
           <h3>{g}</h3>
           {QUANDO[g] && <p class="passo-docs">{QUANDO[g]}</p>}
           <div class="grade-docs">
-            {lista.map((d) => <CartaoDoc d={d} ocupado={ocupado} gerar={gerar} contas={contas} contaSel={contaSel} recId={rec.id} />)}
+            {lista.map((d) => <CartaoDoc d={d} ocupado={ocupado} gerar={gerar} contas={contas} contaSel={contaSel} recId={rec.id} rec={rec} />)}
           </div>
         </section>
       ))}
       {outros.length > 0 && (
         <section class="grupo-docs">
           <button type="button" class="sec" onClick={() => setVerTodos(!verTodos)}>{verTodos ? 'Ocultar' : 'Mostrar'} outros modelos ({outros.length})</button>
-          {verTodos && <div class="grade-docs">{outros.map((d) => <CartaoDoc d={d} ocupado={ocupado} gerar={gerar} contas={contas} contaSel={contaSel} recId={rec.id} />)}</div>}
+          {verTodos && <div class="grade-docs">{outros.map((d) => <CartaoDoc d={d} ocupado={ocupado} gerar={gerar} contas={contas} contaSel={contaSel} recId={rec.id} rec={rec} />)}</div>}
         </section>
       )}
       <LevarParaClaude rec={rec} />
@@ -86,7 +87,7 @@ export function Documentos({ rec }) {
   );
 }
 
-function CartaoDoc({ d, ocupado, gerar, contas = [], contaSel, recId }) {
+function CartaoDoc({ d, ocupado, gerar, contas = [], contaSel, recId, rec }) {
   return (
     <div class="bloco doc">
       <h4>{d.titulo}</h4>
@@ -98,9 +99,67 @@ function CartaoDoc({ d, ocupado, gerar, contas = [], contaSel, recId }) {
           </select>
         </label>
       ) : <p class="alerta-txt">Cadastre as contas em Configurações → Meus dados.</p>)}
+      {d.id === 'agenda' && rec && <DadosAgendamento rec={rec} />}
+      {d.id === 'aceiteArb' && rec && <Sel rec={rec} k="honorariosForma" label="Forma de pagamento (conforme o despacho)" opcoes={FORMAS_PAGAMENTO} />}
       <button type="button" class="primario" disabled={!!ocupado} onClick={() => gerar(d)}>{ocupado === d.id ? 'Gerando…' : 'Gerar Word'}</button>
+      {d.id === 'agenda' && rec && <LinkAgenda c={rec.data} />}
     </div>
   );
+}
+
+// Dados da vistoria para a petição de agendamento: empresa, CNPJ (com busca do endereço), endereço, data e horário
+function DadosAgendamento({ rec }) {
+  const c = rec.data;
+  const [msg, setMsg] = useState('');
+  const buscar = async () => {
+    const cnpj = String(c.vistoriaCnpj || '').replace(/\D/g, '');
+    if (cnpj.length !== 14) { setMsg('Informe o CNPJ completo (14 dígitos).'); return; }
+    setMsg('Buscando…');
+    try {
+      const r = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpj}`);
+      if (!r.ok) throw new Error(r.status === 404 ? 'CNPJ não encontrado' : `erro ${r.status}`);
+      const j = await r.json();
+      const cep = String(j.cep || '').replace(/^(\d{5})(\d{3})$/, '$1-$2');
+      const end = [[j.descricao_tipo_de_logradouro, j.logradouro].filter(Boolean).join(' '), j.numero, j.complemento].filter((x) => x && String(x).trim()).join(', ');
+      const linha2 = [j.bairro, `${j.municipio || ''}/${j.uf || ''}`, cep && `CEP ${cep}`].filter(Boolean).join(' – ');
+      gravarTudoAgora();
+      if (!String(c.vistoriaLocal || '').trim()) await salvar(rec.id, 'vistoriaLocal', j.razao_social || j.nome_fantasia || '');
+      await salvar(rec.id, 'vistoriaEndereco', `${end}\n${linha2}`);
+      setMsg(`✓ ${j.razao_social || ''}${j.descricao_situacao_cadastral ? ` – situação: ${j.descricao_situacao_cadastral}` : ''}. Confira o endereço.`);
+    } catch (e) { setMsg(`Não foi possível buscar (${e.message}). Digite o endereço.`); }
+  };
+  // por similaridade a vistoria é na empresa paradigma, não na empregadora original
+  const empresas = c.similaridade === 'Sim' ? [] : [...new Set([c.reuNome && !/INSS|Instituto Nacional/i.test(c.reuNome) ? c.reuNome : ''].filter(Boolean))];
+  return (
+    <div class="dados-agenda">
+      <TF rec={rec} k="vistoriaLocal" label={c.similaridade === 'Sim' ? 'Empresa da vistoria (paradigma)' : 'Empresa da vistoria'} />
+      {!String(c.vistoriaLocal || '').trim() && empresas.length > 0 && (
+        <div class="chips">{empresas.map((e) => <button type="button" class="chip" onClick={() => salvar(rec.id, 'vistoriaLocal', e)}>{e}</button>)}</div>
+      )}
+      <div class="com-botao"><TF rec={rec} k="vistoriaCnpj" label="CNPJ (para buscar o endereço)" inputMode="numeric" />
+        <button type="button" class="mini" onClick={buscar}>🔎 Buscar</button></div>
+      <TF rec={rec} k="vistoriaEndereco" label="Endereço (rua, nº – bairro – cidade/UF – CEP)" area rows={2} />
+      <div class="linha2">
+        <TF rec={rec} k="dataDiligencia" label="Data da vistoria" type="date" />
+        <TF rec={rec} k="horaDiligencia" label="Horário" type="time" />
+      </div>
+      {msg && <small class="dica">{msg}</small>}
+    </div>
+  );
+}
+
+// Evento no Google Agenda (abre a tela de criação já preenchida; você confere e salva)
+function LinkAgenda({ c }) {
+  if (!c.dataDiligencia || !c.horaDiligencia) return <small class="dica">Com data e horário preenchidos, aparece aqui o botão para criar o evento no Google Agenda.</small>;
+  const ini = `${c.dataDiligencia.replace(/-/g, '')}T${c.horaDiligencia.replace(':', '')}00`;
+  const [h, m] = c.horaDiligencia.split(':').map(Number);
+  const fimH = String(Math.min(23, h + 3)).padStart(2, '0');
+  const fim = `${c.dataDiligencia.replace(/-/g, '')}T${fimH}${String(m).padStart(2, '0')}00`;
+  const local = [c.vistoriaLocal, String(c.vistoriaEndereco || '').replace(/\n/g, ' – ')].filter(Boolean).join(' – ');
+  const det = [`Vistoria pericial – processo ${c.numero || ''}`, c.autorNome && `Autor: ${c.autorNome}`, c.reuNome && `Réu: ${c.reuNome}`,
+    c.similaridade === 'Sim' && 'Perícia por similaridade', 'Levar: dosímetro, medidor de vibração, IBUTG, calibrador, trena, câmera.'].filter(Boolean).join('\n');
+  const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`Vistoria pericial – ${c.vistoriaLocal || c.autorNome || c.numero || ''}`)}&dates=${ini}/${fim}&ctz=America/Sao_Paulo&location=${encodeURIComponent(local)}&details=${encodeURIComponent(det)}`;
+  return <a class="botao sec" href={url} target="_blank" rel="noopener">📅 Agendar no Google Agenda</a>;
 }
 
 function LevarParaClaude({ rec }) {

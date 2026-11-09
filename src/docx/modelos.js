@@ -643,8 +643,9 @@ export async function peticaoMajoracao(caseId) {
   const mult = Number(c.honorariosMultiplicador || 2);
   const cjf = fundamentoCJF(c);
   sec('Dos honorários fixados');
+  const tabCJF = /delegada|Juizado Especial Federal/i.test(c.justica || '') ? 'Tabela V' : 'Tabela II';
   const vezesFix = isFinite(fixados) && isFinite(tabela) && tabela > 0 ? Math.round(fixados / tabela) : 1;
-  d.texto(`No ${v(c.honorariosItem) || '[[item]]'} do referido despacho, os honorários periciais foram fixados em ${isFinite(fixados) ? moeda(fixados) : '[[valor]]'}, ${vezesFix > 1 ? `correspondentes a ${vezesFix === 2 ? 'duas' : vezesFix} vezes o valor máximo` : 'valor máximo'} ${cjf ? 'previsto na Tabela II da Resolução nº 305/2014 do Conselho da Justiça Federal, com as alterações da Resolução CJF nº 937/2025' : 'previsto na tabela aplicável [[norma do tribunal]]'}.`);
+  d.texto(`No ${v(c.honorariosItem) || '[[item]]'} do referido despacho, os honorários periciais foram fixados em ${isFinite(fixados) ? moeda(fixados) : '[[valor]]'}, ${vezesFix > 1 ? `correspondentes a ${vezesFix === 2 ? 'duas' : vezesFix} vezes o valor máximo` : 'valor máximo'} ${cjf ? `previsto na ${tabCJF} do Anexo Único da Resolução nº 305/2014 do Conselho da Justiça Federal, na redação da Resolução CJF nº 937, de 22/01/2025` : 'previsto na tabela aplicável [[norma do tribunal]]'}.`);
 
   const fora = c.foraDomicilio === 'Sim';
   if (fora) {
@@ -686,7 +687,7 @@ export async function peticaoMajoracao(caseId) {
   sec('Do fundamento para a majoração');
   const criterios = [fora && 'o local de realização fora do domicílio do perito', 'a complexidade do exame'].filter(Boolean);
   if (cjf) {
-    d.texto(`O art. 28 da Resolução CJF nº 305/2014, com a redação dada pela Resolução CJF nº 937/2025, autoriza o magistrado a fixar os honorários acima do limite máximo da tabela, em até 3 (três) vezes, considerando, entre outros critérios, a especialização do perito, a complexidade do exame e o local de sua realização. No caso, ${criterios.length > 1 ? `estão presentes ao mesmo tempo ${criterios.reverse().join(' e ')}, o que justifica a fixação ${mult === 3 ? 'no patamar máximo admitido pela norma' : 'acima do limite da tabela'}` : `verifica-se ${criterios[0]}`}.`);
+    d.texto(`O art. 28 da Resolução CJF nº 305/2014 autoriza o magistrado a fixar os honorários acima do limite máximo da tabela, em até 3 (três) vezes, considerando, entre outros critérios, a especialização do perito, a complexidade do exame e o local de sua realização. No caso, ${criterios.length > 1 ? `estão presentes ao mesmo tempo ${criterios.reverse().join(' e ')}, o que justifica a fixação ${mult === 3 ? 'no patamar máximo admitido pela norma' : 'acima do limite da tabela'}` : `verifica-se ${criterios[0]}`}.`);
   } else {
     d.redigir('fundamento normativo da tabela do tribunal (ex.: Resolução TJPR) e critérios presentes.');
   }
@@ -694,7 +695,7 @@ export async function peticaoMajoracao(caseId) {
   sec('Do pedido');
   const pedido = isFinite(tabela) ? mult * tabela : NaN;
   if (isFinite(pedido) && isFinite(fixados) && pedido <= fixados) d.texto(`[[VERIFICAR: o valor pedido (${moeda(pedido)}) não supera o já fixado (${moeda(fixados)}); confira o multiplicador e a tabela.]]`);
-  d.texto(`Diante do exposto, requer-se a majoração dos honorários periciais para ${VEZES[mult] || mult} vezes o valor máximo da ${cjf ? 'Tabela II' : 'tabela'}, ou seja, ${isFinite(pedido) ? `${moeda(pedido)} (${reaisPorExtenso(pedido)}) (${mult} × ${moeda(tabela)})` : '[[valor]]'}${cjf ? ', nos termos do art. 28 da Resolução CJF nº 305/2014, com a redação da Resolução CJF nº 937/2025' : ''}.`);
+  d.texto(`Diante do exposto, requer-se a majoração dos honorários periciais para ${VEZES[mult] || mult} vezes o valor máximo da ${cjf ? tabCJF : 'tabela'}, ou seja, ${isFinite(pedido) ? `${moeda(pedido)} (${reaisPorExtenso(pedido)}) (${mult} × ${moeda(tabela)})` : '[[valor]]'}${cjf ? `, nos termos do art. 28 da Resolução CJF nº 305/2014 e da ${tabCJF} do seu Anexo Único, na redação da Resolução CJF nº 937/2025` : ''}.`);
   if (!v(c.dataDiligencia)) d.texto(`A data e o horário da vistoria serão informados oportunamente${v(c.itensVistoria) ? `, para os fins ${/[e,]/.test(c.itensVistoria) ? 'dos itens' : 'do item'} ${c.itensVistoria} do despacho` : ''}.`);
   fecho(d, dados);
   return finalizar(d, { titulo: 'Petição – majoração de honorários', arquivo: 'Peticao_majoracao_honorarios', c });

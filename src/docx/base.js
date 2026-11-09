@@ -327,8 +327,8 @@ export function quadroCriteriosCalor(d) {
 export function quadroCriteriosVibracao(d) {
   return d.quadro('Critérios – Vibração', [['Período', 'Critério e fundamento'],
     ['Até 05/03/1997', 'Cód. 1.1.5 do Decreto 53.831/1964 (trepidação: máquinas acionadas a ar comprimido acima de 120 golpes por minuto, medição quantitativa) e cód. 1.1.4 do Decreto 83.080/1979 (avaliação qualitativa) – art. 296, I, da IN 128/2022'],
-    ['06/03/1997 a 12/08/2014', 'Cód. 2.0.2 dos Decretos 2.172/1997 e 3.048/1999 (perfuratrizes e marteletes pneumáticos), com os limites das normas ISO 2631 e ISO/DIS 5349 (art. 296, II, da IN 128/2022). Fora dessas atividades, apresentam-se as duas leituras, inclusive pela ISO (VCI: fronteira superior da zona de cautela da ISO 2631-1; VMB: 5 m/s², Diretiva 2002/44/CE)'],
-    ['A partir de 13/08/2014', 'Cód. 2.0.2 do Decreto 3.048/1999, com os limites da NR-15, Anexo 8 (Portaria MTE nº 1.297/2014): VCI aren 1,1 m/s² ou VDVR 21,0 m/s^1,75; VMB aren 5 m/s², avaliados conforme as NHO-09 e NHO-10 (art. 296, III, da IN 128/2022; facultativas desde 10/09/2012)'],
+    ['06/03/1997 a 13/08/2014', 'Cód. 2.0.2 dos Decretos 2.172/1997 e 3.048/1999 (perfuratrizes e marteletes pneumáticos), com os limites das normas ISO 2631 e ISO/DIS 5349 (art. 296, II, da IN 128/2022). Fora dessas atividades, apresentam-se as duas leituras, inclusive pela ISO (VCI: fronteira superior da zona de cautela da ISO 2631-1; VMB: 5 m/s², Diretiva 2002/44/CE)'],
+    ['A partir de 14/08/2014', 'Cód. 2.0.2 do Decreto 3.048/1999, com os limites da NR-15, Anexo 8 (Portaria MTE nº 1.297, de 13/08/2014, vigente desde a publicação no DOU de 14/08/2014; a IN 128/2022 indica 13/08/2014): VCI aren 1,1 m/s² ou VDVR 21,0 m/s^1,75; VMB aren 5 m/s², avaliados conforme as NHO-09 e NHO-10 (art. 296, III, da IN 128/2022; facultativas desde 10/09/2012)'],
   ], { larguras: [0.27, 0.73], fonte: 'Elaborado pelo autor com base em Brasil (2022, art. 296).' });
 }
 
@@ -515,7 +515,7 @@ const LIM_NR15_VDV = 21;
 
 function subperiodosVibracao(r) {
   const ini = r.data.inicio, fim = r.data.fim || new Date().toISOString().slice(0, 10);
-  const J = [{ ini: '0000-01-01', fim: '1997-03-05', crit: 'cod115' }, { ini: '1997-03-06', fim: '2014-08-12', crit: 'iso' }, { ini: '2014-08-13', fim: '9999-12-31', crit: 'nr15' }];
+  const J = [{ ini: '0000-01-01', fim: '1997-03-05', crit: 'cod115' }, { ini: '1997-03-06', fim: '2014-08-13', crit: 'iso' }, { ini: '2014-08-14', fim: '9999-12-31', crit: 'nr15' }];
   return J.map((j) => ({ ini: ini > j.ini ? ini : j.ini, fim: fim < j.fim ? fim : j.fim, crit: j.crit })).filter((x) => ini && x.ini <= x.fim);
 }
 

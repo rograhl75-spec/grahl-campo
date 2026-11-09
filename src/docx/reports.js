@@ -47,7 +47,7 @@ export async function gerarPreRelatorio(caseId) {
     const subs = subperiodosRuido(dados.periodos);
     if (subs.length) d.quadro('Subperíodos a avaliar', [['Vínculo', 'Subperíodo', 'Critério'],
       ...subs.map((s) => [s.periodo.data.empresa || '', `${dataBR(s.ini)} a ${dataBR(s.fim)}`, `${s.janela.crit} > ${s.janela.lim} dB(A)`])], { larguras: [0.4, 0.35, 0.25] });
-    d.texto('Marcos adicionais a observar: 13/08/2014 (início do Anexo 8 da NR-15 – vibração) e 13/11/2019 (Emenda Constitucional nº 103/2019).');
+    d.texto('Marcos adicionais a observar: 14/08/2014 (vigência do Anexo 8 da NR-15 – vibração) e 13/11/2019 (Emenda Constitucional nº 103/2019).');
   }
 
   d.h1('3', 'Síntese da petição inicial');

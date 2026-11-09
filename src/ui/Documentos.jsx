@@ -138,6 +138,7 @@ function DadosAgendamento({ rec }) {
         <div class="chips"><small class="dica">Dos autos:</small>{empresas.map((e) => <button type="button" class="chip" onClick={() => salvar(rec.id, 'vistoriaLocal', e)}>{e}</button>)}</div>
       )}
       <TF rec={rec} k="vistoriaProprietario" label="Ou: proprietário pessoa física (nome completo) – quando não há empresa" />
+      {String(c.vistoriaProprietario || '').trim() && <small class="dica">Com o proprietário preenchido, a petição usa o nome dele e ignora o campo de empresa acima.</small>}
       {String(c.vistoriaProprietario || '').trim() && <>
         <TF rec={rec} k="vistoriaVeiculo" label="Veículo / equipamento paradigma (marca, modelo, ano)" />
         <TF rec={rec} k="vistoriaContato" label="Telefone / contato do proprietário" />

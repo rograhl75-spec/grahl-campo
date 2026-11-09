@@ -22,7 +22,7 @@ beforeAll(async () => {
     return { ok: true, arrayBuffer: async () => buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) };
   };
   await db.records.put({ id: CASO_PF, kind: 'caso', caseId: null, ts: {},
-    data: { ...base, vistoriaProprietario: 'Fulano de Tal da Silva', vistoriaVeiculo: 'Marca X Modelo Y, ano 1999', vistoriaContato: '(00) 90000-0000' } });
+    data: { ...base, vistoriaLocal: 'Veículo paradigma de pessoa física (texto antigo)', despachoRef: 'Ev107 DESPADEC1 (2025-10-24) – quesitos; Ev194 DESPADEC1 – veículo indicado no Ev192', vistoriaProprietario: 'Fulano de Tal da Silva', vistoriaVeiculo: 'Marca X Modelo Y, ano 1999', vistoriaContato: '(00) 90000-0000' } });
   await db.records.put({ id: CASO_PJ, kind: 'caso', caseId: null, ts: {}, data: { ...base, vistoriaLocal: 'Empresa Paradigma Ltda.' } });
 });
 
@@ -42,6 +42,8 @@ describe('agendamento – vistoria em bem de pessoa física', () => {
     expect(t).not.toContain('empresa paradigma');
     expect(t).not.toContain('processo produtivo');
     expect(t).not.toContain('LTCAT');
+    expect(t).not.toContain('texto antigo');
+    expect(t).toContain('às decisões dos eventos 107 e 194,');
   });
   it('com empresa, mantém o texto de empresa paradigma', async () => {
     const t = await texto(await peticaoAgendamento(CASO_PJ));

@@ -1,7 +1,7 @@
 import { db, caseChildren } from '../db.js';
 import { resumoMedicao, calculados } from '../medicoes.js';
 import { nenQ5, num, fmt } from '../calc.js';
-import { ORIGEM_QUESITO, contextoLegal, ehSuplementar , reuEhInss } from '../schema.js';
+import { ORIGEM_QUESITO, contextoLegal, ehSuplementar , reuEhInss, localVistoria } from '../schema.js';
 import { Doc, p, run, rich, montarDocx } from './ooxml.js';
 import { nenParaJornada, arenParaJornada, vdvrParaJornada, certificadoVencido, rotuloParadigma, num as numP } from '../paradigmas.js';
 
@@ -290,7 +290,7 @@ export function quadroEquipamentos(d, lista, titulo = 'Instrumentos utilizados')
 export function quadroDiligencia(d, c, titulo = 'Registro da diligência') {
   return d.quadro(titulo, [['Campo', 'Informação'],
     ['Data e horário', [dataBR(c.vistoriaData) || dataBR(c.dataDiligencia), [c.vistoriaInicio || c.horaDiligencia, c.vistoriaFim].filter(Boolean).join(' às ')].filter(Boolean).join(', ') || '[[data e horário]]'],
-    ['Local', [c.vistoriaLocal, c.vistoriaEndereco].filter(Boolean).join(' – ') || '[[local]]'],
+    ['Local', [localVistoria(c), c.vistoriaEndereco].filter(Boolean).join(' – ') || '[[local]]'],
     ...(c.vistoriaGps ? [['Coordenadas', c.vistoriaGps]] : []),
     ['Presentes', c.vistoriaPresentes || '[[pessoas presentes]]'],
     ...(c.vistoriaCondicoes ? [['Condições operacionais no dia', c.vistoriaCondicoes]] : []),

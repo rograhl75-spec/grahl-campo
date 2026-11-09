@@ -1,7 +1,7 @@
 import { db, caseChildren } from '../db.js';
 import { resumoMedicao, calculados } from '../medicoes.js';
 import { nenQ5, num, fmt } from '../calc.js';
-import { ORIGEM_QUESITO, contextoLegal } from '../schema.js';
+import { ORIGEM_QUESITO, contextoLegal, ehSuplementar } from '../schema.js';
 import { Doc, p, run, montarDocx } from './ooxml.js';
 import { nenParaJornada, arenParaJornada, vdvrParaJornada, certificadoVencido, rotuloParadigma, num as numP } from '../paradigmas.js';
 
@@ -391,12 +391,24 @@ export async function figurasDoCaso(dados, filtro = () => true) {
   return { lista, faltando };
 }
 
-export function respostasQuesitos(d, quesitos, numBase, c) {
+// "da parte autora", "do INSS", "do Juízo"...
+export function nomeOrigemQuesito(o, c) {
   const pt = partes(c);
-  const nomeOrigem = (o) => (o === 'Autor / Reclamante' ? `da parte ${pt.autorCurto.toLowerCase()}` : o === 'Réu / Reclamada' ? `da parte ${pt.reuCurto === 'INSS' ? 'ré (INSS)' : pt.reuCurto.toLowerCase()}` : o === 'Juízo' ? 'do Juízo' : o === 'INSS' ? 'do INSS' : (o || '').toLowerCase());
+  if (o === 'Autor / Reclamante') return pt.trab ? 'do Reclamante' : 'da parte autora';
+  if (o === 'Réu / Reclamada') return pt.trab ? 'da Reclamada' : pt.reuCurto === 'INSS' ? 'do INSS' : 'da parte ré';
+  if (o === 'Juízo') return 'do Juízo';
+  if (o === 'INSS') return 'do INSS';
+  if (o === 'Complementares') return 'complementares';
+  return (o || '').toLowerCase();
+}
+
+// Quesitos do laudo: os suplementares (formulados depois do laudo) ficam de fora;
+// eles saem na petição de resposta aos quesitos suplementares.
+export function respostasQuesitos(d, quesitos, numBase, c) {
+  const nomeOrigem = (o) => nomeOrigemQuesito(o, c);
   let n = 0;
   for (const origem of ORIGEM_QUESITO) {
-    const lista = quesitos.filter((q) => (q.data.origem || 'Outro') === origem);
+    const lista = quesitos.filter((q) => !ehSuplementar(q) && (q.data.origem || 'Outro') === origem);
     if (!lista.length) continue;
     n += 1;
     d.h2(`${numBase}.${n}`, `Quesitos ${nomeOrigem(origem)}`);

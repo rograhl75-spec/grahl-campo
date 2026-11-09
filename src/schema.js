@@ -29,7 +29,7 @@ export const OBJETO = [
 
 export const FASE = [
   'A preparar', 'Aguardando depósito dos honorários', 'Diligência agendada', 'Diligência realizada', 'Laudo / parecer em elaboração',
-  'Aguardando manifestação / esclarecimentos', 'Concluído', 'Arquivado',
+  'Aguardando manifestação / esclarecimentos', 'Respondendo quesitos suplementares', 'Concluído', 'Arquivado',
 ];
 
 export const ORIGEM_QUESITO = ['Juízo', 'Autor / Reclamante', 'Réu / Reclamada', 'INSS', 'Complementares', 'Outro'];
@@ -121,7 +121,22 @@ export const CAMPOS_PRAZOS = [
   ['horaDiligencia', 'Horário marcado', 'time'],
   ['prazoLaudo', 'Prazo do laudo / parecer', 'date'],
   ['prazoManifestacao', 'Prazo de manifestação', 'date'],
+  ['prazoEsclarecimentos', 'Prazo dos esclarecimentos / quesitos suplementares', 'date'],
 ];
+
+// Depois do laudo: quesitos suplementares e pedidos de esclarecimento (art. 477, §§ 1º e 2º, do CPC)
+export const CAMPOS_ESCLARECIMENTOS = [
+  ['laudoRefPerito', 'Laudo apresentado (ex.: "mov. 64.1" ou "evento 45")', 'text'],
+  ['laudoData', 'Data da juntada do laudo', 'date'],
+  ['esclDecisaoRef', 'Decisão que determinou a resposta (ex.: "decisão do mov. 71.1")', 'text'],
+  ['prazoEsclarecimentos', 'Prazo para responder', 'date'],
+  ['esclRetificacoes', 'Retificações de erro material no laudo (uma por linha, ex.: "Resposta ao quesito 1 do INSS: onde se lê 11h00 às 13h00, leia-se 09h00 às 10h30")', 'area'],
+  ['esclRatifica', 'Os esclarecimentos mantêm as conclusões do laudo?', 'select', ['Sim', 'Não']],
+  ['esclObservacoes', 'Considerações adicionais (saem antes da conclusão; em branco = não sai)', 'area'],
+];
+
+// Quesito suplementar = formulado depois da apresentação do laudo
+export const ehSuplementar = (q) => !!(q && q.data && q.data.suplementar === 'Sim');
 
 export const CAMPOS_SINTESE = [
   ['funcoes', 'Cargos / funções e período alegados', 'area'],

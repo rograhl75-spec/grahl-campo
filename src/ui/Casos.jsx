@@ -13,7 +13,7 @@ function diasAte(iso) { return Math.round((new Date(iso + 'T12:00:00') - new Dat
 
 export const FASE_COR = {
   'A preparar': 'f-prep', 'Aguardando depósito dos honorários': 'f-aguard', 'Diligência agendada': 'f-agend', 'Diligência realizada': 'f-real', 'Laudo / parecer em elaboração': 'f-laudo',
-  'Aguardando manifestação / esclarecimentos': 'f-aguard', 'Concluído': 'f-ok', 'Arquivado': 'f-arq',
+  'Aguardando manifestação / esclarecimentos': 'f-aguard', 'Respondendo quesitos suplementares': 'f-laudo', 'Concluído': 'f-ok', 'Arquivado': 'f-arq',
 };
 
 export function siglaTipo(d) {
@@ -37,7 +37,7 @@ function compromissos(casos) {
   for (const c of casos) {
     const d = c.data;
     if (['Concluído', 'Arquivado'].includes(d.fase)) continue;
-    for (const [rot, data, hora] of [['Diligência', d.dataDiligencia, d.horaDiligencia], ['Prazo do laudo', d.prazoLaudo], ['Manifestação', d.prazoManifestacao]]) {
+    for (const [rot, data, hora] of [['Diligência', d.dataDiligencia, d.horaDiligencia], ['Prazo do laudo', d.prazoLaudo], ['Manifestação', d.prazoManifestacao], ['Esclarecimentos', d.prazoEsclarecimentos]]) {
       if (data && data >= hoje && data <= lim) out.push({ c, rot, data, hora });
     }
   }
@@ -129,7 +129,7 @@ function CartaoCaso({ c }) {
   const d = c.data;
   const [sig, cls, rotTipo] = siglaTipo(d);
   const hoje = hojeIso();
-  const datas = [['Diligência', d.dataDiligencia], ['Laudo', d.prazoLaudo], ['Manifestação', d.prazoManifestacao]].filter(([, x]) => x && x >= hoje).sort((a, b) => a[1].localeCompare(b[1]));
+  const datas = [['Diligência', d.dataDiligencia], ['Laudo', d.prazoLaudo], ['Manifestação', d.prazoManifestacao], ['Esclarecimentos', d.prazoEsclarecimentos]].filter(([, x]) => x && x >= hoje).sort((a, b) => a[1].localeCompare(b[1]));
   return (
     <a class={`cartao ${cls}`} href={`#/caso/${c.id}/cadastro`}>
       <div class="cartao-topo">

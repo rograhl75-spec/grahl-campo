@@ -3,14 +3,14 @@
 // impugnação / parecer de assistente técnico, parecer preventivo, petição de
 // indicação com quesitos. O que depende de análise técnica sai marcado em
 // amarelo ("[[Redigir: ...]]") para ser escrito por você.
-import { ORIGEM_QUESITO } from '../schema.js';
+import { ORIGEM_QUESITO, ehSuplementar } from '../schema.js';
 import {
   Doc, carregar, finalizar, dataBR, menosCincoAnos, ou, partes, papelAssinatura, enderecamentoTexto, linhasProcesso,
   qualificacaoCurta, qualificacaoCompleta, blocoAssinatura, credencial, equipamentosUsados, quadroEquipamentos, quadroDiligencia,
   quadroPeriodos, quadroEpis, quadroDocumentos, quadroCriteriosRuido, quadroConfrontoRuido, quadroMedicoesRuido,
   quadroMedicoesGenerico, medicoesPorAgente, nomePostoFn, profissiografia, figurasDoCaso, respostasQuesitos, capaTecnica,
   quadroCriteriosCalor, quadroCriteriosVibracao, documentosARequerer, quadrosParadigmasMetodologia, memoriasParadigmas, usaParadigmas,
-  art, dadosDaConta, dataPorExtenso, horaPorExtenso, reaisPorExtenso, numeroPorExtenso, moeda, lerValor,
+  art, dadosDaConta, dataPorExtenso, horaPorExtenso, reaisPorExtenso, numeroPorExtenso, moeda, lerValor, nomeOrigemQuesito,
 } from './base.js';
 import { p, run, rich } from './ooxml.js';
 
@@ -771,7 +771,9 @@ export async function peticaoPagamento(caseId, { conta } = {}) {
   d.enderecamento(enderecamentoTexto(c), linhasProcesso(c));
   d.texto(introPerito(perfil, c, 'requerer o pagamento dos honorários periciais, pelos fundamentos a seguir expostos.'));
   d.h1('1.', 'Dos trabalhos periciais', { novaPagina: false });
-  d.texto(`A vistoria pericial foi realizada em ${dataBR(c.vistoriaData) || '[[data]]'} e o laudo pericial foi juntado aos autos em [[data – evento / mov.]], encerrando-se os trabalhos periciais.`);
+  const juntada = [dataBR(c.laudoData) && `em ${dataBR(c.laudoData)}`, v(c.laudoRefPerito) && `(${c.laudoRefPerito})`].filter(Boolean).join(' ') || 'em [[data – evento / mov.]]';
+  const supl = dados.quesitos.filter(ehSuplementar).length;
+  d.texto(`A vistoria pericial foi realizada em ${dataBR(c.vistoriaData) || '[[data]]'} e o laudo pericial foi juntado aos autos ${juntada}${supl ? ', tendo sido respondidos também os quesitos suplementares' : ''}, encerrando-se os trabalhos periciais.`);
   d.h1('2.', 'Do pedido', { novaPagina: false });
   const val = lerValor(c.honorariosFixados);
   d.texto(`Diante do exposto, requer-se ${fundamentoCJF(c) ? 'a expedição da requisição de pagamento dos honorários periciais fixados' : 'a liberação dos honorários periciais depositados, mediante expedição de alvará ou transferência,'}${isFinite(val) ? ` no valor de ${moeda(val)} (${reaisPorExtenso(val)})` : ''}, com crédito na conta abaixo:`);
@@ -780,4 +782,65 @@ export async function peticaoPagamento(caseId, { conta } = {}) {
   return finalizar(d, { titulo: 'Petição – pagamento de honorários', arquivo: 'Peticao_pagamento_honorarios', c });
 }
 
-void ORIGEM_QUESITO;
+// ======================================================================
+// RESPOSTA AOS QUESITOS SUPLEMENTARES / ESCLARECIMENTOS (art. 477, § 2º, I, do CPC)
+// ======================================================================
+const linhas = (t) => String(t || '').split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
+
+export function referenciaLaudo(c) {
+  const partesRef = [v(c.laudoRefPerito) && `(${c.laudoRefPerito})`, dataBR(c.laudoData) && `em ${dataBR(c.laudoData)}`].filter(Boolean);
+  return `laudo pericial juntado aos autos ${partesRef.length ? partesRef.join(' ') : '[[mov. / evento e data]]'}`;
+}
+
+export async function respostaQuesitosSuplementares(caseId) {
+  const dados = await carregar(caseId);
+  const { c, perfil } = dados;
+  const d = new Doc();
+  d.enderecamento(enderecamentoTexto(c), linhasProcesso(c));
+  const dec = v(c.esclDecisaoRef);
+  const emAtencao = dec ? `, em atenção ${/^(decisão|sentença|r\.)/i.test(dec) ? 'à' : 'ao'} ${dec}` : '';
+  d.texto(`${qualificacaoCurta(perfil)}, perito judicial nomeado nos autos em epígrafe, vem, respeitosamente, à presença de Vossa Excelência${emAtencao}, apresentar **RESPOSTA AOS QUESITOS SUPLEMENTARES** e os esclarecimentos sobre o ${referenciaLaudo(c)}, nos termos do art. 477, § 2º, inciso I, do Código de Processo Civil.`);
+
+  const supl = dados.quesitos.filter(ehSuplementar);
+  let n = 0;
+  n += 1;
+  d.h1(`${n}.`, 'Dos quesitos suplementares e pedidos de esclarecimento', { novaPagina: false });
+  if (!supl.length) d.texto('[[Cadastre os quesitos suplementares na etapa 3. Quesitos, marcando "Suplementar (após o laudo)".]]');
+  let g = 0;
+  for (const origem of ORIGEM_QUESITO) {
+    const lista = supl.filter((q) => (q.data.origem || 'Outro') === origem);
+    if (!lista.length) continue;
+    g += 1;
+    const ref = lista.map((q) => v(q.data.refPeticao)).find(Boolean);
+    d.h2(`${n}.${g}`, `Quesitos suplementares ${nomeOrigemQuesito(origem, c)}${ref ? ` (${ref})` : ''}`);
+    for (const q of lista) {
+      const tx = linhas(q.data.texto);
+      const rot = `${/quesito/i.test(v(q.data.numero)) ? v(q.data.numero) : `Quesito suplementar ${v(q.data.numero) || '•'}`}: `;
+      d.add(p([run(rot, { b: true }), run(tx[0] || '', { i: true })], { left: 709, after: 40, keepNext: true }));
+      for (const l of tx.slice(1)) d.add(p([run(l, { i: true })], { left: 709, after: 40, keepNext: true }));
+      const rs = linhas(q.data.resposta);
+      d.add(p([run('Resposta: ', { b: true })].concat(rs.length ? [rich(rs[0])] : [run('[[Responder]]', { b: true, hl: true })]), { first: 709, before: 80, after: 80 }));
+      if (rs.length > 1) d.texto(rs.slice(1).join('\n'));
+      d.add(p('', { after: 80 }));
+    }
+  }
+
+  if (linhas(c.esclRetificacoes).length) {
+    n += 1;
+    d.h1(`${n}.`, 'Das retificações de erro material', { novaPagina: false });
+    d.texto(`Ficam retificados os seguintes erros materiais do ${referenciaLaudo(c)}, sem alteração das avaliações técnicas:`);
+    d.texto(linhas(c.esclRetificacoes).map((l) => (/^[-•▪]\s/.test(l) ? l : `- ${l}`)).join('\n'));
+  }
+  if (v(c.esclObservacoes)) {
+    n += 1;
+    d.h1(`${n}.`, 'Considerações adicionais', { novaPagina: false });
+    d.texto(c.esclObservacoes);
+  }
+  n += 1;
+  d.h1(`${n}.`, 'Da conclusão', { novaPagina: false });
+  if (c.esclRatifica === 'Não') d.redigir('indicar quais conclusões do laudo são alteradas pelos esclarecimentos e em que termos.');
+  else d.texto('Os esclarecimentos ora prestados não alteram as avaliações técnicas nem as conclusões do laudo pericial, que ficam integralmente ratificadas.');
+  d.texto('O signatário permanece à disposição do Juízo para outros esclarecimentos que se fizerem necessários.');
+  fecho(d, dados);
+  return finalizar(d, { titulo: 'Resposta aos quesitos suplementares', arquivo: 'Resposta_quesitos_suplementares', c });
+}

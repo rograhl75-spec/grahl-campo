@@ -1,5 +1,5 @@
 import { db, createRecord, updateFields, caseChildren } from './db.js';
-import { ORIGEM_QUESITO, contextoLegal } from './schema.js';
+import { ORIGEM_QUESITO, contextoLegal, ehSuplementar } from './schema.js';
 import { resumoMedicao } from './medicoes.js';
 
 // ======================================================================
@@ -192,14 +192,30 @@ const REDACAO = {
   parprev: 'Redija o PARECER TÉCNICO previdenciário por vínculo: responsabilidade técnica, objeto, identificação, fundamentação legal, metodologia, atividades por vínculo, avaliação técnica por agente, quadro conclusivo, limitações e encerramento.',
   prevent: 'Redija o PARECER TÉCNICO PREVENTIVO para a empresa: objetivo, identificação do caso, documentos analisados, fundamentação, instalações e atividades, análise crítica da documentação de SST, avaliação dos riscos de condenação, recomendações e conclusão.',
   indic: 'Redija a PETIÇÃO de indicação de assistente técnico com documentos a requerer, pedido de avaliações no local e quesitos técnicos objetivos por agente.',
+  supl: 'Redija a PETIÇÃO DE RESPOSTA AOS QUESITOS SUPLEMENTARES (perito do juízo, art. 477, § 2º, I, do CPC): referência à decisão e ao laudo; para cada parte, transcrição literal de cada quesito suplementar seguida da resposta técnica, apoiada no laudo e nos registros de campo abaixo (fonte primária da diligência); retificação de erro material ("onde se lê / leia-se") quando houver divergência; ratificação das conclusões; encerramento. Sem juridiquês e sem citar o advogado.',
 };
 
 export const OPCOES_REDACAO = [
   ['laudo', 'Laudo pericial'], ['parecerAT', 'Parecer de assistente técnico / impugnação'], ['ltcat', 'LTCAT + PPP'],
   ['parprev', 'Parecer técnico previdenciário'], ['prevent', 'Parecer preventivo para a empresa'], ['indic', 'Petição de indicação e quesitos'],
+  ['supl', 'Resposta aos quesitos suplementares'],
 ];
 
 export async function exportarParaClaude(caseId, tipo) {
+  const { c, texto } = await textoDoCaso(caseId);
+  const instr = `${REDACAO[tipo] || REDACAO.laudo}
+
+Use os dados do caso abaixo (coletados por mim nos autos e na diligência) como base factual. Não invente dados: o que faltar, marque como [[pendência]] para eu completar. Formatação: documento técnico no meu papel timbrado, fonte Abadi, espaçamento 1,5, texto justificado, títulos numerados em azul, cada título principal em página nova, sumário, quadros numerados com título acima e fonte abaixo.
+
+${criteriosPara(c, tipo === 'ltcat' || tipo === 'parprev' ? 'extra-ltcat' : '')}
+
+---
+${texto}`;
+  return instr;
+}
+
+// Todo o caso em texto (markdown), para levar ao Claude
+export async function textoDoCaso(caseId) {
   const caso = await db.records.get(caseId);
   const c = caso.data;
   const [quesitos, periodos, documentos, epis, postos, medicoes, fotos] = await Promise.all(
@@ -254,19 +270,100 @@ export async function exportarParaClaude(caseId, tipo) {
     L.push('\n## Medições');
     medicoes.forEach((m) => L.push(`- [${m.data.agente}] posto: ${nomePosto.get(m.data.postoId) || 'geral'}; equipamento: ${eq.get(m.data.equipamentoId)?.modelo || '?'}; ${resumoMedicao(m, contextoLegal(c))}${m.data.obs ? `; obs.: ${m.data.obs}` : ''}`));
   }
-  if (quesitos.length) {
+  const qIni = quesitos.filter((q) => !ehSuplementar(q)), qSup = quesitos.filter(ehSuplementar);
+  if (qIni.length) {
     L.push('\n## Quesitos (texto literal) e anotações de campo');
-    quesitos.forEach((q) => L.push(`- [${q.data.origem || ''} ${q.data.numero || ''}] ${q.data.texto || ''}${q.data.resposta ? `\n  ANOTAÇÃO: ${q.data.resposta}` : ''}`));
+    qIni.forEach((q) => L.push(`- [${q.data.origem || ''} ${q.data.numero || ''}] ${q.data.texto || ''}${q.data.resposta ? `\n  ANOTAÇÃO: ${q.data.resposta}` : ''}`));
+  }
+  if (qSup.length || c.laudoRefPerito || c.esclDecisaoRef) {
+    L.push('\n## Depois do laudo – quesitos suplementares e esclarecimentos');
+    for (const [k, r] of [['laudoRefPerito', 'Laudo apresentado'], ['laudoData', 'Juntada do laudo'], ['esclDecisaoRef', 'Decisão que determinou a resposta'],
+      ['prazoEsclarecimentos', 'Prazo'], ['esclRetificacoes', 'Retificações já identificadas'], ['esclObservacoes', 'Considerações']]) campo(r, c[k]);
+    qSup.forEach((q) => L.push(`- [SUPLEMENTAR – ${q.data.origem || ''} ${q.data.numero || ''}${q.data.refPeticao ? ` – ${q.data.refPeticao}` : ''}] ${q.data.texto || ''}${q.data.resposta ? `\n  RESPOSTA / ANOTAÇÃO: ${q.data.resposta}` : ''}`));
   }
   if (fotos.length) { L.push('\n## Fotos registradas'); fotos.forEach((f, i) => L.push(`- Foto ${i + 1}: ${f.data.legenda || '(sem legenda)'}${f.data.postoId ? ` – posto ${nomePosto.get(f.data.postoId) || ''}` : ''}`)); }
 
-  const instr = `${REDACAO[tipo] || REDACAO.laudo}
+  return { c, texto: L.join('\n') };
+}
 
-Use os dados do caso abaixo (coletados por mim nos autos e na diligência) como base factual. Não invente dados: o que faltar, marque como [[pendência]] para eu completar. Formatação: documento técnico no meu papel timbrado, fonte Abadi, espaçamento 1,5, texto justificado, títulos numerados em azul, cada título principal em página nova, sumário, quadros numerados com título acima e fonte abaixo.
+// ======================================================================
+// Quesitos suplementares (depois do laudo): instrução, leitura e aplicação
+// ======================================================================
+const FOCO_SUPL = `Sou o PERITO DO JUÍZO neste processo e já apresentei o laudo. O Juízo determinou que eu responda a quesitos suplementares e/ou esclareça pontos do laudo (art. 477, § 2º, I, do CPC). Vou anexar a petição com os quesitos suplementares, a decisão que determinou a resposta e o meu laudo (ou o PDF do processo inteiro).
 
-${criteriosPara(c, tipo === 'ltcat' || tipo === 'parprev' ? 'extra-ltcat' : '')}
+TAREFA
+1. Transcreva NA ÍNTEGRA, palavra por palavra, cada quesito suplementar e cada pedido de esclarecimento dirigido ao perito, com as alíneas a), b)... dentro do mesmo quesito, a origem, o número e o mov./evento da petição. Pontos levantados pelo próprio juiz na decisão e que não constem da petição entram com origem "Juízo".
+2. Redija a minuta da RESPOSTA de cada um, em linguagem técnica, objetiva, impessoal ("este Perito"), sem juridiquês e sem citar advogados. Responda alínea por alínea quando houver. Indique o item do laudo a que a resposta remete.
+3. Os REGISTROS DO APP abaixo (diligência: data, início, término, local, endereço, GPS, presentes; postos, medições e equipamentos) foram feitos por mim em campo e são a fonte primária sobre a diligência. Havendo divergência entre o laudo e esses registros, a resposta segue os registros e a divergência vai em "retificacoes", como erro material: onde se lê X, leia-se Y, com a localização no laudo (item, quadro ou resposta).
+4. Não invente: o que não constar do laudo nem dos registros fica como [[confirmar: ...]] para eu completar.
+5. Quesito que pede conclusão jurídica ou extrapola o objeto da perícia: registre que a matéria cabe ao Juízo e preste a informação técnica disponível.
+6. Mantenha as conclusões do laudo; só se os dados demonstrarem erro técnico, explique em "observacoes" e use "ratifica": "Não".`;
 
----
-${L.join('\n')}`;
-  return instr;
+const FORMATO_SUPL = `FORMATO DA RESPOSTA
+Responda SOMENTE com um bloco JSON válido, sem texto antes ou depois:
+{
+  "esclarecimentos": {"laudoRefPerito": "mov./evento do laudo", "laudoData": "AAAA-MM-DD", "esclDecisaoRef": "ex.: decisão do mov. 71.1", "prazoEsclarecimentos": "AAAA-MM-DD só se a data final constar dos autos", "retificacoes": "uma por linha", "observacoes": "", "ratifica": "Sim"},
+  "quesitos": [{"origem": "Juízo | Autor / Reclamante | Réu / Reclamada | INSS", "numero": "1", "refPeticao": "mov. 67.1", "texto": "transcrição literal", "resposta": "minuta da resposta"}]
+}`;
+
+export async function montarPromptSuplementares(caseId) {
+  const { c, texto } = await textoDoCaso(caseId);
+  return [FOCO_SUPL, criteriosPara(c), FORMATO_SUPL, `---\nREGISTROS DO APP\n${texto}`].join('\n\n');
+}
+
+const CAMPOS_SUPL = { laudoRefPerito: 'laudoRefPerito', laudoData: 'laudoData', esclDecisaoRef: 'esclDecisaoRef', prazoEsclarecimentos: 'prazoEsclarecimentos',
+  retificacoes: 'esclRetificacoes', observacoes: 'esclObservacoes', ratifica: 'esclRatifica' };
+
+export function lerJsonSuplementares(texto) {
+  let t = String(texto || '').trim();
+  const bloco = t.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (bloco) t = bloco[1];
+  const ini = t.indexOf('{'), fim = t.lastIndexOf('}');
+  if (ini < 0 || fim < ini) throw new Error('Não encontrei um JSON no texto colado.');
+  const obj = JSON.parse(t.slice(ini, fim + 1));
+  const s = (v) => (v === null || v === undefined ? '' : String(v).trim());
+  const e = obj.esclarecimentos || {};
+  const caso = {};
+  for (const [de, para] of Object.entries(CAMPOS_SUPL)) {
+    let v = s(e[de]);
+    if (para === 'esclRatifica') v = /^n/i.test(v) ? 'Não' : v ? 'Sim' : '';
+    if ((para === 'laudoData' || para === 'prazoEsclarecimentos') && v && !/^\d{4}-\d{2}-\d{2}$/.test(v)) v = '';
+    if (v) caso[para] = v;
+  }
+  const origem = (o) => ORIGEM_QUESITO.find((x) => x.toLowerCase().startsWith(s(o).toLowerCase().slice(0, 4))) || 'Outro';
+  const quesitos = (Array.isArray(obj.quesitos) ? obj.quesitos : []).filter((x) => x && typeof x === 'object')
+    .map((x) => ({ origem: origem(x.origem), numero: s(x.numero), refPeticao: s(x.refPeticao), texto: s(x.texto), resposta: s(x.resposta) }))
+    .filter((q) => q.texto);
+  return { caso, quesitos };
+}
+
+const normTxt = (t) => String(t || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+
+// Cria os quesitos suplementares (sem duplicar) e preenche as respostas vazias.
+export async function aplicarSuplementares(caseId, dados, { substituir = false } = {}) {
+  const caso = await db.records.get(caseId);
+  const mudancas = {};
+  for (const [k, v] of Object.entries(dados.caso)) if (substituir || !String(caso.data[k] || '').trim()) mudancas[k] = v;
+  if (!['Concluído', 'Arquivado', 'Respondendo quesitos suplementares'].includes(caso.data.fase) && dados.quesitos.length) mudancas.fase = 'Respondendo quesitos suplementares';
+  if (Object.keys(mudancas).length) await updateFields(caseId, mudancas);
+  const existentes = (await caseChildren(caseId, 'quesito'));
+  const porTexto = new Map(existentes.filter(ehSuplementar).map((r) => [normTxt(r.data.texto), r]));
+  let ordem = existentes.reduce((m, r) => Math.max(m, r.data.ordem || 0), 0);
+  const cont = { campos: Object.keys(mudancas).filter((k) => k !== 'fase').length, novos: 0, respostas: 0 };
+  for (const q of dados.quesitos) {
+    const ja = porTexto.get(normTxt(q.texto));
+    if (ja) {
+      const upd = {};
+      if (q.resposta && (substituir || !String(ja.data.resposta || '').trim())) upd.resposta = q.resposta;
+      if (q.refPeticao && !ja.data.refPeticao) upd.refPeticao = q.refPeticao;
+      if (Object.keys(upd).length) { await updateFields(ja.id, upd); if (upd.resposta) cont.respostas += 1; }
+      continue;
+    }
+    ordem += 1;
+    const r = await createRecord('quesito', caseId, { ...q, suplementar: 'Sim', ordem });
+    porTexto.set(normTxt(q.texto), r);
+    cont.novos += 1;
+    if (q.resposta) cont.respostas += 1;
+  }
+  return cont;
 }

@@ -5,12 +5,12 @@ import { useLive } from './hooks.js';
 import { Campos } from './fields.jsx';
 
 // Lista editável de registros de um caso (períodos, documentos, EPIs...)
-export function RecordList({ kind, caseId, campos, titulo, novo = 'Adicionar', resumo, vazio = 'Nenhum item.', extra, inicial = {}, abrirNovo = true }) {
+export function RecordList({ kind, caseId, campos, titulo, novo = 'Adicionar', resumo, vazio = 'Nenhum item.', extra, inicial = {}, abrirNovo = true, filtro }) {
   const itens = useLive(async () => {
     const l = caseId
       ? await db.records.where('[caseId+kind]').equals([caseId, kind]).toArray()
       : await db.records.where('kind').equals(kind).toArray();
-    return l.filter((r) => !r.deleted).sort((a, b) => (a.data.ordem ?? a.createdAt) - (b.data.ordem ?? b.createdAt));
+    return l.filter((r) => !r.deleted && (!filtro || filtro(r))).sort((a, b) => (a.data.ordem ?? a.createdAt) - (b.data.ordem ?? b.createdAt));
   }, [caseId, kind], []);
   const [aberto, setAberto] = useState(null);
 

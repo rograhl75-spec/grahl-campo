@@ -16,7 +16,8 @@ const QUANDO = {
   '2. Antes da diligência': 'Com a data da vistoria definida.',
   '3. Depois da diligência': 'Com o campo e as fotos registrados (etapas 4 e 5).',
   '4. Laudo / parecer': 'O Word traz a estrutura e os quadros prontos. Para o texto completo, use também "Redigir com o Claude", logo abaixo.',
-  '5. Recebimento dos honorários': 'Após a entrega do laudo.',
+  '5. Quesitos suplementares e esclarecimentos': 'Quando o Juízo manda responder quesitos suplementares ou esclarecer o laudo. Cadastre e responda os quesitos na etapa 3 (há o atalho com o Claude lá) e gere a resposta aqui.',
+  '6. Recebimento dos honorários': 'Após a entrega do laudo e dos esclarecimentos.',
 };
 
 export function Documentos({ rec }) {

@@ -21,6 +21,7 @@ O indicador no topo da tela mostra sempre o estado: *Salvo neste aparelho*, *Sem
 - **Resumo:** tipo (judicial ou extrajudicial), sua atuação, justiça (Trabalho, Federal, Estadual de competência delegada, Fazenda Pública, Cível, JEF), matéria, objeto, fase, processo, partes e prazos.
 - **Preparação:** síntese dos autos, contratos e períodos, documentos técnicos, ficha de EPIs, roteiro da vistoria e equipamentos a levar. Tem também o painel **Pré-relatório com IA** (veja abaixo).
 - **Quesitos:** transcrição literal, com espaço para anotações em campo.
+  - **Depois do laudo – quesitos suplementares e esclarecimentos:** laudo apresentado (mov. e data), decisão que determinou a resposta, prazo, retificações de erro material e ratificação. Os quesitos suplementares ficam numa lista própria e não entram no laudo nem no pré-relatório. O botão **Copiar instrução** leva ao Claude os seus registros de campo (horário, presentes, local, GPS, medições) como fonte primária; o Claude transcreve os quesitos da petição e minuta as respostas num JSON que o app aplica sem duplicar. O caso passa para a fase "Respondendo quesitos suplementares" e o prazo aparece na lista de casos.
 - **Campo:** diligência (data e hora com um toque, GPS, presentes, condições do dia), postos e atividades, medições e fotos por posto.
   - **Ruído:** calcula o NEN com q=5 (NEN = Lavg + 16,61·log(TE/480)), confere o Lavg pela dose e mostra o desvio de calibração.
   - **Calor:** calcula o IBUTG, com e sem carga solar.
@@ -32,6 +33,7 @@ O indicador no topo da tela mostra sempre o estado: *Salvo neste aparelho*, *Sem
   - **Registro da diligência.**
   - **Relatório fotográfico.**
   - **Aceite dos honorários arbitrados (majorados):** depois da decisão que arbitra os honorários, aceita o valor e os termos (adiantamento e saldo), indica a conta para o alvará após o depósito e se compromete a informar a data da perícia após o levantamento, com a antecedência do despacho. Os itens do despacho ficam em 1. Cadastro → Honorários e itens do despacho. Há também a fase "Aguardando depósito dos honorários".
+  - **Resposta aos quesitos suplementares:** depois do laudo (art. 477, § 2º, I, do CPC), com a decisão que mandou responder, a referência ao laudo (mov. e data), cada quesito suplementar transcrito por parte com a resposta, retificação de erro material ("onde se lê / leia-se") e ratificação das conclusões.
   - **Exportação do caso em ZIP.**
 - **Configurações:** nuvem, backup, importação do app antigo, equipamentos e certificados (DoseMax V2, iTemp e AxPro já cadastrados; falta preencher o CalPro), lixeira e armazenamento.
 

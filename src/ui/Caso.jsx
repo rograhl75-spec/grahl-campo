@@ -30,7 +30,7 @@ export function etapasFeitas(c, cont) {
     quesitos: (cont.quesito || 0) > 0 || !!c.semQuesitos,
     campo: !!c.vistoriaData,
     fotos: (cont.foto || 0) > 0,
-    documentos: ['Aguardando manifestação / esclarecimentos', 'Concluído', 'Arquivado'].includes(c.fase),
+    documentos: ['Aguardando manifestação / esclarecimentos', 'Respondendo quesitos suplementares', 'Concluído', 'Arquivado'].includes(c.fase),
   };
 }
 

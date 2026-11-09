@@ -1,4 +1,4 @@
-import { ORIGEM_QUESITO, contextoLegal } from '../schema.js';
+import { ORIGEM_QUESITO, contextoLegal, ehSuplementar } from '../schema.js';
 import { p, run } from './ooxml.js';
 import {
   Doc, carregar, finalizar, dataBR, menosCincoAnos, partes, credencial, papelAssinatura, equipamentosUsados, quadroEquipamentos,
@@ -6,7 +6,7 @@ import {
   quadroMedicoesGenerico, medicoesPorAgente, nomePostoFn, profissiografia, figurasDoCaso, capaTecnica, blocoAssinatura,
 } from './base.js';
 import {
-  laudoPericial, laudoPrevidenciario, ltcatPpp, parecerPrevidenciario, parecerAssistente, parecerPreventivo, peticaoIndicacaoAT, peticaoAgendamento, peticaoHonorarios, peticaoMajoracao, peticaoAceiteArbitrados, peticaoPagamento,
+  laudoPericial, laudoPrevidenciario, ltcatPpp, parecerPrevidenciario, parecerAssistente, parecerPreventivo, peticaoIndicacaoAT, peticaoAgendamento, peticaoHonorarios, peticaoMajoracao, peticaoAceiteArbitrados, peticaoPagamento, respostaQuesitosSuplementares,
 } from './modelos.js';
 
 export { dataBR };
@@ -75,7 +75,7 @@ export async function gerarPreRelatorio(caseId) {
   d.h1('7', 'Quesitos');
   let n = 0;
   for (const origem of ORIGEM_QUESITO) {
-    const lista = dados.quesitos.filter((q) => (q.data.origem || 'Outro') === origem);
+    const lista = dados.quesitos.filter((q) => !ehSuplementar(q) && (q.data.origem || 'Outro') === origem);
     if (!lista.length) continue;
     n += 1;
     d.h2(`7.${n}`, `Quesitos – ${origem}`);
@@ -158,7 +158,8 @@ export const CATALOGO = [
   { id: 'major', grupo: '1. Início do caso', titulo: 'Majoração de honorários', desc: 'Honorários fixados, local fora do domicílio, complexidade (períodos, quesitos, empresas, similaridade), art. 28 da Res. CJF 305/2014 e pedido com valor por extenso. Preencha "Honorários e itens do despacho" na etapa 1. Cadastro.', fn: peticaoMajoracao, rec: ehPerito },
   { id: 'aceiteArb', grupo: '1. Início do caso', titulo: 'Aceite dos honorários arbitrados (majorados)', desc: 'Depois da decisão que arbitra os honorários: aceite do valor e dos termos (adiantamento e saldo), conta para o alvará após o depósito e compromisso de informar a data da perícia depois do levantamento, com a antecedência do despacho. Preencha os itens do despacho na etapa 1. Cadastro.', fn: peticaoAceiteArbitrados, rec: ehPerito, usaConta: true },
   { id: 'agenda', grupo: '2. Antes da diligência', titulo: 'Agendamento da vistoria pericial', desc: 'Data por extenso, empresa e endereço, períodos, intimação das partes e do autor, ofício à empresa com os documentos e prazo do laudo.', fn: peticaoAgendamento, rec: ehPerito },
-  { id: 'pagto', grupo: '5. Recebimento dos honorários', titulo: 'Pagamento dos honorários', desc: 'Pedido de requisição de pagamento (JF) ou de liberação por alvará, com a conta escolhida.', fn: peticaoPagamento, rec: ehPerito, usaConta: true },
+  { id: 'supl', grupo: '5. Quesitos suplementares e esclarecimentos', titulo: 'Resposta aos quesitos suplementares', desc: 'Depois do laudo (art. 477, § 2º, I, do CPC): referência à decisão e ao laudo, transcrição de cada quesito suplementar por parte com a resposta, retificação de erro material e ratificação das conclusões. Cadastre os quesitos na etapa 3, marcados como suplementares.', fn: respostaQuesitosSuplementares, rec: ehPerito },
+  { id: 'pagto', grupo: '6. Recebimento dos honorários', titulo: 'Pagamento dos honorários', desc: 'Pedido de requisição de pagamento (JF) ou de liberação por alvará, com a conta escolhida.', fn: peticaoPagamento, rec: ehPerito, usaConta: true },
   { id: 'indic', grupo: '1. Início do caso', titulo: 'Indicação de assistente técnico e quesitos', desc: 'Qualificação, documentos necessários, avaliações no local, quesitos e requerimentos.', fn: peticaoIndicacaoAT, rec: ehAT },
   { id: 'reg', grupo: '3. Depois da diligência', titulo: 'Registro da diligência', desc: 'Data, local, presentes, equipamentos com calibração, postos, medições e anotações dos quesitos.', fn: gerarRegistroDiligencia, rec: () => true },
   { id: 'foto', grupo: '3. Depois da diligência', titulo: 'Relatório fotográfico', desc: 'Fotos numeradas, duas por linha, com legenda, data/hora e GPS.', fn: gerarRelatorioFotografico, rec: () => true },

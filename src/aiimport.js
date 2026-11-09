@@ -1,5 +1,5 @@
 import { db, createRecord, updateFields, caseChildren } from './db.js';
-import { ORIGEM_QUESITO, contextoLegal, ehSuplementar } from './schema.js';
+import { ORIGEM_QUESITO, contextoLegal, ehSuplementar, FASE, CAMPOS_DILIGENCIA, CAMPOS_POSTO, AGENTES_MEDICAO } from './schema.js';
 import { resumoMedicao } from './medicoes.js';
 
 // ======================================================================
@@ -49,7 +49,8 @@ const REGRAS_EXTRACAO = `REGRAS DE EXTRAÇÃO
 2. Cite sempre a localização (ID, mov., fls. ou página do PDF) dos dados relevantes.
 3. Quesitos: TRANSCREVA TODOS NA ÍNTEGRA, palavra por palavra, um item por quesito, com origem e número.
 4. EPIs: liste cada item das fichas (descrição, CA, data de entrega, observações sobre periodicidade, assinatura e validade do CA).
-5. Datas no formato AAAA-MM-DD. Não inclua nomes de advogados.`;
+5. Datas no formato AAAA-MM-DD. Não inclua nomes de advogados.
+6. PROCESSO EM ANDAMENTO: se os autos já contêm laudo pericial, parecer, registro ou ata de diligência, preencha também "andamento", "diligencia", "postos" (com as medições de cada posto) e, em cada quesito, a "resposta" dada no laudo, transcrita fielmente (sem resumir). Se não houver laudo nem diligência, deixe esses blocos vazios. Medições: um item por medição, com os valores exatamente como no laudo (número com vírgula ou ponto, sem unidade) e o equipamento (marca, modelo, série, certificado) em "equipamento".`;
 
 const FORMATO = `FORMATO DA RESPOSTA
 Responda SOMENTE com um bloco JSON válido, sem texto antes ou depois, neste formato:
@@ -66,7 +67,15 @@ Responda SOMENTE com um bloco JSON válido, sem texto antes ou depois, neste for
   "periodos": [{"empresa": "", "cnpj": "", "inicio": "", "fim": "", "cargo": "", "setor": "", "atividades": "", "agentes": "", "fonte": ""}],
   "documentos": [{"tipo": "PPP | LTCAT | PGR / PPRA | Laudo pericial | Ficha de EPI | CTPS / CNIS | Outro", "identificacao": "", "analise": ""}],
   "epis": [{"descricao": "", "ca": "", "dataEntrega": "", "obs": ""}],
-  "quesitos": [{"origem": "Juízo | Autor / Reclamante | Réu / Reclamada | INSS | Complementares", "numero": "1", "texto": ""}]
+  "quesitos": [{"origem": "Juízo | Autor / Reclamante | Réu / Reclamada | INSS | Complementares", "numero": "1", "texto": "", "resposta": "resposta dada no laudo, se já houver"}],
+  "andamento": {"fase": "A preparar | Diligência agendada | Diligência realizada | Laudo / parecer em elaboração | Aguardando manifestação / esclarecimentos | Respondendo quesitos suplementares | Concluído", "laudoRefPerito": "ID/mov. do laudo", "laudoData": "", "conclusaoLaudo": "conclusão do laudo por agente e período, com as folhas", "honorariosFixados": "", "honorariosItem": "", "dataDiligencia": "", "horaDiligencia": ""},
+  "diligencia": {"vistoriaData": "", "vistoriaInicio": "HH:MM", "vistoriaFim": "HH:MM", "vistoriaLocal": "", "vistoriaEndereco": "", "vistoriaPresentes": "nome – função – quem representa, um por linha", "vistoriaCondicoes": "", "vistoriaNotas": "outras anotações da diligência e a folha do laudo onde está"},
+  "postos": [{"nome": "", "descricao": "", "infoTrabalhador": "", "infoEmpresa": "", "agentes": "", "jornada": "", "epc": "", "epi": "",
+    "medicoes": [{"agente": "Ruído | Calor (IBUTG) | Vibração de corpo inteiro (VCI) | Vibração de mãos e braços (VMB) | Agente químico | Outro", "dataMedicao": "", "horaInicio": "", "horaFim": "", "equipamento": "",
+      "tempoAmostragem": "", "jornada": "", "dose": "", "lavg": "", "lmax": "", "calibInicial": "", "calibFinal": "", "posicao": "",
+      "tbn": "", "tbs": "", "tg": "", "ibutgLido": "", "atividade": "", "regime": "",
+      "veiculo": "", "aren": "", "vdv": "", "eixo": "", "tempoExposicao": "",
+      "descricao": "", "metodo": "", "valor": "", "unidade": "", "limite": "", "obs": ""}]}]
 }`;
 
 export const SITUACOES = [
@@ -145,12 +154,32 @@ export function lerJsonIA(texto) {
     if (v) caso[k] = v;
   }
   const origem = (o) => ORIGEM_QUESITO.find((x) => x.toLowerCase().startsWith(s(o).toLowerCase().slice(0, 4))) || 'Outro';
+  const pegar = (o, ks) => Object.fromEntries(ks.map((k) => [k, s((o || {})[k])]).filter(([, v]) => v));
+  const and = obj.andamento || {};
+  for (const [k, v] of Object.entries(pegar(and, ['laudoRefPerito', 'laudoData', 'conclusaoLaudo', 'honorariosFixados', 'honorariosItem', 'dataDiligencia', 'horaDiligencia']))) caso[k] = v;
+  const fase = FASE.find((f) => f.toLowerCase() === s(and.fase).toLowerCase());
+  if (fase && fase !== 'A preparar') caso.fase = fase;
+  Object.assign(caso, pegar(obj.diligencia, CAMPOS_DILIGENCIA.map(([k]) => k).filter((k) => k !== 'vistoriaGps')));
+  const agenteOk = (a) => AGENTES_MEDICAO.find((x) => x.toLowerCase().slice(0, 12) === s(a).toLowerCase().slice(0, 12)) || 'Outro';
+  const KS_MED = ['dataMedicao', 'horaInicio', 'horaFim', 'tempoAmostragem', 'jornada', 'dose', 'lavg', 'lmax', 'calibInicial', 'calibFinal', 'posicao',
+    'tbn', 'tbs', 'tg', 'ibutgLido', 'atividade', 'regime', 'veiculo', 'aren', 'vdv', 'eixo', 'tempoExposicao', 'descricao', 'metodo', 'valor', 'unidade', 'limite'];
+  const postos = lista(obj.postos).map((x) => ({
+    ...pegar(x, CAMPOS_POSTO.map(([k]) => k)),
+    medicoes: lista(x.medicoes).map((m) => {
+      const r = { agente: agenteOk(m.agente), ...pegar(m, KS_MED) };
+      const obs = [s(m.equipamento) && `Equipamento: ${s(m.equipamento)}`, s(m.obs)].filter(Boolean).join('\n');
+      if (obs) r.obs = obs;
+      r.importadaDoLaudo = true;
+      return r;
+    }).filter((m) => Object.keys(m).length > 2),
+  })).filter((p) => p.nome || p.medicoes.length);
   return {
     caso,
     periodos: lista(obj.periodos).map((x) => ({ empresa: s(x.empresa), cnpj: s(x.cnpj), inicio: s(x.inicio), fim: s(x.fim), cargo: s(x.cargo), setor: s(x.setor), atividades: s(x.atividades), agentes: s(x.agentes), fonte: s(x.fonte) })),
     documentos: lista(obj.documentos).map((x) => ({ tipo: s(x.tipo), identificacao: s(x.identificacao), analise: s(x.analise) })),
     epis: lista(obj.epis).map((x) => ({ descricao: s(x.descricao), ca: s(x.ca), dataEntrega: s(x.dataEntrega), obs: s(x.obs) })),
-    quesitos: lista(obj.quesitos).map((x) => ({ origem: origem(x.origem), numero: s(x.numero), texto: s(x.texto) })).filter((q) => q.texto),
+    quesitos: lista(obj.quesitos).map((x) => ({ origem: origem(x.origem), numero: s(x.numero), texto: s(x.texto), resposta: s(x.resposta) })).filter((q) => q.texto),
+    postos,
   };
 }
 
@@ -159,11 +188,12 @@ export async function aplicarIA(caseId, dados, { substituir = false } = {}) {
   const caso = await db.records.get(caseId);
   const mudancas = {};
   for (const [k, v] of Object.entries(dados.caso)) {
-    if (substituir || !String(caso.data[k] || '').trim()) mudancas[k] = v;
+    const atual = String(caso.data[k] || '').trim();
+    if (substituir || !atual || (k === 'fase' && atual === 'A preparar')) mudancas[k] = v;
   }
   if (Object.keys(mudancas).length) await updateFields(caseId, mudancas);
-  const cont = { campos: Object.keys(mudancas).length, periodos: 0, documentos: 0, epis: 0, quesitos: 0 };
-  const kinds = { periodos: 'periodo', documentos: 'documento', epis: 'epi', quesitos: 'quesito' };
+  const cont = { campos: Object.keys(mudancas).length, periodos: 0, documentos: 0, epis: 0, quesitos: 0, respostas: 0, postos: 0, medicoes: 0 };
+  const kinds = { periodos: 'periodo', documentos: 'documento', epis: 'epi' };
   for (const [lista, kind] of Object.entries(kinds)) {
     if (!dados[lista].length) continue;
     const existentes = await caseChildren(caseId, kind);
@@ -177,6 +207,49 @@ export async function aplicarIA(caseId, dados, { substituir = false } = {}) {
       ordem += 1;
       await createRecord(kind, caseId, { ...item, ordem });
       cont[lista] += 1;
+    }
+  }
+  // Quesitos: o mesmo quesito não se repete; a resposta do laudo entra se ainda estiver vazia
+  if (dados.quesitos.length) {
+    const existentes = await caseChildren(caseId, 'quesito');
+    const chaveQ = (d) => normTxt(d.texto).slice(0, 200);
+    const mapa = new Map(existentes.map((r) => [chaveQ(r.data), r]));
+    let ordem = existentes.length;
+    for (const q of dados.quesitos) {
+      const ex = mapa.get(chaveQ(q));
+      if (ex) {
+        if (q.resposta && (substituir || !String(ex.data.resposta || '').trim())) { await updateFields(ex.id, { resposta: q.resposta }); cont.respostas += 1; }
+        continue;
+      }
+      ordem += 1;
+      const novo = await createRecord('quesito', caseId, { origem: q.origem, numero: q.numero, texto: q.texto, ...(q.resposta ? { resposta: q.resposta } : {}), ordem });
+      mapa.set(chaveQ(q), novo);
+      cont.quesitos += 1;
+      if (q.resposta) cont.respostas += 1;
+    }
+  }
+  // Diligência já realizada: postos e medições do laudo (não duplica pelo nome do posto)
+  if ((dados.postos || []).length) {
+    const existentes = await caseChildren(caseId, 'posto');
+    const porNome = new Map(existentes.map((r) => [normTxt(r.data.nome), r]));
+    let ordem = existentes.reduce((m, r) => Math.max(m, r.data.ordem || 0), 0);
+    for (const { medicoes, ...p } of dados.postos) {
+      let posto = porNome.get(normTxt(p.nome));
+      if (!posto) {
+        ordem += 1;
+        posto = await createRecord('posto', caseId, { ...p, ordem });
+        porNome.set(normTxt(p.nome), posto);
+        cont.postos += 1;
+      }
+      const meds = (await caseChildren(caseId, 'medicao')).filter((m) => m.data.postoId === posto.id);
+      const chaveM = (m) => JSON.stringify([m.agente, m.lavg, m.aren, m.tbn, m.valor, m.dataMedicao].map((v) => String(v || '')));
+      const vistas = new Set(meds.map((m) => chaveM(m.data)));
+      for (const m of medicoes) {
+        if (vistas.has(chaveM(m))) continue;
+        vistas.add(chaveM(m));
+        await createRecord('medicao', caseId, { ...m, postoId: posto.id });
+        cont.medicoes += 1;
+      }
     }
   }
   return cont;
@@ -233,7 +306,7 @@ export async function textoDoCaso(caseId) {
   campo('Objeto', (c.objeto || []).join(', '));
   L.push('\n## Síntese dos autos');
   for (const [k, r] of [['funcoes', 'Funções e períodos'], ['atividadesAlegadas', 'Atividades alegadas'], ['agentesAlegados', 'Agentes alegados'], ['pedidos', 'Pedidos'],
-    ['defesa', 'Defesa'], ['preliminares', 'Pontos de atenção'], ['analiseEpi', 'Análise dos EPIs'], ['observacoes', 'Observações']]) campo(r, c[k]);
+    ['defesa', 'Defesa'], ['preliminares', 'Pontos de atenção'], ['analiseEpi', 'Análise dos EPIs'], ['observacoes', 'Observações'], ['conclusaoLaudo', 'Conclusão do laudo já apresentado']]) campo(r, c[k]);
   if (periodos.length) { L.push('\n## Períodos'); periodos.forEach((p) => L.push(`- ${p.data.empresa || ''} (${p.data.cnpj || ''}) – ${p.data.inicio || '?'} a ${p.data.fim || 'atual'} – ${p.data.cargo || ''} / ${p.data.setor || ''}. Atividades: ${p.data.atividades || ''}. Agentes: ${p.data.agentes || ''}. Fonte: ${p.data.fonte || ''}`)); }
   const comPar = periodos.filter((p) => p.data.paradigmaRuido || p.data.paradigmaVibracao || p.data.veiculoModelo);
   if (comPar.length) {

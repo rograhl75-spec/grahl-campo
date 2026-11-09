@@ -119,7 +119,8 @@ function ImportarIA({ rec, abertoInicial = false }) {
   const aplicar = async () => {
     const r = await aplicarIA(rec.id, previa, { substituir });
     avisarAlteracao();
-    setMsg(`Aplicado: ${r.campos} campo(s), ${r.periodos} período(s), ${r.documentos} documento(s), ${r.epis} EPI(s), ${r.quesitos} quesito(s).`);
+    setMsg(`Aplicado: ${r.campos} campo(s), ${r.periodos} período(s), ${r.documentos} documento(s), ${r.epis} EPI(s), ${r.quesitos} quesito(s)`
+      + (r.respostas ? `, ${r.respostas} resposta(s) do laudo` : '') + (r.postos || r.medicoes ? `, ${r.postos} posto(s) e ${r.medicoes} medição(ões) da diligência (veja em 4. Campo)` : '') + '.');
     setPrevia(null); setTexto('');
   };
 
@@ -140,7 +141,7 @@ function ImportarIA({ rec, abertoInicial = false }) {
         <li>Toque em <b>Copiar instrução</b>.</li>
         <li>Abra uma conversa nova no Claude, cole a instrução e anexe o PDF do processo (o mesmo guardado no item A).</li>
         <li>Quando o Claude responder, copie a resposta inteira (o bloco que começa com <code>{'{'}</code>) e cole no campo abaixo.</li>
-        <li>Toque em <b>Ler e mostrar prévia</b> e depois em <b>Aplicar ao caso</b>. O app preenche cadastro, síntese, períodos, documentos, EPIs e quesitos. Campos que você já preencheu não são alterados, a menos que marque "substituir".</li>
+        <li>Toque em <b>Ler e mostrar prévia</b> e depois em <b>Aplicar ao caso</b>. O app preenche cadastro, síntese, períodos, documentos, EPIs e quesitos. Se o processo já tiver laudo ou diligência, preenche também a etapa 4. Campo (diligência, postos e medições), as respostas dos quesitos, a conclusão do laudo e a fase. Campos que você já preencheu não são alterados, a menos que marque "substituir".</li>
       </ol>
       <label class="campo"><span class="rotulo">Situação (escolhida pelo tipo do caso; pode trocar)</span>
         <select value={situacao} onChange={(e) => setSituacao(e.currentTarget.value)}>
@@ -159,7 +160,10 @@ function ImportarIA({ rec, abertoInicial = false }) {
       {erro && <p class="erro-msg">{erro}</p>}
       {previa && (
         <div class="previa">
-          <p><b>Prévia:</b> {Object.keys(previa.caso).length} campo(s) do caso, {previa.periodos.length} período(s), {previa.documentos.length} documento(s), {previa.epis.length} EPI(s), {previa.quesitos.length} quesito(s).</p>
+          <p><b>Prévia:</b> {Object.keys(previa.caso).length} campo(s) do caso, {previa.periodos.length} período(s), {previa.documentos.length} documento(s), {previa.epis.length} EPI(s), {previa.quesitos.length} quesito(s)
+            {previa.quesitos.some((q) => q.resposta) && `, ${previa.quesitos.filter((q) => q.resposta).length} com resposta do laudo`}
+            {previa.postos.length > 0 && `, ${previa.postos.length} posto(s) e ${previa.postos.reduce((n, p) => n + p.medicoes.length, 0)} medição(ões) da diligência`}.</p>
+          {(previa.caso.laudoRefPerito || previa.caso.vistoriaData) && <p class="ok-msg">Processo em andamento: {previa.caso.laudoRefPerito ? `laudo ${previa.caso.laudoRefPerito}${previa.caso.laudoData ? ` de ${dataBR(previa.caso.laudoData)}` : ''}` : ''}{previa.caso.vistoriaData ? ` · diligência em ${dataBR(previa.caso.vistoriaData)}` : ''}{previa.caso.fase ? ` · fase: ${previa.caso.fase}` : ''}.</p>}
           <ul>{Object.entries(previa.caso).map(([k, v]) => <li><b>{k}</b>: {String(v).slice(0, 140)}{String(v).length > 140 ? '…' : ''}</li>)}</ul>
           <label class="check"><input type="checkbox" checked={substituir} onChange={(e) => setSubstituir(e.currentTarget.checked)} /> Substituir campos que já estão preenchidos</label>
           <div class="linha-botoes"><button type="button" class="primario" onClick={aplicar}>Aplicar ao caso</button></div>

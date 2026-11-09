@@ -148,6 +148,7 @@ export const CAMPOS_SINTESE = [
   ['analiseEpi', 'Análise crítica dos EPIs (fichas, CA, periodicidade)', 'area'],
   ['roteiro', 'Roteiro da vistoria / documentos a solicitar', 'area'],
   ['observacoes', 'Observações gerais', 'area'],
+  ['conclusaoLaudo', 'Conclusão do laudo / parecer já apresentado (por agente e período)', 'area'],
 ];
 
 export const CAMPOS_DILIGENCIA = [

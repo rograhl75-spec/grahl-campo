@@ -146,3 +146,19 @@ describe('valores e datas por extenso', () => {
     expect(horaPorExtenso('09:00')).toBe('9h');
   });
 });
+
+describe('jurisprudência opcional e referências', () => {
+  it('o caso decide; sem escolha no caso vale o padrão de Meus dados', async () => {
+    const { comJurisprudencia, referencias } = await import('../src/docx/fontes.js');
+    const base = { perfil: {}, periodos: [], medicoes: [{ data: { agente: 'Ruído' } }], epis: [], c: {} };
+    expect(comJurisprudencia(base)).toBe(true);
+    expect(comJurisprudencia({ ...base, perfil: { jurisprudenciaPadrao: 'Não incluir' } })).toBe(false);
+    expect(comJurisprudencia({ ...base, perfil: { jurisprudenciaPadrao: 'Não incluir' }, c: { jurisprudencia: 'Incluir' } })).toBe(true);
+    expect(comJurisprudencia({ ...base, c: { jurisprudencia: 'Não incluir' } })).toBe(false);
+    const r = referencias(base, { prev: true });
+    expect(r.some((t) => /NHO 01/.test(t))).toBe(true);
+    expect(r.some((t) => /NR-15/.test(t))).toBe(false); // previdenciário não lista as NR como referência principal
+    const brasil = r.filter((t) => t.startsWith('BRASIL'));
+    expect(brasil[0]).toMatch(/1964/);
+  });
+});

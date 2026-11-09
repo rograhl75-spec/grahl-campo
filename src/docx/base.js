@@ -239,9 +239,9 @@ export function quadroDocumentos(d, documentos) {
 
 // ---------- ruído: critério legal por período (padrão do signatário) ----------
 const JANELAS_RUIDO = [
-  { ini: '0000-01-01', fim: '1997-03-05', crit: 'Lavg', lim: 80, fund: 'Lavg > 80 dB(A) – cód. 1.1.6 do Decreto 53.831/1964 (STJ, Tema 694)' },
-  { ini: '1997-03-06', fim: '2003-11-18', crit: 'Lavg', lim: 90, fund: 'Lavg > 90 dB(A) – cód. 2.0.1 dos Decretos 2.172/1997 e 3.048/1999. A legislação remetia ao Anexo 1 da NR-15 na íntegra; compara-se o Lavg com q = 5' },
-  { ini: '2003-11-19', fim: '9999-12-31', crit: 'NEN', lim: 85, fund: 'NEN > 85 dB(A) – cód. 2.0.1 com a redação do Decreto 4.882/2003; NEN calculado para a jornada com q = 5 (Anexo 1 da NR-15), com os procedimentos de medição da NHO-01' },
+  { ini: '0000-01-01', fim: '1997-03-05', crit: 'Lavg', lim: 80, fund: 'Lavg > 80 dB(A) – cód. 1.1.6 do Decreto 53.831/1964 (art. 292, I, da IN 128/2022)' },
+  { ini: '1997-03-06', fim: '2003-11-18', crit: 'Lavg', lim: 90, fund: 'Lavg > 90 dB(A) – cód. 2.0.1 dos Decretos 2.172/1997 e 3.048/1999 (art. 292, II e III, da IN 128/2022; a partir de 11/10/2001, com histograma ou memória de cálculo). A legislação remetia ao Anexo 1 da NR-15 na íntegra; compara-se o Lavg com q = 5' },
+  { ini: '2003-11-19', fim: '9999-12-31', crit: 'NEN', lim: 85, fund: 'NEN > 85 dB(A) – cód. 2.0.1 com a redação do Decreto 4.882/2003; NEN calculado para a jornada com q = 5 (Anexo 1 da NR-15), com os procedimentos de medição da NHO-01 (art. 292, IV, da IN 128/2022: obrigatória a partir de 01/01/2004, facultativa desde 19/11/2003)' },
 ];
 const fimJanela = (j) => (j.fim === '9999-12-31' ? 'em diante' : dataBR(j.fim));
 
@@ -268,7 +268,8 @@ export function subperiodosRuido(periodos) {
 
 export function quadroConfrontoRuido(d, dados) {
   const ruido = dados.medicoes.filter((m) => m.data.agente === 'Ruído');
-  const subs = subperiodosRuido(dados.periodos);
+  // vínculos com paradigma de ruído saem na memória de cálculo dos paradigmas
+  const subs = subperiodosRuido(dados.periodos.filter((r) => !r.data.paradigmaRuido));
   if (!subs.length) return d;
   const ref = ruido[0];
   const lavg = ref ? num(ref.data.lavg) : NaN;
@@ -317,18 +318,18 @@ export function quadroMedicoesGenerico(d, titulo, ms, nomePosto, ctx = {}) {
 // ---------- critérios por período (somente previdenciário) ----------
 export function quadroCriteriosCalor(d) {
   return d.quadro('Critérios – Calor', [['Período', 'Critério e fundamento'],
-    ['Até 05/03/1997', 'Cód. 1.1.1 do Decreto 53.831/1964: operações em locais com temperatura excessivamente alta, proveniente de fontes artificiais; jornada normal em locais com TE acima de 28 °C'],
-    ['06/03/1997 a 10/12/2019', 'Cód. 2.0.4 dos Decretos 2.172/1997 e 3.048/1999: exposição ao calor acima dos limites de tolerância da NR-15, Anexo 3 (redação original – IBUTG e quadros de regime e taxa metabólica)'],
-    ['A partir de 11/12/2019', 'Cód. 2.0.4 do Decreto 3.048/1999, com os limites da NR-15, Anexo 3, na redação da Portaria SEPRT nº 1.359/2019 (NHO-06)'],
-  ], { larguras: [0.27, 0.73], fonte: 'Elaborado pelo autor. O Decreto 3.048/1999 prevalece sobre redação mais restritiva da IN INSS (hierarquia normativa).' });
+    ['Até 05/03/1997', 'Cód. 1.1.1 dos Decretos 53.831/1964 e 83.080/1979: operações em locais com temperatura excessivamente alta, proveniente de fontes artificiais; jornada normal em locais com TE acima de 28 °C, sem exigência de IBUTG (art. 293, I, da IN 128/2022)'],
+    ['06/03/1997 a 10/12/2019', 'Cód. 2.0.4 dos Decretos 2.172/1997 e 3.048/1999: exposição ao calor acima dos limites de tolerância da NR-15, Anexo 3, na redação original (IBUTG e quadros de regime e taxa metabólica). A partir de 01/01/2004, avaliação conforme a NHO-06, facultativa desde 19/11/2003 (art. 293, II e III, da IN 128/2022)'],
+    ['A partir de 11/12/2019', 'Cód. 2.0.4 do Decreto 3.048/1999, com os limites da NR-15, Anexo 3, na redação da Portaria SEPRT nº 1.359/2019 (DOU de 11/12/2019), avaliados conforme a NHO-06 (2ª ed., 2017)'],
+  ], { larguras: [0.27, 0.73], fonte: 'Elaborado pelo autor com base em Brasil (2022, art. 293). O Decreto 3.048/1999 prevalece sobre a redação mais restritiva da IN, que limita o calor a ambientes fechados ou com fonte artificial (hierarquia normativa).' });
 }
 
 export function quadroCriteriosVibracao(d) {
   return d.quadro('Critérios – Vibração', [['Período', 'Critério e fundamento'],
-    ['Até 05/03/1997', 'Cód. 1.1.5 do Decreto 53.831/1964 (trepidação): operadores de perfuratrizes e marteletes pneumáticos e outros; máquinas a ar comprimido acima de 120 golpes por minuto'],
-    ['06/03/1997 a 12/08/2014', 'Cód. 2.0.2 dos Decretos 2.172/1997 e 3.048/1999: trabalhos com perfuratrizes e marteletes pneumáticos. Fora dessas atividades, apresentam-se as duas leituras, inclusive pela ISO (VCI: fronteira superior da zona de cautela da ISO 2631-1; VMB: 5 m/s², Diretiva 2002/44/CE)'],
-    ['A partir de 13/08/2014', 'Cód. 2.0.2 do Decreto 3.048/1999, com os limites da NR-15, Anexo 8 (Portaria MTE nº 1.297/2014), avaliados conforme as NHO-09 (VCI) e NHO-10 (VMB)'],
-  ], { larguras: [0.27, 0.73] });
+    ['Até 05/03/1997', 'Cód. 1.1.5 do Decreto 53.831/1964 (trepidação: máquinas acionadas a ar comprimido acima de 120 golpes por minuto, medição quantitativa) e cód. 1.1.4 do Decreto 83.080/1979 (avaliação qualitativa) – art. 296, I, da IN 128/2022'],
+    ['06/03/1997 a 12/08/2014', 'Cód. 2.0.2 dos Decretos 2.172/1997 e 3.048/1999 (perfuratrizes e marteletes pneumáticos), com os limites das normas ISO 2631 e ISO/DIS 5349 (art. 296, II, da IN 128/2022). Fora dessas atividades, apresentam-se as duas leituras, inclusive pela ISO (VCI: fronteira superior da zona de cautela da ISO 2631-1; VMB: 5 m/s², Diretiva 2002/44/CE)'],
+    ['A partir de 13/08/2014', 'Cód. 2.0.2 do Decreto 3.048/1999, com os limites da NR-15, Anexo 8 (Portaria MTE nº 1.297/2014): VCI aren 1,1 m/s² ou VDVR 21,0 m/s^1,75; VMB aren 5 m/s², avaliados conforme as NHO-09 e NHO-10 (art. 296, III, da IN 128/2022; facultativas desde 10/09/2012)'],
+  ], { larguras: [0.27, 0.73], fonte: 'Elaborado pelo autor com base em Brasil (2022, art. 296).' });
 }
 
 // documentos a requerer conforme a finalidade
@@ -369,7 +370,8 @@ export function profissiografia(d, postos) {
     d.h3(x.nome || 'Posto / atividade');
     if (x.descricao) d.texto(x.descricao);
     const linhas = [['Informações do trabalhador', x.infoTrabalhador], ['Informações da empresa / acompanhante', x.infoEmpresa],
-      ['Agentes identificados', x.agentes], ['Jornada / exposição', x.jornada], ['EPC', x.epc], ['EPI observado', x.epi]].filter(([, t]) => v(t));
+      ['Agentes identificados', x.agentes], ['Fontes geradoras e localização', x.fontes], ['Via e periodicidade da exposição', x.viaPeriodicidade],
+      ['Jornada / exposição', x.jornada], ['EPC', x.epc], ['EPI observado', x.epi]].filter(([, t]) => v(t));
     if (linhas.length) d.quadro(`Registro do posto – ${x.nome || 'posto'}`, [['Item', 'Registro'], ...linhas], { larguras: [0.3, 0.7], alinhar: 'left', fonte: 'Vistoria e informações colhidas na diligência.' });
   });
   return d;
@@ -552,8 +554,8 @@ export function memoriasParadigmas(d, dados) {
       let crit, res;
       if (sp.crit === 'cod115') { crit = 'Cód. 1.1.5 (Dec. 53.831/64)'; res = '[[avaliar: perfuratrizes e marteletes]]'; }
       else if (sp.crit === 'iso') {
-        crit = 'ISO 2631-1 – ZPS';
-        res = !isFinite(aren) ? 'Sem dados' : (aren > LIM_ISO_AREN || (isFinite(vdv) && vdv > LIM_ISO_VDV)) ? 'Acima da ZPS' : 'Dentro da ZPS';
+        crit = 'ISO 2631-1 – zona de cautela';
+        res = !isFinite(aren) ? 'Sem dados' : (aren > LIM_ISO_AREN || (isFinite(vdv) && vdv > LIM_ISO_VDV)) ? 'Acima da fronteira superior' : 'Até a fronteira superior';
       } else {
         crit = 'NR-15, Anexo 8';
         res = !isFinite(aren) ? 'Sem dados' : (aren > LIM_NR15_AREN || (isFinite(vdv) && vdv > LIM_NR15_VDV)) ? 'Acima do LE' : 'Abaixo do LE';
@@ -566,7 +568,30 @@ export function memoriasParadigmas(d, dados) {
     d.h3('Memória de cálculo da vibração de corpo inteiro');
     d.quadro('Memória de cálculo da vibração de corpo inteiro', [['Subperíodo', 'Paradigma', 'arep (m/s²)', 'T', 'aren(T) (m/s²)', 'VDVR(T)', 'Critério da época', 'Resultado'], ...linhasV],
       { larguras: [0.2, 0.15, 0.09, 0.07, 0.1, 0.09, 0.15, 0.15], tam: 8.5, alinhar: 'left',
-        fonte: `Elaborado pelo autor. ZPS: fronteira superior da zona de cautela da ISO 2631-1 (aren ${String(LIM_ISO_AREN).replace('.', ',')} m/s² ou VDV ${LIM_ISO_VDV} m/s^1,75); NR-15, Anexo 8: limite de exposição aren 1,1 m/s² ou VDVR 21,0 m/s^1,75.` });
+        fonte: `Elaborado pelo autor. ISO 2631-1: fronteira superior da zona de cautela (aren ${String(LIM_ISO_AREN).replace('.', ',')} m/s² ou VDV ${LIM_ISO_VDV} m/s^1,75); NR-15, Anexo 8: limite de exposição aren 1,1 m/s² ou VDVR 21,0 m/s^1,75.` });
   }
   return true;
+}
+
+
+// Forma de enquadramento, prova e medidas de controle por período (IN 128/2022)
+export function quadroFormaEnquadramento(d) {
+  return d.quadro('Forma de enquadramento, prova e medidas de controle', [['Período', 'Enquadramento', 'Documentos', 'Permanência', 'EPC / EPI'],
+    ['Até 28/04/1995', 'Categoria profissional ou agente nocivo', 'CTPS para categoria; formulário e laudo para ruído', 'Não exigida (art. 286, § 2º)', 'Não considerados'],
+    ['29/04/1995 a 13/10/1996', 'Agente nocivo', 'Formulário; laudo para ruído', 'Exigida', 'Não considerados'],
+    ['14/10/1996 a 02/12/1998', 'Agente nocivo', 'Formulário com base em LTCAT ou PPP', 'Exigida', 'EPC informado; EPI não considerado'],
+    ['03/12/1998 a 31/12/2003', 'Agente nocivo', 'Formulário com base em LTCAT ou PPP', 'Exigida', 'EPC e EPI considerados (art. 291)'],
+    ['A partir de 01/01/2004', 'Agente nocivo', 'PPP com base em LTCAT', 'Exigida', 'EPC e EPI considerados; NHO obrigatórias (art. 289)']],
+  { larguras: [0.2, 0.18, 0.24, 0.14, 0.24], tam: 9, fonte: 'Elaborado pelo autor com base em Brasil (2022, arts. 274, 285, 286, 289 e 291).' });
+}
+
+// Requisitos cumulativos do EPI (art. 291 da IN 128/2022), para preencher por período
+export function quadroRequisitosEpi(d) {
+  return d.quadro('Requisitos do EPI – art. 291 da IN 128/2022', [['Requisito', 'Atendido?', 'Evidência'],
+    ['I – hierarquia: medidas coletivas e administrativas antes do EPI', '[[S/N]]', '[[PGR/PPRA, inventário de riscos]]'],
+    ['II – funcionamento e uso ininterrupto, conforme o fabricante', '[[S/N]]', '[[observação / ordens de serviço]]'],
+    ['III – Certificado de Aprovação válido', '[[S/N]]', '[[nº do CA e validade]]'],
+    ['IV – periodicidade de troca comprovada por recibo', '[[S/N]]', '[[fichas de entrega]]'],
+    ['V – higienização', '[[S/N]]', '[[procedimento / registros]]']],
+  { larguras: [0.5, 0.14, 0.36], tam: 9, alinhar: 'left', fonte: 'Elaborado pelo autor com base em Brasil (2022, art. 291). Os requisitos são cumulativos e só se aplicam a partir de 03/12/1998.' });
 }

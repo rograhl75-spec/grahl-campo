@@ -11,7 +11,9 @@ import {
   quadroMedicoesGenerico, medicoesPorAgente, nomePostoFn, profissiografia, figurasDoCaso, respostasQuesitos, capaTecnica,
   quadroCriteriosCalor, quadroCriteriosVibracao, documentosARequerer, quadrosParadigmasMetodologia, memoriasParadigmas, usaParadigmas,
   art, dadosDaConta, dataPorExtenso, horaPorExtenso, reaisPorExtenso, numeroPorExtenso, moeda, lerValor, nomeOrigemQuesito,
+  quadroFormaEnquadramento, quadroRequisitosEpi,
 } from './base.js';
+import { comJurisprudencia, registroJurisprudencia, secaoReferencias } from './fontes.js';
 import { p, run, rich } from './ooxml.js';
 
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
@@ -48,7 +50,7 @@ function avaliacaoTrabalhista(d, dados, base) {
   for (const k of ['Vibração de corpo inteiro (VCI)', 'Vibração de mãos e braços (VMB)']) {
     if (!g[k]) continue;
     sub(`${k} (NR-15, Anexo 8)`);
-    d.texto('A partir de 13/08/2014, NR-15, Anexo 8, na redação da Portaria MTE nº 1.297/2014, com avaliação conforme as NHO-09 (VCI) e NHO-10 (VMB). Antes dessa data, o Anexo 8 na redação original remetia às normas ISO 2631 e ISO/DIS 5349.');
+    d.texto('A partir de 14/08/2014, NR-15, Anexo 8, na redação da Portaria MTE nº 1.297, de 13/08/2014 (DOU de 14/08/2014), com avaliação conforme as Normas de Higiene Ocupacional da FUNDACENTRO (NHO-09 para VCI e NHO-10 para VMB). Limites de exposição: VMB, aren de 5 m/s²; VCI, aren de 1,1 m/s² ou VDVR de 21,0 m/s^1,75. Antes dessa data, o Anexo 8 na redação original remetia às normas ISO 2631 e ISO/DIS 5349.');
     quadroMedicoesGenerico(d, `Resultados – ${k}`, g[k], nome, ctx);
     d.redigir('aren e VDVR normalizados para a jornada e conclusão.');
   }
@@ -78,7 +80,7 @@ function avaliacaoPrevidenciaria(d, dados, base) {
     quadroCriteriosRuido(d);
     quadroMedicoesRuido(d, g['Ruído'], eq, nome, ctx);
     quadroConfrontoRuido(d, dados);
-    d.redigir('fonte, habitualidade e permanência por período; o EPI não descaracteriza o ruído (STF, Tema 555).');
+    d.redigir('fonte, habitualidade e permanência por período.');
   }
   if (g['Calor (IBUTG)']) {
     sub('Calor');
@@ -133,10 +135,15 @@ export async function laudoPericial(caseId) {
   d.h2('2.1', 'Determinação judicial (objeto da perícia)');
   d.redigir('transcrever ou resumir o despacho que determinou a perícia (ID / mov.).');
   d.h2('2.2', 'Objetivo técnico');
-  d.texto(`Em atendimento à determinação judicial, o presente laudo tem por objetivo apurar as reais condições do ambiente e das atividades laborais desenvolvidas pela parte ${pt.autorCurto.toLowerCase()}, para a caracterização ou descaracterização de ${(c.objeto || []).join(', ').toLowerCase() || '[[objeto]]'}, nos termos dos arts. 189 a 195 da CLT e das NR-15 e NR-16, na redação vigente em cada período${pt.trab && c.dataAjuizamento ? ` do período imprescrito (a partir de ${menosCincoAnos(c.dataAjuizamento)})` : ''}.`);
+  const servidor = c.materia === 'Administrativa (servidor)' || /Fazenda/i.test(c.justica || '');
+  const baseLegal = servidor
+    ? `nos termos da lei do ente que rege o adicional do servidor [[lei estadual/municipal e artigo]] e, por remissão dessa lei, das NR-15 e NR-16, na redação vigente em cada período`
+    : 'nos termos dos arts. 189 a 195 da CLT e das NR-15 e NR-16, na redação vigente em cada período';
+  const objTxt = (c.objeto || []).filter((o) => o !== 'Adicional (servidor público)').join(', ').toLowerCase() || '[[objeto]]';
+  d.texto(`Em atendimento à determinação judicial, o presente laudo tem por objetivo apurar as reais condições do ambiente e das atividades laborais desenvolvidas pela parte ${pt.autorCurto.toLowerCase()}, para a caracterização ou descaracterização de ${objTxt}, ${baseLegal}${pt.trab && c.dataAjuizamento ? ` do período imprescrito (a partir de ${menosCincoAnos(c.dataAjuizamento)})` : ''}.`);
   d.h2('2.3', 'Metodologia');
   d.texto('Em atendimento ao art. 473, inciso III, do Código de Processo Civil, a metodologia consistiu em análise dos autos, inspeção *in loco*, entrevista com as partes e avaliações ambientais, quando cabíveis, conforme a NR-15, a NR-16 e as Normas de Higiene Ocupacional da FUNDACENTRO.');
-  d.texto('A conclusão deste laudo fundamenta-se exclusivamente na norma técnica. Eventuais entendimentos jurisprudenciais aplicáveis são registrados para apreciação do Juízo.');
+  d.texto(`A conclusão deste laudo fundamenta-se exclusivamente na legislação e nas normas técnicas indicadas${comJurisprudencia(dados) ? '; entendimentos jurisprudenciais aplicáveis são apenas registrados, em item próprio, para apreciação do Juízo' : ''}.`);
 
   d.h1('3', 'Descrição do ambiente e das atividades laborais');
   d.h2('3.1', 'Função, período e atividades alegadas');
@@ -159,6 +166,7 @@ export async function laudoPericial(caseId) {
 
   d.h1('6', 'Conclusão pericial');
   d.redigir('conclusão por agente e por período (grau de insalubridade e/ou periculosidade).');
+  registroJurisprudencia(d, dados, { numero: '6.1', nivel: 'h2', prev: false });
 
   d.h1('7', 'Respostas aos quesitos');
   d.texto('Em atendimento ao art. 473, inciso IV, do Código de Processo Civil, passa-se a responder aos quesitos formulados, com remissão às análises do corpo deste laudo.');
@@ -166,9 +174,10 @@ export async function laudoPericial(caseId) {
 
   d.h1('8', 'Encerramento e anexos');
   d.texto('Nada mais havendo a relatar no âmbito da Engenharia de Segurança do Trabalho, este Perito dá por encerrados os trabalhos periciais, colocando-se à disposição do Juízo e das partes para os esclarecimentos que se fizerem necessários.');
-  d.texto('Integra o presente laudo o Anexo I – Relatório fotográfico da diligência.');
-  blocoAssinatura(d, dados, 'Perito do Juízo');
   const { lista, faltando } = await figurasDoCaso(dados);
+  if (lista.length) d.texto('Integra o presente laudo o Anexo I – Relatório fotográfico da diligência.');
+  blocoAssinatura(d, dados, 'Perito do Juízo');
+  secaoReferencias(d, dados, { prev: false });
   if (lista.length) { d.h1('', 'Anexo I – Relatório fotográfico da diligência'); d.figuras(lista); }
   const r = await finalizar(d, { titulo: 'Laudo técnico pericial', arquivo: 'Laudo_pericial', c });
   return { ...r, faltando };
@@ -203,18 +212,12 @@ export async function laudoPrevidenciario(caseId) {
   d.redigir('transcrever ou resumir o despacho que determinou a perícia (evento / mov.).');
   d.h2('2.2', 'Metodologia');
   d.texto('Em atendimento ao art. 473, inciso III, do Código de Processo Civil, a metodologia consistiu em análise dos autos, inspeção *in loco* e avaliações ambientais, seguindo as NHO da FUNDACENTRO e os limites de tolerância do Anexo IV do Regulamento da Previdência Social ou, na sua falta, da NR-15, quando o decreto a ela remete (art. 288 da IN 128/2022). [[Perícia direta / indireta por similaridade – ajustar.]]');
-  d.texto('A conclusão fundamenta-se exclusivamente na norma técnica; entendimentos jurisprudenciais são registrados para apreciação do Juízo.');
+  d.texto(`A conclusão fundamenta-se exclusivamente na legislação previdenciária e nas normas técnicas indicadas${comJurisprudencia(dados) ? '; entendimentos jurisprudenciais são apenas registrados, em item próprio, para apreciação do Juízo' : ''}.`);
   if (usaParadigmas(dados)) { d.h2('2.3', 'Avaliação por similaridade (paradigmas)'); quadrosParadigmasMetodologia(d, dados); }
 
   d.h1('3', 'Fundamentação por período');
   d.texto('O enquadramento observa a legislação vigente à época da prestação do serviço (*tempus regit actum*).');
-  d.quadro('Forma de enquadramento, prova e medidas de controle', [['Período', 'Enquadramento', 'Documentos', 'Permanência', 'EPC / EPI'],
-    ['Até 28/04/1995', 'Categoria profissional ou agente nocivo', 'Formulário; laudo para ruído', 'Não exigida para categoria', 'Não considerados'],
-    ['29/04/1995 a 13/10/1996', 'Agente nocivo', 'Formulário; laudo para ruído', 'Exigida', 'Não considerados'],
-    ['14/10/1996 a 02/12/1998', 'Agente nocivo', 'Formulário com base em LTCAT', 'Exigida', 'EPC informado; EPI não considerado'],
-    ['03/12/1998 a 31/12/2003', 'Agente nocivo', 'Formulário com base em LTCAT ou PPP', 'Exigida', 'EPC e EPI considerados'],
-    ['A partir de 01/01/2004', 'Agente nocivo', 'PPP com base em LTCAT', 'Exigida', 'EPC e EPI considerados; NHO obrigatórias']],
-  { larguras: [0.2, 0.18, 0.24, 0.14, 0.24], tam: 9, fonte: 'Elaborado pelo autor com base em Brasil (2022, arts. 274, 285, 286, 289 e 291).' });
+  quadroFormaEnquadramento(d);
 
   d.h1('4', 'Ambiente de trabalho e profissiografia');
   d.texto(c.funcoes || '');
@@ -229,8 +232,9 @@ export async function laudoPrevidenciario(caseId) {
   memoriasParadigmas(d, dados);
 
   d.h1('6', 'Medidas de controle');
-  d.texto('Considera-se o EPC que elimina ou neutraliza a nocividade (art. 290 da IN 128/2022). O EPI só é considerado a partir de 03/12/1998 e quando atendidos, cumulativamente, os requisitos do art. 291. Para ruído, o EPI não descaracteriza a especialidade (STF, Tema 555).');
+  d.texto('Considera-se o EPC que elimina ou neutraliza a nocividade (art. 290 da IN 128/2022). O EPI só é considerado em demonstrações ambientais a partir de 03/12/1998, quando elimina ou neutraliza a nocividade, observa a NR-6, consta do PPP e atende, cumulativamente, aos requisitos do art. 291 da IN 128/2022.');
   quadroEpis(d, dados.epis);
+  quadroRequisitosEpi(d);
   d.redigir('análise dos requisitos do art. 291 por período.');
 
   d.h1('7', 'Conclusão');
@@ -240,6 +244,7 @@ export async function laudoPrevidenciario(caseId) {
     { larguras: [0.26, 0.38, 0.18, 0.18] });
   }
   d.redigir('conclusão por período: exposição habitual e permanente, não ocasional nem intermitente, a agentes nocivos – caracteriza / não caracteriza.');
+  registroJurisprudencia(d, dados, { numero: '7.1', nivel: 'h2', prev: true, tipo: 'laudo' });
 
   d.h1('8', 'Respostas aos quesitos');
   d.texto('Em atendimento ao art. 473, inciso IV, do Código de Processo Civil, passa-se a responder aos quesitos formulados, com remissão às análises do corpo deste laudo.');
@@ -248,6 +253,7 @@ export async function laudoPrevidenciario(caseId) {
   d.h1('9', 'Encerramento e anexos');
   d.texto('Nada mais havendo a relatar no âmbito da Engenharia de Segurança do Trabalho, este Perito dá por encerrados os trabalhos periciais, colocando-se à disposição do Juízo e das partes para os esclarecimentos que se fizerem necessários.');
   blocoAssinatura(d, dados, 'Perito do Juízo');
+  secaoReferencias(d, dados, { prev: true });
   const { lista, faltando } = await figurasDoCaso(dados);
   if (lista.length) { d.h1('', 'Anexo I – Relatório fotográfico da diligência'); d.figuras(lista); }
   const r = await finalizar(d, { titulo: 'Laudo técnico pericial previdenciário', arquivo: 'Laudo_pericial_previdenciario', c });
@@ -295,19 +301,18 @@ export async function ltcatPpp(caseId) {
   d.h2('2.4', 'Instrumentos e calibração');
   quadroEquipamentos(d, equipamentosUsados(dados));
   d.h2('2.5', 'Valor probatório');
-  d.texto('O laudo extrajudicial é meio de prova lícito (arts. 369 e 371 do CPC) e pode dispensar a perícia judicial quando suficiente (art. 472). Sua estrutura atende ao art. 473 do CPC – objeto, análise técnica, método e conclusão – e a extemporaneidade não lhe retira a eficácia (Súmula 68 da TNU).');
+  d.texto(`O laudo extrajudicial é meio de prova lícito (arts. 369 e 371 do CPC) e pode dispensar a perícia judicial quando suficiente (art. 472). Sua estrutura atende ao art. 473 do CPC – objeto, análise técnica, método e conclusão${comJurisprudencia(dados) ? ' – e a extemporaneidade não lhe retira a eficácia (Súmula 68 da TNU)' : ''}.`);
+  if (c.similaridade === 'Sim' || usaParadigmas(dados)) {
+    d.texto('Na via administrativa, o INSS não aceita laudo de equipamento ou setor semelhante, de localidade diversa ou de empresa diversa (art. 277, parágrafo único, III a V, da IN 128/2022). A avaliação por similaridade destina-se, assim, à prova em juízo, em que é meio de prova lícito (art. 369 do CPC).');
+  }
 
   d.h1('3', 'Fundamentação');
   d.texto('O enquadramento observa a lei vigente à época da prestação do serviço (*tempus regit actum*). O critério de cada agente consta do item 5.');
   d.h2('3.1', 'Exigências por período');
-  d.quadro('Forma de enquadramento, prova e medidas de controle', [['Período', 'Enquadramento', 'Documentos', 'Permanência', 'EPC / EPI'],
-    ['Até 13/10/1996', 'Agente nocivo', 'Formulário; laudo para ruído', 'Exigida', 'Não considerados'],
-    ['14/10/1996 a 02/12/1998', 'Agente nocivo', 'Formulário com base em LTCAT', 'Exigida', 'EPC informado; EPI não considerado'],
-    ['03/12/1998 a 31/12/2003', 'Agente nocivo', 'Formulário com base em LTCAT ou PPP', 'Exigida', 'EPC e EPI considerados'],
-    ['A partir de 01/01/2004', 'Agente nocivo', 'PPP com base em LTCAT', 'Exigida', 'EPC e EPI considerados; NHO obrigatórias']],
-  { larguras: [0.2, 0.16, 0.26, 0.14, 0.24], tam: 9, fonte: 'Elaborado pelo autor com base em Brasil (2022, arts. 274, 285, 286, 289 e 291).' });
+  quadroFormaEnquadramento(d);
   d.h2('3.2', 'Categoria de segurado e Emenda Constitucional nº 103/2019');
-  d.redigir('categoria do segurado (empregado / contribuinte individual – STJ, Tema 1291) e efeitos da EC 103/2019 a partir de 14/11/2019.');
+  d.redigir(`categoria do segurado (empregado / contribuinte individual${comJurisprudencia(dados) ? ' – STJ, Tema 1291' : ''}) e efeitos da EC 103/2019 (vigente desde 13/11/2019) sobre os períodos posteriores.`);
+  registroJurisprudencia(d, dados, { numero: '3.3', nivel: 'h2', prev: true, tipo: 'ltcat' });
 
   d.h1('4', 'Ambiente de trabalho e profissiografia');
   profissiografia(d, dados.postos);
@@ -316,10 +321,11 @@ export async function ltcatPpp(caseId) {
 
   d.h1('5', 'Avaliação dos agentes e das condições especiais');
   d.h2('5.1', 'Critérios gerais');
-  d.texto('As avaliações seguem as NHO da FUNDACENTRO e os limites de tolerância do Anexo IV do RPS ou, na falta destes, da NR-15 (art. 288 da IN 128/2022). A avaliação é quantitativa quando há limite de tolerância e qualitativa quando a nocividade decorre da simples exposição (art. 287). O rol de agentes do Anexo IV é exaustivo; as atividades nele descritas são exemplificativas (art. 287, § 4º).');
+  d.texto('As avaliações seguem as NHO da FUNDACENTRO e os limites de tolerância do Anexo IV do RPS ou, na falta destes, da NR-15 (art. 288 da IN 128/2022), com as normas vigentes na data da avaliação (art. 289). A caracterização considera a exposição acima dos limites de tolerância, por critério quantitativo ou qualitativo (art. 287). As atividades do Anexo IV do RPS são exaustivas, ressalvadas as relacionadas exclusivamente a agentes químicos, que são exemplificativas, observada a relação obrigatória com os agentes do Anexo IV (art. 287, § 4º).');
   d.h2('5.2', 'Medidas de controle');
-  d.texto('Considera-se adotado o EPC que elimina ou neutraliza a nocividade (art. 290 da IN 128/2022). O EPI só é considerado a partir de 03/12/1998 e quando atendidos, cumulativamente, os requisitos do art. 291. Para ruído, o EPI não descaracteriza a especialidade (STF, Tema 555); para os demais agentes, a dúvida sobre a eficácia favorece o segurado (STJ, Tema 1090).');
+  d.texto('Considera-se adotado o EPC que elimina ou neutraliza a nocividade (art. 290 da IN 128/2022). O EPI só é considerado em demonstrações ambientais a partir de 03/12/1998, quando elimina ou neutraliza a nocividade, observa a NR-6, consta do PPP e atende, cumulativamente, aos requisitos do art. 291 da IN 128/2022.');
   quadroEpis(d, dados.epis);
+  quadroRequisitosEpi(d);
   if (usaParadigmas(dados)) { d.h2('', 'Avaliação por similaridade (paradigmas)'); quadrosParadigmasMetodologia(d, dados); }
   avaliacaoAgentes(d, { ...dados }, '5', { previdenciario: true });
   memoriasParadigmas(d, dados);
@@ -338,7 +344,17 @@ export async function ltcatPpp(caseId) {
   d.redigir('quadro de recomendações por agente.');
   d.h1('8', 'Encerramento');
   d.texto('Este laudo foi elaborado com imparcialidade técnica, sob responsabilidade civil e criminal do signatário, e é assinado digitalmente. A validade dos dados pretéritos depende da veracidade das declarações do item 2.3.');
+  d.quadro('Elementos do LTCAT – art. 276 da IN 128/2022', [['Elemento', 'Item deste laudo'],
+    ['I – se individual ou coletivo', '2.1'], ['II – identificação da empresa', '1.1'], ['III – identificação do setor e da função', '1.3 e 4'],
+    ['IV – descrição da atividade', '4'], ['V – agente prejudicial arrolado na legislação previdenciária', '5'], ['VI – localização das possíveis fontes geradoras', '4 (registro de cada posto)'],
+    ['VII – via e periodicidade de exposição', '4 (registro de cada posto)'], ['VIII – metodologia e procedimentos de avaliação', '5.1'], ['IX – medidas de controle existentes', '5.2'],
+    ['X – conclusão', '6'], ['XI – assinatura e identificação do responsável técnico', 'Encerramento'], ['XII – data da avaliação ambiental', '2.2']],
+  { larguras: [0.65, 0.35], tam: 9, alinhar: 'left', fonte: 'Elaborado pelo autor com base em Brasil (2022, art. 276).' });
+  if (!dados.postos.some((x) => v(x.data.fontes)) || !dados.postos.some((x) => v(x.data.viaPeriodicidade))) {
+    d.texto('[[Preencher, em cada posto da etapa 4. Campo, as fontes geradoras e a via e periodicidade da exposição (art. 276, VI e VII).]]');
+  }
   blocoAssinatura(d, dados, `Responsável técnico – ART nº [[nº]]`);
+  secaoReferencias(d, dados, { prev: true, judicial: true });
   d.h1('', 'Anexos');
   d.texto('- Anexo A – Perfil Profissiográfico Previdenciário (PPP)\n- Anexo B – Calibração dos instrumentos\n- Anexo C – Anotação de Responsabilidade Técnica\n- Anexo D – Comprovante de inscrição no CNPJ\n- Anexo E – Fichas com dados de segurança dos produtos químicos\n- Anexo F – Anotações da CTPS');
   const r = await finalizar(d, { titulo: 'LTCAT', arquivo: 'LTCAT_PPP', c });
@@ -369,10 +385,12 @@ export async function parecerPrevidenciario(caseId) {
   d.h1('3', 'Identificação do requerente e dos vínculos');
   d.identificacao([['Requerente', c.autorNome], ['CPF / NIT', c.autorCpf], ['Nascimento', dataBR(c.autorNascimento)]]);
   quadroPeriodos(d, dados.periodos, 'Vínculos avaliados');
-  d.h1('4', 'Fundamentação legal e jurisprudencial');
+  d.h1('4', comJurisprudencia(dados) ? 'Fundamentação legal e registro jurisprudencial' : 'Fundamentação legal');
   d.h2('4.1', 'Enquadramento por período (tempus regit actum)');
   d.texto('O enquadramento observa a legislação previdenciária vigente à época da prestação do serviço: por categoria profissional até 28/04/1995 e por exposição a agentes nocivos a partir de 29/04/1995. Os critérios de cada agente, por período, constam do item 7.');
   d.redigir('ajustes específicos do caso (categoria do segurado, EC 103/2019).');
+  quadroFormaEnquadramento(d);
+  registroJurisprudencia(d, dados, { numero: '4.2', nivel: 'h2', prev: true, tipo: 'parecer' });
   d.h1('5', 'Metodologia');
   d.redigir('etapas; avaliação por similaridade (quando aplicável); normalização pela jornada efetiva; instrumentação.');
   if (!quadrosParadigmasMetodologia(d, dados)) quadroEquipamentos(d, equipamentosUsados(dados));
@@ -398,6 +416,7 @@ export async function parecerPrevidenciario(caseId) {
   d.h1('10', 'Termo de encerramento');
   d.texto('Nada mais havendo a acrescentar, encerra-se o presente parecer técnico, elaborado com imparcialidade e sob responsabilidade do signatário.');
   blocoAssinatura(d, dados, 'Responsável técnico');
+  secaoReferencias(d, dados, { prev: true, judicial: false });
   const { lista, faltando } = await figurasDoCaso(dados);
   if (lista.length) { d.h1('', 'Anexo – Registro fotográfico'); d.figuras(lista); }
   const r = await finalizar(d, { titulo: 'Parecer técnico previdenciário', arquivo: 'Parecer_previdenciario', c });
@@ -414,7 +433,7 @@ export async function parecerAssistente(caseId) {
   const lado = /réu/i.test(c.papel || '') ? pt.reuCurto : pt.autorCurto;
   const d = new Doc();
   d.enderecamento(enderecamentoTexto(c), linhasProcesso(c, [['Referência', c.refLaudo ? `Laudo pericial (${c.refLaudo})` : '[[ID do laudo pericial]]']]));
-  d.texto(`${qualificacaoCurta(perfil)}, assistente técnico indicado ${art(lado).pelo} ${lado}${c.vistoriaData ? `, tendo acompanhado a diligência pericial realizada em ${dataBR(c.vistoriaData)}` : ''}, vem, respeitosamente, à presença de Vossa Excelência, apresentar **MANIFESTAÇÃO TÉCNICA SOBRE O LAUDO PERICIAL**${c.peritoJuizo ? ` elaborado por ${c.peritoJuizo}` : ''}, pelos fundamentos técnicos expostos a seguir.`);
+  d.texto(`${qualificacaoCurta(perfil)}, assistente técnico indicado ${art(lado).pelo} ${lado}${c.vistoriaData ? `, tendo acompanhado a diligência pericial realizada em ${dataBR(c.vistoriaData)}` : ''}, vem, respeitosamente, à presença de Vossa Excelência, apresentar **MANIFESTAÇÃO TÉCNICA SOBRE O LAUDO PERICIAL**${c.peritoJuizo ? ` elaborado por ${c.peritoJuizo}` : ''}, nos termos do art. 477, § 1º, do Código de Processo Civil, pelos fundamentos técnicos expostos a seguir.`);
   d.sumario();
   d.h1('1', 'Síntese do laudo e dos pontos analisados');
   d.redigir('resumo da conclusão do laudo e da posição desta assistência (concorda / impugna) por agente.');
@@ -470,7 +489,8 @@ export async function parecerPreventivo(caseId) {
   d.h1('3', 'Documentos analisados');
   quadroDocumentos(d, dados.documentos);
   d.h1('4', 'Fundamentação técnica e legal');
-  d.redigir('normas e súmulas aplicáveis ao agente discutido.');
+  d.redigir(comJurisprudencia(dados) ? 'normas aplicáveis ao agente discutido.' : 'normas aplicáveis ao agente discutido (sem súmulas ou jurisprudência, conforme a opção do caso).');
+  registroJurisprudencia(d, dados, { numero: '4.1', nivel: 'h2', prev: pt.prev });
   d.h1('5', 'Instalações e atividades');
   profissiografia(d, dados.postos);
   d.h1('6', 'Análise crítica dos documentos de SST');
@@ -499,7 +519,7 @@ export async function peticaoIndicacaoAT(caseId) {
   const origemLado = /réu/i.test(c.papel || '') ? 'Réu / Reclamada' : 'Autor / Reclamante';
   const d = new Doc();
   d.enderecamento(enderecamentoTexto(c), linhasProcesso(c, [['Perito do Juízo', c.peritoJuizo]]));
-  d.texto(`${qualificacaoCompleta(perfil)}, vem, respeitosamente, à presença de Vossa Excelência, na qualidade de **assistente técnico indicado ${art(lado).pelo} ${lado}**, nos termos ${pt.trab ? 'do art. 3º da Lei nº 5.584/1970 e ' : ''}dos arts. 465, § 1º, II, e 466, § 1º, do Código de Processo Civil${c.despachoRef ? `, em atenção a ${c.despachoRef}` : ''}, expor e requerer o que segue.`);
+  d.texto(`${qualificacaoCompleta(perfil)}, vem, respeitosamente, à presença de Vossa Excelência, na qualidade de **assistente técnico indicado ${art(lado).pelo} ${lado}**, nos termos ${pt.trab ? 'do art. 3º da Lei nº 5.584/1970 e ' : ''}dos arts. 465, § 1º, II, e 466, § 1º, do Código de Processo Civil${c.despachoRef ? `, em atenção ${/^(decisão|sentença|r\.)/i.test(v(c.despachoRef)) ? 'à' : 'ao'} ${c.despachoRef}` : ''}, expor e requerer o que segue.`);
   d.h1('1.', 'Da indicação do assistente técnico', { novaPagina: false });
   d.texto(`O signatário foi indicado ${art(lado).pelo} ${lado} para acompanhar, como seu assistente técnico, a prova pericial de ${(c.objeto || []).join(' e ').toLowerCase() || '[[objeto]]'} determinada por este Juízo${c.peritoJuizo ? `, a cargo do Sr. Perito ${c.peritoJuizo}` : ''}.`);
   d.texto('Requer seja o signatário cadastrado nos autos e que o Sr. Perito comunique a data, o horário e o local da diligência com antecedência, também pelos contatos acima, de modo a assegurar o acompanhamento previsto no art. 466, § 2º, do CPC.');
@@ -578,6 +598,11 @@ export async function peticaoAgendamento(caseId) {
     ? `A vistoria destina-se a examinar as condições de trabalho do autor${periodos ? ` nos períodos de ${periodos}` : ' [[nos períodos de ...]]'}${item}.`
     : `A vistoria destina-se a examinar as condições de trabalho do ${pt.autorCurto.toLowerCase()}${c.dataAjuizamento && pt.trab ? ` no período imprescrito (a partir de ${menosCincoAnos(c.dataAjuizamento)})` : ''}${item}.`);
 
+  d.texto('A comunicação é feita para ciência das partes (art. 474 do CPC) e para assegurar aos assistentes técnicos o acompanhamento da diligência, com antecedência mínima de 5 (cinco) dias (art. 466, § 2º, do CPC).');
+  if (v(c.dataDiligencia)) {
+    const dias = Math.floor((new Date(`${c.dataDiligencia}T12:00:00`) - new Date()) / 86400000);
+    if (dias < 5) d.texto('[[VERIFICAR: faltam menos de 5 dias para a diligência – antecedência mínima do art. 466, § 2º, do CPC.]]');
+  }
   d.h1('2.', 'Dos requerimentos', { novaPagina: false });
   d.texto('Diante do exposto, requer-se:');
   d.texto(`a) a intimação das partes e de seus assistentes técnicos, caso indicados, para que, querendo, compareçam ao ato na data, horário e local acima;`);
@@ -668,6 +693,7 @@ export async function peticaoMajoracao(caseId) {
 
   sec('Do pedido');
   const pedido = isFinite(tabela) ? mult * tabela : NaN;
+  if (isFinite(pedido) && isFinite(fixados) && pedido <= fixados) d.texto(`[[VERIFICAR: o valor pedido (${moeda(pedido)}) não supera o já fixado (${moeda(fixados)}); confira o multiplicador e a tabela.]]`);
   d.texto(`Diante do exposto, requer-se a majoração dos honorários periciais para ${VEZES[mult] || mult} vezes o valor máximo da ${cjf ? 'Tabela II' : 'tabela'}, ou seja, ${isFinite(pedido) ? `${moeda(pedido)} (${reaisPorExtenso(pedido)}) (${mult} × ${moeda(tabela)})` : '[[valor]]'}${cjf ? ', nos termos do art. 28 da Resolução CJF nº 305/2014, com a redação da Resolução CJF nº 937/2025' : ''}.`);
   if (!v(c.dataDiligencia)) d.texto(`A data e o horário da vistoria serão informados oportunamente${v(c.itensVistoria) ? `, para os fins ${/[e,]/.test(c.itensVistoria) ? 'dos itens' : 'do item'} ${c.itensVistoria} do despacho` : ''}.`);
   fecho(d, dados);
@@ -710,9 +736,11 @@ export async function peticaoAceiteArbitrados(caseId, { conta } = {}) {
   d.texto(`${iFix ? `No ${itemMeio(c.honorariosItem)} da referida decisão` : 'Na referida decisão'}, os honorários periciais foram arbitrados em **${isFinite(fixados) ? valorExt(fixados) : '[[valor arbitrado]]'}**, em acolhimento ao valor proposto pelo signatário.`);
   d.texto(`O signatário declara **aceitar o valor arbitrado e os termos fixados**${itemTxt(c.itemAceite) ? ` no ${itemMeio(c.itemAceite).replace(/,$/, '')}` : ''}, ciente de que:`);
   const termos = [];
-  if (isFinite(adiant)) termos.push(`receberá no início dos trabalhos o valor de ${valorExt(adiant)}${isFinite(pct) && pct < 100 ? `, correspondente a ${pct}% dos honorários` : ''}, a ser depositado${depositante ? ` ${depositante}` : ''} em conta judicial vinculada aos autos (art. 465, § 4º, do CPC)`);
+  const jt = /Trabalho/i.test(c.justica || '');
+  if (jt && !v(c.honorariosAdiantamento)) termos.push('os honorários serão pagos ao final pela parte sucumbente na pretensão objeto da perícia, sendo vedado exigir adiantamento na Justiça do Trabalho (art. 790-B, caput e § 3º, da CLT) [[conferir os termos da decisão]]');
+  else if (isFinite(adiant)) termos.push(`receberá no início dos trabalhos o valor de ${valorExt(adiant)}${isFinite(pct) && pct < 100 ? `, correspondente a ${pct}% dos honorários` : ''}, a ser depositado${depositante ? ` ${depositante}` : ''} em conta judicial vinculada aos autos (art. 465, § 4º, do CPC)`);
   else termos.push('receberá no início dos trabalhos [[valor do adiantamento]] (art. 465, § 4º, do CPC)');
-  if (isFinite(saldo) && saldo > 0) termos.push(`o saldo de ${valorExt(saldo)} será pago ao final, depois de entregue o laudo e prestados os esclarecimentos, por quem a sentença indicar`);
+  if (!(jt && !v(c.honorariosAdiantamento)) && isFinite(saldo) && saldo > 0) termos.push(`o saldo de ${valorExt(saldo)} será pago ao final, depois de entregue o laudo e prestados os esclarecimentos, por quem a sentença indicar`);
   if (c.limiteTabelaPublico === 'Sim') termos.push('o pagamento eventualmente feito com recursos públicos observará o limite da tabela, com a majoração admitida');
   termos.forEach((t, i) => d.texto(`${String.fromCharCode(97 + i)}) ${t}${i < termos.length - 1 ? ';' : '.'}`));
 
@@ -746,7 +774,8 @@ export async function peticaoHonorarios(caseId, { conta } = {}) {
   d.enderecamento(enderecamentoTexto(c), linhasProcesso(c));
   d.texto(introPerito(perfil, c, '**aceitar o encargo** e apresentar **proposta de honorários periciais**, nos termos do art. 465, § 2º, do Código de Processo Civil.'));
   d.h1('1.', 'Do aceite', { novaPagina: false });
-  d.texto('O signatário declara aceitar o encargo e não possuir impedimento ou suspeição para atuar no feito (arts. 148, 156 e 467 do CPC).');
+  d.texto('O signatário declara aceitar o encargo e não possuir impedimento ou suspeição para atuar no feito (arts. 148, II, e 467 do CPC).');
+  d.texto(`Em atenção ao art. 465, § 2º, II e III, do CPC, apresenta ${v(perfil.curriculoUrl) && !/^anexo$/i.test(v(perfil.curriculoUrl)) ? `currículo, com a comprovação da especialização, disponível em ${perfil.curriculoUrl}` : 'currículo, com a comprovação da especialização, em anexo'}, e indica para as intimações pessoais os contatos profissionais: ${[v(perfil.email) && `e-mail ${perfil.email}`, v(perfil.telefone) && `telefone ${perfil.telefone}`].filter(Boolean).join('; ') || '[[e-mail e telefone – cadastre em Configurações → Meus dados]]'}.`);
   d.h1('2.', 'Da proposta de honorários', { novaPagina: false });
   d.texto(`A perícia envolve ${(c.objeto || []).join(', ').toLowerCase() || '[[objeto]]'}${dados.periodos.length ? `, abrangendo ${dados.periodos.length} período(s) de trabalho` : ''}${dados.quesitos.length ? ` e ${dados.quesitos.length} quesito(s) formulados` : ''}. A estimativa considera as etapas abaixo:`);
   d.quadro('Estimativa de horas técnicas', [['Etapa', 'Horas'], ['Análise dos autos e planejamento', '[[h]]'], ['Deslocamento', '[[h]]'],

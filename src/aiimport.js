@@ -14,31 +14,43 @@ export const CRITERIOS_GERAIS = `CRITÉRIOS GERAIS DO SIGNATÁRIO
 - O laudo conclui sempre pela norma técnica, nunca pela jurisprudência; súmulas e temas ficam apenas registrados para o juiz decidir.
 - Não usar testemunhas. Não citar o advogado do segurado / reclamante.
 - Valores medidos com uma casa decimal; resultados próximos do limite arredondados conforme a NHO.
-- Equipamentos do signatário: dosímetro Inlite DoseMax V2, medidor de IBUTG Inlite iTemp, medidor de vibração Inlite AxPro, calibrador acústico Inlite CalPro.`;
+- Equipamentos do signatário: dosímetro Inlite DoseMax V2, medidor de IBUTG Inlite iTemp, medidor de vibração Inlite AxPro, calibrador acústico Inlite CalPro.
+- Hierarquia das fontes: 1) lei, decreto, NR e IN na redação vigente no período; 2) Normas de Higiene Ocupacional (NHO) da FUNDACENTRO; 3) normas técnicas (ISO, ABNT); 4) somente como apoio técnico, nunca como critério de enquadramento quando houver norma brasileira: ACGIH (TLVs/BEIs – referência da NR-9, item 9.6.1.1, para prevenção), NIOSH, OSHA e convenções da OIT ratificadas pelo Brasil (148 e 155, consolidadas no Decreto 10.088/2019). Cite edição e ano de cada fonte.`;
 
 export const CRITERIOS_TRAB = `FINALIDADE TRABALHISTA (insalubridade / periculosidade – CLT arts. 189 a 195, NR-15 e NR-16; para servidor estatutário, a lei do ente, que em regra remete à NR-15/NR-16 – cite a lei local)
 - Use SOMENTE a legislação trabalhista, na redação vigente em cada período analisado (período imprescrito: ajuizamento – 5 anos). NÃO use decretos previdenciários, códigos do Anexo IV, IN INSS, PPP/LTCAT como critério de enquadramento, nem NEN.
 - Ruído: NR-15, Anexo 1 – limite de 85 dB(A) para 8 h, q = 5; caracteriza com dose diária acima de 100%. Neutralização pelo protetor (item 15.4.1, "b", da NR-15 e NR-6: CA válido, NRRsf, fichas de entrega, troca, treinamento).
 - Calor: NR-15, Anexo 3 – até 10/12/2019 redação original (IBUTG; taxa metabólica entre linhas do quadro → linha imediatamente superior, sem interpolar); a partir de 11/12/2019, Portaria SEPRT 1.359/2019 (NHO-06, IBUTG ajustado pela vestimenta); calor a céu aberto sem fonte artificial depois de 11/12/2019 não caracteriza.
-- Vibração: NR-15, Anexo 8 – a partir de 13/08/2014 (Portaria MTE 1.297/2014, NHO-09/10); antes, redação original.
+- Vibração: NR-15, Anexo 8 – a partir de 14/08/2014 (Portaria MTE 1.297, de 13/08/2014, DOU de 14/08/2014; NHO-09/10; VMB aren 5 m/s²; VCI aren 1,1 m/s² ou VDVR 21,0 m/s^1,75); antes, redação original (ISO 2631 e ISO/DIS 5349).
 - Químicos: Anexo 11 (quantitativo; jornada > 48 h: correção do limite por Brief & Scala), Anexo 13 (qualitativo); álcali cáustico: referência pH 11,5 (NBR 14725:2023).
 - Biológicos: NR-15, Anexo 14; área de isolamento: adequação mês a mês – havendo no mês frequência intermitente na área de isolamento, grau máximo naquele mês.
-- Periculosidade: NR-16, anexos escritos em algarismos romanos; troca de cilindro de GLP de empilhadeira não está listada no Anexo II (enquadramento só por jurisprudência, que fica apenas registrada).`;
+- Periculosidade: NR-16, anexos em algarismos romanos – I explosivos; II inflamáveis; III segurança pessoal ou patrimonial; IV energia elétrica; V motocicleta (nova redação da Portaria MTE 2.021/2025, vigente desde 03/04/2026); VI agentes das autoridades de trânsito (Portaria MTE 1.411/2025); radiações ionizantes no anexo sem número (*) (Portaria 518/2003). Troca de cilindro de GLP de empilhadeira não está listada no Anexo II (enquadramento só por jurisprudência, que fica apenas registrada).`;
 
 export const CRITERIOS_PREV = `FINALIDADE PREVIDENCIÁRIA (tempo especial – Lei 8.213/1991, Decretos 53.831/1964, 83.080/1979, 2.172/1997 e 3.048/1999, IN PRES/INSS 128/2022)
 - Use a legislação previdenciária vigente À ÉPOCA de cada período (tempus regit actum). A NR-15 entra apenas como referência técnica de limites quando o decreto do período a ela remete. NÃO use conceitos trabalhistas como critério: grau de insalubridade, adicional, período imprescrito, neutralização da NR-15, Súmulas do TST.
 - Ruído: q = 5 sempre. Até 05/03/1997: Lavg > 80 dB(A) (cód. 1.1.6 do Decreto 53.831/64). De 06/03/1997 a 18/11/2003: Lavg > 90 dB(A) (cód. 2.0.1) – a legislação remetia ao Anexo 1 da NR-15 na íntegra, compara-se o Lavg. A partir de 19/11/2003: somente o NEN > 85 dB(A), calculado conforme a jornada com q = 5. TWA não é usado. EPI não descaracteriza o ruído (STF, Tema 555).
 - Calor: até 05/03/1997, cód. 1.1.1 do Decreto 53.831/64 (fonte artificial, TE acima de 28 °C); depois, cód. 2.0.4 do Decreto 3.048/99 com os limites do Anexo 3 da NR-15 na redação do período (original até 10/12/2019; Portaria SEPRT 1.359/2019 depois). O Decreto 3.048/99 prevalece sobre a IN INSS mais restritiva (hierarquia normativa). IBUTG ajustado pela vestimenta (NHO-06).
-- Vibração: até 05/03/1997, cód. 1.1.5 do Decreto 53.831/64 (perfuratrizes e marteletes); de 06/03/1997 a 12/08/2014, cód. 2.0.2 – fora de perfuratriz/martelete, apresentar as duas leituras, inclusive pela ISO (VCI: fronteira superior da zona de cautela da ISO 2631-1; VMB: 5 m/s², Diretiva 2002/44/CE); a partir de 13/08/2014, limites do Anexo 8 da NR-15.
+- Vibração: até 05/03/1997, cód. 1.1.5 do Decreto 53.831/64 (quantitativo, > 120 golpes/min) e cód. 1.1.4 do Decreto 83.080/79 (qualitativo); de 06/03/1997 a 12/08/2014, cód. 2.0.2 com os limites das normas ISO 2631 e ISO/DIS 5349 (art. 296, II, da IN 128/2022) – fora de perfuratriz/martelete, apresentar as duas leituras, inclusive pela ISO (VCI: fronteira superior da zona de cautela da ISO 2631-1, aren 0,9 m/s² ou VDV 17; VMB: 5 m/s², Diretiva 2002/44/CE); a partir de 13/08/2014, limites do Anexo 8 da NR-15 (art. 296, III; NHO-09/10 facultativas desde 10/09/2012).
+- Calor: art. 293 da IN 128/2022 – NHO-06 obrigatória a partir de 01/01/2004 (facultativa desde 19/11/2003). Ruído: art. 292 – histograma ou memória de cálculo a partir de 11/10/2001; NHO-01 obrigatória a partir de 01/01/2004 (facultativa desde 19/11/2003).
+- Anexo IV do RPS: as atividades são exaustivas, salvo as relacionadas exclusivamente a agentes químicos, que são exemplificativas (art. 287, § 4º, da IN 128/2022). Biológicos: art. 299. LTCAT: elementos do art. 276, I a XII. Laudo individual: requisitos do art. 277, IV; o INSS não aceita laudo de empresa, local ou setor diverso (art. 277, parágrafo único).
 - Agentes biológicos: não usar o Anexo 14 da NR-15; somente o rol de atividades do cód. 3.0.1 do Anexo IV do Decreto 3.048/99.
 - Óleos minerais / diesel: citar somente o cód. 1.0.17 do Anexo IV.
 - Medidas de controle: EPC (art. 290) e EPI somente a partir de 03/12/1998, com os requisitos cumulativos do art. 291 da IN 128/2022.
 - Marcos: 28/04/1995 (fim do enquadramento por categoria), 05/03/1997, 03/12/1998, 18/11/2003, 13/08/2014, 13/11/2019 (EC 103/2019).
 - Datas de vínculo: a CTPS prevalece sobre o CNIS. PPP: código GFIP 04 quando houver enquadramento; o PPP em papel vai só até a entrada do eSocial (SST). Laudo de outro segurado usado como paradigma: não citar o nome desse segurado.`;
 
-export function criteriosPara(c = {}, situacaoId = '') {
+export function jurisprudenciaLigada(c = {}, perfil = {}) {
+  if (c.jurisprudencia === 'Incluir') return true;
+  if (c.jurisprudencia === 'Não incluir') return false;
+  return (perfil.jurisprudenciaPadrao || 'Incluir em seção própria') !== 'Não incluir';
+}
+
+export function criteriosPara(c = {}, situacaoId = '', perfil = {}) {
   const prev = situacaoId === 'perito-prev' || situacaoId === 'extra-ltcat' || contextoLegal(c).prev === true;
-  return [CRITERIOS_GERAIS, prev ? CRITERIOS_PREV : CRITERIOS_TRAB].join('\n\n');
+  const jur = jurisprudenciaLigada(c, perfil)
+    ? 'JURISPRUDÊNCIA: pode ser registrada apenas em item próprio ("Registro de entendimentos jurisprudenciais"), separada da fundamentação técnica, citando tribunal, número do tema/súmula e a tese com fidelidade; tema ainda pendente sai marcado [[conferir]].'
+    : 'JURISPRUDÊNCIA: NÃO cite súmulas, temas, precedentes nem jurisprudência neste caso; fundamente só na legislação e nas normas técnicas.';
+  return [CRITERIOS_GERAIS, prev ? CRITERIOS_PREV : CRITERIOS_TRAB, jur].join('\n\n');
 }
 
 // compatibilidade
@@ -110,7 +122,7 @@ Em "quesitos", transcreva os quesitos já respondidos pelo perito e SUGIRA quesi
   {
     id: 'extra-ltcat', titulo: 'Extrajudicial – LTCAT + PPP (inclusive extemporâneo / por similaridade)',
     foco: `Vou elaborar um LTCAT + PPP extrajudicial para fins de aposentadoria especial (Lei 8.213/91, Decreto 3.048/99, IN PRES/INSS 128/2022). Leia os documentos anexados (CNIS, CTPS, cartão CNPJ, contrato social, laudos anteriores, anotações) e prepare o pré-relatório.
-FOCO: segurado e categoria (empregado / contribuinte individual – STJ, Tema 1291), vínculos com datas da CTPS, lacunas do CNIS, empresa ativa ou extinta (similaridade – art. 277 da IN 128/2022 e Súmula 106 do TRF4), atividades e agentes por subperíodo, marcos legais e EC 103/2019, laudos existentes da empresa e suas falhas.
+FOCO: segurado e categoria (empregado / contribuinte individual – STJ, Tema 1291), vínculos com datas da CTPS, lacunas do CNIS, empresa ativa ou extinta (similaridade: o INSS não aceita laudo de empresa diversa – art. 277, parágrafo único, da IN 128/2022; em juízo, perícia indireta por similaridade – TNU, PEDILEF 0001323-30.2010.4.03.6318), atividades e agentes por subperíodo, marcos legais e EC 103/2019, laudos existentes da empresa e suas falhas.
 Em "preliminares", as pendências e documentos a pedir ao segurado antes da vistoria. Em "roteiro", o checklist de campo (o que perguntar, observar, medir e fotografar).`,
   },
 ];
@@ -124,10 +136,10 @@ export function situacaoDoCaso(c) {
   return 'perito-trab';
 }
 
-export function montarPrompt(situacaoId, c = {}) {
+export function montarPrompt(situacaoId, c = {}, perfil = {}) {
   const s = SITUACOES.find((x) => x.id === situacaoId) || SITUACOES[0];
   const ctx = [c.papel && `Minha atuação neste caso: ${c.papel}.`, c.numero && `Processo: ${c.numero}.`].filter(Boolean).join(' ');
-  return [s.foco, ctx, criteriosPara(c, s.id), REGRAS_EXTRACAO, FORMATO].filter(Boolean).join('\n\n');
+  return [s.foco, ctx, criteriosPara(c, s.id, perfil), REGRAS_EXTRACAO, FORMATO].filter(Boolean).join('\n\n');
 }
 
 // compatibilidade
@@ -286,7 +298,7 @@ export async function exportarParaClaude(caseId, tipo) {
 
 Use os dados do caso abaixo (coletados por mim nos autos e na diligência) como base factual. Não invente dados: o que faltar, marque como [[pendência]] para eu completar. Formatação: documento técnico no meu papel timbrado, fonte Abadi, espaçamento 1,5, texto justificado, títulos numerados em azul, cada título principal em página nova, sumário, quadros numerados com título acima e fonte abaixo.
 
-${criteriosPara(c, tipo === 'ltcat' || tipo === 'parprev' ? 'extra-ltcat' : '')}
+${criteriosPara(c, tipo === 'ltcat' || tipo === 'parprev' ? 'extra-ltcat' : '', ((await db.records.get('perfil')) || {}).data || {})}
 
 ---
 ${texto}`;
@@ -387,7 +399,7 @@ Responda SOMENTE com um bloco JSON válido, sem texto antes ou depois:
 
 export async function montarPromptSuplementares(caseId) {
   const { c, texto } = await textoDoCaso(caseId);
-  return [FOCO_SUPL, criteriosPara(c), FORMATO_SUPL, `---\nREGISTROS DO APP\n${texto}`].join('\n\n');
+  return [FOCO_SUPL, criteriosPara(c, '', ((await db.records.get('perfil')) || {}).data || {}), FORMATO_SUPL, `---\nREGISTROS DO APP\n${texto}`].join('\n\n');
 }
 
 const CAMPOS_SUPL = { laudoRefPerito: 'laudoRefPerito', laudoData: 'laudoData', esclDecisaoRef: 'esclDecisaoRef', prazoEsclarecimentos: 'prazoEsclarecimentos',

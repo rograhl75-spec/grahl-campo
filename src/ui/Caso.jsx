@@ -109,6 +109,7 @@ function Resumo({ rec }) {
         <Sel rec={rec} k="materia" label="Matéria" opcoes={MATERIA} />
         <Chips rec={rec} k="objeto" label="Objeto da perícia (azul = marcado; toque para marcar ou desmarcar)" opcoes={OBJETO} />
         <Sel rec={rec} k="fase" label="Fase" opcoes={FASE} vazio={false} />
+        <Sel rec={rec} k="jurisprudencia" label="Súmulas e jurisprudência nos documentos deste caso" opcoes={['Padrão (Meus dados)', 'Incluir', 'Não incluir']} vazio={false} />
         {rec.data.faseLegado && <p class="dica">Fase no app antigo: {rec.data.faseLegado}</p>}
       </section>
       <section class="bloco">

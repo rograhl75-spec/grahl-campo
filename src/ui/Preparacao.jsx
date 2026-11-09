@@ -106,7 +106,8 @@ function ImportarIA({ rec, abertoInicial = false }) {
   const [substituir, setSubstituir] = useState(false);
   const [msg, setMsg] = useState('');
   const [situacao, setSituacao] = useState(situacaoDoCaso(rec.data));
-  const prompt = montarPrompt(situacao, rec.data);
+  const perfil = useLive(async () => ((await db.records.get('perfil')) || {}).data || {}, [], {});
+  const prompt = montarPrompt(situacao, rec.data, perfil);
 
   const copiar = async () => {
     try { await navigator.clipboard.writeText(prompt); setMsg('Instrução copiada. Cole no Claude junto com os PDFs dos autos.'); }

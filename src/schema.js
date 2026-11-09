@@ -103,6 +103,8 @@ export const CAMPOS_PERFIL = [
   ['conta1', 'Conta 1 – dados (banco, agência, conta, titular, CPF/CNPJ, PIX)', 'area'],
   ['conta2Rotulo', 'Conta 2 – nome curto (ex.: "Grahl Consultoria – Sicredi")', 'text'],
   ['conta2', 'Conta 2 – dados (banco, agência, conta, titular, CPF/CNPJ, PIX)', 'area'],
+  ['jurisprudenciaPadrao', 'Súmulas e jurisprudência nos laudos e pareceres (padrão; cada caso pode mudar)', 'select', ['Incluir em seção própria', 'Não incluir']],
+  ['curriculoUrl', 'Currículo (link ou "anexo") – sai no aceite do encargo (art. 465, § 2º, II, do CPC)', 'text'],
 ];
 
 export const CAMPOS_PARTES = [
@@ -169,6 +171,8 @@ export const CAMPOS_POSTO = [
   ['infoTrabalhador', 'Informações do trabalhador / segurado', 'area'],
   ['infoEmpresa', 'Informações da empresa / acompanhante', 'area'],
   ['agentes', 'Agentes identificados no local', 'area'],
+  ['fontes', 'Fontes geradoras e sua localização (LTCAT, art. 276, VI)', 'area'],
+  ['viaPeriodicidade', 'Via e periodicidade da exposição (LTCAT, art. 276, VII)', 'text'],
   ['jornada', 'Jornada / tempo de exposição', 'text'],
   ['epc', 'EPC existentes', 'area'],
   ['epi', 'EPI observados (tipo, CA, uso efetivo)', 'area'],

@@ -270,10 +270,8 @@ export function contextoLegal(c = {}) {
 
 // Local da vistoria para documentos: empresa ou, sem empresa, o proprietário pessoa física (ex.: veículo paradigma)
 export function localVistoria(c) {
-  const emp = String(c.vistoriaLocal || '').trim();
-  if (emp) return emp;
   const prop = String(c.vistoriaProprietario || '').trim();
-  if (!prop) return '';
+  if (!prop) return String(c.vistoriaLocal || '').trim();
   const veic = String(c.vistoriaVeiculo || '').trim();
   return `${prop} (pessoa física${veic ? `, proprietário do veículo paradigma ${veic}` : ''})`;
 }

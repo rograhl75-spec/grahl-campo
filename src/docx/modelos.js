@@ -658,7 +658,7 @@ export async function peticaoAgendamento(caseId) {
   const data = dataPorExtenso(c.dataDiligencia, { semana: true }) || '[[data da vistoria]]';
   const hora = horaPorExtenso(c.horaDiligencia) || '[[horário]]';
   const simil = ehSimilaridade(c);
-  const prop = v(c.vistoriaLocal) ? '' : v(c.vistoriaProprietario); // pessoa física (sem empresa): nome completo na petição
+  const prop = v(c.vistoriaProprietario); // pessoa física (sem empresa): prevalece sobre o campo de empresa e traz o nome completo
   const veic = v(c.vistoriaVeiculo);
   const empresaV = prop || v(c.vistoriaLocal) || empresaDoDespacho(c);
   const origem = v(c.empresaOriginal) || [...new Set(dados.periodos.map((r) => empresaCurta(r.data.empresa)).filter(Boolean))].join(', ');

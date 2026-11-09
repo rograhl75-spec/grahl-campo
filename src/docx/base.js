@@ -868,7 +868,10 @@ export function agentesCurtos(t) {
 export function refDespachos(c) {
   const t = v(c.despachoRef);
   if (!t) return '';
-  const evs = [...new Set([...t.matchAll(/\bev(?:ento)?\.?\s*(\d+)/gi)].map((m) => Number(m[1])))].sort((a, b) => a - b);
+  // só o evento que abre cada referência ("Ev194 DESPADEC1 – ... indicado no Ev192"): os citados na descrição não são decisões
+  const cabecas = t.split(/;\s*/).map((s) => s.split(/\s[–-]\s/)[0]);
+  const achar = (txt) => [...txt.matchAll(/\bev(?:ento)?\.?\s*(\d+)/gi)].map((m) => Number(m[1]));
+  const evs = [...new Set(cabecas.flatMap(achar))].sort((a, b) => a - b);
   if (evs.length) {
     const lista = evs.length > 1 ? `${evs.slice(0, -1).join(', ')} e ${evs[evs.length - 1]}` : String(evs[0]);
     return evs.length > 1 ? `às decisões dos eventos ${lista}` : `à decisão do evento ${lista}`;

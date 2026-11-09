@@ -219,7 +219,9 @@ export async function aplicarIA(caseId, dados, { substituir = false } = {}) {
     for (const item of dados[lista]) {
       const ja = vistos.get(chave(item));
       if (ja) {
-        const novos = Object.fromEntries(Object.entries(item).filter(([k, val]) => String(val ?? '').trim() && !String(ja.data[k] ?? '').trim()));
+        // "substituir": o que vier preenchido corrige o registro existente; senão, só completa o que está vazio
+        const novos = Object.fromEntries(Object.entries(item).filter(([k, val]) => String(val ?? '').trim()
+          && (substituir ? String(val).trim() !== String(ja.data[k] ?? '').trim() : !String(ja.data[k] ?? '').trim())));
         if (Object.keys(novos).length) await updateFields(ja.id, novos);
         continue;
       }
@@ -234,9 +236,11 @@ export async function aplicarIA(caseId, dados, { substituir = false } = {}) {
     const existentes = await caseChildren(caseId, 'quesito');
     const chaveQ = (d) => normTxt(d.texto).slice(0, 200);
     const mapa = new Map(existentes.map((r) => [chaveQ(r.data), r]));
+    // mesmo quesito com o texto levemente diferente: reconhece pela parte e pelo número
+    const porNumero = new Map(existentes.filter((r) => String(r.data.numero || '').trim()).map((r) => [`${r.data.origem}|${normTxt(r.data.numero)}`, r]));
     let ordem = existentes.length;
     for (const q of dados.quesitos) {
-      const ex = mapa.get(chaveQ(q));
+      const ex = mapa.get(chaveQ(q)) || (String(q.numero || '').trim() ? porNumero.get(`${q.origem}|${normTxt(q.numero)}`) : undefined);
       if (ex) {
         if (q.resposta && (substituir || !String(ex.data.resposta || '').trim())) { await updateFields(ex.id, { resposta: q.resposta }); cont.respostas += 1; }
         continue;

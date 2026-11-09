@@ -12,7 +12,7 @@ import {
   quadroCriteriosCalor, quadroCriteriosVibracao, documentosARequerer, quadrosParadigmasMetodologia, memoriasParadigmas, usaParadigmas,
   art, dadosDaConta, dataPorExtenso, horaPorExtenso, reaisPorExtenso, numeroPorExtenso, moeda, lerValor, nomeOrigemQuesito,
   quadroFormaEnquadramento, quadroRequisitosEpi, codigosEnquadramento, textoDeterminacao, nomeCurto,
-  apendicesDoCaso, textoIntegram, inserirApendices,
+  apendicesDoCaso, textoIntegram, inserirApendices, tituloVinculo, descricaoVinculo,
 } from './base.js';
 import { comJurisprudencia, registroJurisprudencia, secaoReferencias } from './fontes.js';
 import { secaoPenosidade } from './penosidade.js';
@@ -196,7 +196,7 @@ export async function laudoPericial(caseId) {
   d.texto(c.funcoes || '');
   d.texto(c.atividadesAlegadas || '');
   d.h2('3.2', 'Ambiente e atividades constatados na diligência');
-  profissiografia(d, dados.postos, dados);
+  profissiografia(d, dados.postos, dados, { base: '3.2' });
 
   d.h1('4', 'Equipamentos de proteção coletiva (EPC) e individual (EPI)');
   d.h2('4.1', 'Medidas de proteção coletiva');
@@ -271,14 +271,14 @@ export async function laudoPrevidenciario(caseId) {
   d.h1('4', 'Ambiente de trabalho e profissiografia');
   d.texto(c.funcoes || '');
   dados.periodos.forEach((r, i) => {
-    d.h2(`4.${i + 1}`, `${r.data.empresa || 'Empresa'} – ${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`);
-    d.texto(r.data.atividades || '[[atividades do período]]');
+    d.h2(`4.${i + 1}`, tituloVinculo(r));
+    descricaoVinculo(d, r, dados, { refVistoria: `4.${dados.periodos.length + 1}` });
   });
   profissiografia(d, dados.postos, dados, { numero: `4.${dados.periodos.length + 1}` });
 
   d.h1('5', 'Avaliação dos agentes nocivos');
-  const n5 = avaliacaoAgentes(d, dados, '5', { previdenciario: true });
-  memoriasParadigmas(d, dados);
+  let n5 = avaliacaoAgentes(d, dados, '5', { previdenciario: true });
+  if (memoriasParadigmas(d, dados, { numero: `5.${n5 + 1}` })) n5 += 1;
   secaoPenosidade(d, dados, { numero: `5.${n5 + 1}`, tipo: 'laudo' });
 
   d.h1('6', 'Medidas de controle');
@@ -365,7 +365,7 @@ export async function ltcatPpp(caseId) {
   d.h1('4', 'Ambiente de trabalho e profissiografia');
   profissiografia(d, dados.postos, dados, { numero: '4.1' });
   const { lista, faltando } = await figurasDoCaso(dados);
-  if (lista.length) { d.h2('4.3', 'Registro fotográfico'); d.figuras(lista); }
+  if (lista.length) { d.h2('4.2', 'Registro fotográfico'); d.figuras(lista); }
 
   d.h1('5', 'Avaliação dos agentes e das condições especiais');
   d.h2('5.1', 'Critérios gerais');
@@ -374,9 +374,10 @@ export async function ltcatPpp(caseId) {
   d.texto('Considera-se adotado o EPC que elimina ou neutraliza a nocividade (art. 290 da IN 128/2022). O EPI só é considerado em demonstrações ambientais a partir de 03/12/1998, quando elimina ou neutraliza a nocividade, observa a NR-6, consta do PPP e atende, cumulativamente, aos requisitos do art. 291 da IN 128/2022.');
   quadroEpis(d, dados.epis);
   quadroRequisitosEpi(d, dados);
-  if (usaParadigmas(dados)) { d.h2('', 'Avaliação por similaridade (paradigmas)'); quadrosParadigmasMetodologia(d, dados); }
-  const n5 = avaliacaoAgentes(d, { ...dados }, '5', { previdenciario: true, inicio: 2 });
-  memoriasParadigmas(d, dados);
+  let ini5 = 2;
+  if (usaParadigmas(dados)) { d.h2('5.3', 'Avaliação por similaridade (paradigmas)'); quadrosParadigmasMetodologia(d, dados); ini5 = 3; }
+  let n5 = avaliacaoAgentes(d, { ...dados }, '5', { previdenciario: true, inicio: ini5 });
+  if (memoriasParadigmas(d, dados, { numero: `5.${n5 + 1}` })) n5 += 1;
   secaoPenosidade(d, dados, { numero: `5.${n5 + 1}`, tipo: 'ltcat' });
 
   d.h1('6', 'Conclusão');
@@ -444,16 +445,16 @@ export async function parecerPrevidenciario(caseId) {
   if (!quadrosParadigmasMetodologia(d, dados)) quadroEquipamentos(d, equipamentosUsados(dados));
   d.h1('6', 'Descrição das atividades por vínculo');
   dados.periodos.forEach((r, i) => {
-    d.h2(`6.${i + 1}`, `V${i + 1} – ${r.data.empresa || 'Empresa'} – ${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`);
-    d.texto(r.data.atividades || '[[atividades do vínculo]]');
+    d.h2(`6.${i + 1}`, tituloVinculo(r, { prefixo: `V${i + 1} – ` }));
+    descricaoVinculo(d, r, dados, { refVistoria: `6.${dados.periodos.length + 1}` });
   });
   if (!dados.periodos.length) d.redigir('cadastre os vínculos na aba Preparação.');
   profissiografia(d, dados.postos, dados, { numero: `6.${dados.periodos.length + 1}` });
   d.h1('7', 'Avaliação técnica');
-  const n7 = avaliacaoAgentes(d, dados, '7', { previdenciario: true });
-  memoriasParadigmas(d, dados);
-  secaoPenosidade(d, dados, { numero: `7.${n7 + 1}`, tipo: 'parecer' });
-  d.h2('', 'EPI e EPC');
+  let n7 = avaliacaoAgentes(d, dados, '7', { previdenciario: true });
+  if (memoriasParadigmas(d, dados, { numero: `7.${n7 + 1}` })) n7 += 1;
+  if (secaoPenosidade(d, dados, { numero: `7.${n7 + 1}`, tipo: 'parecer' })) n7 += 1;
+  d.h2(`7.${n7 + 1}`, 'EPI e EPC');
   quadroEpis(d, dados.epis);
   d.h1('8', 'Quadro conclusivo');
   conclusaoPrevidenciaria(d, dados, { tituloQuadro: 'Quadro conclusivo por vínculo e período' });
@@ -498,7 +499,7 @@ export async function parecerAssistente(caseId) {
   }
   d.h1(String(n + 1), 'Elementos registrados na diligência');
   quadroDiligencia(d, c, 'Diligência acompanhada');
-  profissiografia(d, dados.postos, dados);
+  profissiografia(d, dados.postos, dados, { base: String(n + 1) });
   const g = medicoesPorAgente(dados);
   const nome = nomePostoFn(dados.postos);
   if (g['Ruído']) quadroMedicoesRuido(d, g['Ruído'], eqMap(dados), nome, { prev: pt.prev });
@@ -541,7 +542,7 @@ export async function parecerPreventivo(caseId) {
   d.redigir(comJurisprudencia(dados) ? 'normas aplicáveis ao agente discutido.' : 'normas aplicáveis ao agente discutido (sem súmulas ou jurisprudência, conforme a opção do caso).');
   registroJurisprudencia(d, dados, { numero: '4.1', nivel: 'h2', prev: pt.prev });
   d.h1('5', 'Instalações e atividades');
-  profissiografia(d, dados.postos, dados);
+  profissiografia(d, dados.postos, dados, { base: '5' });
   d.h1('6', 'Análise crítica dos documentos de SST');
   quadroEpis(d, dados.epis);
   if (c.analiseEpi) d.texto(c.analiseEpi);

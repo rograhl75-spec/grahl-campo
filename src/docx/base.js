@@ -22,6 +22,18 @@ export function menosCincoAnos(iso) {
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 export const ou = (x, pend) => (v(x) ? v(x) : `[[${pend}]]`);
 
+export function limpaRefsPdf(t) {
+  if (typeof t !== 'string' || !/Parte\s+\d|\d{4}-\d{2}-\d{2}|\(pp?\.\s*\d/.test(t) || /^\d{4}-\d{2}-\d{2}/.test(t.trim())) return t;
+  return t
+    .replace(/,?\s*Parte\s+\d+,?\s+(?:pp?\.|p[áa]g(?:inas?)?\.?)\s*\d+(?:\s*[-–]\s*\d+)?(?:\s*(?:,|e)\s*\d+(?:\s*[-–]\s*\d+)?)*/gi, '')
+    .replace(/,?\s*Parte\s+\d+\b/gi, '')
+    .replace(/\s*\(pp?\.\s*\d+(?:\s*[-–]\s*\d+)?\)/g, '')
+    .replace(/\b(\d{4})-(\d{2})-(\d{2})\b/g, '$3/$2/$1')
+    .replace(/\(\s*[,;–-]\s*/g, '(').replace(/\s*[,;]\s*\)/g, ')').replace(/\(\s*\)/g, '')
+    .replace(/[ \t]+([,;.)])/g, '$1').replace(/([,;])\s*([,;])/g, '$1').replace(/[ \t]{2,}/g, ' ').trim();
+}
+const limpaDados = (o) => Object.fromEntries(Object.entries(o || {}).map(([k, val]) => [k, limpaRefsPdf(val)]));
+
 export async function carregar(caseId) {
   const caso = await db.records.get(caseId);
   if (!caso) throw new Error('Caso não encontrado.');
@@ -48,12 +60,14 @@ export async function carregar(caseId) {
       for (const [c, val] of Object.entries(o.data)) if (!v(ps.data[c]) && v(val)) ps.data[c] = val;
     }
   }
-  const dados = { id: caseId, c: caso.data, quesitos, periodos: pers, documentos, epis, postos: psts, medicoes: meds, fotos, equipamentos, perfil, paradigmas,
+  // referências internas aos arquivos PDF (Parte N, p. X) e datas ISO no meio do texto não vão para o documento
+  const limpa = (lst) => lst.map((r) => ({ ...r, data: limpaDados(r.data) }));
+  const dados = { id: caseId, c: limpaDados(caso.data), quesitos: limpa(quesitos), periodos: limpa(pers), documentos: limpa(documentos), epis, postos: limpa(psts), medicoes: meds, fotos, equipamentos, perfil, paradigmas,
     regraCertMeses: Number((cfgPar && cfgPar.data.regraCertMeses) || 24) };
   // ordem cronológica: cada posto/veículo vai para a posição do primeiro vínculo que representa
-  const ordemP = new Map(psts.map((ps) => [ps.id, (periodosDoPosto(ps, dados)[0] || {}).data?.inicio || '9999']));
-  psts.sort((a, b) => ordemP.get(a.id).localeCompare(ordemP.get(b.id)) || (a.data.ordem ?? a.createdAt) - (b.data.ordem ?? b.createdAt));
-  const posP = new Map(psts.map((ps, i) => [ps.id, i]));
+  const ordemP = new Map(dados.postos.map((ps) => [ps.id, (periodosDoPosto(ps, dados)[0] || {}).data?.inicio || '9999']));
+  dados.postos.sort((a, b) => ordemP.get(a.id).localeCompare(ordemP.get(b.id)) || (a.data.ordem ?? a.createdAt) - (b.data.ordem ?? b.createdAt));
+  const posP = new Map(dados.postos.map((ps, i) => [ps.id, i]));
   meds.sort((a, b) => (posP.get(a.data.postoId) ?? 99) - (posP.get(b.data.postoId) ?? 99) || String(a.data.dataMedicao || '').localeCompare(String(b.data.dataMedicao || '')));
   return dados;
 }
@@ -437,7 +451,7 @@ export function nomePostoFn(postos) {
   return (id) => mp.get(id) || 'Geral';
 }
 
-export function profissiografia(d, postos, dados, { numero } = {}) {
+export function profissiografia(d, postos, dados, { numero, base } = {}) {
   if (!postos.length) return d.redigir('descrição do ambiente e das atividades observadas (cadastrar os postos na aba Campo).');
   if (numero) d.h2(numero, 'Vistoria pericial – postos e veículos avaliados');
   postos.forEach((ps, i) => {
@@ -447,9 +461,10 @@ export function profissiografia(d, postos, dados, { numero } = {}) {
     const vincs = dados ? periodosDoPosto(ps, dados) : [];
     const meds = dados ? dados.medicoes.filter((m) => m.data.postoId === ps.id) : [];
     const quando = meds.map((m) => [m.data.dataMedicao && dataBR(m.data.dataMedicao), m.data.horaInicio && `${m.data.horaInicio}${m.data.horaFim ? `–${m.data.horaFim}` : ''}`].filter(Boolean).join(', ')).filter(Boolean);
-    d.h3(`${i + 1}. ${nomeCurto(x.nome)}`);
+    const pref = numero || base;
+    d.h3(pref ? `${pref}.${i + 1}` : `${i + 1}.`, nomeCurto(x.nome));
     const linhas = [['Posto / veículo avaliado', x.nome], ['Descrição', x.descricao],
-      ['Vínculo(s) representado(s)', vincs.map((r) => `${r.data.empresa || ''} (${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'})`).join('\n')],
+      ['Vínculo(s) representado(s)', vincs.map((r) => `${empresaCurta(r.data.empresa)} (${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'})`).join('\n')],
       ['Medições (data e horário)', [...new Set(quando)].join('\n')],
       ['Informações do trabalhador', x.infoTrabalhador], ['Informações da empresa / acompanhante', x.infoEmpresa],
       ['Agentes identificados', x.agentes], ['Fontes geradoras e localização', x.fontes], ['Via e periodicidade da exposição', x.viaPeriodicidade],
@@ -614,8 +629,10 @@ function subperiodosVibracao(r) {
   return J.map((j) => ({ ini: ini > j.ini ? ini : j.ini, fim: fim < j.fim ? fim : j.fim, crit: j.crit })).filter((x) => ini && x.ini <= x.fim);
 }
 
-export function memoriasParadigmas(d, dados) {
+export function memoriasParadigmas(d, dados, { numero = '' } = {}) {
   if (!usaParadigmas(dados)) return false;
+  let sub = 0; let titulo = false;
+  const cab = (t) => { if (!titulo && numero) { d.h2(numero, 'Memória de cálculo dos paradigmas'); titulo = true; } sub += 1; d.h3(numero ? `${numero}.${sub}` : '', t); };
   const P = dados.paradigmas;
   const linhasR = [];
   dados.periodos.forEach((r, i) => {
@@ -633,7 +650,7 @@ export function memoriasParadigmas(d, dados) {
     }
   });
   if (linhasR.length) {
-    d.h3('Memória de cálculo do ruído (q = 5)');
+    cab('Ruído (q = 5)');
     d.quadro('Memória de cálculo do ruído (q = 5)', [['Subperíodo', 'Paradigma', 'Lavg (dB(A))', 'T', 'NEN (dB(A))', 'Critério da época', 'Valor comparado', 'Supera?'], ...linhasR],
       { larguras: [0.2, 0.15, 0.1, 0.08, 0.1, 0.13, 0.12, 0.12], tam: 8.5, alinhar: 'left' });
   }
@@ -660,12 +677,12 @@ export function memoriasParadigmas(d, dados) {
     }
   });
   if (linhasV.length) {
-    d.h3('Memória de cálculo da vibração de corpo inteiro');
+    cab('Vibração de corpo inteiro');
     d.quadro('Memória de cálculo da vibração de corpo inteiro', [['Subperíodo', 'Paradigma', 'arep (m/s²)', 'T', 'aren(T) (m/s²)', 'VDVR(T)', 'Critério da época', 'Resultado'], ...linhasV],
       { larguras: [0.2, 0.15, 0.09, 0.07, 0.1, 0.09, 0.15, 0.15], tam: 8.5, alinhar: 'left',
         fonte: `Elaborado pelo autor. ISO 2631-1: fronteira superior da zona de cautela (aren ${String(LIM_ISO_AREN).replace('.', ',')} m/s² ou VDV ${LIM_ISO_VDV} m/s^1,75); NR-15, Anexo 8: limite de exposição aren 1,1 m/s² ou VDVR 21,0 m/s^1,75.` });
   }
-  return true;
+  return sub > 0;
 }
 
 
@@ -723,10 +740,20 @@ export function codigosEnquadramento(agentes, inicio, fim) {
 export function textoDeterminacao(dados, prev) {
   const c = dados.c;
   if (!v(c.despachoRef)) return '';
+  // usa só a decisão principal (primeiro item); o histórico de intimações não entra no laudo
+  const seg = v(c.despachoRef).split(/;\s*/)[0];
+  const ev = seg.match(/\b(?:ev(?:ento)?\.?\s*(\d+)|mov(?:\.|imento)?\s*(\d+(?:\.\d+)?)|ID\s*([\w.-]+)|fls?\.\s*([\d\-–]+))/i);
+  const dt = seg.match(/\b(\d{4})-(\d{2})-(\d{2})\b/) || seg.match(/\b(\d{2})\/(\d{2})\/(\d{4})\b/);
+  const data = dt ? (dt[1].length === 4 ? `${dt[3]}/${dt[2]}/${dt[1]}` : dt[0]) : '';
+  let ref;
+  if (ev) ref = ev[1] ? `da decisão do evento ${ev[1]}` : ev[2] ? `da decisão do mov. ${ev[2]}` : ev[3] ? `da decisão de ID ${ev[3]}` : `do despacho de fls. ${ev[4]}`;
+  else ref = /^(d[ae]|conforme)\b/i.test(seg) ? seg.replace(/^conforme\s+/i, '') : `de ${seg.replace(/\s*\(.*$/, '')}`;
   const vinc = dados.periodos.length ? ` nos ${dados.periodos.length > 1 ? `${dados.periodos.length} períodos controvertidos indicados no Quadro 1` : 'período controvertido indicado no Quadro 1'}` : '';
   const obj = prev ? `apurar as condições de trabalho da parte autora e a exposição a agentes nocivos à saúde ou à integridade física${vinc}, para fins de reconhecimento de tempo especial`
     : `apurar as condições de trabalho e a caracterização ou não de ${(c.objeto || []).join(' e ').toLowerCase() || 'insalubridade e/ou periculosidade'}${vinc}`;
-  return `Conforme ${c.despachoRef}, foi determinada a realização de perícia técnica para ${obj}.`;
+  const extras = [/IAC/i.test(c.despachoRef) && 'observados, quanto à penosidade, os parâmetros do IAC nº 5 do TRF4',
+    dados.quesitos.some((q) => q.data.origem === 'Juízo') && 'com resposta aos quesitos do Juízo e das partes'].filter(Boolean);
+  return `Por meio ${ref}${data ? `, de ${data}` : ''}, foi determinada a realização de perícia técnica para ${obj}${extras.length ? `, ${extras.join(', ')}` : ''}.`;
 }
 
 // ---------- Apêndices: relatórios das medições anexados na aba Campo ----------
@@ -760,4 +787,40 @@ export function inserirApendices(d, apendices) {
     d.h1('', `Apêndice ${a.letra} – ${a.titulo}`);
     d.paginasInteiras(a.paginas, { nota: `Apêndice ${a.letra}` });
   }
+}
+
+// ---------- Vínculos: título e descrição (item "Ambiente de trabalho e profissiografia") ----------
+// nome da empresa sem os parênteses de situação ("(ativa – Ponta Grossa/PR)"), para títulos
+export function empresaCurta(nome = '') {
+  return String(nome).replace(/\s*\([^)]*\)/g, '').replace(/\s*[–-]\s*(baixada|ativa|falida|inativa)[^–]*$/i, '').replace(/\s{2,}/g, ' ').trim();
+}
+export function tituloVinculo(r, { prefixo = '' } = {}) {
+  return `${prefixo}${empresaCurta(r.data.empresa) || 'Empresa'} – ${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`;
+}
+const minuscula = (t) => (/^[A-ZÁÉÍÓÚÂÊÔÃÕÇ][a-záéíóúâêôãõç]/.test(t) ? t.charAt(0).toLowerCase() + t.slice(1) : t);
+
+// Parágrafos do vínculo: quem, onde, quando, cargo; atividades com a fonte; veículo; como foi avaliado
+export function descricaoVinculo(d, r, dados, { refVistoria = '' } = {}) {
+  const x = r.data;
+  const per = x.fim ? `No período de ${dataBR(x.inicio)} a ${dataBR(x.fim)}` : `Desde ${dataBR(x.inicio)}`;
+  const parens = [...String(x.empresa || '').matchAll(/\(([^)]*)\)/g)].map((m) => m[1]).filter(Boolean);
+  const situacao = parens.length ? ` (${parens.join('; ')})` : '';
+  const cargo = v(x.cargo) ? `, no cargo de ${minuscula(v(x.cargo))}` : '';
+  const setor = v(x.setor) ? `, setor ${v(x.setor)}` : '';
+  d.texto(`${per}, o autor trabalhou na empresa ${empresaCurta(x.empresa) || '[[empresa]]'}${v(x.cnpj) ? `, CNPJ ${x.cnpj}` : ''}${situacao}${cargo}${setor}.`);
+  let ativ = v(x.atividades);
+  if (ativ) {
+    let fonte = '';
+    const m = ativ.match(/\s*\(([^()]*(?:PPP|Ev\s?\d|evento|inicial|LTCAT|CTPS|laudo|entrevista)[^()]*)\)\.?\s*$/i);
+    if (m) { fonte = m[1].trim(); ativ = ativ.slice(0, m.index).trim(); }
+    if (!fonte && v(x.fonte) && /PPP|descri/i.test(x.fonte)) fonte = v(x.fonte).split(/[;\n]/)[0];
+    ativ = ativ.replace(/\.$/, '');
+    d.texto(`${fonte ? `Conforme a descrição ${/^PPP/i.test(fonte) ? 'do' : 'constante d'}${/^PPP/i.test(fonte) ? ` ${fonte}` : `e ${fonte}`}, as` : 'As'} atividades do autor consistiam em ${minuscula(ativ)}.`);
+  } else d.redigir('atividades do vínculo (PPP, descrição do cargo ou entrevista).');
+  const veic = [x.veiculoTipo, x.veiculoMarca, x.veiculoModelo, x.veiculoAno].filter(Boolean).join(' ');
+  const comp = [veic && `veículo conduzido: ${veic}`, v(x.tipoTransporte) && `transporte: ${minuscula(v(x.tipoTransporte))}`,
+    v(x.conducaoH) && `tempo diário de condução informado: cerca de ${String(x.conducaoH).replace('.', ',')} h`].filter(Boolean);
+  if (comp.length) d.texto(`Informações complementares do vínculo – ${comp.join('; ')}.`);
+  const ps = postosDoPeriodo(r, dados);
+  if (ps.length) d.texto(`Na perícia, este vínculo é representado ${ps.length > 1 ? 'pelos veículos/postos' : 'pelo veículo/posto'} ${ps.map((p) => nomeCurto(p.data.nome)).join('; ')}${refVistoria ? `, descrito${ps.length > 1 ? 's' : ''} no item ${refVistoria}` : ''}.`);
 }

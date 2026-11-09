@@ -20,16 +20,24 @@ export function esc(s) {
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '');
 }
 
-function rPr({ b, i, size = 12, color, caps, hl } = {}) {
+function rPr({ b, i, size = 12, color, caps, hl, sup } = {}) {
   return `<w:rPr><w:rFonts w:ascii="${FONTE}" w:hAnsi="${FONTE}" w:cs="${FONTE}" w:eastAsia="${FONTE}"/>` +
     (b ? '<w:b/><w:bCs/>' : '') + (i ? '<w:i/><w:iCs/>' : '') + (caps ? '<w:caps/>' : '') +
     (color ? `<w:color w:val="${color}"/>` : '') + `<w:sz w:val="${Math.round(size * 2)}"/><w:szCs w:val="${Math.round(size * 2)}"/>` +
-    (hl ? '<w:highlight w:val="yellow"/>' : '') + '</w:rPr>';
+    (hl ? '<w:highlight w:val="yellow"/>' : '') + (sup ? '<w:vertAlign w:val="superscript"/>' : '') + '</w:rPr>';
 }
 
+// unidade do VDV (m/s elevado a 1,75), escrita de várias formas nos textos, sai sempre com o expoente sobrescrito
+const RE_VDV = /m\/s(?:\^\s*\{?1[,.]75\}?|¹[·,.]?⁷⁵)/g;
 export function run(text, opts = {}) {
-  return String(text ?? '').split(/\r?\n/).map((t, i) =>
-    `<w:r>${rPr(opts)}${i ? '<w:br/>' : ''}<w:t xml:space="preserve">${esc(t)}</w:t></w:r>`).join('');
+  return String(text ?? '').split(/\r?\n/).map((t, i) => {
+    const br = i ? '<w:br/>' : '';
+    if (!RE_VDV.test(t)) return `<w:r>${rPr(opts)}${br}<w:t xml:space="preserve">${esc(t)}</w:t></w:r>`;
+    RE_VDV.lastIndex = 0;
+    const partes = t.split(RE_VDV);
+    return partes.map((pt, k) => `<w:r>${rPr(opts)}${k === 0 ? br : ''}<w:t xml:space="preserve">${esc(pt)}${k < partes.length - 1 ? 'm/s' : ''}</w:t></w:r>`
+      + (k < partes.length - 1 ? `<w:r>${rPr({ ...opts, sup: true })}<w:t xml:space="preserve">1,75</w:t></w:r>` : '')).join('');
+  }).join('');
 }
 
 // Texto com marcações: **negrito**, *itálico* e [[pendência]] (amarelo, para conferir)
@@ -103,8 +111,10 @@ export class Doc {
     return this.add(`<w:p>${pPr({ style: 'Ttulo2', align: 'left', before: 360, after: 160, keepNext: true, outline: 1 })}` +
       `${run(`${num ? num + ' ' : ''}${String(titulo).toUpperCase()}`, { b: true, size: 12, color: AZUL })}</w:p>`);
   }
-  h3(titulo) {
-    return this.add(p([run(titulo, { b: true })], { align: 'left', before: 240, after: 120, keepNext: true }));
+  // seção terciária (ABNT NBR 6024): número progressivo e título em negrito, sem caixa alta
+  h3(num, titulo) {
+    if (titulo === undefined) { titulo = num; num = ''; }
+    return this.add(p([run(`${num ? `${num} ` : ''}${titulo}`, { b: true })], { align: 'left', before: 240, after: 120, keepNext: true, outline: 2 }));
   }
   // Quadro numerado: título acima, tabela, fonte abaixo
   quadro(titulo, linhas, { larguras, header = true, fonte = 'Elaborado pelo autor.', tam = 10, alinhar = 'both' } = {}) {
@@ -282,6 +292,16 @@ export async function montarDocx(modeloBytes, corpoXml, { imagens = [], tituloDo
   if (ini < 8 || sect < 0) throw new Error('Modelo timbrado inválido (corpo não encontrado).');
   xml = xml.slice(0, ini) + corpoXml + xml.slice(sect);
   zip.file(docPath, xml);
+  // sumário (ABNT NBR 6027): títulos com a mesma grafia do texto; seção primária em negrito
+  const stPath = 'word/styles.xml';
+  let st = await zip.file(stPath).async('string');
+  if (!/w:val="toc 1"/i.test(st)) {
+    const toc = (n, nome, ind, b) => `<w:style w:type="paragraph" w:styleId="${n}"><w:name w:val="${nome}"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:uiPriority w:val="39"/><w:unhideWhenUsed/>`
+      + `<w:pPr><w:tabs><w:tab w:val="right" w:leader="dot" w:pos="8494"/></w:tabs><w:spacing w:before="${b ? 120 : 0}" w:after="60" w:line="276" w:lineRule="auto"/><w:ind w:left="${ind}"/></w:pPr>`
+      + `<w:rPr><w:rFonts w:ascii="${FONTE}" w:hAnsi="${FONTE}"/>${b ? '<w:b/><w:bCs/>' : ''}<w:sz w:val="22"/></w:rPr></w:style>`;
+    st = st.replace('</w:styles>', toc('Sumrio1', 'toc 1', 0, true) + toc('Sumrio2', 'toc 2', 220, false) + toc('Sumrio3', 'toc 3', 440, false) + '</w:styles>');
+    zip.file(stPath, st);
+  }
 
   if (imagens.length) {
     const relPath = 'word/_rels/document.xml.rels';

@@ -112,7 +112,7 @@ export async function gerarRegistroDiligencia(caseId) {
   d.h1('2', 'Equipamentos utilizados', { novaPagina: false });
   quadroEquipamentos(d, equipamentosUsados(dados));
   d.h1('3', 'Postos e atividades avaliados', { novaPagina: false });
-  profissiografia(d, dados.postos, dados);
+  profissiografia(d, dados.postos, dados, { base: '3' });
   const g = medicoesPorAgente(dados);
   const nome = nomePostoFn(dados.postos);
   const eq = new Map(dados.equipamentos.map((e) => [e.id, e]));

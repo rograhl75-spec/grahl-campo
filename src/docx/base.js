@@ -481,8 +481,10 @@ export async function figurasDoCaso(dados, filtro = () => true) {
   for (const f of dados.fotos.filter(filtro)) {
     const b = await db.blobs.get(f.id);
     if (!b) { faltando++; continue; }
+    const { reduzirFoto } = await import('../apendices.js');
+    const red = typeof document !== 'undefined' ? await reduzirFoto(b.blob) : null;
     lista.push({
-      bytes: new Uint8Array(await b.blob.arrayBuffer()), w: f.data.largura || 4, h: f.data.altura || 3,
+      bytes: red ? red.bytes : new Uint8Array(await b.blob.arrayBuffer()), w: (red && red.w) || f.data.largura || 4, h: (red && red.h) || f.data.altura || 3,
       legenda: f.data.legenda || (f.data.postoId ? nome(f.data.postoId) : 'Registro fotográfico'),
       detalhe: [dataHoraBR(f.data.tiradaEm), f.data.gps && `GPS ${f.data.gps}`].filter(Boolean).join(' · '),
     });

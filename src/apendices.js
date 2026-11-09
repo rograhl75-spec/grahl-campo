@@ -12,7 +12,7 @@ async function carregarPdfjs() {
   return pdfjs;
 }
 
-const paraJpeg = (canvas) => new Promise((res) => canvas.toBlob((b) => res(b), 'image/jpeg', 0.85));
+const paraJpeg = (canvas, q = 0.72) => new Promise((res) => canvas.toBlob((b) => res(b), 'image/jpeg', q));
 
 async function canvasParaPagina(canvas) {
   const b = await paraJpeg(canvas);
@@ -28,7 +28,7 @@ export async function paginasDoArquivo(blob, mime = '') {
     const out = [];
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
-      const vp = page.getViewport({ scale: 2 }); // ~144 dpi: legível e leve
+      const vp = page.getViewport({ scale: 1.5 }); // ~110 dpi: tabelas legíveis e arquivo leve (limite do eproc: 11 MB por arquivo)
       const c = document.createElement('canvas');
       c.width = Math.round(vp.width); c.height = Math.round(vp.height);
       const ctx = c.getContext('2d');
@@ -41,11 +41,12 @@ export async function paginasDoArquivo(blob, mime = '') {
     return out;
   }
   const bmp = await createImageBitmap(blob);
+  const f = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
   const c = document.createElement('canvas');
-  c.width = bmp.width; c.height = bmp.height;
+  c.width = Math.round(bmp.width * f); c.height = Math.round(bmp.height * f);
   const ctx = c.getContext('2d');
   ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
-  ctx.drawImage(bmp, 0, 0);
+  ctx.drawImage(bmp, 0, 0, c.width, c.height);
   return [await canvasParaPagina(c)];
 }
 
@@ -63,4 +64,18 @@ export function tituloSugerido(nome = '') {
   if (/ibutg|calor|itemp/i.test(n)) return `Relatório de calor (IBUTG) – ${n}`;
   if (/calibra|certific/i.test(n)) return `Certificado de calibração – ${n}`;
   return n;
+}
+
+// fotos do relatório: no máximo 1600 px no lado maior (sobra para a impressão em meia página)
+export async function reduzirFoto(blob, max = 1600, q = 0.8) {
+  try {
+    const bmp = await createImageBitmap(blob);
+    const f = Math.min(1, max / Math.max(bmp.width, bmp.height));
+    if (f === 1 && blob.size < 600000) return { bytes: new Uint8Array(await blob.arrayBuffer()), w: bmp.width, h: bmp.height };
+    const c = document.createElement('canvas');
+    c.width = Math.round(bmp.width * f); c.height = Math.round(bmp.height * f);
+    c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+    const b = await paraJpeg(c, q);
+    return { bytes: new Uint8Array(await b.arrayBuffer()), w: c.width, h: c.height };
+  } catch (e) { return null; }
 }

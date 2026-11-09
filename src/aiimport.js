@@ -292,10 +292,22 @@ export const OPCOES_REDACAO = [
   ['laudo', 'Laudo pericial'], ['parecerAT', 'Parecer de assistente técnico / impugnação'], ['ltcat', 'LTCAT + PPP'],
   ['parprev', 'Parecer técnico previdenciário'], ['prevent', 'Parecer preventivo para a empresa'], ['indic', 'Petição de indicação e quesitos'],
   ['supl', 'Resposta aos quesitos suplementares'],
+  ['respostas', 'Respostas a todos os quesitos (voltam para o app)'],
 ];
+
+const INSTR_RESPOSTAS = `Responda a TODOS os quesitos do caso abaixo, como perito, com base exclusiva nos dados do caso (autos, diligência, medições, paradigmas e penosidade) e nos meus critérios técnicos.
+- Resposta técnica, direta e conclusiva (art. 473, IV, do CPC), em linguagem simples, citando o item do laudo ou o quadro quando houver.
+- Quesito repetido entre as partes: responda uma vez e, nos demais, "Vide resposta ao quesito X do Juízo / da parte autora".
+- O que depender de informação que não está no caso: escreva [[pendência: o que falta]].
+- Devolva SOMENTE um bloco JSON, sem comentários, no formato:
+{"quesitos": [{"origem": "Juízo | Autor / Reclamante | Réu / Reclamada | INSS | Complementares", "numero": "1", "texto": "texto do quesito exatamente como está no caso", "resposta": ""}]}
+Eu vou colar esse JSON no app (etapa 2. Autos → B), que preenche as respostas dos quesitos que ainda estão em branco.`;
 
 export async function exportarParaClaude(caseId, tipo) {
   const { c, texto } = await textoDoCaso(caseId);
+  if (tipo === 'respostas') {
+    return `${INSTR_RESPOSTAS}\n\n${criteriosPara(c, '', ((await db.records.get('perfil')) || {}).data || {})}\n\n---\n${texto}`;
+  }
   const instr = `${REDACAO[tipo] || REDACAO.laudo}
 
 Use os dados do caso abaixo (coletados por mim nos autos e na diligência) como base factual. Não invente dados: o que faltar, marque como [[pendência]] para eu completar. Formatação: documento técnico no meu papel timbrado, fonte Abadi, espaçamento 1,5, texto justificado, títulos numerados em azul, cada título principal em página nova, sumário, quadros numerados com título acima e fonte abaixo.

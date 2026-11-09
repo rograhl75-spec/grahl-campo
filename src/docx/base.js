@@ -276,7 +276,7 @@ export function quadroPeriodos(d, periodos, titulo = 'Períodos avaliados') {
 }
 
 export function quadroEpis(d, epis) {
-  if (!epis.length) return d.texto('Não foram apresentados registros de entrega de EPI. [[Confirmar.]]');
+  if (!epis.length) return d.texto('Não foram apresentados nos autos registros de fornecimento de EPI (fichas de entrega com CA, periodicidade de troca, treinamento e higienização), cuja guarda é de responsabilidade do empregador.');
   return d.quadro('Equipamentos de proteção individual registrados', [['EPI', 'CA', 'Entrega', 'Observações'],
     ...epis.map((e) => [e.data.descricao, e.data.ca, e.data.dataEntrega, e.data.obs])], { larguras: [0.34, 0.12, 0.16, 0.38] });
 }
@@ -368,9 +368,9 @@ export function quadroMedicoesGenerico(d, titulo, ms, nomePosto, ctx = {}) {
   if (!ms.length) return d;
   const quando = (x) => [x.dataMedicao && dataBR(x.dataMedicao), x.horaInicio && `${x.horaInicio}${x.horaFim ? `–${x.horaFim}` : ''}`].filter(Boolean).join('\n');
   if (/corpo inteiro/i.test(ms[0].data.agente || '')) {
-    return d.quadro(titulo, [['Posto / veículo', 'Data e horário', 'aren (m/s²)', 'VDVR (m/s^1,75)', 'Eixo', 'T diária', 'Observações'],
-      ...ms.map((m) => { const x = m.data; return [nomePosto(x.postoId), quando(x), x.aren || '', x.vdv || '', x.eixo || '', x.tempoExposicao || '', [x.condicaoVia, x.obs].filter(Boolean).join('\n')]; })],
-    { larguras: [0.2, 0.14, 0.1, 0.11, 0.08, 0.1, 0.27], tam: 9 });
+    return d.quadro(titulo, [['Posto / veículo', 'Data e horário', 'aren (m/s²)', 'VDVR (m/s^1,75)'],
+      ...ms.map((m) => { const x = m.data; return [nomePosto(x.postoId), quando(x), x.aren || '', x.vdv || '']; })],
+    { larguras: [0.4, 0.24, 0.18, 0.18], fonte: 'Elaborado pelo autor. Valores de aceleração resultante de exposição normalizada (aren) e de dose de vibração resultante (VDVR) para a exposição diária.' });
   }
   if (/mãos e braços/i.test(ms[0].data.agente || '')) {
     return d.quadro(titulo, [['Posto / ferramenta', 'Data e horário', 'aren (m/s²)', 'T diária', 'Observações'],
@@ -437,10 +437,13 @@ export function nomePostoFn(postos) {
   return (id) => mp.get(id) || 'Geral';
 }
 
-export function profissiografia(d, postos, dados) {
+export function profissiografia(d, postos, dados, { numero } = {}) {
   if (!postos.length) return d.redigir('descrição do ambiente e das atividades observadas (cadastrar os postos na aba Campo).');
+  if (numero) d.h2(numero, 'Vistoria pericial – postos e veículos avaliados');
   postos.forEach((ps, i) => {
-    const x = ps.data;
+    const temMed = dados && dados.medicoes.some((m) => m.data.postoId === ps.id);
+    const limpa = (t) => (temMed ? String(t || '').replace(/\s*\[\[[^\]]*medi[çc][õo]?[^\]]*\]\]/gi, '') : t);
+    const x = Object.fromEntries(Object.entries(ps.data).map(([k, val]) => [k, typeof val === 'string' ? limpa(val) : val]));
     const vincs = dados ? periodosDoPosto(ps, dados) : [];
     const meds = dados ? dados.medicoes.filter((m) => m.data.postoId === ps.id) : [];
     const quando = meds.map((m) => [m.data.dataMedicao && dataBR(m.data.dataMedicao), m.data.horaInicio && `${m.data.horaInicio}${m.data.horaFim ? `–${m.data.horaFim}` : ''}`].filter(Boolean).join(', ')).filter(Boolean);
@@ -678,7 +681,13 @@ export function quadroFormaEnquadramento(d) {
 }
 
 // Requisitos cumulativos do EPI (art. 291 da IN 128/2022), para preencher por período
-export function quadroRequisitosEpi(d) {
+export function quadroRequisitosEpi(d, dados) {
+  if (dados && !dados.epis.length) {
+    d.quadro('Requisitos do EPI – art. 291 da IN 128/2022', [['Requisito', 'Situação', 'Evidência'],
+      ...['I – hierarquia: medidas coletivas e administrativas antes do EPI', 'II – funcionamento e uso ininterrupto, conforme o fabricante', 'III – Certificado de Aprovação válido', 'IV – periodicidade de troca comprovada por recibo', 'V – higienização'].map((t) => [t, 'Não comprovado', 'Sem registros nos autos'])],
+    { larguras: [0.5, 0.18, 0.32], tam: 9, fonte: 'Elaborado pelo autor com base em Brasil (2022, art. 291). Os requisitos são cumulativos.' });
+    return d.texto('Não comprovados os requisitos cumulativos do art. 291, não se considera neutralizada a exposição pelo uso de EPI.');
+  }
   return d.quadro('Requisitos do EPI – art. 291 da IN 128/2022', [['Requisito', 'Atendido?', 'Evidência'],
     ['I – hierarquia: medidas coletivas e administrativas antes do EPI', '[[S/N]]', '[[PGR/PPRA, inventário de riscos]]'],
     ['II – funcionamento e uso ininterrupto, conforme o fabricante', '[[S/N]]', '[[observação / ordens de serviço]]'],

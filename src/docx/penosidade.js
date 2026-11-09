@@ -41,11 +41,16 @@ function agentesFisicos(r, dados) {
 function frases(t) {
   return String(t || '').split(/(?<=[.;])\s+|\n+/).map((f) => f.trim().replace(/[.;]$/, '')).filter(Boolean);
 }
-function coletado(r, dados) {
+export function coletado(r, dados) {
   const ps = postosDoPeriodo(r, dados);
   const fontesTxt = [r.data.atividades, ...ps.flatMap((p) => [p.data.infoTrabalhador, p.data.jornada, p.data.descricao, p.data.epc])];
   const pool = fontesTxt.flatMap(frases);
-  const pega = (re, max = 3) => [...new Set(pool.filter((f) => re.test(f)))].slice(0, max).join('; ');
+  const usadas = new Set(); // cada frase entra em um fator só
+  const pega = (re, max = 3) => {
+    const l = [...new Set(pool.filter((f) => re.test(f) && !usadas.has(f)))].slice(0, max);
+    l.forEach((f) => usadas.add(f));
+    return l.join('; ');
+  };
   const out = {};
   const put = (k, val) => { if (!v(r.data[k]) && v(val)) out[k] = val; };
   put('tipoTransporte', pega(/transport|bobina|carga|celulose|gr[ãa]os|min[ée]rio|mdf|passageir/i, 2));

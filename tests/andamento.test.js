@@ -74,3 +74,18 @@ describe('dados repetidos por extrações seguidas', () => {
     expect(await limparDuplicados(caso.id)).toEqual({ periodos: 0, medicoes: 0, postos: 0 });
   });
 });
+
+describe('conclusão previdenciária calculada', () => {
+  it('divide o vínculo pelos marcos e conclui por ruído e VCI', async () => {
+    const { avaliarPeriodos } = await import('../src/docx/conclusao.js');
+    const per = { id: 'p1', data: { empresa: 'Transproença Ltda', inicio: '2003-09-01', fim: '2008-04-15', cargo: 'Motorista', conducaoH: '15' } };
+    const posto = { id: 'x1', data: { nome: 'Scania 113 – paradigma Transproença' } };
+    const dados = { c: {}, perfil: {}, epis: [], periodos: [per], postos: [posto], paradigmas: new Map(),
+      medicoes: [{ data: { agente: 'Ruído', lavg: '87,05', postoId: 'x1' } }, { data: { agente: 'Vibração de corpo inteiro (VCI)', aren: '1,26', vdv: '16,54', postoId: 'x1' } }] };
+    const [a] = avaliarPeriodos(dados);
+    expect(a.segs.map((s) => [s.ini, s.fim, s.caracteriza])).toEqual([['2003-09-01', '2003-11-18', 'SIM'], ['2003-11-19', '2008-04-15', 'SIM']]);
+    expect(a.segs[0].itens[0].t).toMatch(/Lavg 87,05 dB\(A\) ≤ 90/); // até 18/11/2003 o ruído não supera
+    expect(a.segs[1].itens[0].t).toMatch(/NEN 91,5\d dB\(A\) > 85/); // depois, NEN para 15 h supera
+    expect(a.segs[0].itens[1].t).toMatch(/acima da fronteira superior/);
+  });
+});

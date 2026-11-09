@@ -15,6 +15,7 @@ import {
 } from './base.js';
 import { comJurisprudencia, registroJurisprudencia, secaoReferencias } from './fontes.js';
 import { secaoPenosidade } from './penosidade.js';
+import { conclusaoPrevidenciaria } from './conclusao.js';
 import { p, run, rich } from './ooxml.js';
 
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
@@ -82,7 +83,9 @@ function avaliacaoPrevidenciaria(d, dados, base, inicio = 0) {
     quadroMedicoesRuido(d, g['Ruído'], eq, nome, ctx);
     quadroConfrontoRuido(d, dados);
     if (usaParadigmas(dados)) d.texto('Para os vínculos avaliados por similaridade, os valores do paradigma normalizados para a jornada efetiva e a comparação com o limite de cada período estão na memória de cálculo do ruído, adiante.');
-    d.redigir('fonte, habitualidade e permanência por período.');
+    if (dados.periodos.length && dados.periodos.every((r) => /motorista|caminh|carreteir|cobrador|ônibus/i.test(`${r.data.cargo || ''} ${r.data.atividades || ''}`))) {
+      d.texto('A fonte do ruído e da vibração é o próprio veículo (motor, transmissão, rodagem e carroceria). A exposição ocorre durante toda a condução, que é a atividade principal da função, de forma habitual e permanente, não ocasional nem intermitente.');
+    } else d.redigir('fonte, habitualidade e permanência por período.');
   }
   if (g['Calor (IBUTG)']) {
     sub('Calor');
@@ -104,8 +107,8 @@ function avaliacaoPrevidenciaria(d, dados, base, inicio = 0) {
     quadroMedicoesGenerico(d, k === 'Outro' ? 'Outros registros' : 'Resultados – Agentes químicos', g[k], nome, ctx);
     d.redigir('enquadramento no Anexo IV do Decreto 3.048/1999 (até 05/03/1997, Decreto 53.831/1964); óleos minerais: somente cód. 1.0.17; avaliação qualitativa quando a nocividade decorre da simples exposição (art. 287 da IN 128/2022).');
   }
-  if (v(dados.c.agentesAlegados)) {
-    sub(n ? 'Demais agentes alegados' : 'Agentes alegados');
+  if (v(dados.c.agentesAlegados) && n === inicio) {
+    sub('Agentes alegados');
     d.texto(`Agentes indicados: ${dados.c.agentesAlegados.replace(/\n+/g, '; ')}`);
     d.redigir('avaliação de cada agente pelo decreto vigente no período. Biológicos: somente o rol de atividades do cód. 3.0.1 do Anexo IV (não se usa o Anexo 14 da NR-15).');
   }
@@ -229,7 +232,7 @@ export async function laudoPrevidenciario(caseId) {
     d.h2(`4.${i + 1}`, `${r.data.empresa || 'Empresa'} – ${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`);
     d.texto(r.data.atividades || '[[atividades do período]]');
   });
-  profissiografia(d, dados.postos, dados);
+  profissiografia(d, dados.postos, dados, { numero: `4.${dados.periodos.length + 1}` });
 
   d.h1('5', 'Avaliação dos agentes nocivos');
   const n5 = avaliacaoAgentes(d, dados, '5', { previdenciario: true });
@@ -239,16 +242,11 @@ export async function laudoPrevidenciario(caseId) {
   d.h1('6', 'Medidas de controle');
   d.texto('Considera-se o EPC que elimina ou neutraliza a nocividade (art. 290 da IN 128/2022). O EPI só é considerado em demonstrações ambientais a partir de 03/12/1998, quando elimina ou neutraliza a nocividade, observa a NR-6, consta do PPP e atende, cumulativamente, aos requisitos do art. 291 da IN 128/2022.');
   quadroEpis(d, dados.epis);
-  quadroRequisitosEpi(d);
-  d.redigir('análise dos requisitos do art. 291 por período.');
+  quadroRequisitosEpi(d, dados);
+  if (dados.epis.length) d.redigir('análise dos requisitos do art. 291 por período.');
 
   d.h1('7', 'Conclusão');
-  if (dados.periodos.length) {
-    d.quadro('Conclusão por período', [['Período', 'Agente(s)', 'Código', 'Caracteriza'],
-      ...dados.periodos.map((r) => [`${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`, r.data.agentes || '[[agentes]]', codigosEnquadramento(`${r.data.agentes || ''} ${r.data.cargo || ''}`, r.data.inicio, r.data.fim), '[[S/N]]'])],
-    { larguras: [0.26, 0.38, 0.18, 0.18] });
-  }
-  d.redigir('conclusão por período: exposição habitual e permanente, não ocasional nem intermitente, a agentes nocivos – caracteriza / não caracteriza.');
+  conclusaoPrevidenciaria(d, dados);
   registroJurisprudencia(d, dados, { numero: '7.1', nivel: 'h2', prev: true, tipo: 'laudo' });
 
   d.h1('8', 'Respostas aos quesitos');
@@ -320,7 +318,7 @@ export async function ltcatPpp(caseId) {
   registroJurisprudencia(d, dados, { numero: '3.3', nivel: 'h2', prev: true, tipo: 'ltcat' });
 
   d.h1('4', 'Ambiente de trabalho e profissiografia');
-  profissiografia(d, dados.postos, dados);
+  profissiografia(d, dados.postos, dados, { numero: '4.1' });
   const { lista, faltando } = await figurasDoCaso(dados);
   if (lista.length) { d.h2('4.3', 'Registro fotográfico'); d.figuras(lista); }
 
@@ -330,7 +328,7 @@ export async function ltcatPpp(caseId) {
   d.h2('5.2', 'Medidas de controle');
   d.texto('Considera-se adotado o EPC que elimina ou neutraliza a nocividade (art. 290 da IN 128/2022). O EPI só é considerado em demonstrações ambientais a partir de 03/12/1998, quando elimina ou neutraliza a nocividade, observa a NR-6, consta do PPP e atende, cumulativamente, aos requisitos do art. 291 da IN 128/2022.');
   quadroEpis(d, dados.epis);
-  quadroRequisitosEpi(d);
+  quadroRequisitosEpi(d, dados);
   if (usaParadigmas(dados)) { d.h2('', 'Avaliação por similaridade (paradigmas)'); quadrosParadigmasMetodologia(d, dados); }
   const n5 = avaliacaoAgentes(d, { ...dados }, '5', { previdenciario: true, inicio: 2 });
   memoriasParadigmas(d, dados);
@@ -338,13 +336,9 @@ export async function ltcatPpp(caseId) {
 
   d.h1('6', 'Conclusão');
   d.h2('6.1', 'Síntese do enquadramento');
-  if (dados.periodos.length) {
-    d.quadro('Síntese do enquadramento por período', [['Período', 'Agente(s)', 'Código', 'Enquadra'],
-      ...dados.periodos.map((r) => [`${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`, r.data.agentes || '[[agentes]]', codigosEnquadramento(`${r.data.agentes || ''} ${r.data.cargo || ''}`, r.data.inicio, r.data.fim), '[[S/N]]'])],
-    { larguras: [0.26, 0.38, 0.18, 0.18] });
-  }
+  conclusaoPrevidenciaria(d, dados, { tituloQuadro: 'Síntese do enquadramento por período' });
   d.h2('6.2', 'Parecer técnico');
-  d.redigir(`conclusão: ${seg} exerceu suas atividades na ${emp}, nos períodos de ..., em condições que CARACTERIZAM / NÃO CARACTERIZAM exposição habitual e permanente, não ocasional nem intermitente, a agentes nocivos (código GFIP 04 quando especial).`);
+  d.texto(`Nos períodos que caracterizam exposição habitual e permanente, não ocasional nem intermitente, a agentes nocivos, o PPP deve informar o código GFIP 04; nos demais, o código aplicável à ausência de exposição.`);
   d.h1('7', 'Recomendações');
   d.texto('Em atendimento ao art. 58, § 2º, da Lei nº 8.213/1991, recomendam-se as medidas abaixo, na ordem de prioridade da NR-1. As recomendações não alteram o enquadramento dos períodos avaliados.');
   d.redigir('quadro de recomendações por agente.');
@@ -406,7 +400,7 @@ export async function parecerPrevidenciario(caseId) {
     d.texto(r.data.atividades || '[[atividades do vínculo]]');
   });
   if (!dados.periodos.length) d.redigir('cadastre os vínculos na aba Preparação.');
-  profissiografia(d, dados.postos, dados);
+  profissiografia(d, dados.postos, dados, { numero: `6.${dados.periodos.length + 1}` });
   d.h1('7', 'Avaliação técnica');
   const n7 = avaliacaoAgentes(d, dados, '7', { previdenciario: true });
   memoriasParadigmas(d, dados);
@@ -414,10 +408,7 @@ export async function parecerPrevidenciario(caseId) {
   d.h2('', 'EPI e EPC');
   quadroEpis(d, dados.epis);
   d.h1('8', 'Quadro conclusivo');
-  if (!usaParadigmas(dados)) quadroConfrontoRuido(d, dados);
-  d.quadro('Quadro conclusivo por vínculo', [['Vínculo', 'Período', 'Agente(s)', 'Conclusão'],
-    ...dados.periodos.map((r, i) => [`V${i + 1} – ${r.data.empresa || ''}`, `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`, r.data.agentes || '[[agentes]]', '[[especial / comum]]'])],
-  { larguras: [0.3, 0.24, 0.26, 0.2] });
+  conclusaoPrevidenciaria(d, dados, { tituloQuadro: 'Quadro conclusivo por vínculo e período' });
   d.h1('9', 'Limitações e ressalvas');
   d.redigir('limitações (similaridade, informações do requerente, documentos não apresentados).');
   d.h1('10', 'Termo de encerramento');

@@ -43,3 +43,34 @@ describe('horários da diligência pelas medições e fotos', () => {
     expect(m).toEqual({ vistoriaData: '2025-02-20', vistoriaFim: '15:02', vistoriaGps: '-23.31, -51.16 (GPS das fotos)' });
   });
 });
+
+describe('dados repetidos por extrações seguidas', () => {
+  it('documentos ignoram repetidos e a limpeza os move para a lixeira', async () => {
+    const { createRecord } = await import('../src/db.js');
+    const { carregar, postosDoPeriodo } = await import('../src/docx/base.js');
+    const { limparDuplicados } = await import('../src/aiimport.js');
+    const caso = await createRecord('caso', null, { materia: 'Previdenciária' });
+    const per = { empresa: 'Transproença Transportes Ltda', inicio: '2003-09-01', fim: '2008-04-15', cargo: 'Motorista' };
+    await createRecord('periodo', caso.id, per);
+    await createRecord('periodo', caso.id, { ...per, atividades: 'cargas secas' });
+    await createRecord('periodo', caso.id, { empresa: 'Costa Teixeira Ltda', inicio: '1999-11-04', fim: '2000-01-20' });
+    const p1 = await createRecord('posto', caso.id, { nome: 'Scania 113 – paradigma Transproença', infoTrabalhador: 'Pernoite no veículo.' });
+    const p2 = await createRecord('posto', caso.id, { nome: 'Scania 113 H – paradigma Transproença', descricao: 'sem ar-condicionado' });
+    await createRecord('posto', caso.id, { nome: 'Volvo NH 380 – paradigma Costa Teixeira' });
+    await createRecord('medicao', caso.id, { agente: 'Ruído', lavg: '87,05', postoId: p1.id, dataMedicao: '2025-11-21', horaInicio: '10:55' });
+    await createRecord('medicao', caso.id, { agente: 'Ruído', lavg: '87,05', postoId: p2.id, dataMedicao: '2025-11-21', horaInicio: '10:55' });
+    const d = await carregar(caso.id);
+    expect(d.periodos.length).toBe(2);
+    expect(d.periodos[0].data.empresa).toMatch(/Costa/); // ordem cronológica
+    expect(d.periodos[1].data.atividades).toBe('cargas secas'); // completou com o repetido
+    expect(d.medicoes.length).toBe(1);
+    const scania = d.postos.filter((p) => /Scania/.test(p.data.nome));
+    expect(scania.length).toBe(1);
+    expect(scania[0].data.infoTrabalhador).toBe('Pernoite no veículo.'); // dados do repetido aproveitados
+    expect(d.postos[0].data.nome).toMatch(/Volvo/); // posto do vínculo mais antigo primeiro
+    expect(postosDoPeriodo(d.periodos[1], d).map((p) => p.id)).toEqual([scania[0].id]);
+    expect(await limparDuplicados(caso.id)).toEqual({ periodos: 1, medicoes: 1, postos: 1 });
+    await limparDuplicados(caso.id, { aplicar: true });
+    expect(await limparDuplicados(caso.id)).toEqual({ periodos: 0, medicoes: 0, postos: 0 });
+  });
+});

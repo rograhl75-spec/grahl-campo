@@ -33,10 +33,60 @@ export async function carregar(caseId) {
   const cfgPar = await db.records.get('cfg-paradigmas');
   const perfilRec = await db.records.get(PERFIL_ID);
   const perfil = { ...PERFIL_PADRAO, ...(perfilRec ? perfilRec.data : {}) };
-  periodos.sort((a, b) => String(a.data.inicio || '').localeCompare(String(b.data.inicio || '')));
-  return { id: caseId, c: caso.data, quesitos, periodos, documentos, epis, postos, medicoes, fotos, equipamentos, perfil, paradigmas,
+  // duplicados de extrações repetidas não entram nos documentos
+  const pers = unicos(periodos, (x) => [normTxt(x.empresa).slice(0, 30), x.inicio, x.fim]);
+  pers.sort((a, b) => String(a.data.inicio || '').localeCompare(String(b.data.inicio || '')));
+  // medição repetida: fica a mais recente (a última extração costuma ser a mais completa)
+  const meds = unicos(medicoes, (x) => [x.agente, x.lavg, x.dose, x.aren, x.vdv, x.tbn, x.valor, x.dataMedicao, x.horaInicio], true);
+  const comMed = new Set(meds.map((m) => m.data.postoId));
+  // posto sem medição que repete o veículo/posto de outro com medição = duplicado
+  const chaveP = (x) => normTxt(x.nome).split(' ').slice(0, 2).join(' ');
+  const psts = postos.filter((ps) => comMed.has(ps.id) || !postos.some((o) => o !== ps && comMed.has(o.id) && chaveP(o.data) === chaveP(ps.data)))
+    .map((ps) => ({ ...ps, data: { ...ps.data } }));
+  for (const ps of psts) { // completa o posto mantido com o que só o repetido tinha
+    for (const o of postos) if (!psts.some((k) => k.id === o.id) && chaveP(o.data) === chaveP(ps.data)) {
+      for (const [c, val] of Object.entries(o.data)) if (!v(ps.data[c]) && v(val)) ps.data[c] = val;
+    }
+  }
+  const dados = { id: caseId, c: caso.data, quesitos, periodos: pers, documentos, epis, postos: psts, medicoes: meds, fotos, equipamentos, perfil, paradigmas,
     regraCertMeses: Number((cfgPar && cfgPar.data.regraCertMeses) || 24) };
+  // ordem cronológica: cada posto/veículo vai para a posição do primeiro vínculo que representa
+  const ordemP = new Map(psts.map((ps) => [ps.id, (periodosDoPosto(ps, dados)[0] || {}).data?.inicio || '9999']));
+  psts.sort((a, b) => ordemP.get(a.id).localeCompare(ordemP.get(b.id)) || (a.data.ordem ?? a.createdAt) - (b.data.ordem ?? b.createdAt));
+  const posP = new Map(psts.map((ps, i) => [ps.id, i]));
+  meds.sort((a, b) => (posP.get(a.data.postoId) ?? 99) - (posP.get(b.data.postoId) ?? 99) || String(a.data.dataMedicao || '').localeCompare(String(b.data.dataMedicao || '')));
+  return dados;
 }
+
+export const normTxt = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+
+// mantém o primeiro de cada grupo, completando os campos vazios com os dos repetidos
+function unicos(lista, chave, maisRecente = false) {
+  const mapa = new Map();
+  for (const r of [...lista].sort((a, b) => (maisRecente ? -1 : 1) * (a.createdAt - b.createdAt))) {
+    const k = JSON.stringify(chave(r.data).map((x) => String(x ?? '').trim()));
+    const ja = mapa.get(k);
+    if (!ja) { mapa.set(k, { ...r, data: { ...r.data } }); continue; }
+    for (const [c, val] of Object.entries(r.data)) if (!v(ja.data[c]) && v(val)) ja.data[c] = val;
+  }
+  return [...mapa.values()];
+}
+
+// Vínculos que um posto/veículo representa: pelo nome da empresa ou pelas datas citadas no posto
+export function periodosDoPosto(ps, dados) {
+  const txt = normTxt(`${ps.data.nome} ${ps.data.descricao || ''} ${ps.data.infoEmpresa || ''}`);
+  const datas = (`${ps.data.nome} ${ps.data.descricao || ''}`.match(/\d{4}-\d{2}-\d{2}/g) || []);
+  return dados.periodos.filter((r) => {
+    const palavras = normTxt(r.data.empresa).split(' ').filter((w) => w.length >= 5 && !['transportes', 'transporte', 'industria', 'comercio', 'rodoviarios', 'papeis', 'ltda'].includes(w));
+    if (palavras.length && txt.includes(palavras[0])) return true;
+    return datas.some((d) => d >= (r.data.inicio || '') && d <= (r.data.fim || '9999'));
+  });
+}
+export function postosDoPeriodo(r, dados) {
+  return dados.postos.filter((ps) => periodosDoPosto(ps, dados).includes(r));
+}
+export const nomeCurto = (nome) => String(nome || 'Posto').split(/\s+[–-]\s+(?=paradigma|zona|aplicado)/i)[0].trim();
+
 
 export const PERFIL_PADRAO = {
   nome: 'ROGÉRIO GRAHL',
@@ -271,17 +321,23 @@ export function quadroConfrontoRuido(d, dados) {
   // vínculos com paradigma de ruído saem na memória de cálculo dos paradigmas
   const subs = subperiodosRuido(dados.periodos.filter((r) => !r.data.paradigmaRuido));
   if (!subs.length) return d;
-  const ref = ruido[0];
-  const lavg = ref ? num(ref.data.lavg) : NaN;
-  const nen = ref ? nenQ5(ref.data.lavg, ref.data.jornada) : NaN;
-  return d.quadro('Confronto do ruído com o limite de cada período', [['Vínculo / subperíodo', 'Critério', 'Valor', 'Limite', 'Resultado'],
+  const nomeP = nomePostoFn(dados.postos);
+  let semVinculo = false;
+  const refDo = (r) => {
+    const ids = new Set(postosDoPeriodo(r, dados).map((ps) => ps.id));
+    const m = ruido.find((x) => ids.has(x.data.postoId));
+    if (!m && ruido.length) semVinculo = true;
+    return m || ruido[0];
+  };
+  return d.quadro('Confronto do ruído com o limite de cada período', [['Vínculo / subperíodo', 'Medição representativa', 'Critério', 'Valor', 'Limite', 'Resultado'],
     ...subs.map((s) => {
-      const val = s.janela.crit === 'Lavg' ? lavg : nen;
+      const ref = refDo(s.periodo);
+      const val = !ref ? NaN : s.janela.crit === 'Lavg' ? num(ref.data.lavg) : nenQ5(ref.data.lavg, s.periodo.data.conducaoH ? `${s.periodo.data.conducaoH}h` : ref.data.jornada);
       const res = isFinite(val) ? (Math.round(val * 10) / 10 > s.janela.lim ? 'Supera' : 'Não supera') : '[[medir]]';
-      return [`${s.periodo.data.empresa || ''}\n${dataBR(s.ini)} a ${dataBR(s.fim)}`, s.janela.crit,
+      return [`${s.periodo.data.empresa || ''}\n${dataBR(s.ini)} a ${dataBR(s.fim)}`, ref ? nomeP(ref.data.postoId) : '—', s.janela.crit,
         isFinite(val) ? `${fmt(val)} dB(A)` : '[[valor]]', `${s.janela.lim} dB(A)`, res];
-    })], { larguras: [0.38, 0.12, 0.17, 0.15, 0.18], alinhar: 'left',
-    fonte: ref ? 'Elaborado pelo autor (valor da medição de referência; conferir se representa cada período).' : 'Elaborado pelo autor.' });
+    })], { larguras: [0.3, 0.22, 0.1, 0.13, 0.11, 0.14],
+    fonte: `Elaborado pelo autor. Cada vínculo usa a medição do veículo/posto que o representa${semVinculo ? ' [[há vínculo sem posto vinculado: conferir a medição usada]]' : ''}; NEN calculado para o tempo diário de condução do vínculo, quando informado.` });
 }
 
 // ---------- medições por agente ----------
@@ -310,6 +366,23 @@ export function quadroMedicoesRuido(d, ms, eq, nomePosto, ctx = {}) {
 
 export function quadroMedicoesGenerico(d, titulo, ms, nomePosto, ctx = {}) {
   if (!ms.length) return d;
+  const quando = (x) => [x.dataMedicao && dataBR(x.dataMedicao), x.horaInicio && `${x.horaInicio}${x.horaFim ? `–${x.horaFim}` : ''}`].filter(Boolean).join('\n');
+  if (/corpo inteiro/i.test(ms[0].data.agente || '')) {
+    return d.quadro(titulo, [['Posto / veículo', 'Data e horário', 'aren (m/s²)', 'VDVR (m/s^1,75)', 'Eixo', 'T diária', 'Observações'],
+      ...ms.map((m) => { const x = m.data; return [nomePosto(x.postoId), quando(x), x.aren || '', x.vdv || '', x.eixo || '', x.tempoExposicao || '', [x.condicaoVia, x.obs].filter(Boolean).join('\n')]; })],
+    { larguras: [0.2, 0.14, 0.1, 0.11, 0.08, 0.1, 0.27], tam: 9 });
+  }
+  if (/mãos e braços/i.test(ms[0].data.agente || '')) {
+    return d.quadro(titulo, [['Posto / ferramenta', 'Data e horário', 'aren (m/s²)', 'T diária', 'Observações'],
+      ...ms.map((m) => { const x = m.data; return [[nomePosto(x.postoId), x.ferramenta].filter(Boolean).join('\n'), quando(x), x.aren || '', x.tempoExposicao || '', x.obs || '']; })],
+    { larguras: [0.25, 0.14, 0.12, 0.14, 0.35], tam: 9 });
+  }
+  if (/calor/i.test(ms[0].data.agente || '')) {
+    return d.quadro(titulo, [['Posto', 'Data e horário', 'tbn (°C)', 'tbs (°C)', 'tg (°C)', 'IBUTG (°C)', 'Atividade / regime'],
+      ...ms.map((m) => { const x = m.data; const c = calculados(m, ctx); const ib = (c.find(([r]) => /IBUTG/i.test(r)) || [])[1] || x.ibutgLido || '';
+        return [nomePosto(x.postoId), quando(x), x.tbn || '', x.tbs || '', x.tg || '', ib, [x.atividade, x.regime, x.obs].filter(Boolean).join('\n')]; })],
+    { larguras: [0.2, 0.14, 0.08, 0.08, 0.08, 0.1, 0.32], tam: 9 });
+  }
   return d.quadro(titulo, [['Posto / atividade', 'Resultados'],
     ...ms.map((m) => [nomePosto(m.data.postoId), [resumoMedicao(m, ctx), m.data.obs].filter(Boolean).join('\n')])],
   { larguras: [0.3, 0.7], alinhar: 'left', tam: 9.5 });
@@ -360,20 +433,25 @@ export function medicoesPorAgente(dados) {
 }
 
 export function nomePostoFn(postos) {
-  const mp = new Map(postos.map((p) => [p.id, p.data.nome]));
+  const mp = new Map(postos.map((p) => [p.id, nomeCurto(p.data.nome)]));
   return (id) => mp.get(id) || 'Geral';
 }
 
-export function profissiografia(d, postos) {
+export function profissiografia(d, postos, dados) {
   if (!postos.length) return d.redigir('descrição do ambiente e das atividades observadas (cadastrar os postos na aba Campo).');
-  postos.forEach((ps) => {
+  postos.forEach((ps, i) => {
     const x = ps.data;
-    d.h3(x.nome || 'Posto / atividade');
-    if (x.descricao) d.texto(x.descricao);
-    const linhas = [['Informações do trabalhador', x.infoTrabalhador], ['Informações da empresa / acompanhante', x.infoEmpresa],
+    const vincs = dados ? periodosDoPosto(ps, dados) : [];
+    const meds = dados ? dados.medicoes.filter((m) => m.data.postoId === ps.id) : [];
+    const quando = meds.map((m) => [m.data.dataMedicao && dataBR(m.data.dataMedicao), m.data.horaInicio && `${m.data.horaInicio}${m.data.horaFim ? `–${m.data.horaFim}` : ''}`].filter(Boolean).join(', ')).filter(Boolean);
+    d.h3(`${i + 1}. ${nomeCurto(x.nome)}`);
+    const linhas = [['Posto / veículo avaliado', x.nome], ['Descrição', x.descricao],
+      ['Vínculo(s) representado(s)', vincs.map((r) => `${r.data.empresa || ''} (${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'})`).join('\n')],
+      ['Medições (data e horário)', [...new Set(quando)].join('\n')],
+      ['Informações do trabalhador', x.infoTrabalhador], ['Informações da empresa / acompanhante', x.infoEmpresa],
       ['Agentes identificados', x.agentes], ['Fontes geradoras e localização', x.fontes], ['Via e periodicidade da exposição', x.viaPeriodicidade],
       ['Jornada / exposição', x.jornada], ['EPC', x.epc], ['EPI observado', x.epi]].filter(([, t]) => v(t));
-    if (linhas.length) d.quadro(`Registro do posto – ${x.nome || 'posto'}`, [['Item', 'Registro'], ...linhas], { larguras: [0.3, 0.7], alinhar: 'left', fonte: 'Vistoria e informações colhidas na diligência.' });
+    if (linhas.length) d.quadro(`Registro da vistoria – ${nomeCurto(x.nome)}`, [['Item', 'Registro'], ...linhas], { larguras: [0.27, 0.73], fonte: 'Vistoria e informações colhidas na diligência.' });
   });
   return d;
 }

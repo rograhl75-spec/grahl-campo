@@ -154,7 +154,7 @@ export async function laudoPericial(caseId) {
   d.texto(c.funcoes || '');
   d.texto(c.atividadesAlegadas || '');
   d.h2('3.2', 'Ambiente e atividades constatados na diligência');
-  profissiografia(d, dados.postos);
+  profissiografia(d, dados.postos, dados);
 
   d.h1('4', 'Equipamentos de proteção coletiva (EPC) e individual (EPI)');
   d.h2('4.1', 'Medidas de proteção coletiva');
@@ -229,7 +229,7 @@ export async function laudoPrevidenciario(caseId) {
     d.h2(`4.${i + 1}`, `${r.data.empresa || 'Empresa'} – ${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`);
     d.texto(r.data.atividades || '[[atividades do período]]');
   });
-  profissiografia(d, dados.postos);
+  profissiografia(d, dados.postos, dados);
 
   d.h1('5', 'Avaliação dos agentes nocivos');
   const n5 = avaliacaoAgentes(d, dados, '5', { previdenciario: true });
@@ -320,7 +320,7 @@ export async function ltcatPpp(caseId) {
   registroJurisprudencia(d, dados, { numero: '3.3', nivel: 'h2', prev: true, tipo: 'ltcat' });
 
   d.h1('4', 'Ambiente de trabalho e profissiografia');
-  profissiografia(d, dados.postos);
+  profissiografia(d, dados.postos, dados);
   const { lista, faltando } = await figurasDoCaso(dados);
   if (lista.length) { d.h2('4.3', 'Registro fotográfico'); d.figuras(lista); }
 
@@ -406,7 +406,7 @@ export async function parecerPrevidenciario(caseId) {
     d.texto(r.data.atividades || '[[atividades do vínculo]]');
   });
   if (!dados.periodos.length) d.redigir('cadastre os vínculos na aba Preparação.');
-  profissiografia(d, dados.postos);
+  profissiografia(d, dados.postos, dados);
   d.h1('7', 'Avaliação técnica');
   const n7 = avaliacaoAgentes(d, dados, '7', { previdenciario: true });
   memoriasParadigmas(d, dados);
@@ -456,7 +456,7 @@ export async function parecerAssistente(caseId) {
   }
   d.h1(String(n + 1), 'Elementos registrados na diligência');
   quadroDiligencia(d, c, 'Diligência acompanhada');
-  profissiografia(d, dados.postos);
+  profissiografia(d, dados.postos, dados);
   const g = medicoesPorAgente(dados);
   const nome = nomePostoFn(dados.postos);
   if (g['Ruído']) quadroMedicoesRuido(d, g['Ruído'], eqMap(dados), nome, { prev: pt.prev });
@@ -499,7 +499,7 @@ export async function parecerPreventivo(caseId) {
   d.redigir(comJurisprudencia(dados) ? 'normas aplicáveis ao agente discutido.' : 'normas aplicáveis ao agente discutido (sem súmulas ou jurisprudência, conforme a opção do caso).');
   registroJurisprudencia(d, dados, { numero: '4.1', nivel: 'h2', prev: pt.prev });
   d.h1('5', 'Instalações e atividades');
-  profissiografia(d, dados.postos);
+  profissiografia(d, dados.postos, dados);
   d.h1('6', 'Análise crítica dos documentos de SST');
   quadroEpis(d, dados.epis);
   if (c.analiseEpi) d.texto(c.analiseEpi);

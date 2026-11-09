@@ -1,7 +1,7 @@
 import { useState } from 'preact/hooks';
 import { db } from '../db.js';
 import { CAMPOS_SINTESE, CAMPOS_PERIODO, CAMPOS_DOC, CAMPOS_EPI } from '../schema.js';
-import { SITUACOES, situacaoDoCaso, montarPrompt, lerJsonIA, aplicarIA } from '../aiimport.js';
+import { SITUACOES, situacaoDoCaso, montarPrompt, lerJsonIA, aplicarIA, limparDuplicados } from '../aiimport.js';
 import { avisarAlteracao } from '../sync.js';
 import { dataBR } from '../docx/reports.js';
 import { TF, salvar } from './fields.jsx';
@@ -23,6 +23,7 @@ export function Preparacao({ rec }) {
       <ArquivoDoProcesso rec={rec} />
       <ImportarIA rec={rec} abertoInicial={vazio} />
       <h2 class="largo subtitulo-etapa">Conferência dos dados extraídos</h2>
+      <Duplicados rec={rec} />
       <section class="bloco largo">
         <h3>Síntese dos autos</h3>
         {sintese.map(([k, label]) => <TF rec={rec} k={k} label={label} area />)}
@@ -202,6 +203,27 @@ function VeiculoDoPeriodo({ r }) {
         <p class="dica">Fatores concretos de desgaste, vínculo a vínculo. Até 28/04/1995 basta a categoria profissional; depois, a penosidade depende de perícia técnica individualizada. Os dados saem no quadro de penosidade do laudo, do parecer e do LTCAT.</p>
         <div class="linha2"><Campos rec={r} campos={CAMPOS_PENOSIDADE} /></div>
       </details>
+    </div>
+  );
+}
+
+function Duplicados({ rec }) {
+  const [res, setRes] = useState(null);
+  const [msg, setMsg] = useState('');
+  const n = res ? res.periodos + res.medicoes + res.postos : 0;
+  const procurar = async () => { setMsg(''); setRes(await limparDuplicados(rec.id)); };
+  const remover = async () => {
+    const r = await limparDuplicados(rec.id, { aplicar: true });
+    avisarAlteracao();
+    setRes(null);
+    setMsg(`✓ Para a lixeira: ${r.periodos} período(s), ${r.medicoes} medição(ões) e ${r.postos} posto(s) repetidos. O que só os repetidos tinham foi copiado para os mantidos.`);
+  };
+  return (
+    <div class="largo linha-botoes">
+      <button type="button" class="sec" onClick={procurar}>Procurar dados repetidos</button>
+      {res && (n ? <><span>{res.periodos} período(s), {res.medicoes} medição(ões) e {res.postos} posto(s) repetidos.</span>
+        <button type="button" class="primario" onClick={remover}>Remover os repetidos</button></> : <span>Nenhum dado repetido.</span>)}
+      {msg && <span class="ok-msg">{msg}</span>}
     </div>
   );
 }

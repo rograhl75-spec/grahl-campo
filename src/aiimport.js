@@ -211,13 +211,19 @@ export async function aplicarIA(caseId, dados, { substituir = false } = {}) {
   for (const [lista, kind] of Object.entries(kinds)) {
     if (!dados[lista].length) continue;
     const existentes = await caseChildren(caseId, kind);
-    const ks = Object.keys(dados[lista][0]);
-    const chave = (d) => JSON.stringify(ks.map((k) => String(d[k] ?? '').toLowerCase().replace(/\s+/g, ' ').trim()));
-    const vistos = new Set(existentes.map((r) => chave(r.data)));
+    // identidade pelos campos essenciais; o que vier a mais completa o registro existente
+    const KS = { periodos: ['empresa', 'inicio', 'fim'], documentos: ['tipo', 'identificacao'], epis: ['descricao', 'ca', 'dataEntrega'] }[lista];
+    const chave = (d) => JSON.stringify(KS.map((k) => (k === 'empresa' ? normTxt(d[k]).slice(0, 30) : String(d[k] ?? '').toLowerCase().replace(/\s+/g, ' ').trim())));
+    const vistos = new Map(existentes.map((r) => [chave(r.data), r]));
     let ordem = existentes.length;
     for (const item of dados[lista]) {
-      if (vistos.has(chave(item))) continue;
-      vistos.add(chave(item));
+      const ja = vistos.get(chave(item));
+      if (ja) {
+        const novos = Object.fromEntries(Object.entries(item).filter(([k, val]) => String(val ?? '').trim() && !String(ja.data[k] ?? '').trim()));
+        if (Object.keys(novos).length) await updateFields(ja.id, novos);
+        continue;
+      }
+      vistos.set(chave(item), { data: item });
       ordem += 1;
       await createRecord(kind, caseId, { ...item, ordem });
       cont[lista] += 1;
@@ -471,4 +477,48 @@ export async function aplicarSuplementares(caseId, dados, { substituir = false }
     if (q.resposta) cont.respostas += 1;
   }
   return cont;
+}
+
+// Remove (para a lixeira) vínculos, medições e postos repetidos por extrações seguidas,
+// completando o registro mantido com o que só o repetido tinha.
+export async function limparDuplicados(caseId, { aplicar = false } = {}) {
+  const { softDelete } = await import('./db.js');
+  const nt = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+  const vz = (x) => !String(x ?? '').trim();
+  const res = { periodos: 0, medicoes: 0, postos: 0 };
+  const grupo = async (lista, chave, maisRecente, rot) => {
+    const mapa = new Map();
+    const ord = [...lista].sort((a, b) => (maisRecente ? -1 : 1) * (a.createdAt - b.createdAt));
+    for (const r of ord) {
+      const k = JSON.stringify(chave(r.data));
+      const ja = mapa.get(k);
+      if (!ja) { mapa.set(k, r); continue; }
+      res[rot] += 1;
+      if (aplicar) {
+        const novos = Object.fromEntries(Object.entries(r.data).filter(([c, val]) => !vz(val) && vz(ja.data[c]) && c !== 'postoId'));
+        if (Object.keys(novos).length) { await updateFields(ja.id, novos); Object.assign(ja.data, novos); }
+        await softDelete(r.id);
+      }
+    }
+    return [...mapa.values()];
+  };
+  await grupo(await caseChildren(caseId, 'periodo'), (x) => [nt(x.empresa).slice(0, 30), x.inicio || '', x.fim || ''], false, 'periodos');
+  const meds = await grupo(await caseChildren(caseId, 'medicao'), (x) => [x.agente, x.lavg, x.dose, x.aren, x.vdv, x.tbn, x.valor, x.dataMedicao, x.horaInicio].map((v) => String(v ?? '')), true, 'medicoes');
+  const comMed = new Set(meds.map((m) => m.data.postoId));
+  const postos = await caseChildren(caseId, 'posto');
+  const chaveP = (x) => nt(x.nome).split(' ').slice(0, 2).join(' ');
+  for (const ps of postos) {
+    if (comMed.has(ps.id)) continue;
+    const irmao = postos.find((o) => o !== ps && comMed.has(o.id) && chaveP(o.data) === chaveP(ps.data));
+    if (!irmao) continue;
+    res.postos += 1;
+    if (aplicar) {
+      const novos = Object.fromEntries(Object.entries(ps.data).filter(([c, val]) => !vz(val) && vz(irmao.data[c]) && c !== 'ordem'));
+      if (Object.keys(novos).length) await updateFields(irmao.id, novos);
+      // fotos do posto repetido passam para o posto mantido
+      for (const f of (await caseChildren(caseId, 'foto')).filter((f) => f.data.postoId === ps.id)) await updateFields(f.id, { postoId: irmao.id });
+      await softDelete(ps.id);
+    }
+  }
+  return res;
 }

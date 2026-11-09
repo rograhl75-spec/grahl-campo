@@ -4,7 +4,7 @@
 // - depois da Lei 9.032/1995: STJ, Tema 1307 – penosidade reconhecível se comprovada, por perícia
 //   técnica individualizada, a exposição habitual e permanente a condições concretas de desgaste à saúde.
 // O documento apresenta a avaliação técnica dos fatores de desgaste; o enquadramento é do Juízo.
-import { dataBR } from './base.js';
+import { dataBR, postosDoPeriodo, nomeCurto } from './base.js';
 import { comJurisprudencia } from './fontes.js';
 import { nenParaJornada, arenParaJornada, num } from '../paradigmas.js';
 
@@ -37,6 +37,32 @@ function agentesFisicos(r, dados) {
   return out.join('; ');
 }
 
+// Informações já coletadas na diligência e nos autos, por vínculo (o que foi digitado no vínculo prevalece)
+function frases(t) {
+  return String(t || '').split(/(?<=[.;])\s+|\n+/).map((f) => f.trim().replace(/[.;]$/, '')).filter(Boolean);
+}
+function coletado(r, dados) {
+  const ps = postosDoPeriodo(r, dados);
+  const fontesTxt = [r.data.atividades, ...ps.flatMap((p) => [p.data.infoTrabalhador, p.data.jornada, p.data.descricao, p.data.epc])];
+  const pool = fontesTxt.flatMap(frases);
+  const pega = (re, max = 3) => [...new Set(pool.filter((f) => re.test(f)))].slice(0, max).join('; ');
+  const out = {};
+  const put = (k, val) => { if (!v(r.data[k]) && v(val)) out[k] = val; };
+  put('tipoTransporte', pega(/transport|bobina|carga|celulose|gr[ãa]os|min[ée]rio|mdf|passageir/i, 2));
+  put('jornadaSemanal', pega(/h\/dia|horas|jornada|hora extra/i, 2));
+  put('noturnoPernoite', pega(/pernoit|noturn|madrugada|dormia|viagens? de .* dias/i, 2));
+  put('cargaDescarga', pega(/descarg|carga e descarga|enlon|amarra|lona|troca de pneu/i, 3));
+  put('vias', pega(/rodovi|destinos?|rotas?|estrada|asfalt|interestad|intermunic/i, 3));
+  put('cabine', pega(/cabine|ar-condicionado|ar condicionado|assento|c[âa]mbio|suspens/i, 3));
+  put('riscoAcidente', pega(/acidente|assalt|roubo|perigos/i, 2));
+  if (!v(r.data.conducaoH)) {
+    const h = pool.join(' ').match(/(\d{1,2})\s*h\/dia/i);
+    if (h) { out.conducaoH = h[1]; out.conducaoBase = out.conducaoBase || 'informado pelo autor na diligência'; }
+  }
+  if (ps.length) out.veiculosAvaliados = ps.map((p) => nomeCurto(p.data.nome)).join('; ');
+  return out;
+}
+
 // numero/nivel: posição do item no documento; tipo: 'laudo' | 'parecer' | 'ltcat'
 export function secaoPenosidade(d, dados, { numero = '', nivel = 'h2', tipo = 'laudo' } = {}) {
   if (!avaliaPenosidade(dados)) return false;
@@ -61,10 +87,10 @@ export function secaoPenosidade(d, dados, { numero = '', nivel = 'h2', tipo = 'l
   }
   const linha = (rot, val, fonte) => [rot, v(val) || '[[preencher]]', fonte];
   for (const r of vs) {
-    const x = r.data;
+    const x = { ...r.data, ...coletado(r, dados) };
     const veic = [x.veiculoTipo, x.veiculoMarca, x.veiculoModelo, x.veiculoAno].filter(Boolean).join(' ');
     d.quadro(`Fatores de penosidade – ${nome(r, dados)} (${periodo(r)})`, [['Fator', 'Condição apurada', 'Fonte / parâmetro'],
-      linha('Veículo e tipo de transporte', [veic, x.tipoTransporte].filter(Boolean).join(' – '), 'CTPS, entrevista, paradigma'),
+      linha('Veículo e tipo de transporte', [veic || x.veiculosAvaliados, x.tipoTransporte].filter(Boolean).join(' – '), 'CTPS, PPP, entrevista, veículo avaliado'),
       linha('Tempo diário de condução', x.conducaoH && `${String(x.conducaoH).replace('.', ',')} h – ${x.conducaoBase || 'base a informar'}`, 'CLT, art. 235-C (jornada de 8 h + até 2 h extras, ou 4 h por convenção)'),
       linha('Jornada semanal e horas extras habituais', x.jornadaSemanal, 'Registros de jornada, tacógrafo, rastreador'),
       linha('Direção contínua sem pausa e descansos', x.pausas, 'CTB, art. 67-C (tempo máximo de direção contínua e descansos)'),
@@ -76,7 +102,7 @@ export function secaoPenosidade(d, dados, { numero = '', nivel = 'h2', tipo = 'l
       linha('Risco de acidentes e de violência (carga perigosa, roubo)', x.riscoAcidente, 'Tipo de carga, rotas, ocorrências'),
       linha('Pressão de prazos, metas e remuneração por produção', x.pressao, 'Contrato, entrevista'),
       ['Conclusão técnica do vínculo', x.penosidadeConclusao ? x.penosidadeConclusao : '[[Há / não há exposição habitual e permanente a condições concretas de desgaste à saúde – fundamentar]]', 'Perícia individualizada']],
-    { larguras: [0.3, 0.42, 0.28], tam: 8.5, alinhar: 'left', fonte: 'Elaborado pelo autor com base na diligência, na entrevista e nos documentos dos autos.' });
+    { larguras: [0.27, 0.45, 0.28], tam: 9, fonte: 'Elaborado pelo autor com base na diligência, na entrevista e nos documentos dos autos (PPP e descrição das atividades).' });
   }
   d.quadro('Síntese da penosidade por vínculo', [['Vínculo', 'Período', 'Até 28/04/1995', 'A partir de 29/04/1995'],
     ...vs.map((r) => {

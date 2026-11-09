@@ -833,7 +833,7 @@ export async function respostaQuesitosSuplementares(caseId) {
   }
   if (v(c.esclObservacoes)) {
     n += 1;
-    d.h1(`${n}.`, 'Considerações adicionais', { novaPagina: false });
+    d.h1(`${n}.`, 'Esclarecimentos complementares', { novaPagina: false });
     d.texto(c.esclObservacoes);
   }
   n += 1;

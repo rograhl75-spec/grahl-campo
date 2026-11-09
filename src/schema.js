@@ -132,7 +132,7 @@ export const CAMPOS_ESCLARECIMENTOS = [
   ['prazoEsclarecimentos', 'Prazo para responder', 'date'],
   ['esclRetificacoes', 'Retificações de erro material no laudo (uma por linha, ex.: "Resposta ao quesito 1 do INSS: onde se lê 11h00 às 13h00, leia-se 09h00 às 10h30")', 'area'],
   ['esclRatifica', 'Os esclarecimentos mantêm as conclusões do laudo?', 'select', ['Sim', 'Não']],
-  ['esclObservacoes', 'Considerações adicionais (saem antes da conclusão; em branco = não sai)', 'area'],
+  ['esclObservacoes', 'Esclarecimentos complementares, ex.: pontos levantados pelo Juízo (saem antes da conclusão; em branco = não sai)', 'area'],
 ];
 
 // Quesito suplementar = formulado depois da apresentação do laudo

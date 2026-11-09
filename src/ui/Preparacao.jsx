@@ -9,6 +9,7 @@ import { RecordList } from './RecordList.jsx';
 import { useLive } from './hooks.js';
 import { Campos } from './fields.jsx';
 import { sugerirParadigmas } from '../paradigmas.js';
+import { CAMPOS_PENOSIDADE } from '../docx/penosidade.js';
 import { ResultadoBusca } from './Paradigmas.jsx';
 import { updateFields, softDelete } from '../db.js';
 import { guardarAnexo, LIMITE_NUVEM } from '../paradigmas.js';
@@ -189,13 +190,18 @@ function VeiculoDoPeriodo({ r }) {
     await updateFields(r.id, tipo === 'ruido' ? { paradigmaRuido: p.data.codigo } : { paradigmaVibracao: p.data.codigo });
     avisarAlteracao();
   };
-  if (!aberto) return <button type="button" class="mini" onClick={() => setAberto(true)}>🚚 Veículo e paradigma (motorista / operador)</button>;
+  if (!aberto) return <button type="button" class="mini" onClick={() => setAberto(true)}>🚚 Veículo, paradigma e penosidade (motorista / operador)</button>;
   return (
     <div class="bloco destaque" style="margin-top:8px">
       <h4>Veículo do requerente neste período</h4>
       <div class="linha2"><Campos rec={r} campos={CAMPOS_VEICULO_PERIODO} /></div>
       <button type="button" onClick={buscar}>Sugerir paradigmas pelo banco</button>
       {res && <ResultadoBusca res={res} onEscolher={escolher} />}
+      <details style="margin-top:10px" open={!!(r.data.jornadaSemanal || r.data.penosidadeConclusao)}>
+        <summary><b>Penosidade (motorista / cobrador – a partir de 29/04/1995)</b></summary>
+        <p class="dica">Fatores concretos de desgaste, vínculo a vínculo. Até 28/04/1995 basta a categoria profissional; depois, a penosidade depende de perícia técnica individualizada. Os dados saem no quadro de penosidade do laudo, do parecer e do LTCAT.</p>
+        <div class="linha2"><Campos rec={r} campos={CAMPOS_PENOSIDADE} /></div>
+      </details>
     </div>
   );
 }

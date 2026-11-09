@@ -14,6 +14,7 @@ import {
   quadroFormaEnquadramento, quadroRequisitosEpi,
 } from './base.js';
 import { comJurisprudencia, registroJurisprudencia, secaoReferencias } from './fontes.js';
+import { secaoPenosidade } from './penosidade.js';
 import { p, run, rich } from './ooxml.js';
 
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
@@ -24,8 +25,8 @@ function eqMap(dados) { return new Map(dados.equipamentos.map((e) => [e.id, e]))
 // - trabalhista: NR-15 / NR-16 na redação vigente em cada período;
 // - previdenciária: Decretos 53.831/1964, 2.172/1997 e 3.048/1999 e IN 128/2022,
 //   com a NR-15 apenas como referência técnica dos limites, quando o decreto a ela remete.
-function avaliacaoAgentes(d, dados, base, { previdenciario }) {
-  return previdenciario ? avaliacaoPrevidenciaria(d, dados, base) : avaliacaoTrabalhista(d, dados, base);
+function avaliacaoAgentes(d, dados, base, { previdenciario, inicio = 0 }) {
+  return previdenciario ? avaliacaoPrevidenciaria(d, dados, base, inicio) : avaliacaoTrabalhista(d, dados, base);
 }
 
 function avaliacaoTrabalhista(d, dados, base) {
@@ -68,12 +69,12 @@ function avaliacaoTrabalhista(d, dados, base) {
   if (!n) d.redigir('avaliação dos agentes (cadastre as medições na aba Campo).');
 }
 
-function avaliacaoPrevidenciaria(d, dados, base) {
+function avaliacaoPrevidenciaria(d, dados, base, inicio = 0) {
   const ctx = { prev: true };
   const g = medicoesPorAgente(dados);
   const nome = nomePostoFn(dados.postos);
   const eq = eqMap(dados);
-  let n = 0;
+  let n = inicio;
   const sub = (t) => { n += 1; d.h2(`${base}.${n}`, t); };
   if (g['Ruído']) {
     sub('Ruído');
@@ -106,7 +107,8 @@ function avaliacaoPrevidenciaria(d, dados, base) {
     d.texto(`Agentes indicados: ${dados.c.agentesAlegados.replace(/\n+/g, '; ')}`);
     d.redigir('avaliação de cada agente pelo decreto vigente no período. Biológicos: somente o rol de atividades do cód. 3.0.1 do Anexo IV (não se usa o Anexo 14 da NR-15).');
   }
-  if (!n) d.redigir('avaliação dos agentes (cadastre as medições na aba Campo).');
+  if (n === inicio) d.redigir('avaliação dos agentes (cadastre as medições na aba Campo).');
+  return n;
 }
 
 // ======================================================================
@@ -228,8 +230,9 @@ export async function laudoPrevidenciario(caseId) {
   profissiografia(d, dados.postos);
 
   d.h1('5', 'Avaliação dos agentes nocivos');
-  avaliacaoAgentes(d, dados, '5', { previdenciario: true });
+  const n5 = avaliacaoAgentes(d, dados, '5', { previdenciario: true });
   memoriasParadigmas(d, dados);
+  secaoPenosidade(d, dados, { numero: `5.${n5 + 1}`, tipo: 'laudo' });
 
   d.h1('6', 'Medidas de controle');
   d.texto('Considera-se o EPC que elimina ou neutraliza a nocividade (art. 290 da IN 128/2022). O EPI só é considerado em demonstrações ambientais a partir de 03/12/1998, quando elimina ou neutraliza a nocividade, observa a NR-6, consta do PPP e atende, cumulativamente, aos requisitos do art. 291 da IN 128/2022.');
@@ -327,8 +330,9 @@ export async function ltcatPpp(caseId) {
   quadroEpis(d, dados.epis);
   quadroRequisitosEpi(d);
   if (usaParadigmas(dados)) { d.h2('', 'Avaliação por similaridade (paradigmas)'); quadrosParadigmasMetodologia(d, dados); }
-  avaliacaoAgentes(d, { ...dados }, '5', { previdenciario: true });
+  const n5 = avaliacaoAgentes(d, { ...dados }, '5', { previdenciario: true, inicio: 2 });
   memoriasParadigmas(d, dados);
+  secaoPenosidade(d, dados, { numero: `5.${n5 + 1}`, tipo: 'ltcat' });
 
   d.h1('6', 'Conclusão');
   d.h2('6.1', 'Síntese do enquadramento');
@@ -402,8 +406,9 @@ export async function parecerPrevidenciario(caseId) {
   if (!dados.periodos.length) d.redigir('cadastre os vínculos na aba Preparação.');
   profissiografia(d, dados.postos);
   d.h1('7', 'Avaliação técnica');
-  avaliacaoAgentes(d, dados, '7', { previdenciario: true });
+  const n7 = avaliacaoAgentes(d, dados, '7', { previdenciario: true });
   memoriasParadigmas(d, dados);
+  secaoPenosidade(d, dados, { numero: `7.${n7 + 1}`, tipo: 'parecer' });
   d.h2('', 'EPI e EPC');
   quadroEpis(d, dados.epis);
   d.h1('8', 'Quadro conclusivo');

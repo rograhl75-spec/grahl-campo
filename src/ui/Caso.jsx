@@ -1,7 +1,7 @@
 import { db, softDelete } from '../db.js';
 import { avisarAlteracao } from '../sync.js';
 import {
-  TIPO_ATUACAO, JUSTICA, MATERIA, PAPEL, OBJETO, FASE, CAMPOS_PROCESSO, CAMPOS_PARTES, CAMPOS_PRAZOS, CAMPOS_HONORARIOS, tituloCaso,
+  TIPO_ATUACAO, JUSTICA, MATERIA, PAPEL, OBJETO, FASE, CAMPOS_PROCESSO, CAMPOS_PARTES, CAMPOS_PRAZOS, CAMPOS_HONORARIOS, tituloCaso, contextoLegal,
 } from '../schema.js';
 import { useLive, ir } from './hooks.js';
 import { siglaTipo, FASE_COR } from './Casos.jsx';
@@ -110,6 +110,7 @@ function Resumo({ rec }) {
         <Chips rec={rec} k="objeto" label="Objeto da perícia (azul = marcado; toque para marcar ou desmarcar)" opcoes={OBJETO} />
         <Sel rec={rec} k="fase" label="Fase" opcoes={FASE} vazio={false} />
         <Sel rec={rec} k="jurisprudencia" label="Súmulas e jurisprudência nos documentos deste caso" opcoes={['Padrão (Meus dados)', 'Incluir', 'Não incluir']} vazio={false} />
+        {contextoLegal(rec.data).prev && <Sel rec={rec} k="penosidade" label="Avaliação de penosidade (motorista / cobrador)" opcoes={['Automático', 'Sim', 'Não']} vazio={false} />}
         {rec.data.faseLegado && <p class="dica">Fase no app antigo: {rec.data.faseLegado}</p>}
       </section>
       <section class="bloco">

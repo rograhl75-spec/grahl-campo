@@ -341,6 +341,7 @@ export function documentosARequerer(ctx = {}) {
       'avaliações quantitativas dos agentes ambientais, com metodologia, equipamentos e certificados de calibração',
       'fichas de entrega de EPI com os números de CA e comprovantes de troca (para os períodos a partir de 03/12/1998)',
       'Fichas com Dados de Segurança (FDS/FISPQ) dos produtos químicos utilizados',
+      'para motoristas: registros de jornada e de viagem (tacógrafo, rastreamento, diários de bordo, controles de frete), para a avaliação da penosidade',
     ];
   }
   return [

@@ -728,3 +728,36 @@ export function textoDeterminacao(dados, prev) {
     : `apurar as condições de trabalho e a caracterização ou não de ${(c.objeto || []).join(' e ').toLowerCase() || 'insalubridade e/ou periculosidade'}${vinc}`;
   return `Conforme ${c.despachoRef}, foi determinada a realização de perícia técnica para ${obj}.`;
 }
+
+// ---------- Apêndices: relatórios das medições anexados na aba Campo ----------
+export async function apendicesDoCaso(dados) {
+  const { apendicesRegistros, paginasDoArquivo, LETRAS } = await import('../apendices.js');
+  const { obterAnexo } = await import('../sync.js');
+  const regs = await apendicesRegistros(dados.id);
+  const out = []; let falhas = 0;
+  for (const r of regs) {
+    try {
+      const blob = await obterAnexo(r.id);
+      const paginas = await paginasDoArquivo(blob, r.data.mime);
+      out.push({ letra: LETRAS[out.length] || String(out.length + 1), titulo: r.data.titulo || r.data.nome, paginas });
+    } catch (e) { falhas++; }
+  }
+  return { apendices: out, falhasApendice: falhas };
+}
+
+// "Integram o presente laudo o Anexo I – ... e os Apêndices A a C – ..."
+export function textoIntegram(d, { fotos = false, rotuloFotos = 'Anexo I – Relatório fotográfico da diligência', apendices = [], doc = 'laudo' }) {
+  const itens = [];
+  if (fotos) itens.push(`o ${rotuloFotos}`);
+  for (const a of apendices) itens.push(`o Apêndice ${a.letra} – ${a.titulo}`);
+  if (!itens.length) return;
+  const lista = itens.length > 1 ? `${itens.slice(0, -1).join('; ')}; e ${itens[itens.length - 1]}` : itens[0];
+  d.texto(`${itens.length > 1 ? 'Integram' : 'Integra'} o presente ${doc} ${lista}.`);
+}
+
+export function inserirApendices(d, apendices) {
+  for (const a of apendices) {
+    d.h1('', `Apêndice ${a.letra} – ${a.titulo}`);
+    d.paginasInteiras(a.paginas, { nota: `Apêndice ${a.letra}` });
+  }
+}

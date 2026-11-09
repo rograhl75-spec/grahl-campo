@@ -149,6 +149,23 @@ export class Doc {
     }
     return this;
   }
+  // Páginas inteiras de um apêndice (relatório de medição): uma imagem por página, largura útil
+  paginasInteiras(paginas, { nota = '' } = {}) {
+    const largMax = (LARGURA / 1440) * 2.54; // cm
+    const altMax = 21.5;
+    paginas.forEach((pg, i) => {
+      this.nImgAp = (this.nImgAp || 0) + 1;
+      const n = 5000 + this.nImgAp;
+      const rId = `rIdAp${this.nImgAp}`;
+      this.imagens.push({ rId, nome: `apendice${this.nImgAp}.jpg`, bytes: pg.bytes });
+      let lg = largMax; let alt = (lg * pg.h) / pg.w;
+      if (alt > altMax) { alt = altMax; lg = (altMax * pg.w) / pg.h; }
+      if (i > 0) this.quebra();
+      this.add(imagemXml(rId, n, lg, alt));
+      this.add(p([run(`${nota ? `${nota} – ` : ''}página ${i + 1} de ${paginas.length}`, { size: 8, color: CINZA })], { align: 'center', after: 0, line: 240 }));
+    });
+    return this;
+  }
   // Endereçamento ao juízo (petições, laudos e pareceres judiciais)
   enderecamento(texto, linhasProcesso = []) {
     this.add(p([run(String(texto).toUpperCase(), { b: true })], { align: 'both', after: 480 }));

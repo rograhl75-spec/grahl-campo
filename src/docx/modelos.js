@@ -12,6 +12,7 @@ import {
   quadroCriteriosCalor, quadroCriteriosVibracao, documentosARequerer, quadrosParadigmasMetodologia, memoriasParadigmas, usaParadigmas,
   art, dadosDaConta, dataPorExtenso, horaPorExtenso, reaisPorExtenso, numeroPorExtenso, moeda, lerValor, nomeOrigemQuesito,
   quadroFormaEnquadramento, quadroRequisitosEpi, codigosEnquadramento, textoDeterminacao, nomeCurto,
+  apendicesDoCaso, textoIntegram, inserirApendices,
 } from './base.js';
 import { comJurisprudencia, registroJurisprudencia, secaoReferencias } from './fontes.js';
 import { secaoPenosidade } from './penosidade.js';
@@ -220,12 +221,14 @@ export async function laudoPericial(caseId) {
   d.h1('8', 'Encerramento e anexos');
   d.texto('Nada mais havendo a relatar no âmbito da Engenharia de Segurança do Trabalho, este Perito dá por encerrados os trabalhos periciais, colocando-se à disposição do Juízo e das partes para os esclarecimentos que se fizerem necessários.');
   const { lista, faltando } = await figurasDoCaso(dados);
-  if (lista.length) d.texto('Integra o presente laudo o Anexo I – Relatório fotográfico da diligência.');
+  const { apendices, falhasApendice } = await apendicesDoCaso(dados);
+  textoIntegram(d, { fotos: lista.length > 0, apendices });
   blocoAssinatura(d, dados, 'Perito do Juízo');
   secaoReferencias(d, dados, { prev: false });
   if (lista.length) { d.h1('', 'Anexo I – Relatório fotográfico da diligência'); d.figuras(lista); }
+  inserirApendices(d, apendices);
   const r = await finalizar(d, { titulo: 'Laudo técnico pericial', arquivo: 'Laudo_pericial', c });
-  return { ...r, faltando };
+  return { ...r, faltando, falhasApendice };
 }
 
 // ======================================================================
@@ -294,12 +297,15 @@ export async function laudoPrevidenciario(caseId) {
 
   d.h1('9', 'Encerramento e anexos');
   d.texto('Nada mais havendo a relatar no âmbito da Engenharia de Segurança do Trabalho, este Perito dá por encerrados os trabalhos periciais, colocando-se à disposição do Juízo e das partes para os esclarecimentos que se fizerem necessários.');
+  const { lista, faltando } = await figurasDoCaso(dados);
+  const { apendices, falhasApendice } = await apendicesDoCaso(dados);
+  textoIntegram(d, { fotos: lista.length > 0, apendices });
   blocoAssinatura(d, dados, 'Perito do Juízo');
   secaoReferencias(d, dados, { prev: true });
-  const { lista, faltando } = await figurasDoCaso(dados);
   if (lista.length) { d.h1('', 'Anexo I – Relatório fotográfico da diligência'); d.figuras(lista); }
+  inserirApendices(d, apendices);
   const r = await finalizar(d, { titulo: 'Laudo técnico pericial previdenciário', arquivo: 'Laudo_pericial_previdenciario', c });
-  return { ...r, faltando };
+  return { ...r, faltando, falhasApendice };
 }
 
 // ======================================================================
@@ -396,8 +402,11 @@ export async function ltcatPpp(caseId) {
   secaoReferencias(d, dados, { prev: true, judicial: true });
   d.h1('', 'Anexos');
   d.texto('- Anexo A – Perfil Profissiográfico Previdenciário (PPP)\n- Anexo B – Calibração dos instrumentos\n- Anexo C – Anotação de Responsabilidade Técnica\n- Anexo D – Comprovante de inscrição no CNPJ\n- Anexo E – Fichas com dados de segurança dos produtos químicos\n- Anexo F – Anotações da CTPS');
+  const { apendices, falhasApendice } = await apendicesDoCaso(dados);
+  if (apendices.length) d.texto(apendices.map((a) => `- Apêndice ${a.letra} – ${a.titulo}`).join('\n'));
+  inserirApendices(d, apendices);
   const r = await finalizar(d, { titulo: 'LTCAT', arquivo: 'LTCAT_PPP', c });
-  return { ...r, faltando };
+  return { ...r, faltando, falhasApendice };
 }
 
 // ======================================================================
@@ -452,12 +461,15 @@ export async function parecerPrevidenciario(caseId) {
   d.redigir('limitações (similaridade, informações do requerente, documentos não apresentados).');
   d.h1('10', 'Termo de encerramento');
   d.texto('Nada mais havendo a acrescentar, encerra-se o presente parecer técnico, elaborado com imparcialidade e sob responsabilidade do signatário.');
+  const { lista, faltando } = await figurasDoCaso(dados);
+  const { apendices, falhasApendice } = await apendicesDoCaso(dados);
+  textoIntegram(d, { fotos: lista.length > 0, rotuloFotos: 'Anexo – Registro fotográfico', apendices, doc: 'parecer' });
   blocoAssinatura(d, dados, 'Responsável técnico');
   secaoReferencias(d, dados, { prev: true, judicial: false });
-  const { lista, faltando } = await figurasDoCaso(dados);
   if (lista.length) { d.h1('', 'Anexo – Registro fotográfico'); d.figuras(lista); }
+  inserirApendices(d, apendices);
   const r = await finalizar(d, { titulo: 'Parecer técnico previdenciário', arquivo: 'Parecer_previdenciario', c });
-  return { ...r, faltando };
+  return { ...r, faltando, falhasApendice };
 }
 
 // ======================================================================

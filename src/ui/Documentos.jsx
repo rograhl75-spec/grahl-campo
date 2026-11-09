@@ -36,7 +36,7 @@ export function Documentos({ rec }) {
     try {
       const r = await doc.fn(rec.id, { conta: contaSel });
       baixarArquivo(r.blob, r.nome);
-      setMsg(`✓ ${r.nome} gerado. Ao abrir no Word, confirme "Sim" para atualizar o sumário e as listas. Trechos em amarelo são para você completar.${r.faltando ? ` Atenção: ${r.faltando} foto(s) ainda não baixadas neste aparelho ficaram de fora.` : ''}`);
+      setMsg(`✓ ${r.nome} gerado. Ao abrir no Word, confirme "Sim" para atualizar o sumário e as listas. Trechos em amarelo são para você completar.${r.faltando ? ` Atenção: ${r.faltando} foto(s) ainda não baixadas neste aparelho ficaram de fora.` : ''}${r.falhasApendice ? ` Atenção: ${r.falhasApendice} relatório(s) de medição não puderam ser lidos (não baixados neste aparelho ou arquivo inválido).` : ''}`);
     } catch (e) {
       console.error(e);
       setMsg('Erro ao gerar: ' + e.message);

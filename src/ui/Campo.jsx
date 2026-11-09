@@ -9,6 +9,9 @@ import { evidenciasDaDiligencia, aplicarEvidencias } from '../fotosLaudo.js';
 import { TF, Campos, salvar } from './fields.jsx';
 import { useLive } from './hooks.js';
 import { EquipamentosCaso } from './Preparacao.jsx';
+import { guardarAnexo, LIMITE_NUVEM } from '../paradigmas.js';
+import { obterAnexo } from '../sync.js';
+import { DESC_APENDICE, LETRAS, tituloSugerido } from '../apendices.js';
 import { BotoesFoto, Miniaturas } from './Fotos.jsx';
 
 function hojeIso() { const d = new Date(); return new Date(d - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); }
@@ -106,6 +109,8 @@ export function Campo({ rec }) {
         <h3>Medições sem posto vinculado</h3>
         <Medicoes caseId={rec.id} postoId="" ctx={contextoLegal(rec.data)} caso={rec} />
       </section>
+
+      <RelatoriosMedicao rec={rec} />
 
       <section class="bloco largo">
         <h3>Fotos gerais</h3>
@@ -235,5 +240,56 @@ function HorariosPelasEvidencias({ rec }) {
         {msg && <small>{msg}</small>}
       </div>
     </div>
+  );
+}
+
+// Relatórios das medições (dosimetria, vibração, IBUTG, certificados): saem como apêndices do laudo
+function RelatoriosMedicao({ rec }) {
+  const lista = useLive(async () => (await db.records.where('[caseId+kind]').equals([rec.id, 'anexo']).toArray())
+    .filter((r) => !r.deleted && r.data.descricao === DESC_APENDICE)
+    .sort((a, b) => (Number(a.data.ordem) || 0) - (Number(b.data.ordem) || 0) || a.createdAt - b.createdAt), [rec.id], []);
+  const [msg, setMsg] = useState('');
+  const anexar = async (e) => {
+    const arqs = [...e.currentTarget.files];
+    e.currentTarget.value = '';
+    let ordem = lista.length;
+    for (const f of arqs) {
+      const id = await guardarAnexo(f, DESC_APENDICE, rec.id);
+      ordem += 1;
+      await updateFields(id, { titulo: tituloSugerido(f.name), ordem });
+    }
+    avisarAlteracao();
+    setMsg(arqs.some((f) => f.size > LIMITE_NUVEM) ? 'Arquivo com mais de 39 MB: fica só neste aparelho.' : `${arqs.length} relatório(s) anexado(s). Ajuste o título de cada apêndice.`);
+  };
+  const abrir = async (r) => { try { window.open(URL.createObjectURL(await obterAnexo(r.id)), '_blank'); } catch (err) { setMsg(err.message); } };
+  const remover = async (r) => { if (confirm(`Remover "${r.data.nome}"?`)) { await softDelete(r.id); avisarAlteracao(); } };
+  const mover = async (i, dir) => {
+    const nova = [...lista]; const j = i + dir;
+    if (j < 0 || j >= nova.length) return;
+    [nova[i], nova[j]] = [nova[j], nova[i]];
+    for (let k = 0; k < nova.length; k++) await updateFields(nova[k].id, { ordem: k + 1 });
+    avisarAlteracao();
+  };
+  return (
+    <section class="bloco largo">
+      <h3>Relatórios das medições (apêndices do laudo)</h3>
+      <p class="dica">Anexe os relatórios exportados dos medidores (ruído, vibração, IBUTG) e os certificados de calibração, em PDF ou imagem. Cada arquivo sai no fim do laudo, do parecer ou do LTCAT como Apêndice A, B, C…, com todas as páginas.</p>
+      {lista.map((r, i) => (
+        <div class="linha-arquivo" style="flex-wrap:wrap;gap:6px">
+          <b>Apêndice {LETRAS[i]}</b>
+          <input type="text" style="flex:1;min-width:220px" value={r.data.titulo || r.data.nome}
+            onChange={async (e) => { await updateFields(r.id, { titulo: e.currentTarget.value }); avisarAlteracao(); }} />
+          <small>{r.data.nome}{r.data.soLocal ? ' · só neste aparelho' : ''}</small>
+          <span>
+            <button type="button" class="mini" onClick={() => mover(i, -1)} disabled={i === 0}>▲</button>{' '}
+            <button type="button" class="mini" onClick={() => mover(i, 1)} disabled={i === lista.length - 1}>▼</button>{' '}
+            <button type="button" class="mini" onClick={() => abrir(r)}>Abrir</button>{' '}
+            <button type="button" class="mini perigo" onClick={() => remover(r)}>✕</button>
+          </span>
+        </div>
+      ))}
+      <label class="botao-arquivo">＋ Anexar relatório (PDF ou imagem)<input type="file" accept="application/pdf,.pdf,image/*" multiple hidden onChange={anexar} /></label>
+      {msg && <p class="alerta-txt">{msg}</p>}
+    </section>
   );
 }

@@ -54,6 +54,22 @@ function textoVibracaoTrab(d, ms, nome, k) {
   }
 }
 
+// Capa do laudo pericial (perito do juízo): órgão, título, dados do processo e da perícia; o endereçamento vem na página seguinte
+function capaLaudo(d, dados, { subtitulo }) {
+  const { c, perfil } = dados;
+  const pt = partes(c);
+  const juizo = [c.juizo, c.comarca && !String(c.juizo || '').includes(c.comarca) ? c.comarca : ''].filter(Boolean).join(' – ');
+  const vistoria = [c.vistoriaData && dataBR(c.vistoriaData), c.vistoriaLocal && String(c.vistoriaLocal).split(/\s[–-]\s/)[0]].filter(Boolean).join(' – ');
+  capaTecnica(d, {
+    titulo: 'LAUDO TÉCNICO PERICIAL', subtitulo, perfil,
+    orgao: c.justica ? `Poder Judiciário – ${c.justica}` : '',
+    linha2: dados.periodos.length ? `${dados.periodos.length} ${dados.periodos.length > 1 ? 'períodos controvertidos' : 'período controvertido'}` : '',
+    pares: [['Processo', c.numero], ['Juízo', juizo], [pt.autor, c.autorNome], [pt.reu, c.reuNome],
+      ['Vistoria', vistoria], ['Perito do Juízo', `${perfil.nome} – ${credencial(perfil)}`]].filter(([, x]) => v(x)),
+  });
+  d.quebra();
+}
+
 function eqMap(dados) { return new Map(dados.equipamentos.map((e) => [e.id, e])); }
 
 // Avaliação dos agentes. Cada finalidade usa só a sua legislação:
@@ -164,6 +180,7 @@ export async function laudoPericial(caseId) {
   const { c, perfil } = dados;
   const pt = partes(c);
   const d = new Doc();
+  capaLaudo(d, dados, { subtitulo: `Caracterização de ${(c.objeto || []).filter((o) => o !== 'Adicional (servidor público)').join(' e ').toLowerCase() || 'insalubridade e/ou periculosidade'}` });
   d.enderecamento(enderecamentoTexto(c), linhasProcesso(c));
   d.texto(`${qualificacaoCurta(perfil)}, perito nomeado e compromissado nos autos do processo em epígrafe, tendo realizado as vistorias, os levantamentos técnicos e as diligências necessárias, vem, respeitosamente, à presença de Vossa Excelência, apresentar o presente **LAUDO TÉCNICO PERICIAL**, consubstanciado nas informações e análises a seguir expostas.`);
   d.sumario();
@@ -240,6 +257,7 @@ export async function laudoPrevidenciario(caseId) {
   const { c, perfil } = dados;
   const pt = partes(c);
   const d = new Doc();
+  capaLaudo(d, dados, { subtitulo: 'Verificação das condições especiais de trabalho para fins previdenciários (tempo especial)' });
   d.enderecamento(enderecamentoTexto(c), linhasProcesso(c));
   d.texto(`${qualificacaoCurta(perfil)}, perito nomeado e compromissado nos autos do processo em epígrafe, tendo realizado as vistorias, os levantamentos técnicos e as diligências necessárias, vem, respeitosamente, à presença de Vossa Excelência, apresentar o presente **LAUDO TÉCNICO PERICIAL**, destinado à verificação das condições especiais de trabalho para fins previdenciários.`);
   d.sumario();

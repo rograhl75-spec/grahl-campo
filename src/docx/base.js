@@ -518,14 +518,18 @@ export function respostasQuesitos(d, quesitos, numBase, c) {
       const num = String(q.data.numero || '').trim();
       // não repete a numeração quando o próprio texto já começa com ela ("1) …", "a) …")
       const lider = (texto.match(/^\(?([0-9]+|[a-z]|[ivx]+)\s*[).\-–]/i) || [])[1] || '';
-      const jaNumerado = num && lider && lider.toLowerCase() === num.toLowerCase();
-      d.add(p([run(`${jaNumerado || !num ? '' : `${num} – `}`, { b: true }), rich(texto, { i: true })], { after: 100, keepNext: true }));
+      // número composto ("1-b", "4-c"): o texto já traz a letra; mostra só o grupo antes dela ("1.b) …")
+      const partes = num.toLowerCase().split(/[-.\s]+/).filter(Boolean);
+      const lid = lider.toLowerCase();
+      let prefixo = num ? `${num} – ` : '';
+      if (lid && partes.includes(lid)) prefixo = partes.length > 1 && lid === partes[partes.length - 1] ? `${partes.slice(0, -1).join('.')}.` : '';
+      d.add(p([run(prefixo, { b: true }), rich(texto, { i: true })], { after: 100, keepNext: true }));
       const k = norm(texto);
       let resp;
       if (q.data.resposta) resp = [rich(q.data.resposta)];
       else if (k.length > 15 && vistos.has(k)) resp = [run(`Vide resposta ao quesito ${vistos.get(k)}.`)];
       else resp = [run('Responder', { b: true, hl: true })];
-      if (k.length > 15 && !vistos.has(k)) vistos.set(k, `${num || ''} ${nomeOrigem(origem)}`.trim());
+      if (k.length > 15 && !vistos.has(k)) vistos.set(k, `${num.replace(/-/g, '.')} ${nomeOrigem(origem)}`.trim());
       d.add(p([run('Resposta: ', { b: true })].concat(resp), { first: 709, after: 240 }));
     }
   }
@@ -551,16 +555,21 @@ export async function finalizar(d, { titulo, arquivo, c }) {
   return { blob, nome: nomeArq };
 }
 
-export function capaTecnica(d, { titulo, subtitulo, linha2, pares, perfil, data = new Date() }) {
+// filete horizontal (cor do timbrado) para separar blocos da capa
+const filete = (cor = 'C9A44C', after = 240) => `<w:p><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="12" w:space="1" w:color="${cor}"/></w:pBdr><w:spacing w:before="0" w:after="${after}" w:line="240" w:lineRule="auto"/><w:ind w:left="2268" w:right="2268"/><w:jc w:val="center"/></w:pPr></w:p>`;
+
+export function capaTecnica(d, { titulo, subtitulo, linha2, pares, perfil, data = new Date(), orgao = '' }) {
   d.add(p([run(perfil.nome, { b: true, color: '1B365D', size: 13 })], { align: 'center', after: 0 }));
   d.add(p([run(perfil.titulos, { size: 10, color: '475569' })], { align: 'center', after: 0 }));
-  d.add(p([run(credencial(perfil), { size: 10, color: '475569' })], { align: 'center', after: 1400 }));
+  d.add(p([run(credencial(perfil), { size: 10, color: '475569' })], { align: 'center', after: orgao ? 600 : 1400 }));
+  if (orgao) d.add(p([run(orgao.toUpperCase(), { b: true, size: 10, color: '475569' })], { align: 'center', after: 600, line: 276 }));
+  d.add(filete('C9A44C', 360));
   d.add(p([run(titulo, { b: true, size: 22, color: '1B365D' })], { align: 'center', after: 120, line: 276 }));
   if (subtitulo) d.add(p([run(subtitulo, { size: 12, color: '475569' })], { align: 'center', after: 60, line: 276 }));
-  if (linha2) d.add(p([run(linha2, { b: true, size: 12, color: '1B365D' })], { align: 'center', after: 480, line: 276 }));
-  d.add(p('', { after: 240 }));
+  if (linha2) d.add(p([run(linha2, { b: true, size: 12, color: '1B365D' })], { align: 'center', after: 120, line: 276 }));
+  d.add(filete('C9A44C', 360));
   d.identificacao(pares);
-  d.add(p('', { after: 1600 }));
+  d.add(p('', { after: pares.length > 6 ? 600 : 1200 }));
   d.add(p([run(`${perfil.cidade || 'Londrina – PR'}`, { b: true, color: '1B365D' })], { align: 'center', after: 0 }));
   d.add(p([run(String(data.getFullYear()), { b: true, color: '1B365D' })], { align: 'center', after: 0 }));
   return d;

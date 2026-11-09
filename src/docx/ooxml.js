@@ -114,7 +114,7 @@ export class Doc {
   // seção terciária (ABNT NBR 6024): número progressivo e título em negrito, sem caixa alta
   h3(num, titulo) {
     if (titulo === undefined) { titulo = num; num = ''; }
-    return this.add(p([run(`${num ? `${num} ` : ''}${titulo}`, { b: true })], { align: 'left', before: 240, after: 120, keepNext: true, outline: 2 }));
+    return this.add(p([run(`${num ? `${num} ` : ''}${titulo}`, { b: true, color: AZUL })], { style: 'Ttulo3', align: 'left', before: 240, after: 120, keepNext: true, outline: 2 }));
   }
   // Quadro numerado: título acima, tabela, fonte abaixo
   quadro(titulo, linhas, { larguras, header = true, fonte = 'Elaborado pelo autor.', tam = 10, alinhar = 'both' } = {}) {
@@ -190,7 +190,7 @@ export class Doc {
     return this;
   }
   sumario(titulo = 'SUMÁRIO') {
-    return this.add(p([run(titulo, { b: true, color: AZUL })], { align: 'center', pageBreakBefore: true, after: 240 }), campoToc('TOC \\o "1-2" \\h \\z \\u'));
+    return this.add(p([run(titulo, { b: true, color: AZUL })], { align: 'center', pageBreakBefore: true, after: 240 }), campoToc('TOC \\o "1-3" \\h \\z \\u'));
   }
   listaQuadros() {
     return this.add(p([run('LISTA DE QUADROS', { b: true, color: AZUL })], { align: 'center', pageBreakBefore: true, after: 240 }), campoToc('TOC \\h \\z \\c "Quadro"'));

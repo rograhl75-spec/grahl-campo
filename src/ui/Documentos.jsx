@@ -3,7 +3,7 @@ import { CATALOGO } from '../docx/reports.js';
 import { exportarBackup, baixarArquivo, carimbo } from '../backup.js';
 import { OPCOES_REDACAO, exportarParaClaude } from '../aiimport.js';
 import { gravarTudoAgora, salvar, TF, Sel } from './fields.jsx';
-import { FORMAS_PAGAMENTO } from '../schema.js';
+import { FORMAS_PAGAMENTO, localVistoria } from '../schema.js';
 import { db } from '../db.js';
 import { PERFIL_ID, contasDoPerfil, PERFIL_PADRAO, ehSimilaridade, empresaDoDespacho } from '../docx/base.js';
 import { useLive } from './hooks.js';
@@ -137,6 +137,11 @@ function DadosAgendamento({ rec }) {
       {!String(c.vistoriaLocal || '').trim() && empresas.length > 0 && (
         <div class="chips"><small class="dica">Dos autos:</small>{empresas.map((e) => <button type="button" class="chip" onClick={() => salvar(rec.id, 'vistoriaLocal', e)}>{e}</button>)}</div>
       )}
+      <TF rec={rec} k="vistoriaProprietario" label="Ou: proprietário pessoa física (nome completo) – quando não há empresa" />
+      {String(c.vistoriaProprietario || '').trim() && <>
+        <TF rec={rec} k="vistoriaVeiculo" label="Veículo / equipamento paradigma (marca, modelo, ano)" />
+        <TF rec={rec} k="vistoriaContato" label="Telefone / contato do proprietário" />
+      </>}
       <div class="com-botao"><TF rec={rec} k="vistoriaCnpj" label="CNPJ (para buscar o endereço)" inputMode="numeric" />
         <button type="button" class="mini" onClick={buscar}>🔎 Buscar</button></div>
       <TF rec={rec} k="vistoriaEndereco" label="Endereço (rua, nº – bairro – cidade/UF – CEP)" area rows={2} />
@@ -156,10 +161,10 @@ function LinkAgenda({ c }) {
   const [h, m] = c.horaDiligencia.split(':').map(Number);
   const fimH = String(Math.min(23, h + 3)).padStart(2, '0');
   const fim = `${c.dataDiligencia.replace(/-/g, '')}T${fimH}${String(m).padStart(2, '0')}00`;
-  const local = [c.vistoriaLocal, String(c.vistoriaEndereco || '').replace(/\n/g, ' – ')].filter(Boolean).join(' – ');
+  const local = [localVistoria(c), String(c.vistoriaEndereco || '').replace(/\n/g, ' – ')].filter(Boolean).join(' – ');
   const det = [`Vistoria pericial – processo ${c.numero || ''}`, c.autorNome && `Autor: ${c.autorNome}`, c.reuNome && `Réu: ${c.reuNome}`,
     c.similaridade === 'Sim' && 'Perícia por similaridade', 'Levar: dosímetro, medidor de vibração, IBUTG, calibrador, trena, câmera.'].filter(Boolean).join('\n');
-  const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`Vistoria pericial – ${c.vistoriaLocal || c.autorNome || c.numero || ''}`)}&dates=${ini}/${fim}&ctz=America/Sao_Paulo&location=${encodeURIComponent(local)}&details=${encodeURIComponent(det)}`;
+  const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`Vistoria pericial – ${localVistoria(c) || c.autorNome || c.numero || ''}`)}&dates=${ini}/${fim}&ctz=America/Sao_Paulo&location=${encodeURIComponent(local)}&details=${encodeURIComponent(det)}`;
   return <a class="botao sec" href={url} target="_blank" rel="noopener">📅 Agendar no Google Agenda</a>;
 }
 

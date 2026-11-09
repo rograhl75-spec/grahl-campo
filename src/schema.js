@@ -160,6 +160,9 @@ export const CAMPOS_DILIGENCIA = [
   ['vistoriaInicio', 'Hora de início', 'time'],
   ['vistoriaFim', 'Hora de término', 'time'],
   ['vistoriaLocal', 'Local (empresa / unidade)', 'text'],
+  ['vistoriaProprietario', 'Proprietário pessoa física (nome completo, quando não há empresa)', 'text'],
+  ['vistoriaVeiculo', 'Veículo / equipamento paradigma (marca, modelo, ano)', 'text'],
+  ['vistoriaContato', 'Contato do responsável / proprietário', 'text'],
   ['vistoriaEndereco', 'Endereço', 'text'],
   ['vistoriaGps', 'Coordenadas GPS', 'text'],
   ['vistoriaPresentes', 'Pessoas presentes (nome – função – quem representa)', 'area'],
@@ -263,4 +266,14 @@ export function contextoLegal(c = {}) {
   if (reuEhInss(c) && c.justica !== 'Justiça do Trabalho' && c.materia !== 'Acidentária') return { prev: true };
   if (c.materia === 'Trabalhista' || c.materia === 'Administrativa (servidor)' || c.justica === 'Justiça do Trabalho' || /Fazenda/i.test(c.justica || '')) return { prev: false };
   return {};
+}
+
+// Local da vistoria para documentos: empresa ou, sem empresa, o proprietário pessoa física (ex.: veículo paradigma)
+export function localVistoria(c) {
+  const emp = String(c.vistoriaLocal || '').trim();
+  if (emp) return emp;
+  const prop = String(c.vistoriaProprietario || '').trim();
+  if (!prop) return '';
+  const veic = String(c.vistoriaVeiculo || '').trim();
+  return `${prop} (pessoa física${veic ? `, proprietário do veículo paradigma ${veic}` : ''})`;
 }

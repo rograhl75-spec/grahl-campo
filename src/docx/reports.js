@@ -1,4 +1,4 @@
-import { ORIGEM_QUESITO, contextoLegal, ehSuplementar } from '../schema.js';
+import { ORIGEM_QUESITO, contextoLegal, ehSuplementar, localVistoria } from '../schema.js';
 import { p, run } from './ooxml.js';
 import {
   Doc, carregar, finalizar, dataBR, menosCincoAnos, partes, credencial, papelAssinatura, equipamentosUsados, quadroEquipamentos,
@@ -84,7 +84,7 @@ export async function gerarPreRelatorio(caseId) {
   if (!n) d.texto(ehExtra(c) ? 'Não se aplica (perícia extrajudicial).' : '[[Quesitos não cadastrados.]]');
 
   d.h1('8', 'Planejamento da diligência');
-  d.identificacao([['Data e horário', [dataBR(c.dataDiligencia), c.horaDiligencia].filter(Boolean).join(' às ') || 'a definir'], ['Local', [c.vistoriaLocal, c.vistoriaEndereco].filter(Boolean).join(' – ')]]);
+  d.identificacao([['Data e horário', [dataBR(c.dataDiligencia), c.horaDiligencia].filter(Boolean).join(' às ') || 'a definir'], ['Local', [localVistoria(c), c.vistoriaEndereco].filter(Boolean).join(' – ')]]);
   d.h2('8.1', 'Roteiro e documentos a solicitar'); d.texto(c.roteiro || '[[roteiro]]');
   d.h2('8.2', 'Equipamentos');
   const levar = dados.equipamentos.filter((e) => (c.equipamentos || []).includes(e.id));
@@ -143,7 +143,7 @@ export async function gerarRelatorioFotografico(caseId) {
   d.add(p([run('RELATÓRIO FOTOGRÁFICO', { b: true, size: 14, color: '1B365D' })], { align: 'center', after: 60 }));
   if (c.numero) d.add(p([run(`Processo nº ${c.numero}`)], { align: 'center', after: 0 }));
   d.add(p([run([c.autorNome, c.reuNome].filter(Boolean).join(' × '))], { align: 'center', after: 60 }));
-  d.add(p([run(`Diligência: ${dataBR(c.vistoriaData) || '—'}${c.vistoriaLocal ? ` – ${c.vistoriaLocal}` : ''}`)], { align: 'center', after: 240 }));
+  d.add(p([run(`Diligência: ${dataBR(c.vistoriaData) || '—'}${localVistoria(c) ? ` – ${localVistoria(c)}` : ''}`)], { align: 'center', after: 240 }));
   const { lista, faltando } = await figurasDoCaso(dados);
   if (lista.length) d.figuras(lista); else d.texto('Nenhuma foto registrada.');
   const r = await finalizar(d, { titulo: 'Relatório fotográfico', arquivo: 'Relatorio_fotografico', c });

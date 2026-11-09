@@ -3,7 +3,7 @@
 // impugnação / parecer de assistente técnico, parecer preventivo, petição de
 // indicação com quesitos. O que depende de análise técnica sai marcado em
 // amarelo ("[[Redigir: ...]]") para ser escrito por você.
-import { ORIGEM_QUESITO, ehSuplementar, FORMAS_PAGAMENTO } from '../schema.js';
+import { ORIGEM_QUESITO, ehSuplementar, FORMAS_PAGAMENTO, localVistoria } from '../schema.js';
 import {
   Doc, carregar, finalizar, dataBR, menosCincoAnos, ou, partes, papelAssinatura, enderecamentoTexto, linhasProcesso,
   qualificacaoCurta, qualificacaoCompleta, blocoAssinatura, credencial, equipamentosUsados, quadroEquipamentos, quadroDiligencia,
@@ -658,15 +658,22 @@ export async function peticaoAgendamento(caseId) {
   const data = dataPorExtenso(c.dataDiligencia, { semana: true }) || '[[data da vistoria]]';
   const hora = horaPorExtenso(c.horaDiligencia) || '[[horário]]';
   const simil = ehSimilaridade(c);
-  const empresaV = v(c.vistoriaLocal) || empresaDoDespacho(c);
+  const prop = v(c.vistoriaLocal) ? '' : v(c.vistoriaProprietario); // pessoa física (sem empresa): nome completo na petição
+  const veic = v(c.vistoriaVeiculo);
+  const empresaV = prop || v(c.vistoriaLocal) || empresaDoDespacho(c);
   const origem = v(c.empresaOriginal) || [...new Set(dados.periodos.map((r) => empresaCurta(r.data.empresa)).filter(Boolean))].join(', ');
-  d.texto(`Comunica-se que a vistoria pericial fica designada para o dia **${data}**, às **${hora}**, a ser realizada${simil ? ', por similaridade,' : ''} nas dependências da empresa${simil ? ' paradigma' : ''}:`);
-  const local = [empresaV.toUpperCase() || '[[EMPRESA]]', ...String(c.vistoriaEndereco || '[[endereço – cidade/UF – CEP]]').split(/\n|\s*;\s*/).filter(Boolean)];
+  d.texto(prop
+    ? `Comunica-se que a vistoria pericial fica designada para o dia **${data}**, às **${hora}**, a ser realizada${simil ? ', por similaridade,' : ''} ${veic ? 'no veículo paradigma indicado nos autos' : 'no local indicado nos autos'}, no endereço de seu proprietário:`
+    : `Comunica-se que a vistoria pericial fica designada para o dia **${data}**, às **${hora}**, a ser realizada${simil ? ', por similaridade,' : ''} nas dependências da empresa${simil ? ' paradigma' : ''}:`);
+  const cab = prop ? `${prop.toUpperCase()} (pessoa física${veic ? `, proprietário do veículo paradigma ${veic}` : ''})` : (empresaV.toUpperCase() || '[[EMPRESA]]');
+  const local = [cab, ...String(c.vistoriaEndereco || '[[endereço – cidade/UF – CEP]]').split(/\n|\s*;\s*/).filter(Boolean)];
   local.forEach((l, i) => d.add(p([run(l, { b: i === 0 })], { left: 1418, after: i === local.length - 1 ? 200 : 0, align: 'left' })));
   const periodos = listaPeriodos(dados.periodos);
   const item = v(c.itensVistoria) ? `, conforme determinado ${/[e,]/.test(c.itensVistoria) ? 'nos itens' : 'no item'} ${c.itensVistoria} do referido despacho` : '';
   d.texto(pt.prev
-    ? `A vistoria destina-se a examinar${simil ? `, em ambiente e atividades similares aos da${origem ? ` ${origem}` : ' empregadora original'},` : ''} as condições de trabalho do autor${periodos ? ` nos períodos de ${periodos}` : ' [[nos períodos de ...]]'}${item}.`.replace('examinar ,', 'examinar,')
+    ? (prop && veic
+      ? `A vistoria destina-se a avaliar a exposição ao ruído e à vibração de corpo inteiro (VCI) em veículo similar ao conduzido pelo autor na${origem ? ` ${origem}` : ' empregadora original'}, nas condições de trabalho${periodos ? ` dos períodos de ${periodos}` : ' [[dos períodos de ...]]'}${item}.`
+      : `A vistoria destina-se a examinar${simil ? `, em ambiente e atividades similares aos da${origem ? ` ${origem}` : ' empregadora original'},` : ''} as condições de trabalho do autor${periodos ? ` nos períodos de ${periodos}` : ' [[nos períodos de ...]]'}${item}.`.replace('examinar ,', 'examinar,'))
     : `A vistoria destina-se a examinar as condições de trabalho do ${pt.autorCurto.toLowerCase()}${c.dataAjuizamento && pt.trab ? ` no período imprescrito (a partir de ${menosCincoAnos(c.dataAjuizamento)})` : ''}${item}.`);
 
   d.texto('A comunicação é feita para ciência das partes (art. 474 do CPC) e para assegurar aos assistentes técnicos o acompanhamento da diligência, com antecedência mínima de 5 (cinco) dias (art. 466, § 2º, do CPC).');
@@ -677,7 +684,17 @@ export async function peticaoAgendamento(caseId) {
   d.h1('2.', 'Dos requerimentos', { novaPagina: false });
   d.texto('Diante do exposto, requer-se:');
   d.texto(`a) a intimação das partes e de seus assistentes técnicos, caso indicados, para que, querendo, compareçam ao ato na data, horário e local acima;`);
-  d.texto(`b) a intimação do ${pt.autorCurto.toLowerCase()} para comparecimento pessoal, a fim de prestar informações sobre os setores, atividades, máquinas e rotina de trabalho ${pt.prev ? 'nos períodos em análise' : 'no período discutido'};`);
+  d.texto(`b) a intimação do ${pt.autorCurto.toLowerCase()} para comparecimento pessoal, a fim de prestar informações sobre ${prop && veic ? 'os veículos conduzidos, as cargas transportadas, os trajetos' : 'os setores, atividades, máquinas'} e rotina de trabalho ${pt.prev ? 'nos períodos em análise' : 'no período discutido'};`);
+  if (prop) {
+    const end = String(c.vistoriaEndereco || '').replace(/\n/g, ' – ').trim();
+    const ref = [end, v(c.vistoriaContato) && `tel. ${c.vistoriaContato}`].filter(Boolean).join(' – ');
+    d.texto(`c) a expedição de ofício ao(à) Sr.(a) ${prop}${veic ? `, proprietário(a) do veículo paradigma ${veic}` : ''}${ref ? ` (${ref})` : ''}${v(c.itemOficio) ? `, nos termos do item ${c.itemOficio} do despacho` : ''}, comunicando a data e o horário da vistoria e solicitando:`);
+    travessao(d, `o acesso do perito, das partes e dos assistentes técnicos ${veic ? 'ao veículo paradigma' : 'ao local da vistoria'};`);
+    if (veic) {
+      travessao(d, 'a disponibilização do veículo em condições operacionais de tráfego em via urbana e rodovia, com condutor habilitado, para as medições em deslocamento;');
+      travessao(d, 'a apresentação, no dia do ato, do documento do veículo (CRLV) e de informações sobre as manutenções e modificações realizadas (motor, cabine, assento, suspensão e pneus).');
+    }
+  } else {
   const empresa = empresaV || '[[empresa]]';
   d.texto(`c) a expedição de ofício à empresa ${empresa}${v(c.itemOficio) ? `, nos termos do item ${c.itemOficio} do despacho` : ''}, comunicando a data e o horário da vistoria e solicitando:`);
   const simil2 = simil;
@@ -691,6 +708,7 @@ export async function peticaoAgendamento(caseId) {
     ? `PPP do autor; LTCAT, PPRA/PGR e demais laudos ambientais existentes; relatórios de avaliações quantitativas dos agentes ambientais${agentes ? `, em especial de ${agentes}` : ''}; fichas de entrega de EPI e respectivos Certificados de Aprovação (CA); registro de funções/setores e descrição de cargos do autor; e fichas com dados de segurança (FISPQ/FDS) dos produtos químicos utilizados`
     : `PGR (e PPRA, para o período anterior a 2022), PCMSO e laudos de insalubridade e periculosidade; relatórios de avaliações quantitativas dos agentes ambientais${agentes ? `, em especial de ${agentes}` : ''}; fichas de entrega de EPI e respectivos Certificados de Aprovação (CA); ordens de serviço e descrição de cargo; e fichas com dados de segurança (FISPQ/FDS) dos produtos químicos utilizados`;
   travessao(d, simil2 ? `a disponibilização, no dia do ato, dos seguintes documentos: ${docs}.` : `a disponibilização, no dia do ato, dos documentos relativos ${ctx.prev ? 'aos períodos em análise' : 'ao período discutido'}: ${docs}.`);
+  }
 
   if (v(c.prazoLaudoDias)) {
     d.h1('3.', 'Do prazo para entrega do laudo', { novaPagina: false });

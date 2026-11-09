@@ -2,7 +2,7 @@ import { db, caseChildren } from '../db.js';
 import { resumoMedicao, calculados } from '../medicoes.js';
 import { nenQ5, num, fmt } from '../calc.js';
 import { ORIGEM_QUESITO, contextoLegal, ehSuplementar } from '../schema.js';
-import { Doc, p, run, montarDocx } from './ooxml.js';
+import { Doc, p, run, rich, montarDocx } from './ooxml.js';
 import { nenParaJornada, arenParaJornada, vdvrParaJornada, certificadoVencido, rotuloParadigma, num as numP } from '../paradigmas.js';
 
 export const PERFIL_ID = 'perfil';
@@ -409,6 +409,8 @@ export function nomeOrigemQuesito(o, c) {
 // eles saem na petição de resposta aos quesitos suplementares.
 export function respostasQuesitos(d, quesitos, numBase, c) {
   const nomeOrigem = (o) => nomeOrigemQuesito(o, c);
+  const norm = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/^\s*(\d+|[a-z])\s*[).\-–]\s*/, '').replace(/\W+/g, ' ').trim();
+  const vistos = new Map(); // quesito repetido por outra parte: remete à primeira resposta
   let n = 0;
   for (const origem of ORIGEM_QUESITO) {
     const lista = quesitos.filter((q) => !ehSuplementar(q) && (q.data.origem || 'Outro') === origem);
@@ -416,8 +418,19 @@ export function respostasQuesitos(d, quesitos, numBase, c) {
     n += 1;
     d.h2(`${numBase}.${n}`, `Quesitos ${nomeOrigem(origem)}`);
     for (const q of lista) {
-      d.add(p([run(`${q.data.numero || '•'} – `, { b: true }), run(q.data.texto || '', { i: true })], { after: 60 }));
-      d.add(p([run('Resposta: ', { b: true })].concat(q.data.resposta ? [run(q.data.resposta)] : [run('[[Responder]]', { b: true, hl: true })]), { first: 709, after: 200 }));
+      const texto = String(q.data.texto || '').trim();
+      const num = String(q.data.numero || '').trim();
+      // não repete a numeração quando o próprio texto já começa com ela ("1) …", "a) …")
+      const lider = (texto.match(/^\(?([0-9]+|[a-z]|[ivx]+)\s*[).\-–]/i) || [])[1] || '';
+      const jaNumerado = num && lider && lider.toLowerCase() === num.toLowerCase();
+      d.add(p([run(`${jaNumerado || !num ? '' : `${num} – `}`, { b: true }), rich(texto, { i: true })], { after: 100, keepNext: true }));
+      const k = norm(texto);
+      let resp;
+      if (q.data.resposta) resp = [rich(q.data.resposta)];
+      else if (k.length > 15 && vistos.has(k)) resp = [run(`Vide resposta ao quesito ${vistos.get(k)}.`)];
+      else resp = [run('Responder', { b: true, hl: true })];
+      if (k.length > 15 && !vistos.has(k)) vistos.set(k, `${num || ''} ${nomeOrigem(origem)}`.trim());
+      d.add(p([run('Resposta: ', { b: true })].concat(resp), { first: 709, after: 240 }));
     }
   }
   if (!n) d.texto('[[Não há quesitos cadastrados. Transcreva-os na aba Quesitos.]]');
@@ -477,7 +490,7 @@ export function quadrosParadigmasMetodologia(d, dados) {
   if (!usaParadigmas(dados)) return false;
   const P = dados.paradigmas;
   d.texto('A quantificação do ruído e da vibração usa medições realizadas pelo signatário em veículos com as mesmas características técnicas dos conduzidos pelo requerente (prova emprestada, art. 372 do CPC). A similaridade considera, nesta ordem: posição do motor, geração e isolamento da cabine, suspensão da cabine e do assento, configuração do veículo e tipo de via predominante.');
-  d.quadro('Veículos do requerente e paradigmas de medição', [['Vínculo', 'Veículo do requerente', 'Família técnica', 'Veículo efetivamente medido', 'Fonte (processo e data)', 'Jornada do laudo'],
+  d.quadro('Veículos do requerente e paradigmas de medição', [['Vínculo', 'Veículo do requerente', 'Família', 'Veículo efetivamente medido', 'Fonte (processo e data)', 'Jornada (h)'],
     ...dados.periodos.map((r, i) => {
       const pr = P.get(r.data.paradigmaRuido), pv = P.get(r.data.paradigmaVibracao);
       const medido = [pr && `Ruído: ${rotuloParadigma(pr)}`, pv && pv !== pr && `VCI: ${rotuloParadigma(pv)}`].filter(Boolean).join('\n')
@@ -490,7 +503,7 @@ export function quadrosParadigmasMetodologia(d, dados) {
     ['Ruído (q = 5)', 'NEN = Lavg + 16,61 · log(T / 8)'], ['Vibração – aceleração', 'aren(T) = arep · √(T / 8)'], ['Vibração – dose', 'VDVR(T) = VDVR(laudo) · (T / Tlaudo)^0,25']],
   { larguras: [0.35, 0.65], fonte: 'Manual de Aposentadoria Especial do INSS (2017); NHO-09.' });
   d.texto('Até 18/11/2003 o valor comparado ao limite é o Lavg, pois a legislação remetia integralmente ao Anexo 1 da NR-15; a partir de 19/11/2003, somente o NEN, normalizado para a jornada.');
-  d.quadro('Tempo de condução adotado por vínculo', [['Vínculo', 'Período', 'Condução (T)', 'Base da informação'],
+  d.quadro('Tempo de condução adotado por vínculo', [['Vínculo', 'Período', 'T (h/dia)', 'Base da informação'],
     ...dados.periodos.map((r, i) => [vinculoNome(r, i), per(r), r.data.conducaoH ? `${r.data.conducaoH} h` : '[[T]]', r.data.conducaoBase || '[[base da informação]]'])],
   { larguras: [0.22, 0.2, 0.13, 0.45], alinhar: 'left' });
   const usados = [...new Set(dados.periodos.flatMap((r) => [r.data.paradigmaRuido, r.data.paradigmaVibracao]).filter(Boolean))].map((c) => P.get(c)).filter(Boolean);
@@ -595,4 +608,36 @@ export function quadroRequisitosEpi(d) {
     ['IV – periodicidade de troca comprovada por recibo', '[[S/N]]', '[[fichas de entrega]]'],
     ['V – higienização', '[[S/N]]', '[[procedimento / registros]]']],
   { larguras: [0.5, 0.14, 0.36], tam: 9, alinhar: 'left', fonte: 'Elaborado pelo autor com base em Brasil (2022, art. 291). Os requisitos são cumulativos e só se aplicam a partir de 03/12/1998.' });
+}
+
+
+// Códigos de enquadramento previdenciário sugeridos pelos agentes do período
+// (antes de 06/03/1997: Decretos 53.831/64 e 83.080/79; depois: Anexo IV dos Decretos 2.172/97 e 3.048/99)
+const COD = [
+  [/ru[ií]do/i, '1.1.6', '2.0.1'], [/calor|temperatura/i, '1.1.1', '2.0.4'], [/vibra|trepida/i, '1.1.5', '2.0.2'],
+  [/biol|microrganism|esgoto|lixo|hospital/i, '1.3.2', '3.0.1'], [/[óo]leo|graxa|hidrocarb|mineral/i, '1.2.11', '1.0.17'],
+  [/s[ií]lica|poeira/i, '1.2.10', '1.0.18'], [/benzeno/i, '1.2.11', '1.0.3'], [/eletric/i, '1.1.8', ''],
+];
+export function codigosEnquadramento(agentes, inicio, fim) {
+  const t = String(agentes || '');
+  const ini = inicio || '0000', f = fim || '9999';
+  const antes = ini <= '1997-03-05', depois = f >= '1997-03-06';
+  const out = [];
+  for (const [re, a, b] of COD) {
+    if (!re.test(t)) continue;
+    const c = [antes && a, depois && b].filter(Boolean).join(' / ');
+    if (c) out.push(c);
+  }
+  if (ini <= '1995-04-28' && /motorista|caminh|[ôo]nibus|cobrador/i.test(t)) out.push('2.4.4 (categoria)');
+  return out.length ? out.join('; ') : '[[cód.]]';
+}
+
+// Texto da determinação judicial a partir do cadastro
+export function textoDeterminacao(dados, prev) {
+  const c = dados.c;
+  if (!v(c.despachoRef)) return '';
+  const vinc = dados.periodos.length ? ` nos ${dados.periodos.length > 1 ? `${dados.periodos.length} períodos controvertidos indicados no Quadro 1` : 'período controvertido indicado no Quadro 1'}` : '';
+  const obj = prev ? `apurar as condições de trabalho da parte autora e a exposição a agentes nocivos à saúde ou à integridade física${vinc}, para fins de reconhecimento de tempo especial`
+    : `apurar as condições de trabalho e a caracterização ou não de ${(c.objeto || []).join(' e ').toLowerCase() || 'insalubridade e/ou periculosidade'}${vinc}`;
+  return `Conforme ${c.despachoRef}, foi determinada a realização de perícia técnica para ${obj}.`;
 }

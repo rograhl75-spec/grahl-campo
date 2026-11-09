@@ -11,7 +11,7 @@ import {
   quadroMedicoesGenerico, medicoesPorAgente, nomePostoFn, profissiografia, figurasDoCaso, respostasQuesitos, capaTecnica,
   quadroCriteriosCalor, quadroCriteriosVibracao, documentosARequerer, quadrosParadigmasMetodologia, memoriasParadigmas, usaParadigmas,
   art, dadosDaConta, dataPorExtenso, horaPorExtenso, reaisPorExtenso, numeroPorExtenso, moeda, lerValor, nomeOrigemQuesito,
-  quadroFormaEnquadramento, quadroRequisitosEpi,
+  quadroFormaEnquadramento, quadroRequisitosEpi, codigosEnquadramento, textoDeterminacao,
 } from './base.js';
 import { comJurisprudencia, registroJurisprudencia, secaoReferencias } from './fontes.js';
 import { secaoPenosidade } from './penosidade.js';
@@ -81,6 +81,7 @@ function avaliacaoPrevidenciaria(d, dados, base, inicio = 0) {
     quadroCriteriosRuido(d);
     quadroMedicoesRuido(d, g['Ruído'], eq, nome, ctx);
     quadroConfrontoRuido(d, dados);
+    if (usaParadigmas(dados)) d.texto('Para os vínculos avaliados por similaridade, os valores do paradigma normalizados para a jornada efetiva e a comparação com o limite de cada período estão na memória de cálculo do ruído, adiante.');
     d.redigir('fonte, habitualidade e permanência por período.');
   }
   if (g['Calor (IBUTG)']) {
@@ -94,7 +95,8 @@ function avaliacaoPrevidenciaria(d, dados, base, inicio = 0) {
     sub('Vibração');
     quadroCriteriosVibracao(d);
     for (const k of vib) quadroMedicoesGenerico(d, `Resultados – ${k}`, g[k], nome, ctx);
-    d.redigir('aren e VDVR normalizados para a jornada; leitura pelo critério de cada período.');
+    if (usaParadigmas(dados)) d.texto('Os valores de aren e VDVR normalizados para a jornada efetiva e a leitura pelo critério de cada período estão na memória de cálculo da vibração de corpo inteiro, adiante.');
+    else d.redigir('aren e VDVR normalizados para a jornada; leitura pelo critério de cada período.');
   }
   for (const k of ['Agente químico', 'Outro']) {
     if (!g[k]) continue;
@@ -135,7 +137,7 @@ export async function laudoPericial(caseId) {
 
   d.h1('2', 'Objetivo e metodologia da avaliação pericial');
   d.h2('2.1', 'Determinação judicial (objeto da perícia)');
-  d.redigir('transcrever ou resumir o despacho que determinou a perícia (ID / mov.).');
+  if (textoDeterminacao(dados, false)) d.texto(textoDeterminacao(dados, false)); else d.redigir('transcrever ou resumir o despacho que determinou a perícia (ID / mov.) – cadastre a referência do despacho na etapa 1.');
   d.h2('2.2', 'Objetivo técnico');
   const servidor = c.materia === 'Administrativa (servidor)' || /Fazenda/i.test(c.justica || '');
   const baseLegal = servidor
@@ -211,7 +213,7 @@ export async function laudoPrevidenciario(caseId) {
 
   d.h1('2', 'Objeto e metodologia');
   d.h2('2.1', 'Determinação judicial (objeto da perícia)');
-  d.redigir('transcrever ou resumir o despacho que determinou a perícia (evento / mov.).');
+  if (textoDeterminacao(dados, true)) d.texto(textoDeterminacao(dados, true)); else d.redigir('transcrever ou resumir o despacho que determinou a perícia (evento / mov.) – cadastre a referência do despacho na etapa 1.');
   d.h2('2.2', 'Metodologia');
   d.texto('Em atendimento ao art. 473, inciso III, do Código de Processo Civil, a metodologia consistiu em análise dos autos, inspeção *in loco* e avaliações ambientais, seguindo as NHO da FUNDACENTRO e os limites de tolerância do Anexo IV do Regulamento da Previdência Social ou, na sua falta, da NR-15, quando o decreto a ela remete (art. 288 da IN 128/2022). [[Perícia direta / indireta por similaridade – ajustar.]]');
   d.texto(`A conclusão fundamenta-se exclusivamente na legislação previdenciária e nas normas técnicas indicadas${comJurisprudencia(dados) ? '; entendimentos jurisprudenciais são apenas registrados, em item próprio, para apreciação do Juízo' : ''}.`);
@@ -243,7 +245,7 @@ export async function laudoPrevidenciario(caseId) {
   d.h1('7', 'Conclusão');
   if (dados.periodos.length) {
     d.quadro('Conclusão por período', [['Período', 'Agente(s)', 'Código', 'Caracteriza'],
-      ...dados.periodos.map((r) => [`${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`, r.data.agentes || '[[agentes]]', '[[cód.]]', '[[S/N]]'])],
+      ...dados.periodos.map((r) => [`${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`, r.data.agentes || '[[agentes]]', codigosEnquadramento(`${r.data.agentes || ''} ${r.data.cargo || ''}`, r.data.inicio, r.data.fim), '[[S/N]]'])],
     { larguras: [0.26, 0.38, 0.18, 0.18] });
   }
   d.redigir('conclusão por período: exposição habitual e permanente, não ocasional nem intermitente, a agentes nocivos – caracteriza / não caracteriza.');
@@ -338,7 +340,7 @@ export async function ltcatPpp(caseId) {
   d.h2('6.1', 'Síntese do enquadramento');
   if (dados.periodos.length) {
     d.quadro('Síntese do enquadramento por período', [['Período', 'Agente(s)', 'Código', 'Enquadra'],
-      ...dados.periodos.map((r) => [`${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`, r.data.agentes || '[[agentes]]', '[[cód.]]', '[[S/N]]'])],
+      ...dados.periodos.map((r) => [`${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`, r.data.agentes || '[[agentes]]', codigosEnquadramento(`${r.data.agentes || ''} ${r.data.cargo || ''}`, r.data.inicio, r.data.fim), '[[S/N]]'])],
     { larguras: [0.26, 0.38, 0.18, 0.18] });
   }
   d.h2('6.2', 'Parecer técnico');
@@ -854,7 +856,7 @@ export async function respostaQuesitosSuplementares(caseId) {
       d.add(p([run(rot, { b: true }), run(tx[0] || '', { i: true })], { left: 709, after: 40, keepNext: true }));
       for (const l of tx.slice(1)) d.add(p([run(l, { i: true })], { left: 709, after: 40, keepNext: true }));
       const rs = linhas(q.data.resposta);
-      d.add(p([run('Resposta: ', { b: true })].concat(rs.length ? [rich(rs[0])] : [run('[[Responder]]', { b: true, hl: true })]), { first: 709, before: 80, after: 80 }));
+      d.add(p([run('Resposta: ', { b: true })].concat(rs.length ? [rich(rs[0])] : [run('Responder', { b: true, hl: true })]), { first: 709, before: 80, after: 80 }));
       if (rs.length > 1) d.texto(rs.slice(1).join('\n'));
       d.add(p('', { after: 80 }));
     }

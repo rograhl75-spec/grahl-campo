@@ -82,47 +82,47 @@ export class Doc {
       if (!l) continue;
       const run = size ? { size } : {};
       if (/^[-•▪]\s+/.test(l)) {
-        this.add(p([runMarcador(), rich(l.replace(/^[-•▪]\s+/, ''), run)], { left: 1069, hanging: 360, after: 60 }));
+        this.add(p([runMarcador(), rich(l.replace(/^[-•▪]\s+/, ''), run)], { left: 1069, hanging: 360, after: 100 }));
       } else if (/^[a-z]\)\s+/i.test(l) || /^[ivx]+\)\s+/i.test(l)) {
-        this.add(p(l, { left: 1069, hanging: 360, after: 60, run }));
+        this.add(p(l, { left: 1069, hanging: 360, after: 100, run }));
       } else {
-        this.add(p(l, { first: recuo ? RECUO : 0, run }));
+        this.add(p(l, { first: recuo ? RECUO : 0, after: 160, run }));
       }
     }
     return this;
   }
   // texto ainda não redigido: aparece em amarelo, com a orientação do que escrever
   redigir(orientacao) {
-    return this.add(p(`[[Redigir: ${orientacao}]]`, { first: RECUO }));
+    return this.add(p(`[[Redigir: ${orientacao}]]`, { first: RECUO, after: 160 }));
   }
   h1(num, titulo, { novaPagina = true } = {}) {
     return this.add(`<w:p>${pPr({ style: 'Ttulo1', align: 'left', before: novaPagina ? 0 : 360, after: 240, keepNext: true, pageBreakBefore: novaPagina, outline: 0 })}` +
       `${run(`${num ? num + ' ' : ''}${String(titulo).toUpperCase()}`, { b: true, size: 12, color: AZUL })}</w:p>`);
   }
   h2(num, titulo) {
-    return this.add(`<w:p>${pPr({ style: 'Ttulo2', align: 'left', before: 240, after: 120, keepNext: true, outline: 1 })}` +
+    return this.add(`<w:p>${pPr({ style: 'Ttulo2', align: 'left', before: 360, after: 160, keepNext: true, outline: 1 })}` +
       `${run(`${num ? num + ' ' : ''}${String(titulo).toUpperCase()}`, { b: true, size: 12, color: AZUL })}</w:p>`);
   }
   h3(titulo) {
-    return this.add(p([run(titulo, { b: true })], { align: 'left', before: 120, after: 60, keepNext: true }));
+    return this.add(p([run(titulo, { b: true })], { align: 'left', before: 240, after: 120, keepNext: true }));
   }
   // Quadro numerado: título acima, tabela, fonte abaixo
   quadro(titulo, linhas, { larguras, header = true, fonte = 'Elaborado pelo autor.', tam = 10, alinhar = 'both' } = {}) {
     if (!linhas || linhas.length <= (header ? 1 : 0)) return this;
     this.nQuad += 1;
     const n = this.nQuad;
-    this.add(`<w:p>${pPr({ align: 'center', before: 120, after: 60, line: 276, keepNext: true })}` +
+    this.add(`<w:p>${pPr({ align: 'center', before: 240, after: 100, line: 276, keepNext: true })}` +
       run('Quadro ', { b: true, size: 10 }) + campoSeq('Quadro', n, { b: true, size: 10 }) + run(` – ${titulo}`, { b: true, size: 10 }) + '</w:p>');
     this.add(tabela(linhas, { larguras, header, tam, alinhar }));
-    if (fonte) this.add(p([run(`Fonte: ${fonte}`, { size: 9 })], { align: 'left', after: 200, line: 240 }));
+    this.add(p([run(fonte ? `Fonte: ${fonte}` : '', { size: 9 })], { align: 'both', before: 60, after: 280, line: 240 }));
     return this;
   }
   // tabela chave–valor da capa (rótulo em negrito azul, linhas finas)
   identificacao(pares) {
     const linhas = pares.filter(([, v]) => !vazio(v));
     if (!linhas.length) return this;
-    const rows = linhas.map(([k, v]) => `<w:tr>${celula(k, 2600, { b: true, color: AZUL, tam: 10, borda: 'bottom', align: 'left' })}${celula(v, LARGURA - 2600, { tam: 10, borda: 'bottom', align: 'left' })}</w:tr>`).join('');
-    return this.add(`<w:tbl><w:tblPr><w:tblW w:w="${LARGURA}" w:type="dxa"/><w:tblLayout w:type="fixed"/></w:tblPr><w:tblGrid><w:gridCol w:w="2600"/><w:gridCol w:w="${LARGURA - 2600}"/></w:tblGrid>${rows}</w:tbl>`, p('', { after: 120, line: 240 }));
+    const rows = linhas.map(([k, v]) => `<w:tr>${celula(k, 2600, { b: true, color: AZUL, tam: 10, borda: 'bottom', align: 'left' })}${celula(v, LARGURA - 2600, { tam: 10, borda: 'bottom', align: String(v).length > 90 ? 'both' : 'left' })}</w:tr>`).join('');
+    return this.add(`<w:tbl><w:tblPr><w:tblW w:w="${LARGURA}" w:type="dxa"/><w:tblLayout w:type="fixed"/>${MARGEM_CELULA}</w:tblPr><w:tblGrid><w:gridCol w:w="2600"/><w:gridCol w:w="${LARGURA - 2600}"/></w:tblGrid>${rows}</w:tbl>`, p('', { after: 200, line: 240 }));
   }
   // Figuras, duas por linha, legenda acima
   figuras(lista) {
@@ -192,6 +192,8 @@ function campoToc(instr) {
     '<w:r><w:fldChar w:fldCharType="end"/></w:r></w:p>';
 }
 
+const MARGEM_CELULA = '<w:tblCellMar><w:top w:w="70" w:type="dxa"/><w:left w:w="100" w:type="dxa"/><w:bottom w:w="70" w:type="dxa"/><w:right w:w="100" w:type="dxa"/></w:tblCellMar>';
+
 function bordas(tipo) {
   const b = (n, cor = 'A6B4C8') => `<w:${n} w:val="single" w:sz="4" w:space="0" w:color="${cor}"/>`;
   if (tipo === 'bottom') return `<w:tcBorders><w:top w:val="nil"/><w:left w:val="nil"/>${b('bottom', 'C9D3E0')}<w:right w:val="nil"/></w:tcBorders>`;
@@ -201,23 +203,37 @@ function bordas(tipo) {
 function celula(texto, w, { b, color, tam = 10, fill, borda = 'all', align = 'both' } = {}) {
   const shade = fill ? `<w:shd w:val="clear" w:color="auto" w:fill="${fill}"/>` : '';
   const linhas = String(texto ?? '').split(/\r?\n/);
-  const paras = linhas.map((l) => p([rich(l, { size: tam, b, color })], { align, after: 0, line: 264 })).join('');
+  const paras = linhas.map((l, i) => p([rich(l, { size: tam, b, color })], { align, after: i < linhas.length - 1 ? 60 : 0, line: 276 })).join('');
   return `<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/>${bordas(borda)}${shade}<w:vAlign w:val="center"/></w:tcPr>${paras}</w:tc>`;
 }
 
-export function tabela(linhas, { larguras, header = true, tam = 10, alinhar = 'both' } = {}) {
+// Alinhamento por coluna: justificado só em coluna larga com texto corrido; datas, números e
+// textos curtos centralizados; o resto à esquerda (justificar coluna estreita abre buracos).
+function alinhamentoColuna(linhas, ci, w, header) {
+  const corpo = linhas.slice(header ? 1 : 0).map((l) => String(l[ci] ?? '').replace(/\[\[|\]\]|\*\*/g, ''));
+  if (!corpo.length) return 'left';
+  const media = corpo.reduce((s, t) => s + t.length, 0) / corpo.length;
+  const curto = corpo.every((t) => t.length <= 24);
+  if (curto) return 'center';
+  if (w >= LARGURA * 0.3 && media > 70) return 'both';
+  return 'left';
+}
+
+export function tabela(linhas, { larguras, header = true, tam = 10, alinhar = 'auto' } = {}) {
+  tam = Math.max(tam, 9);
   const ncol = Math.max(...linhas.map((l) => l.length));
   const ws = larguras ? larguras.map((f) => Math.round(f * LARGURA)) : Array(ncol).fill(Math.round(LARGURA / ncol));
+  const al = ws.map((w, ci) => (alinhar === 'center' ? 'center' : alinhamentoColuna(linhas, ci, w, header)));
   const grid = `<w:tblGrid>${ws.map((w) => `<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>`;
   const rows = linhas.map((l, ri) => {
     const isH = header && ri === 0;
     const cells = l.map((c, ci) => celula(c, ws[ci], {
-      b: isH, color: isH ? AZUL : undefined, tam, fill: isH ? AZUL_CLARO : undefined, align: isH ? 'center' : alinhar,
+      b: isH, color: isH ? AZUL : undefined, tam: isH ? Math.min(tam, 9) : tam, fill: isH ? AZUL_CLARO : undefined, align: isH ? 'center' : al[ci],
     })).join('');
     return `<w:tr><w:trPr><w:cantSplit/>${isH ? '<w:tblHeader/>' : ''}</w:trPr>${cells}</w:tr>`;
   }).join('');
   return `<w:tbl><w:tblPr><w:tblW w:w="${LARGURA}" w:type="dxa"/><w:jc w:val="center"/><w:tblLayout w:type="fixed"/>` +
-    '<w:tblCellMar><w:top w:w="30" w:type="dxa"/><w:left w:w="80" w:type="dxa"/><w:bottom w:w="30" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar></w:tblPr>' +
+    `${MARGEM_CELULA}</w:tblPr>` +
     `${grid}${rows}</w:tbl>`;
 }
 

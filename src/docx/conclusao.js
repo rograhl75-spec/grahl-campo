@@ -11,6 +11,9 @@ const CORTES = ['1995-04-28', '1997-03-05', '2003-11-18', '2014-08-13'];
 const dia = (iso, n) => { const d = new Date(`${iso}T12:00:00`); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 const RE_MOT = /motorista|caminh|carreteir|cobrador|ônibus|onibus/i;
+// Súmula 70 da TNU: tratorista equipara-se a motorista de caminhão para o enquadramento por categoria
+const RE_TRAT = /tratorist|operador de trator|operador de m[aá]quinas? agr[ií]col/i;
+const RE_COBR = /cobrador/i;
 
 function segmentos(r) {
   const ini = r.data.inicio; const fim = r.data.fim || new Date().toISOString().slice(0, 10);
@@ -50,11 +53,16 @@ export function valores(r, dados) {
 export function avaliarPeriodos(dados) {
   return dados.periodos.map((r) => {
     const val = valores(r, dados);
-    const motorista = RE_MOT.test(`${r.data.cargo || ''} ${r.data.atividades || ''}`);
+    const funcao = `${r.data.cargo || ''} ${r.data.atividades || ''}`;
+    const tratorista = RE_TRAT.test(funcao);
+    const motorista = RE_MOT.test(funcao);
+    const soCobrador = RE_COBR.test(funcao) && !/motorista/i.test(funcao);
     const segs = segmentos(r).map(([a, b]) => {
       const itens = []; let algum = false; let dadosOk = false;
-      if (b <= '1995-04-28' && motorista) {
-        itens.push({ t: 'Categoria profissional de motorista – enquadramento por presunção', cod: '2.4.4 (Dec. 53.831/64) / 2.4.2 (Dec. 83.080/79)', sup: true });
+      if (b <= '1995-04-28' && (motorista || tratorista)) {
+        if (tratorista && !motorista) itens.push({ t: 'Categoria profissional de tratorista, equiparada à de motorista de caminhão (Súmula 70 da TNU) – enquadramento por presunção', cod: '2.4.4 (Dec. 53.831/64) / 2.4.2 (Dec. 83.080/79)', sup: true, categoria: true });
+        else if (soCobrador) itens.push({ t: 'Categoria profissional de cobrador de ônibus – enquadramento por presunção', cod: '2.4.4 (Dec. 53.831/64)', sup: true, categoria: true });
+        else itens.push({ t: 'Categoria profissional de motorista – enquadramento por presunção', cod: '2.4.4 (Dec. 53.831/64) / 2.4.2 (Dec. 83.080/79)', sup: true, categoria: true });
         algum = true; dadosOk = true;
       }
       if (isFinite(val.lavg)) {
@@ -63,7 +71,7 @@ export function avaliarPeriodos(dados) {
         const x = crit === 'Lavg' ? val.lavg : val.nen;
         if (isFinite(x)) {
           const sup = Math.round(x * 10) / 10 > lim;
-          itens.push({ t: `Ruído: ${crit} ${fmt(x, 2)} dB(A) ${sup ? '>' : '≤'} ${lim} dB(A) – ${sup ? 'supera' : 'não supera'}`, cod, sup });
+          itens.push({ t: `Ruído: ${crit} ${fmt(x, 2)} dB(A) ${sup ? '>' : '≤'} ${lim} dB(A) – ${sup ? 'supera' : 'não supera'}`, cod, sup, ruido: true });
           if (sup) algum = true;
         }
       }
@@ -108,12 +116,19 @@ export function conclusaoPrevidenciaria(d, dados, { tituloQuadro = 'Conclusão p
       return acc;
     }, []).map((s) => `${dataBR(s.ini)} a ${dataBR(s.fim)}`).join(', ');
     const partes = [];
-    if (sim.length) partes.push(`caracteriza exposição habitual e permanente, não ocasional nem intermitente, a agentes nocivos no(s) período(s) de ${p(sim)} (cód. ${[...new Set(sim.flatMap((s) => s.codigos.split('; ')))].join('; ')})`);
+    // enquadramento só por categoria (até 28/04/1995) é presunção legal, não exposição avaliada
+    const soCat = (s) => s.itens.filter((i) => i.sup).every((i) => i.categoria);
+    const cat = sim.filter(soCat), agente = sim.filter((s) => !soCat(s));
+    const cods = (l) => [...new Set(l.flatMap((s) => s.codigos.split('; ')))].join('; ');
+    if (cat.length) partes.push(`enquadra-se por categoria profissional, com presunção legal de exposição, no(s) período(s) de ${p(cat)} (cód. ${cods(cat)})`);
+    if (agente.length) partes.push(`caracteriza exposição habitual e permanente, não ocasional nem intermitente, a agentes nocivos no(s) período(s) de ${p(agente)} (cód. ${cods(agente)})`);
     if (nao.length) partes.push(`não caracteriza no(s) período(s) de ${p(nao)}, em que os valores avaliados não superam os limites da época`);
     const base = [val.fonteR && `ruído pelo ${val.fonteR}`, val.fonteV && `vibração pelo ${val.fonteV}`, isFinite(val.T) && `condução de ${String(r.data.conducaoH).replace('.', ',')} h/dia`].filter(Boolean).join(', ');
     if (partes.length) d.texto(`**${r.data.empresa || 'Vínculo'} (${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}):** a avaliação pericial${base ? ` (${base})` : ''} ${partes.join('; e ')}.`);
     else d.redigir(`conclusão do vínculo ${r.data.empresa || ''} – sem valores avaliados vinculados a ele (vincule o veículo/posto ou o paradigma).`);
   }
+  const ruidoSup = av.some(({ segs }) => segs.some((s) => s.itens.some((i) => i.ruido && i.sup)));
+  if (ruidoSup && !semEpi) d.texto('Quanto ao ruído, a eventual declaração de eficácia do EPI (protetor auricular) não descaracteriza o tempo especial (STF, Tema 555 – ARE 664.335).');
   if (semEpi) d.texto('Não foram apresentados registros de fornecimento de EPI nem dos demais requisitos de responsabilidade do empregador (art. 291 da IN 128/2022); assim, não se considera neutralizada a exposição em nenhum dos períodos.');
 
   if (avaliaPenosidade(dados)) {

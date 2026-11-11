@@ -5,6 +5,11 @@ import {
   importarBaseJson, sugerirParadigmas, lerJsonVeiculos, adicionarParadigmas, guardarAnexo, PROMPT_LAUDO_ANTIGO,
   rotuloParadigma, certificadoVencido, REGRA_CERT_MESES_PADRAO,
 } from '../paradigmas.js';
+import {
+  CATEGORIAS_MAQUINA, GRUPOS_MAQUINA, OPCOES_CATEGORIA, ORIGEM_DADO, FAMILIAS_MAQUINAS, LIMITES, CAMPOS_ESTAT, PROMPT_MAQUINAS,
+  resumoPorCategoria, codigoCategoria, classificar, ehMaquina,
+} from '../maquinas.js';
+import { fmt } from '../calc.js';
 import { useLive } from './hooks.js';
 import { Campos } from './fields.jsx';
 import { RecordList } from './RecordList.jsx';
@@ -14,6 +19,12 @@ export const CAMPOS_PARADIGMA = {
     ['codigo', 'Código', 'text'], ['tipo', 'Tipo (toco, truck, cavalo, bitrem, ônibus, van, trator…)', 'text'],
     ['marca', 'Marca', 'text'], ['modelo', 'Modelo', 'text'], ['ano', 'Ano', 'text'],
     ['situacao', 'Situação', 'select', ['OK', 'Revisar', 'Ressalva', 'Confirmar modelo', 'RECALCULAR VDVR', 'NÃO USAR']],
+  ],
+  'Máquina e condição de operação': [
+    ['categoriaMaquina', 'Categoria da máquina', 'select', OPCOES_CATEGORIA], ['origemDado', 'Origem do dado', 'select', ORIGEM_DADO],
+    ['operacao', 'Operação (gradagem, roçada, transporte, colheita…)', 'text'], ['implemento', 'Implemento acoplado', 'text'],
+    ['potencia', 'Potência (cv)', 'num'], ['rotacao', 'Rotação do motor (rpm)', 'num'], ['velocidade', 'Velocidade (km/h)', 'num'],
+    ['referencia', 'Referência bibliográfica (ABNT) / documento de origem', 'area'],
   ],
   'Características técnicas (ordem da similaridade)': [
     ['familia', 'Família técnica (F1, F2…)', 'text'], ['posicaoMotor', 'Posição do motor', 'text'], ['cabine', 'Cabine – geração e isolamento', 'text'],
@@ -27,7 +38,7 @@ export const CAMPOS_PARADIGMA = {
     ['vdvrLaudo', 'VDVR no laudo (m/s^1,75)', 'num'], ['eixoDominante', 'Eixo dominante', 'text'], ['arenVmb', 'aren VMB (m/s²)', 'num'], ['ibutg', 'IBUTG (°C)', 'num'],
   ],
   'Fonte (laudo extrajudicial: sem nome do segurado)': [
-    ['fonteTipo', 'Tipo de fonte', 'select', ['Judicial', 'Judicial trabalhista', 'Judicial (perita terceira)', 'Extrajudicial']],
+    ['fonteTipo', 'Tipo de fonte', 'select', ['Judicial', 'Judicial trabalhista', 'Judicial (perita terceira)', 'Extrajudicial', 'Literatura', 'Fabricante']],
     ['processo', 'Processo', 'text'], ['vara', 'Vara', 'text'], ['dataMedicao', 'Data da medição (DD/MM/AAAA)', 'text'], ['citacao', 'Como citar no laudo', 'text'],
   ],
   'Instrumentação': [
@@ -40,17 +51,18 @@ export const CAMPOS_PARADIGMA = {
   ],
 };
 
-const ABAS = [['veiculos', 'Veículos medidos'], ['similares', 'Similares'], ['familias', 'Famílias'], ['buscar', 'Buscar paradigma'], ['importar', 'Importar']];
+const ABAS = [['veiculos', 'Veículos medidos'], ['maquinas', 'Máquinas – ruído e vibração'], ['similares', 'Similares'], ['familias', 'Famílias'], ['buscar', 'Buscar paradigma'], ['importar', 'Importar']];
 
 export function Paradigmas({ aba = 'veiculos' }) {
   return (
     <div class="pagina">
       <div class="caso-topo"><div class="caso-id">
         <h1>Banco de paradigmas</h1>
-        <div class="caso-sub">Veículos e máquinas medidos em perícias e laudos, usados como paradigma por similaridade.</div>
+        <div class="caso-sub">Veículos, máquinas agrícolas, de construção e ferramentas medidos em perícias, laudos e na literatura – usados como paradigma por similaridade.</div>
       </div></div>
       <nav class="abas">{ABAS.map(([k, r]) => <a href={`#/paradigmas/${k}`} class={aba === k ? 'ativo' : ''}>{r}</a>)}</nav>
       {aba === 'veiculos' && <Veiculos />}
+      {aba === 'maquinas' && <Maquinas />}
       {aba === 'similares' && <Similares />}
       {aba === 'familias' && <Familias />}
       {aba === 'buscar' && <Buscar />}
@@ -130,6 +142,158 @@ function Veiculos() {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+// ---------- Banco de máquinas: ruído e vibração ----------
+const f2 = (x, c = 1) => (isFinite(x) ? fmt(x, c) : '—');
+function Faixa({ e, casas = 1, chave }) {
+  if (!e) return <span class="suave">—</span>;
+  const cl = classificar(chave, e.max);
+  return (
+    <span class={`faixa ${cl ? `nv-${cl.nivel}` : ''}`} title={cl ? `Máximo ${cl.txt}` : ''}>
+      {e.n > 1 ? `${f2(e.min, casas)} – ${f2(e.max, casas)}` : f2(e.min, casas)}
+      <small> {e.n > 1 ? `med. ${f2(e.mediana, casas)} · n=${e.n}` : 'n=1'}</small>
+    </span>
+  );
+}
+
+function Maquinas() {
+  const lista = useParadigmas();
+  const [grupo, setGrupo] = useState('');
+  const [cat, setCat] = useState('');
+  const [aberto, setAberto] = useState(null);
+  const [msg, setMsg] = useState('');
+  const maquinas = lista.filter(ehMaquina);
+  const resumo = resumoPorCategoria(maquinas);
+  const cats = CATEGORIAS_MAQUINA.filter((c) => !grupo || c.grupo === grupo);
+  const doFiltro = maquinas.filter((p) => {
+    const cod = codigoCategoria(p.data.categoriaMaquina);
+    if (cat) return cod === cat;
+    if (grupo) return cats.some((c) => c.cod === cod);
+    return true;
+  });
+  const novo = async (origem) => {
+    const r = await createRecord('paradigma', null, { codigo: '', situacao: 'Revisar', categoriaMaquina: cat ? OPCOES_CATEGORIA[CATEGORIAS_MAQUINA.findIndex((c) => c.cod === cat)] : '', origemDado: origem, fonteTipo: /Literatura/.test(origem) ? 'Literatura' : '' });
+    avisarAlteracao(); setAberto(r.id);
+  };
+  const criarFamilias = async () => {
+    const existentes = new Set((await db.records.where('kind').equals('familia').toArray()).filter((r) => !r.deleted).map((r) => r.data.codigo));
+    let n = 0;
+    for (const f of FAMILIAS_MAQUINAS) if (!existentes.has(f.codigo)) { await createRecord('familia', null, f); n++; }
+    avisarAlteracao();
+    setMsg(n ? `✓ ${n} família(s) de máquinas incluída(s) em Famílias.` : 'As famílias de máquinas já estavam cadastradas.');
+  };
+  return (
+    <div class="grade">
+      <section class="bloco largo">
+        <div class="linha-botoes entre">
+          <h3>Banco de ruído e vibração de máquinas e equipamentos</h3>
+          <span class="contagem">{maquinas.length} registro(s)</span>
+        </div>
+        <p class="dica">Tratores, colhedoras, pulverizadores, máquinas de construção, empilhadeiras e ferramentas portáteis. Cada registro guarda a origem do dado
+          (medição própria, laudo de terceiro, literatura técnica ou declaração do fabricante) e a condição de operação. Valores de literatura e de fabricante servem
+          para triagem e para fundamentar a similaridade; na conclusão pericial, prefira medições em condições equivalentes às do trabalhador.</p>
+        <div class="chips filtros">
+          <button type="button" class={`chip ${!grupo ? 'on' : ''}`} onClick={() => { setGrupo(''); setCat(''); }}>Todos os grupos</button>
+          {GRUPOS_MAQUINA.map((g) => <button type="button" class={`chip ${grupo === g ? 'on' : ''}`} onClick={() => { setGrupo(g); setCat(''); }}>{g}</button>)}
+        </div>
+        <div class="linha-botoes">
+          <button type="button" class="primario" onClick={() => novo(ORIGEM_DADO[0])}>＋ Medição própria</button>
+          <button type="button" onClick={() => novo(ORIGEM_DADO[2])}>＋ Valor de literatura</button>
+          <button type="button" onClick={() => novo(ORIGEM_DADO[3])}>＋ Declaração do fabricante</button>
+          <button type="button" class="sec" onClick={criarFamilias}>Incluir famílias A1–P1</button>
+        </div>
+        {msg && <p class="ok-msg">{msg}</p>}
+      </section>
+
+      <section class="bloco largo">
+        <h3>Resumo por categoria</h3>
+        <div class="tabela-rolagem">
+          <table class="tabela">
+            <thead><tr><th>Categoria</th><th>Agentes</th><th>Reg.</th>{CAMPOS_ESTAT.map(([, r]) => <th>{r}</th>)}</tr></thead>
+            <tbody>
+              {cats.map((c) => {
+                const r = resumo[c.cod];
+                return (
+                  <tr class={`${cat === c.cod ? 'sel' : ''} ${r ? '' : 'sem-dado'}`} onClick={() => setCat(cat === c.cod ? '' : c.cod)}>
+                    <td><b>{c.cod}</b><br /><small>{c.nome}</small></td>
+                    <td><small>{c.agentes.join(', ')}</small></td>
+                    <td class="num">{r ? r.total : 0}</td>
+                    {CAMPOS_ESTAT.map(([k, , chave]) => <td class="num"><Faixa e={r && r[k]} chave={chave} casas={/ruido/.test(chave) ? 1 : 2} /></td>)}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <p class="legenda-niveis"><span class="faixa nv-abaixo">abaixo do nível de ação</span> <span class="faixa nv-acao">entre ação e limite</span> <span class="faixa nv-acima">acima do limite</span> <small class="suave">(cor pelo valor máximo da categoria)</small></p>
+      </section>
+
+      {cat && (() => {
+        const c = CATEGORIAS_MAQUINA.find((x) => x.cod === cat);
+        return (
+          <section class="bloco largo destaque">
+            <h3>{c.cod} – {c.nome}</h3>
+            <p><b>Agentes:</b> {c.agentes.join(', ')}{c.eixo ? <> · <b>Eixo dominante típico da VCI:</b> {c.eixo}</> : null}</p>
+            {c.fatores && <p><b>O que mais influencia:</b> {c.fatores}</p>}
+          </section>
+        );
+      })()}
+
+      <div class="largo">
+        {!doFiltro.length && <p class="vazio">Nenhum registro {cat ? 'nesta categoria' : 'de máquina'} ainda. Use os botões acima ou importe artigos, manuais e laudos em “Importar”.</p>}
+        {doFiltro.map((p) => {
+          const d = p.data;
+          const cls = [['ruido', d.lavg || d.leq], ['vciAren', d.arep || d.arenLaudo], ['vciVdvr', d.vdvrLaudo], ['vmb', d.arenVmb]].map(([k, v]) => classificar(k, v)).filter(Boolean);
+          const pior = cls.some((x) => x.nivel === 'acima') ? 'acima' : cls.some((x) => x.nivel === 'acao') ? 'acao' : cls.length ? 'abaixo' : '';
+          return (
+            <div class={`item ${aberto === p.id ? 'aberto' : ''}`} key={p.id}>
+              <div class="item-topo" onClick={() => setAberto(aberto === p.id ? null : p.id)}>
+                <span class="item-titulo">
+                  <b>{rotuloParadigma(p) || '(sem identificação)'}</b>{' '}
+                  <span class="etq">{codigoCategoria(d.categoriaMaquina) || 'sem categoria'}</span>{' '}
+                  {d.origemDado && <span class="etq">{d.origemDado.split(' (')[0]}</span>}{' '}
+                  {pior && <span class={`faixa nv-${pior}`}>{pior === 'acima' ? 'acima do limite' : pior === 'acao' ? 'nível de ação' : 'abaixo da ação'}</span>}
+                  <br /><small class="suave">
+                    {[d.operacao, d.lavg && `Lavg ${d.lavg} dB(A)`, d.leq && `Leq ${d.leq} dB(A)`, (d.arep || d.arenLaudo) && `aren ${d.arep || d.arenLaudo} m/s²`, d.vdvrLaudo && `VDVR ${d.vdvrLaudo}`, d.arenVmb && `VMB ${d.arenVmb} m/s²`].filter(Boolean).join(' · ')}
+                  </small>
+                </span>
+                <span class="item-acoes" onClick={(e) => e.stopPropagation()}>
+                  <button type="button" class="mini perigo" aria-label="Mover para a lixeira" onClick={async () => { if (confirm('Mover para a lixeira?')) { await softDelete(p.id); avisarAlteracao(); } }}>✕</button>
+                </span>
+              </div>
+              {aberto === p.id && (
+                <div class="item-corpo">
+                  {Object.entries(CAMPOS_PARADIGMA).filter(([g]) => !/Instrumentação/.test(g) || /própria|terceiro/i.test(d.origemDado || '')).map(([g, campos]) => (
+                    <details open={g === 'Identificação' || g === 'Resultados' || g.startsWith('Máquina')}>
+                      <summary><b>{g}</b></summary>
+                      <div class="linha2"><Campos rec={p} campos={campos} /></div>
+                    </details>
+                  ))}
+                  {d.anexoId && <AbrirAnexo id={d.anexoId} />}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <section class="bloco largo">
+        <h3>Limites de referência</h3>
+        <div class="tabela-rolagem">
+          <table class="tabela">
+            <thead><tr><th>Agente</th><th>Nível de ação</th><th>Limite</th><th>Base normativa</th></tr></thead>
+            <tbody>
+              {[['Ruído', 'ruido'], ['VCI – aren', 'vciAren'], ['VCI – VDVR', 'vciVdvr'], ['VMB – aren', 'vmb']].map(([r, k]) => (
+                <tr><td><b>{r}</b></td><td class="num">{String(LIMITES[k].acao).replace('.', ',')} {LIMITES[k].unidade}</td><td class="num">{String(LIMITES[k].limite).replace('.', ',')} {LIMITES[k].unidade}</td><td><small>{LIMITES[k].base}</small></td></tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p class="dica">Previdenciário: VCI de 06/03/1997 a 13/08/2014 pela ISO 2631-1 (zona de cautela até 0,9 m/s² / VDV 17); antes de 06/03/1997, o cód. 1.1.5 do Dec. 53.831/64 restringe-se a perfuratrizes e marteletes.</p>
+      </section>
     </div>
   );
 }
@@ -274,6 +438,14 @@ function Importar() {
             <button type="button" class="primario" onClick={aplicar}>Incluir no banco</button>
           </div>
         )}
+      </section>
+      <section class="bloco largo">
+        <h3>Incluir máquinas a partir de artigos, manuais ou laudos</h3>
+        <p>Para tratores, colhedoras, máquinas de construção e ferramentas portáteis use esta instrução: ela pede a categoria, a origem do dado, a condição de operação e a referência bibliográfica. Depois cole a resposta no passo 3 acima.</p>
+        <div class="linha-botoes">
+          <button type="button" onClick={async () => { try { await navigator.clipboard.writeText(PROMPT_MAQUINAS); setMsg('Instrução de máquinas copiada. Cole no Claude e anexe o artigo, manual ou laudo.'); } catch (e) { setMsg('Selecione o texto da instrução abaixo.'); } }}>Copiar instrução de máquinas</button>
+        </div>
+        <details><summary>Ver a instrução</summary><pre class="prompt">{PROMPT_MAQUINAS}</pre></details>
       </section>
       {msg && <p class="ok-msg largo">{msg}</p>}
     </div>

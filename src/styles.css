@@ -269,3 +269,22 @@ a.botao { font-weight: 700; min-height: 50px; padding: 10px 20px; border-radius:
   display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; margin-top: 8px; }
 .dados-agenda { margin: 8px 0 10px; padding: 10px 12px; border: 1px dashed var(--borda); border-radius: 10px; }
 .dados-agenda .chips { margin: -6px 0 10px; }
+
+/* ---------- tabelas de dados (banco de máquinas) ---------- */
+.tabela-rolagem { overflow-x: auto; border: 1px solid var(--borda); border-radius: 12px; }
+table.tabela { width: 100%; border-collapse: collapse; font-size: .9rem; }
+table.tabela th { background: var(--azul); color: #fff; text-align: left; font-weight: 700; padding: 10px 12px; font-size: .8rem; letter-spacing: .02em; white-space: nowrap; }
+table.tabela td { padding: 9px 12px; border-top: 1px solid #E6ECF3; vertical-align: top; }
+table.tabela tbody tr:nth-child(even) td { background: #F8FAFD; }
+table.tabela tbody tr { cursor: pointer; }
+table.tabela tbody tr:hover td { background: #EEF4FB; }
+table.tabela tr.sel td { background: var(--ouro-claro) !important; }
+table.tabela tr.sem-dado td { color: var(--suave); }
+table.tabela td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+table.tabela small { color: var(--suave); }
+.faixa { display: inline-block; border-radius: 6px; padding: 2px 8px; font-weight: 700; font-size: .85rem; background: #EEF2F7; color: var(--texto); }
+.faixa small { font-weight: 500; }
+.faixa.nv-abaixo { background: #DDF3E3; color: #166534; }
+.faixa.nv-acao { background: #FDF0D5; color: #8A5A0B; }
+.faixa.nv-acima { background: #FBE0E0; color: #9B1C1C; }
+.legenda-niveis { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 10px 0 0; }

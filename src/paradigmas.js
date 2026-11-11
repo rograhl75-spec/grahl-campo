@@ -20,9 +20,19 @@ export function slug(t) {
 export function veiculoParaDados(v) {
   const i = v.identificacao || {}, c = v.caracteristicas || {}, r = v.resultados || {}, f = v.fonte || {}, ins = v.instrumentacao || {};
   const ir = ins.ruido || {}, ic = ins.calibrador || {}, iv = ins.vibracao || {};
+  const mq = v.maquina || {};
   const fonteTipo = s(f.tipo);
   const extra = /extrajudicial/i.test(fonteTipo);
+  const literatura = /literatura|fabricante|banco/i.test(`${fonteTipo} ${s(mq.origem)}`);
+  const maquina = {};
+  if (Object.keys(mq).length) {
+    Object.assign(maquina, {
+      categoriaMaquina: s(mq.categoria), origemDado: s(mq.origem), operacao: s(mq.operacao), implemento: s(mq.implemento),
+      potencia: n(mq.potencia_cv), rotacao: n(mq.rotacao_rpm), velocidade: n(mq.velocidade_kmh), referencia: s(mq.referencia),
+    });
+  }
   return {
+    ...maquina,
     codigo: s(v.id),
     idsAnteriores: [s((v.ids_banco_anterior || {}).ruido), s((v.ids_banco_anterior || {}).vibracao)].filter(Boolean).join(' / '),
     tipo: s(i.tipo), marca: s(i.marca), modelo: s(i.modelo), ano: s(i.ano),
@@ -33,7 +43,7 @@ export function veiculoParaDados(v) {
     eixoDominante: s(r.eixo_dominante), arenVmb: n(r.aren_vmb), ibutg: n(r.ibutg),
     fonteTipo,
     processo: extra ? '' : s(f.processo), vara: extra ? '' : s(f.vara), dataMedicao: s(f.data),
-    citacao: extra ? `Extrajudicial – ${s(f.data)}` : s(f.citacao),
+    citacao: extra ? `Extrajudicial – ${s(f.data)}` : (literatura && s(mq.referencia)) || s(f.citacao),
     ruidoEquip: s(ir.equipamento), ruidoSerie: s(ir.serie), ruidoCert: s(ir.certificado), ruidoCertData: s(ir.data_certificado),
     calibEquip: s(ic.equipamento), calibSerie: s(ic.serie), calibCertData: s(ic.data_certificado),
     vibEquip: s(iv.equipamento), vibSerie: s(iv.serie), vibCert: s(iv.certificado), vibCertData: s(iv.data_certificado),

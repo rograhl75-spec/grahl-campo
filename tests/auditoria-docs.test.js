@@ -106,6 +106,7 @@ describe('agentes químicos – cálculos', () => {
   it('base: agente do arquivo vira ficha plana, e a reimportação não passa por cima da edição', async () => {
     const d = agenteParaDados({ nome: 'Solvente X', cas: '000-00-0', sinonimos: ['SX'], nr15: { anexo11: { ppm: '78', mgm3: '290', grau: 'médio', pele: true, teto: false } }, fontes: [{ referencia: 'Fonte A', url: 'https://exemplo' }] });
     expect(d).toMatchObject({ nr15Ppm: '78', nr15Pele: 'Sim', nr15Teto: 'Não', sinonimos: 'SX', situacao: 'A conferir' });
+    expect(agenteParaDados({ nome: 'Z', codDecretos: 'Dec. 3.048/1999: 1.0.3' }).codDecretos).toBe('Dec. 3.048/1999: 1.0.3');
     const base = { versao: '2026-11-11', agentes: [{ id: 'solvente-x', nome: 'Solvente X', cas: '000-00-0', massaMolar: '92,1' }] };
     expect((await importarBaseQuimicos(base)).gravados).toBe(1);
     const { updateFields } = await import('../src/db.js');

@@ -73,7 +73,7 @@ export function agenteParaDados(a) {
     pontoFulgor: s(f.pontoFulgor), lie: s(f.lie), lse: s(f.lse), autoignicao: s(f.autoignicao), limiarOdor: s(f.limiarOdor),
     rel: s(n.rel), idlh: s(n.idlh), oshaPel: s(n.oshaPel), vias: s(n.vias), orgaosAlvo: s(n.orgaosAlvo), sintomas: s(n.sintomas),
     metodos: s(n.metodos), nioshUrl: s(n.url),
-    nr15Obs: s(nr.observacao), linach: s(a.linach), iarc: s(a.iarc),
+    nr15Obs: s(nr.observacao), linach: s(a.linach), iarc: s(a.iarc), codDecretos: s(a.codDecretos),
     acgihTwa: s(ac.twa), acgihStel: s(ac.stel), acgihNotacoes: s(ac.notacoes), acgihBase: s(ac.baseTlv), acgihBei: s(ac.bei),
     acgihEdicao: s(ac.edicao) || (Object.values(ac).some((x) => s(x)) ? s(a.acgihEdicao) : ''),
     fontes: (a.fontes || []).map((x) => [s(x.referencia), s(x.campos) && `(${s(x.campos)})`, s(x.url), s(x.consultadoEm) && `consultado em ${s(x.consultadoEm)}`].filter(Boolean).join(' – ')).join('\n'),
@@ -134,6 +134,21 @@ export async function importarAgentesColados(texto, existentes = null) {
     if (await gravarImportado(registro(id, 'quimico', d, Date.now()))) n += 1;
   }
   return n;
+}
+
+// Instrução para extrair os valores da ACGIH do livreto do usuário (uso privado: os valores ficam só no banco dele)
+export function promptAcgih(agentes, edicao = '') {
+  const lista = agentes.map((r) => `- ${r.data.nome}${r.data.cas ? ` (CAS ${r.data.cas})` : ''}`).join('\n');
+  return `Anexei o meu livreto TLVs and BEIs da ACGIH${edicao ? ` (edição ${edicao})` : ''}, adquirido por mim, para uso no meu próprio banco de dados de perícias. Extraia, SOMENTE do livreto anexado, os valores dos agentes abaixo.
+REGRAS:
+- Use a tabela de valores adotados (Adopted Values). Procure pelo nº CAS e, se não achar, pelo nome em inglês. Para misturas ou grupos, use a entrada correspondente e diga qual em "observacao".
+- Copie os valores exatamente como no livro, com as unidades. Agente sem TLV: campos "" e "observacao": "sem TLV nesta edição".
+- Inclua o BEI quando houver (determinante – momento da coleta – valor).
+- Não preencha nada de memória.
+Devolva SOMENTE um bloco JSON:
+{"agentes": [{"nome": "", "cas": "", "acgih": {"twa": "", "stel": "", "notacoes": "", "baseTlv": "", "bei": "", "edicao": "${edicao || 'AAAA'}", "entrada": "nome da entrada usada", "observacao": ""}, "fontes": [{"campos": "ACGIH", "referencia": "ACGIH. TLVs and BEIs ${edicao || 'AAAA'}. Cincinnati: ACGIH, ${edicao || 'AAAA'}.", "consultadoEm": "AAAA-MM-DD"}]}]}
+Agentes:
+${lista}`;
 }
 
 export const PROMPT_QUIMICOS = `Monte a ficha técnica do(s) agente(s) químico(s) abaixo para o meu banco de dados de perícias (engenharia de segurança do trabalho), usando SOMENTE as fontes que eu anexar ou que você consultar e citar (FISPQ/FDS do fabricante, NIOSH Pocket Guide, PubChem, NR-15, LINACH, IARC).

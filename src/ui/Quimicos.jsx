@@ -3,7 +3,7 @@ import { useState } from 'preact/hooks';
 import { db, createRecord, softDelete } from '../db.js';
 import { avisarAlteracao } from '../sync.js';
 import {
-  CAMPOS_QUIMICO, GRUPOS_QUIMICOS, PROMPT_QUIMICOS, carregarBaseQuimicos, importarBaseQuimicos, importarAgentesColados, filtrarAgentes,
+  CAMPOS_QUIMICO, GRUPOS_QUIMICOS, PROMPT_QUIMICOS, promptAcgih, carregarBaseQuimicos, importarBaseQuimicos, importarAgentesColados, filtrarAgentes,
   ppmParaMgm3, mgm3ParaPpm, fatorBriefScalaDiario, fatorBriefScalaSemanal, fatorDesvio, somaMistura, num,
 } from '../quimicos.js';
 import { fmt } from '../calc.js';
@@ -82,19 +82,27 @@ export function Quimicos() {
           );
         })}
       </div>
-      <ImportarClaude />
+      <ImportarClaude agentes={lista} />
       <Calculadora agentes={lista} />
     </div>
   );
 }
 
-function ImportarClaude() {
+function ImportarClaude({ agentes = [] }) {
   const [nomes, setNomes] = useState('');
   const [json, setJson] = useState('');
+  const [edicao, setEdicao] = useState(String(new Date().getFullYear()));
   const [msg, setMsg] = useState('');
-  const copiar = async () => {
-    const t = PROMPT_QUIMICOS + (nomes.trim() || '[[nomes dos agentes ou produtos – anexe as FISPQs]]');
-    try { await navigator.clipboard.writeText(t); setMsg('✓ Instrução copiada. Cole no Claude e anexe as FISPQs, se tiver.'); } catch (e) { setMsg('Não foi possível copiar.'); }
+  const copiarTexto = async (t, ok) => {
+    try { await navigator.clipboard.writeText(t); setMsg(ok); } catch (e) { setMsg('Não foi possível copiar.'); }
+  };
+  const copiar = () => {
+    if (!nomes.trim()) { setMsg('Escreva antes os agentes ou produtos (um por linha). Para a ACGIH, use o botão próprio abaixo.'); return; }
+    copiarTexto(PROMPT_QUIMICOS + nomes.trim(), '✓ Instrução copiada. Cole no Claude e anexe as FISPQs, se tiver.');
+  };
+  const copiarAcgih = () => {
+    if (!agentes.length) { setMsg('Carregue antes a base de fontes abertas: a instrução da ACGIH lista os agentes do banco.'); return; }
+    copiarTexto(promptAcgih(agentes, edicao.trim()), `✓ Instrução da ACGIH copiada com os ${agentes.length} agentes do banco. Cole no Claude, anexe o livreto e depois cole aqui o JSON devolvido (ou importe o arquivo).`);
   };
   const aplicar = async () => {
     try { const n = await importarAgentesColados(json); avisarAlteracao(); setMsg(`✓ ${n} agente(s) incluído(s) ou atualizado(s), como "A conferir".`); setJson(''); } catch (e) { setMsg(`Erro: ${e.message}`); }
@@ -104,7 +112,13 @@ function ImportarClaude() {
       <h3>Incluir ou completar agentes (Claude, FISPQ, arquivo de valores da ACGIH)</h3>
       <label class="campo"><span class="rotulo">Agentes ou produtos (um por linha)</span>
         <textarea rows={2} value={nomes} onInput={(e) => setNomes(e.currentTarget.value)} /></label>
-      <div class="linha-botoes"><button type="button" class="sec" onClick={copiar}>Copiar instrução</button></div>
+      <div class="linha-botoes"><button type="button" class="sec" onClick={copiar}>Copiar instrução (FISPQ, NIOSH, artigo)</button></div>
+      <div class="linha2">
+        <label class="campo"><span class="rotulo">Edição do livreto da ACGIH</span>
+          <input inputMode="numeric" value={edicao} onInput={(e) => setEdicao(e.currentTarget.value)} /></label>
+      </div>
+      <div class="linha-botoes"><button type="button" class="sec" onClick={copiarAcgih}>Copiar instrução da ACGIH (anexe o seu livreto)</button></div>
+      <small class="dica">Os valores da ACGIH ficam só no seu banco (aparelho e sua nuvem), não na base pública do app.</small>
       <label class="campo"><span class="rotulo">Cole aqui o JSON devolvido pelo Claude</span>
         <textarea rows={3} value={json} onInput={(e) => setJson(e.currentTarget.value)} /></label>
       <div class="linha-botoes">

@@ -1,5 +1,5 @@
 {
- "versao": "2026-11-11",
+ "versao": "2026-11-12",
  "descricao": "Base inicial de agentes químicos – fontes abertas; conferir antes de usar em laudo",
  "agentes": [
   {
@@ -79,9 +79,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente. Entradas relacionadas (não atribuídas ao agente): 'Mineral oils, untreated or mildly treated' – Grupo 1; 'Mineral oils, highly-refined' – Grupo 3"
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.7 – CARVÃO MINERAL E SEUS DERIVADOS (por família – conferir a atividade listada no código); 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.7 – CARVÃO MINERAL E SEUS DERIVADOS (por família – conferir a atividade listada no código); 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "querosene",
@@ -160,9 +167,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "solvente-stoddard",
@@ -243,9 +257,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "glifosato",
@@ -316,9 +337,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Entrada usada: 'Glyphosate'."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "2-4-d",
@@ -396,9 +424,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Entrada usada: '2,4-D (2,4-dichlorophenoxyacetic acid) (See also Chlorophenoxy herbicides)'."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "paraquat-dicloreto",
@@ -476,9 +511,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "clorpirifos",
@@ -555,9 +597,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS"
   },
   {
    "id": "mancozebe",
@@ -628,9 +677,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.14 – MANGANÊS E SEUS COMPOSTOS\nDec. 3.048/1999: 1.0.14 – MANGANÊS E SEUS COMPOSTOS"
   },
   {
    "id": "atrazina",
@@ -707,9 +763,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Entrada usada: 'Atrazine'."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "malationa",
@@ -787,9 +850,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Entrada usada: 'Malathion'."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS"
   },
   {
    "id": "carbofurano",
@@ -866,9 +936,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "cipermetrina",
@@ -939,9 +1016,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "acefato",
@@ -1012,9 +1096,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS"
   },
   {
    "id": "tolueno",
@@ -1099,9 +1190,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Entrada usada: 'Toluene'."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "xilenos",
@@ -1188,9 +1286,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Entrada usada: 'Xylenes'."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "acetona",
@@ -1275,9 +1380,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "metiletilcetona",
@@ -1363,9 +1475,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "acetato-de-etila",
@@ -1449,9 +1568,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "acetato-de-n-butila",
@@ -1529,9 +1655,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "n-hexano",
@@ -1609,9 +1742,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS; 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS; 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "hdi",
@@ -1690,9 +1830,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "dioxido-de-titanio",
@@ -1769,9 +1916,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Entrada usada: 'Titanium dioxide'."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "tgic",
@@ -1843,9 +1997,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "cromo-vi-compostos",
@@ -1921,9 +2082,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Entrada usada: 'Chromium (VI) compounds'. Entradas relacionadas (não atribuídas ao agente): 'Welding fumes' – Grupo 1"
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.10 – CROMO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.10 – CROMO E SEUS COMPOSTOS TÓXICOS"
   },
   {
    "id": "chumbo",
@@ -2007,9 +2175,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Entrada usada: 'Lead'. Entradas relacionadas (não atribuídas ao agente): 'Lead compounds, inorganic' – Grupo 2A"
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.8 – CHUMBO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.8 – CHUMBO E SEUS COMPOSTOS TÓXICOS"
   },
   {
    "id": "manganes-fumos",
@@ -2087,9 +2262,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente. Entradas relacionadas (não atribuídas ao agente): 'Welding fumes' – Grupo 1"
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.14 – MANGANÊS E SEUS COMPOSTOS\nDec. 3.048/1999: 1.0.14 – MANGANÊS E SEUS COMPOSTOS"
   },
   {
    "id": "oxido-de-ferro-fumos",
@@ -2167,9 +2349,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Entrada usada: 'Ferric oxide'. Entradas relacionadas (não atribuídas ao agente): 'Welding fumes' – Grupo 1"
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "oxido-de-zinco-fumos",
@@ -2247,9 +2436,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente. Entradas relacionadas (não atribuídas ao agente): 'Welding fumes' – Grupo 1"
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "niquel",
@@ -2327,9 +2523,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Entrada usada: 'Nickel, metallic'. Entradas relacionadas (não atribuídas ao agente): 'Nickel compounds' – Grupo 1; 'Welding fumes' – Grupo 1"
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.16 – NÍQUEL E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.16 – NÍQUEL E SEUS COMPOSTOS TÓXICOS"
   },
   {
    "id": "monoxido-de-carbono",
@@ -2413,9 +2616,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "dioxido-de-nitrogenio",
@@ -2499,9 +2709,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "ozonio",
@@ -2586,9 +2803,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "cadmio",
@@ -2667,9 +2891,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Entrada usada: 'Cadmium and cadmium compounds'. Entradas relacionadas (não atribuídas ao agente): 'Welding fumes' – Grupo 1"
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.6 – CÁDMIO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.6 – CÁDMIO E SEUS COMPOSTOS TÓXICOS"
   },
   {
    "id": "oleo-diesel",
@@ -2749,9 +2980,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente. Entradas relacionadas (não atribuídas ao agente): 'Diesel fuels, distillate (light)' – Grupo 3; 'Diesel fuel, marine' – Grupo 2B; 'Engine exhaust, diesel' – Grupo 1"
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "gasolina",
@@ -2828,9 +3066,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Entrada usada: 'Automotive gasoline (see also Gasoline engine exhaust, and Aviation gasoline)'."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.3 – BENZENO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código); 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.3 – BENZENO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código); 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "etanol",
@@ -2915,9 +3160,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente. Entradas relacionadas (não atribuídas ao agente): 'Ethanol in alcoholic beverages' – Grupo 1"
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "metanol",
@@ -3002,9 +3254,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "benzeno",
@@ -3081,9 +3340,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Entrada usada: 'Benzene'."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.3 – BENZENO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.3 – BENZENO E SEUS COMPOSTOS TÓXICOS"
   },
   {
    "id": "mercurio",
@@ -3168,9 +3434,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Entrada usada: 'Mercury and inorganic mercury compounds'."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.15 – MERCÚRIO E SEUS COMPOSTOS\nDec. 3.048/1999: 1.0.15 – MERCÚRIO E SEUS COMPOSTOS"
   },
   {
    "id": "glutaraldeido",
@@ -3248,9 +3521,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "formaldeido",
@@ -3334,9 +3614,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Entrada usada: 'Formaldehyde'."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "metacrilato-de-metila",
@@ -3420,9 +3707,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Entrada usada: 'Methyl methacrylate'."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "oxido-nitroso",
@@ -3501,9 +3795,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "peroxido-de-hidrogenio",
@@ -3581,9 +3882,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Entrada usada: 'Hydrogen peroxide'."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "hipoclorito-de-sodio",
@@ -3655,9 +3963,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Entrada usada: 'Hypochlorite salts'."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico (o título do código 1.0.9 (cloro) abrange os compostos, mas nenhuma atividade listada corresponde – avaliar o caso)\nDec. 3.048/1999: sem código específico (o título do código 1.0.9 (cloro) abrange os compostos, mas nenhuma atividade listada corresponde – avaliar o caso)"
   },
   {
    "id": "acido-fosforico",
@@ -3735,9 +4050,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico (o título do código 1.0.12 (fósforo) abrange os compostos, mas nenhuma atividade listada corresponde – avaliar o caso)\nDec. 3.048/1999: sem código específico (o título do código 1.0.12 (fósforo) abrange os compostos, mas nenhuma atividade listada corresponde – avaliar o caso)"
   },
   {
    "id": "mdi",
@@ -3816,9 +4138,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Entrada usada: '4,4'-Methylenediphenyl diisocyanate'."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "tdi",
@@ -3902,9 +4231,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Entrada usada: 'Toluene diisocyanates'."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS"
   },
   {
    "id": "ciclopentano",
@@ -3981,9 +4317,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "hcfc-141b",
@@ -4055,9 +4398,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "trietilenodiamina",
@@ -4131,9 +4481,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "etilenoglicol",
@@ -4212,9 +4569,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "dietilenoglicol",
@@ -4286,9 +4650,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "propilenoglicol",
@@ -4360,9 +4731,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "amianto",
@@ -4440,9 +4818,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Entrada usada: 'Asbestos (all forms, including actinolite, amosite, anthophyllite, chrysotile, crocidolite, tremolite)'."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.2 – ASBESTOS\nDec. 3.048/1999: 1.0.2 – ASBESTOS"
   },
   {
    "id": "acido-sulfurico",
@@ -4520,9 +4905,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Nenhuma entrada atribuída ao agente. Entradas relacionadas (não atribuídas ao agente): 'Acid mists, strong inorganic' – Grupo 1"
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "tricloroetileno",
@@ -4606,9 +4998,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Entrada usada: 'Trichloroethylene'."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "diclorometano",
@@ -4692,9 +5091,16 @@
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
      "nota": "Entrada usada: 'Dichloromethane (Methylene chloride)'."
+    },
+    {
+     "campos": "códigos nos decretos previdenciários",
+     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+     "consultadoEm": "2026-11-11"
     }
    ],
-   "situacao": "A conferir"
+   "situacao": "A conferir",
+   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)"
   }
  ]
 }

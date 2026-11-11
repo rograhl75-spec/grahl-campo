@@ -27,15 +27,25 @@ _ca = os.environ.get("SSL_CERT_FILE") or ("/root/.ccr/ca-bundle.crt" if os.path.
 CTX = ssl.create_default_context(cafile=_ca)
 
 
+CACHE = os.environ.get("QUIMICOS_CACHE")  # opcional: diretório para guardar as respostas e evitar refazer downloads
+
+
 def get(url, binary=False):
-    req = urllib.request.Request(url, headers={"User-Agent": "gerar-base-quimicos/1.0 (Python-urllib)"})
+    """GET educado: 0,3 s entre requisições (2 s no cdc.gov); em 403/429/5xx espera e tenta de novo."""
+    arq = os.path.join(CACHE, re.sub(r"[^A-Za-z0-9.]+", "_", url)[-150:]) if CACHE else None
+    if arq and os.path.exists(arq):
+        b = open(arq, "rb").read()
+        return b if binary else b.decode("utf-8", "replace")
+    erro = None
     for tentativa in range(3):
-        time.sleep(0.3 + 5 * tentativa)
+        time.sleep((2 if "cdc.gov" in url else 0.3) + 30 * tentativa)
         try:
-            with urllib.request.urlopen(req, context=CTX, timeout=60) as r:
+            with urllib.request.urlopen(url, context=CTX, timeout=60) as r:
                 b = r.read()
+            if arq:
+                os.makedirs(CACHE, exist_ok=True); open(arq, "wb").write(b)
             return b if binary else b.decode("utf-8", "replace")
-        except urllib.error.HTTPError as e:  # 404 do PubChem = não encontrado; 403/429/5xx = nova tentativa
+        except urllib.error.HTTPError as e:  # 404 do PubChem = não encontrado
             if e.code == 404:
                 return None
             erro = e

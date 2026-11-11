@@ -96,7 +96,7 @@ function avaliacaoTrabalhista(d, dados, base) {
   }
   if (g['Calor (IBUTG)']) {
     sub('Calor (NR-15, Anexo 3)');
-    d.texto('Até 10/12/2019 aplica-se o Anexo 3 na redação original (IBUTG, quadros de regime de trabalho e de taxa metabólica; entre linhas do quadro, usa-se a linha imediatamente superior, sem interpolar). A partir de 11/12/2019, a redação da Portaria SEPRT nº 1.359/2019, com avaliação conforme a NHO-06 e IBUTG ajustado pela vestimenta; a exposição ao calor a céu aberto sem fonte artificial não caracteriza insalubridade nessa redação.');
+    d.texto('Até 10/12/2019 aplica-se o Anexo 3 na redação original (IBUTG, quadros de regime de trabalho e de taxa metabólica; entre linhas do quadro, usa-se a linha imediatamente superior, sem interpolar). A partir de 11/12/2019, a redação da Portaria SEPRT nº 1.359/2019, com avaliação conforme a NHO 06 (2ª ed., 2017) – o ajuste do IBUTG pela vestimenta consta do Quadro 4 do Anexo III da NR-9; a exposição ao calor a céu aberto sem fonte artificial não caracteriza insalubridade nessa redação.');
     quadroMedicoesGenerico(d, 'Resultados – Calor', g['Calor (IBUTG)'], nome, ctx);
     d.redigir('taxa metabólica, regime de trabalho e descanso, limite aplicável ao período e conclusão.');
   }
@@ -286,7 +286,7 @@ export async function laudoPericial(caseId, { extra = false } = {}) {
   if (extra) {
     nq += 1;
     d.h1(String(nq), 'Recomendações');
-    d.texto('Recomendam-se as medidas abaixo, na ordem de prioridade da NR-1 (eliminação ou substituição, proteção coletiva, medidas administrativas e EPI). As recomendações não alteram a caracterização da situação avaliada.');
+    d.texto('Recomendam-se as medidas abaixo, na ordem de prioridade da NR-1, item 1.4.1, "g" (eliminação dos fatores de risco, proteção coletiva, medidas administrativas ou de organização do trabalho e proteção individual). As recomendações não alteram a caracterização da situação avaliada.');
     quadroRecomendacoes(d, dados);
     d.redigir('ajustar as medidas a cada setor e incluir prazos e responsáveis.');
   }
@@ -882,9 +882,10 @@ export async function peticaoMajoracao(caseId) {
   }
 
   sec('Do fundamento para a majoração');
-  const criterios = [fora && 'o local de realização fora do domicílio do perito', 'a complexidade do exame'].filter(Boolean);
+  const criterios = ['a especialização e a complexidade do trabalho, distinto da generalidade das perícias (inciso I)', fora && 'o deslocamento que justifica indenização (inciso III)'].filter(Boolean);
   if (cjf) {
-    d.texto(`O art. 28 da Resolução CJF nº 305/2014 autoriza o magistrado a fixar os honorários acima do limite máximo da tabela, em até 3 (três) vezes, considerando, entre outros critérios, a especialização do perito, a complexidade do exame e o local de sua realização. No caso, ${criterios.length > 1 ? `estão presentes ao mesmo tempo ${criterios.reverse().join(' e ')}, o que justifica a fixação ${mult === 3 ? 'no patamar máximo admitido pela norma' : 'acima do limite da tabela'}` : `verifica-se ${criterios[0]}`}.`);
+    d.texto(`O art. 28, § 1º, da Resolução CJF nº 305/2014 (incluído pela Resolução CJF nº 575/2019) autoriza o juiz, em situações excepcionais e mediante decisão fundamentada, a arbitrar os honorários até o limite de 3 (três) vezes o valor máximo previsto no anexo, observados os critérios ali enumerados. No caso, ${criterios.length > 1 ? `estão presentes ${criterios.join(' e ')}` : `está presente ${criterios[0]}`}, o que justifica a fixação ${mult === 3 ? 'no patamar máximo admitido pela norma' : 'acima do limite da tabela'}.`);
+    d.redigir('se houver, acrescentar os demais critérios do § 1º presentes no caso: ausência de outro profissional cadastrado (II), uso de instalações ou equipamentos próprios (IV), perícia em mais de uma localidade (VI) ou outra peculiaridade (VII).');
   } else {
     d.redigir('fundamento normativo da tabela do tribunal (ex.: Resolução TJPR) e critérios presentes.');
   }
@@ -892,7 +893,7 @@ export async function peticaoMajoracao(caseId) {
   sec('Do pedido');
   const pedido = isFinite(tabela) ? mult * tabela : NaN;
   if (isFinite(pedido) && isFinite(fixados) && pedido <= fixados) d.texto(`[[VERIFICAR: o valor pedido (${moeda(pedido)}) não supera o já fixado (${moeda(fixados)}); confira o multiplicador e a tabela.]]`);
-  d.texto(`Diante do exposto, requer-se a majoração dos honorários periciais para ${VEZES[mult] || mult} vezes o valor máximo da ${cjf ? tabCJF : 'tabela'}, ou seja, ${isFinite(pedido) ? `${moeda(pedido)} (${reaisPorExtenso(pedido)}) (${mult} × ${moeda(tabela)})` : '[[valor]]'}${cjf ? `, nos termos do art. 28 da Resolução CJF nº 305/2014 e da ${tabCJF} do seu Anexo Único, na redação da Resolução CJF nº 937/2025` : ''}.`);
+  d.texto(`Diante do exposto, requer-se a majoração dos honorários periciais para ${VEZES[mult] || mult} vezes o valor máximo da ${cjf ? tabCJF : 'tabela'}, ou seja, ${isFinite(pedido) ? `${moeda(pedido)} (${reaisPorExtenso(pedido)}) (${mult} × ${moeda(tabela)})` : '[[valor]]'}${cjf ? `, nos termos do art. 28, § 1º, da Resolução CJF nº 305/2014 e da ${tabCJF} do seu Anexo Único, na redação da Resolução CJF nº 937/2025` : ''}.`);
   if (!v(c.dataDiligencia)) d.texto(`A data e o horário da vistoria serão informados oportunamente${v(c.itensVistoria) ? `, para os fins ${/[e,]/.test(c.itensVistoria) ? 'dos itens' : 'do item'} ${c.itensVistoria} do despacho` : ''}.`);
   fecho(d, dados);
   return finalizar(d, { titulo: 'Petição – majoração de honorários', arquivo: 'Peticao_majoracao_honorarios', c });
@@ -933,7 +934,9 @@ export async function peticaoAceiteArbitrados(caseId, { conta } = {}) {
       : /Federal/i.test(c.justica || '') && !v(c.honorariosAdiantamento) ? FORMAS_PAGAMENTO[1] : FORMAS_PAGAMENTO[0]);
   const semAdiant = forma !== FORMAS_PAGAMENTO[0];
   let adiant = lerValor(c.honorariosAdiantamento);
-  if (!isFinite(adiant) && isFinite(fixados)) adiant = Math.round(fixados * 50) / 100;
+  // Justiça Federal (AJG): adiantamento de até 30% (Res. CJF 305/2014, art. 29, parágrafo único); nos demais casos, 50% (art. 465, § 4º, do CPC)
+  const jfAjg = fundamentoCJF(c);
+  if (!isFinite(adiant) && isFinite(fixados)) adiant = Math.round(fixados * (jfAjg ? 30 : 50)) / 100;
   const saldo = isFinite(fixados) && isFinite(adiant) ? Math.round((fixados - adiant) * 100) / 100 : NaN;
   const pct = isFinite(fixados) && fixados > 0 && isFinite(adiant) ? Math.round((adiant / fixados) * 100) : NaN;
   const depositante = pelo(c.honorariosDepositante);
@@ -957,8 +960,8 @@ export async function peticaoAceiteArbitrados(caseId, { conta } = {}) {
     termos.push(`os honorários serão pagos integralmente depois da entrega do laudo e do decurso do prazo para a manifestação das partes ou, havendo pedido de esclarecimentos, depois de prestados${/Federal/i.test(c.justica || '') ? ', na forma da Resolução CJF nº 305/2014' : ''}`);
   } else {
     termos.push(isFinite(adiant)
-      ? `receberá no início dos trabalhos o valor de ${valorExt(adiant)}${isFinite(pct) && pct < 100 ? `, correspondente a ${pct}% dos honorários` : ''}, a ser depositado${depositante ? ` ${depositante}` : ''} em conta judicial vinculada aos autos (art. 465, § 4º, do CPC)`
-      : 'receberá no início dos trabalhos [[valor do adiantamento]] (art. 465, § 4º, do CPC)');
+      ? `receberá no início dos trabalhos o valor de ${valorExt(adiant)}${isFinite(pct) && pct < 100 ? `, correspondente a ${pct}% dos honorários` : ''}, a ser depositado${depositante ? ` ${depositante}` : ''} em conta judicial vinculada aos autos (${jfAjg ? 'art. 29, parágrafo único, da Resolução CJF nº 305/2014' : 'art. 465, § 4º, do CPC'})${jfAjg && isFinite(pct) && pct > 30 ? ' [[VERIFICAR: na Justiça Federal o adiantamento é de até 30% e depende da comprovação da necessidade das despesas]]' : ''}`
+      : `receberá no início dos trabalhos [[valor do adiantamento]] (${jfAjg ? 'art. 29, parágrafo único, da Resolução CJF nº 305/2014' : 'art. 465, § 4º, do CPC'})`);
     if (isFinite(saldo) && saldo > 0) termos.push(`o saldo de ${valorExt(saldo)} será pago ao final, depois de entregue o laudo e prestados os esclarecimentos, por quem a sentença indicar`);
   }
   if (c.limiteTabelaPublico === 'Sim') termos.push('o pagamento eventualmente feito com recursos públicos observará o limite da tabela, com a majoração admitida');

@@ -99,7 +99,7 @@ export const CAMPOS_HONORARIOS = [
   ['empresaOriginal', 'Empregadora original (quando por similaridade)', 'text'],
   ['complexidadeExtra', 'Outros motivos de complexidade (um por linha)', 'area'],
   ['honorariosForma', 'Forma de pagamento fixada no despacho', 'select', FORMAS_PAGAMENTO],
-  ['honorariosAdiantamento', 'Valor a receber no início dos trabalhos (R$) – em branco = 50% do fixado', 'text'],
+  ['honorariosAdiantamento', 'Valor a receber no início dos trabalhos (R$) – em branco = 50% do fixado (Justiça Federal/AJG: 30%, Res. CJF 305/2014, art. 29)', 'text'],
   ['honorariosDepositante', 'Quem faz o depósito (ex.: "o Município de Moreira Sales")', 'text'],
   ['itemDeposito', 'Item do despacho que manda depositar (ex.: "7, b")', 'text'],
   ['itemAceite', 'Item do despacho que intima o perito a aceitar (ex.: "7, c")', 'text'],

@@ -117,7 +117,7 @@ export function referencias(dados, { prev, judicial = true } = {}) {
     r.push('INTERNATIONAL ORGANIZATION FOR STANDARDIZATION. ISO 2631-1: mechanical vibration and shock – evaluation of human exposure to whole-body vibration – part 1: general requirements. Geneva: ISO, 1997.');
   }
   if (vmb) {
-    r.push('FUNDACENTRO. NHO 10: avaliação da exposição ocupacional a vibrações em mãos e braços. São Paulo: FUNDACENTRO, 2013.');
+    r.push('FUNDACENTRO. NHO 10: avaliação da exposição ocupacional a vibração de mãos e braços. São Paulo: FUNDACENTRO, 2013.');
     r.push('INTERNATIONAL ORGANIZATION FOR STANDARDIZATION. ISO 5349-1: mechanical vibration – measurement and evaluation of human exposure to hand-transmitted vibration – part 1: general requirements. Geneva: ISO, 2001.');
   }
   if (quimico) {

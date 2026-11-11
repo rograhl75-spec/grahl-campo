@@ -39,7 +39,7 @@ export const CAMPOS_QUIMICO = {
     ['nr15Obs', 'NR-15 – observação (Anexo 12, 13 ou 13-A; atividade e grau)', 'area'],
     ['linach', 'LINACH (Portaria Interministerial nº 9/2014)', 'select', ['Grupo 1', 'Grupo 2A', 'Grupo 2B']],
     ['codDecretos', 'Códigos nos decretos previdenciários (53.831/64, 83.080/79, 2.172/97, 3.048/99)', 'area'],
-    ['nr7', 'NR-7 – indicador biológico (Quadro 1)', 'area'],
+    ['nr7', 'NR-7 – indicador biológico (Anexo I, Quadro 1 – IBE/EE, ou Quadro 2 – IBE/SC)', 'area'],
   ],
   'Referências internacionais': [
     ['acgihTwa', 'ACGIH – TLV-TWA', 'text'], ['acgihStel', 'ACGIH – TLV-STEL / C', 'text'], ['acgihNotacoes', 'ACGIH – notações (Skin, DSEN, A1…)', 'text'],

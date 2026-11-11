@@ -45,8 +45,8 @@ describe('documentos (itens pendentes)', () => {
     await filho('t1m', 'medicao', 't1', { agente: 'Ruído', postoId: 't1p', dose: '60', tempoAmostragem: '480', jornada: '480', lavg: '81' });
     const t = await texto(await laudoPericial('t1'));
     expect(t).toContain('SÍNTESE DA CONCLUSÃO');
-    expect(t).toContain('Anexo 2 – Atividades e operações perigosas com inflamáveis');
-    expect(t).not.toContain('Anexo 5 – Atividades perigosas em motocicleta');
+    expect(t).toContain('Anexo II – Atividades e operações perigosas com inflamáveis');
+    expect(t).not.toContain('Anexo V – Atividades perigosas em motocicleta');
     expect(t).toContain('Requisitos do laudo pericial – art. 473 do CPC');
     expect(t).toContain('intimação do evento 52');
   });

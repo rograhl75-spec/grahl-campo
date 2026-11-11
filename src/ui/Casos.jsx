@@ -31,15 +31,32 @@ export function papelCurto(p) {
   return 'Extrajudicial';
 }
 
+const somaDias = (iso, n) => { const d = new Date(`${iso}T12:00:00`); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+const FASES_LAUDO_PENDENTE = ['A preparar', 'Aguardando depósito dos honorários', 'Diligência agendada', 'Diligência realizada', 'Laudo / parecer em elaboração', undefined, ''];
+// prazos vencidos há até 15 dias continuam visíveis (em vermelho); diligência passada não é prazo
+function vencidoRelevante(rot, data, d, hoje) {
+  if (!data || data >= hoje || rot === 'Diligência' || data < somaDias(hoje, -15)) return false;
+  if (/laudo/i.test(rot)) return FASES_LAUDO_PENDENTE.includes(d.fase);
+  if (/Esclarecimentos/.test(rot)) return d.fase === 'Respondendo quesitos suplementares';
+  return true;
+}
+export function proximaData(d, hoje = hojeIso()) {
+  const datas = [['Diligência', d.dataDiligencia], ['Laudo', d.prazoLaudo], ['Manifestação', d.prazoManifestacao], ['Esclarecimentos', d.prazoEsclarecimentos]];
+  const venc = datas.filter(([r, x]) => vencidoRelevante(r, x, d, hoje)).sort((a, b) => a[1].localeCompare(b[1]));
+  const fut = datas.filter(([, x]) => x && x >= hoje).sort((a, b) => a[1].localeCompare(b[1]));
+  return venc[0] ? [...venc[0], true] : fut[0] ? [...fut[0], false] : null;
+}
+
 function compromissos(casos) {
   const hoje = hojeIso();
-  const lim = new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
+  const lim = somaDias(hoje, 30);
   const out = [];
   for (const c of casos) {
     const d = c.data;
     if (['Concluído', 'Arquivado'].includes(d.fase)) continue;
     for (const [rot, data, hora] of [['Diligência', d.dataDiligencia, d.horaDiligencia], ['Prazo do laudo', d.prazoLaudo], ['Manifestação', d.prazoManifestacao], ['Esclarecimentos', d.prazoEsclarecimentos]]) {
       if (data && data >= hoje && data <= lim) out.push({ c, rot, data, hora });
+      else if (vencidoRelevante(rot, data, d, hoje)) out.push({ c, rot, data, hora, vencido: true });
     }
   }
   return out.sort((a, b) => (a.data + (a.hora || '')).localeCompare(b.data + (b.hora || '')));
@@ -68,7 +85,9 @@ export function Casos() {
     if (!termo) return true;
     return semAcento([d.numero, d.autorNome, d.reuNome, d.contratante, d.juizo, d.comarca, d.vistoriaLocal, d.autorCpf, d.reuCnpj].join(' ')).includes(termo);
   });
-  lista = lista.sort((a, b) => b.updatedAt - a.updatedAt);
+  // ordem: prazos vencidos, depois a próxima data, depois os sem data (mais recentes primeiro)
+  const chave = (c) => { const p = proximaData(c.data); return p ? (p[2] ? '0' : '1') + p[1] : '2'; };
+  lista = lista.sort((a, b) => chave(a).localeCompare(chave(b)) || b.updatedAt - a.updatedAt);
   const prox = compromissos(casos);
 
   return (
@@ -81,19 +100,19 @@ export function Casos() {
       {!busca && (
         <section class="painel">
           <div class="painel-titulo">
-            <h2>Próximos 30 dias</h2>
+            <h2>Agenda – vencidos e próximos 30 dias</h2>
             <span class="painel-resumo">{ativos} caso(s) em andamento</span>
           </div>
           {!prox.length && <p class="vazio">Nenhuma diligência ou prazo cadastrado para os próximos 30 dias.</p>}
           <div class="agenda">
-            {prox.map(({ c, rot, data, hora }) => {
+            {prox.map(({ c, rot, data, hora, vencido }) => {
               const dias = diasAte(data);
               const [sig, cls] = siglaTipo(c.data);
               return (
-                <a class={`agenda-item ${dias <= 3 ? 'urgente' : dias <= 7 ? 'breve' : ''}`} href={`#/caso/${c.id}/cadastro`}>
+                <a class={`agenda-item ${vencido ? 'vencido' : dias <= 3 ? 'urgente' : dias <= 7 ? 'breve' : ''}`} href={`#/caso/${c.id}/cadastro`}>
                   <div class="agenda-data">
                     <b>{dataBR(data).slice(0, 5)}</b>
-                    <small>{dias === 0 ? 'hoje' : dias === 1 ? 'amanhã' : `em ${dias} dias`}</small>
+                    <small>{vencido ? `vencido há ${-dias} dia${dias === -1 ? '' : 's'}` : dias === 0 ? 'hoje' : dias === 1 ? 'amanhã' : `em ${dias} dias`}</small>
                   </div>
                   <div class="agenda-info">
                     <div><span class={`sigla ${cls}`}>{sig}</span> <b>{rot}</b>{hora ? ` às ${hora}` : ''}</div>
@@ -129,8 +148,7 @@ export function Casos() {
 function CartaoCaso({ c }) {
   const d = c.data;
   const [sig, cls, rotTipo] = siglaTipo(d);
-  const hoje = hojeIso();
-  const datas = [['Diligência', d.dataDiligencia], ['Laudo', d.prazoLaudo], ['Manifestação', d.prazoManifestacao], ['Esclarecimentos', d.prazoEsclarecimentos]].filter(([, x]) => x && x >= hoje).sort((a, b) => a[1].localeCompare(b[1]));
+  const prox = proximaData(d);
   return (
     <a class={`cartao ${cls}`} href={`#/caso/${c.id}/cadastro`}>
       <div class="cartao-topo">
@@ -143,7 +161,7 @@ function CartaoCaso({ c }) {
       <div class="cartao-proc">{d.numero || 'sem número'}</div>
       {d.juizo && <div class="cartao-juizo">{d.juizo}</div>}
       <div class="cartao-rodape">
-        {datas[0] ? <span class={diasAte(datas[0][1]) <= 7 ? 'data-alerta' : ''}>{datas[0][0]}: <b>{dataBR(datas[0][1])}</b></span> : <span class="suave">Sem data marcada</span>}
+        {prox ? <span class={prox[2] || diasAte(prox[1]) <= 7 ? 'data-alerta' : ''}>{prox[2] ? '⚠ ' : ''}{prox[0]}{prox[2] ? ' vencido' : ''}: <b>{dataBR(prox[1])}</b></span> : <span class="suave">Sem data marcada</span>}
       </div>
     </a>
   );

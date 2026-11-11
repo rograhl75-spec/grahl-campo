@@ -1,6 +1,6 @@
 import { db, caseChildren } from '../db.js';
 import { resumoMedicao, calculados } from '../medicoes.js';
-import { nenQ5, num, fmt } from '../calc.js';
+import { nen, num, fmt, fatorQ, doseJornada } from '../calc.js';
 import { ORIGEM_QUESITO, contextoLegal, ehSuplementar , reuEhInss, localVistoria } from '../schema.js';
 import { Doc, p, run, rich, montarDocx } from './ooxml.js';
 import { nenParaJornada, arenParaJornada, vdvrParaJornada, certificadoVencido, rotuloParadigma, num as numP } from '../paradigmas.js';
@@ -17,7 +17,28 @@ export function dataHoraBR(iso) {
 }
 export function menosCincoAnos(iso) {
   const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
-  return m ? `${m[3]}/${m[2]}/${Number(m[1]) - 5}` : '';
+  if (!m) return '';
+  // 29/02 de ano bissexto → 28/02 do ano sem o dia 29
+  const ano = Number(m[1]) - 5, mes = Number(m[2]);
+  const ultimo = new Date(ano, mes, 0).getDate();
+  return `${String(Math.min(Number(m[3]), ultimo)).padStart(2, '0')}/${m[2]}/${ano}`;
+}
+// data de hoje no fuso do aparelho (toISOString é UTC: depois das 21 h em Brasília daria o dia seguinte)
+export function hojeLocal() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+// comparação única com o limite: arredonda para 1 casa (a mesma exibida nos quadros) e exige superar
+export const superaLimite = (x, lim) => isFinite(x) && Math.round(x * 10) / 10 > lim;
+// prefixo do quesito sem repetir a numeração que o próprio texto já traz ("1) …", "a) …")
+export function prefixoQuesito(q, sep = ') ') {
+  const texto = String(q.data.texto || '').trim();
+  const num = String(q.data.numero || '').trim();
+  if (!num) return '';
+  const lider = ((texto.match(/^\(?([0-9]+|[a-z]|[ivx]+)\s*[).\-–]/i) || [])[1] || '').toLowerCase();
+  const partes = num.toLowerCase().split(/[-.\s]+/).filter(Boolean);
+  if (lider && partes.includes(lider)) return partes.length > 1 && lider === partes[partes.length - 1] ? `${partes.slice(0, -1).join('.')}.` : '';
+  return `${num}${sep}`;
 }
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 export const ou = (x, pend) => (v(x) ? v(x) : `[[${pend}]]`);
@@ -308,7 +329,7 @@ export function quadroPeriodos(d, periodos, titulo = 'Períodos avaliados') {
 export function quadroEpis(d, epis) {
   if (!epis.length) return d.texto('Não foram apresentados nos autos registros de fornecimento de EPI (fichas de entrega com CA, periodicidade de troca, treinamento e higienização), cuja guarda é de responsabilidade do empregador.');
   return d.quadro('Equipamentos de proteção individual registrados', [['EPI', 'CA', 'Entrega', 'Observações'],
-    ...epis.map((e) => [e.data.descricao, e.data.ca, e.data.dataEntrega, e.data.obs])], { larguras: [0.34, 0.12, 0.16, 0.38] });
+    ...epis.map((e) => [e.data.descricao, e.data.ca, dataBR(e.data.dataEntrega), e.data.obs])], { larguras: [0.34, 0.12, 0.16, 0.38] });
 }
 
 export function quadroDocumentos(d, documentos) {
@@ -335,7 +356,7 @@ export function quadroCriteriosRuido(d) {
 export function subperiodosRuido(periodos) {
   const out = [];
   for (const r of periodos) {
-    const ini = r.data.inicio, fim = r.data.fim || new Date().toISOString().slice(0, 10);
+    const ini = r.data.inicio, fim = r.data.fim || hojeLocal();
     if (!ini) continue;
     for (const j of JANELAS_RUIDO) {
       const a = ini > j.ini ? ini : j.ini;
@@ -356,42 +377,51 @@ export function quadroConfrontoRuido(d, dados) {
   const refDo = (r) => {
     const ids = new Set(postosDoPeriodo(r, dados).map((ps) => ps.id));
     const m = ruido.find((x) => ids.has(x.data.postoId));
+    // sem posto vinculado, não se usa a medição de outro posto (evita confronto com o veículo errado)
     if (!m && ruido.length) semVinculo = true;
-    return m || ruido[0];
+    return m;
   };
   return d.quadro('Confronto do ruído com o limite de cada período', [['Vínculo / subperíodo', 'Medição representativa', 'Critério', 'Valor', 'Limite', 'Resultado'],
     ...subs.map((s) => {
       const ref = refDo(s.periodo);
-      const val = !ref ? NaN : s.janela.crit === 'Lavg' ? num(ref.data.lavg) : nenQ5(ref.data.lavg, s.periodo.data.conducaoH ? `${s.periodo.data.conducaoH}h` : ref.data.jornada);
-      const res = isFinite(val) ? (Math.round(val * 10) / 10 > s.janela.lim ? 'Supera' : 'Não supera') : '[[medir]]';
+      const q = ref ? fatorQ(ref) : 5;
+      const q3antes = ref && q === 3 && s.janela.crit === 'Lavg';
+      const val = !ref || q3antes ? NaN : s.janela.crit === 'Lavg' ? num(ref.data.lavg) : nen(ref.data.lavg, s.periodo.data.conducaoH ? `${s.periodo.data.conducaoH}h` : ref.data.jornada, q);
+      const res = q3antes ? '[[q = 3 não serve antes de 19/11/2003]]' : isFinite(val) ? (superaLimite(val, s.janela.lim) ? 'Supera' : 'Não supera') : '[[medir]]';
       return [`${s.periodo.data.empresa || ''}\n${dataBR(s.ini)} a ${dataBR(s.fim)}`, ref ? nomeP(ref.data.postoId) : '—', s.janela.crit,
-        isFinite(val) ? `${fmt(val)} dB(A)` : '[[valor]]', `${s.janela.lim} dB(A)`, res];
+        isFinite(val) ? `${fmt(val)} dB(A)` : ref ? '[[valor]]' : '[[vincular posto]]', `${s.janela.lim} dB(A)`, ref ? res : '[[vincular posto ao vínculo]]'];
     })], { larguras: [0.3, 0.22, 0.1, 0.13, 0.11, 0.14],
-    fonte: `Elaborado pelo autor. Cada vínculo usa a medição do veículo/posto que o representa${semVinculo ? ' [[há vínculo sem posto vinculado: conferir a medição usada]]' : ''}; NEN calculado para o tempo diário de condução do vínculo, quando informado.` });
+    fonte: `Elaborado pelo autor. Cada vínculo usa a medição do veículo/posto que o representa${semVinculo ? ' [[há vínculo sem posto vinculado: vincule o veículo/posto que o representa]]' : ''}; NEN calculado para o tempo diário de condução do vínculo, quando informado.` });
 }
 
 // ---------- medições por agente ----------
 export function quadroMedicoesRuido(d, ms, eq, nomePosto, ctx = {}) {
   if (!ms.length) return d;
   const e0 = ms[0] && eq.get(ms[0].data.equipamentoId);
-  const fonte = `Elaborado pelo autor. ${e0 ? `Dosímetro ${e0.data.modelo}, série ${e0.data.serie}; ` : ''}critério 85 dB(A), limiar 80 dB(A), q = 5, circuito A, resposta lenta.`;
+  const qs = [...new Set(ms.map(fatorQ))];
+  const qTxt = qs.length === 1 ? `q = ${qs[0]}${qs[0] === 3 ? ' (NHO-01)' : ' (NR-15, Anexo 1)'}` : 'q indicado em cada linha';
+  const fonte = `Elaborado pelo autor. ${e0 ? `Dosímetro ${e0.data.modelo}, série ${e0.data.serie}; ` : ''}critério 85 dB(A), limiar 80 dB(A), ${qTxt}, circuito A, resposta lenta.`;
+  const rotNivel = qs.length === 1 ? (qs[0] === 3 ? 'Leq (q = 3)' : 'Lavg (q = 5)') : 'Lavg / Leq';
   if (ctx.prev) {
-    return d.quadro('Resultados – Ruído', [['Posto / trabalhador', 'Amostragem', 'Dose', 'Lavg (q = 5)', 'Jornada', 'NEN (q = 5)'],
+    return d.quadro('Resultados – Ruído', [['Posto / trabalhador', 'Amostragem', 'Dose', rotNivel, 'Jornada', qs.length === 1 ? `NEN (q = ${qs[0]})` : 'NEN'],
       ...ms.map((m) => {
         const x = m.data;
-        const n = nenQ5(x.lavg, x.jornada);
+        const n = nen(x.lavg, x.jornada, fatorQ(m));
         return [[nomePosto(x.postoId), x.posicao].filter(Boolean).join(' – '), [x.tempoAmostragem, x.horaInicio && x.horaFim && `${x.horaInicio}–${x.horaFim}`].filter(Boolean).join(', '),
           x.dose ? `${x.dose}%` : '', x.lavg ? `${x.lavg} dB(A)` : '', x.jornada || '', isFinite(n) ? `${fmt(n)} dB(A)` : ''];
       })], { larguras: [0.28, 0.18, 0.1, 0.15, 0.12, 0.17], alinhar: 'left', tam: 9, fonte });
   }
   // trabalhista: NR-15, Anexo 1 – dose e nível médio; NEN não se aplica
-  return d.quadro('Resultados – Ruído (NR-15, Anexo 1)', [['Posto / trabalhador', 'Amostragem', 'Jornada', 'Dose', 'Lavg (q = 5)', 'Situação'],
+  return d.quadro('Resultados – Ruído (NR-15, Anexo 1)', [['Posto / trabalhador', 'Amostragem', 'Jornada', 'Dose (jornada)', rotNivel, 'Situação'],
     ...ms.map((m) => {
       const x = m.data;
-      const dose = num(x.dose);
+      // dose projetada para a jornada; dosímetro com q = 3 não serve para a NR-15
+      const dj = doseJornada(x.dose, x.tempoAmostragem, x.jornada);
+      const proj = isFinite(dj) && Math.abs(dj - num(x.dose)) > 0.05;
+      const sit = fatorQ(m) === 3 ? '[[q = 3: refazer com q = 5]]' : isFinite(dj) ? (dj > 100 ? 'Acima do LT' : 'Dentro do LT') : '[[conferir]]';
       return [[nomePosto(x.postoId), x.posicao].filter(Boolean).join(' – '), [x.tempoAmostragem, x.horaInicio && x.horaFim && `${x.horaInicio}–${x.horaFim}`].filter(Boolean).join(', '),
-        x.jornada || '', x.dose ? `${x.dose}%` : '', x.lavg ? `${x.lavg} dB(A)` : '', isFinite(dose) ? (dose > 100 ? 'Acima do LT' : 'Dentro do LT') : '[[conferir]]'];
-    })], { larguras: [0.27, 0.17, 0.12, 0.11, 0.15, 0.18], alinhar: 'left', tam: 9, fonte });
+        x.jornada || '', x.dose ? (proj ? `${fmt(dj)}%\n(medida ${x.dose}%)` : `${x.dose}%`) : '', x.lavg ? `${x.lavg} dB(A)` : '', sit];
+    })], { larguras: [0.27, 0.17, 0.12, 0.12, 0.14, 0.18], alinhar: 'left', tam: 9, fonte: `${fonte} Dose projetada para a jornada: D × TE / T amostrado.` });
 }
 
 export function quadroMedicoesGenerico(d, titulo, ms, nomePosto, ctx = {}) {
@@ -526,21 +556,22 @@ export function respostasQuesitos(d, quesitos, numBase, c) {
   const norm = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/^\s*(\d+|[a-z])\s*[).\-–]\s*/, '').replace(/\W+/g, ' ').trim();
   const vistos = new Map(); // quesito repetido por outra parte: remete à primeira resposta
   let n = 0;
+  const rotulosVistos = new Set();
   for (const origem of ORIGEM_QUESITO) {
-    const lista = quesitos.filter((q) => !ehSuplementar(q) && (q.data.origem || 'Outro') === origem);
+    const rot = nomeOrigem(origem);
+    if (rotulosVistos.has(rot)) continue; // ex.: "Réu" e "INSS" quando o réu é o INSS → um título só
+    rotulosVistos.add(rot);
+    const lista = quesitos.filter((q) => !ehSuplementar(q) && nomeOrigem(q.data.origem || 'Outro') === rot);
     if (!lista.length) continue;
     n += 1;
-    d.h2(`${numBase}.${n}`, `Quesitos ${nomeOrigem(origem)}`);
+    d.h2(`${numBase}.${n}`, `Quesitos ${rot}`);
     for (const q of lista) {
       const texto = String(q.data.texto || '').trim();
       const num = String(q.data.numero || '').trim();
       // não repete a numeração quando o próprio texto já começa com ela ("1) …", "a) …")
-      const lider = (texto.match(/^\(?([0-9]+|[a-z]|[ivx]+)\s*[).\-–]/i) || [])[1] || '';
       // número composto ("1-b", "4-c"): o texto já traz a letra; mostra só o grupo antes dela ("1.b) …")
-      const partes = num.toLowerCase().split(/[-.\s]+/).filter(Boolean);
-      const lid = lider.toLowerCase();
-      let prefixo = num ? `${num} – ` : '';
-      if (lid && partes.includes(lid)) prefixo = partes.length > 1 && lid === partes[partes.length - 1] ? `${partes.slice(0, -1).join('.')}.` : '';
+      const prefixo = prefixoQuesito(q, ' – ');
+      void num;
       d.add(p([run(prefixo, { b: true }), rich(texto, { i: true })], { after: 100, keepNext: true }));
       const k = norm(texto);
       let resp;
@@ -651,7 +682,7 @@ const LIM_NR15_AREN = 1.1;
 const LIM_NR15_VDV = 21;
 
 function subperiodosVibracao(r) {
-  const ini = r.data.inicio, fim = r.data.fim || new Date().toISOString().slice(0, 10);
+  const ini = r.data.inicio, fim = r.data.fim || hojeLocal();
   const J = [{ ini: '0000-01-01', fim: '1997-03-05', crit: 'cod115' }, { ini: '1997-03-06', fim: '2014-08-13', crit: 'iso' }, { ini: '2014-08-14', fim: '9999-12-31', crit: 'nr15' }];
   return J.map((j) => ({ ini: ini > j.ini ? ini : j.ini, fim: fim < j.fim ? fim : j.fim, crit: j.crit })).filter((x) => ini && x.ini <= x.fim);
 }
@@ -670,7 +701,7 @@ export function memoriasParadigmas(d, dados, { numero = '' } = {}) {
       const T = numP(r.data.conducaoH);
       const nen = sp.janela.crit === 'NEN' && isFinite(T) ? nenParaJornada(lavg, T) : NaN;
       const valor = sp.janela.crit === 'Lavg' ? lavg : nen;
-      const supera = isFinite(valor) ? (Math.round(valor * 100) / 100 > sp.janela.lim ? 'SIM' : 'NÃO') : '[[?]]';
+      const supera = isFinite(valor) ? (superaLimite(valor, sp.janela.lim) ? 'SIM' : 'NÃO') : '[[?]]';
       linhasR.push([`V${i + 1} – ${dataBR(sp.ini)} a ${dataBR(sp.fim)}`, p ? `${p.data.marca} ${p.data.modelo}`.trim() : `[[${r.data.paradigmaRuido}?]]`,
         f2(lavg), isFinite(T) ? `${String(r.data.conducaoH).replace('.', ',')} h` : '[[T]]', sp.janela.crit === 'NEN' ? f2(nen) : '—',
         `${sp.janela.crit} > ${sp.janela.lim}`, f2(valor), supera]);
@@ -842,7 +873,11 @@ export function descricaoVinculo(d, r, dados, { refVistoria = '' } = {}) {
     if (m) { fonte = m[1].trim(); ativ = ativ.slice(0, m.index).trim(); }
     if (!fonte && v(x.fonte) && /PPP|descri/i.test(x.fonte)) fonte = v(x.fonte).split(/[;\n]/)[0];
     ativ = ativ.replace(/\.$/, '');
-    d.texto(`${fonte ? `Conforme a descrição ${/^PPP/i.test(fonte) ? 'do' : 'constante d'}${/^PPP/i.test(fonte) ? ` ${fonte}` : `e ${fonte}`}, as` : 'As'} atividades do autor consistiam em ${minuscula(ativ)}.`);
+    // atividade escrita com verbo conjugado ("conduzia caminhão") → "o autor conduzia…"; senão "as atividades consistiam em…"
+    const verbo = /^\S+(ia|va|iam|vam)\b/i.test(ativ);
+    const abre = fonte ? `Conforme a descrição ${/^PPP/i.test(fonte) ? `do ${fonte}` : `constante de ${fonte}`}, ` : '';
+    const corpo = verbo ? `o autor ${minuscula(ativ)}` : `as atividades do autor consistiam em ${minuscula(ativ)}`;
+    d.texto(`${abre}${abre ? corpo : corpo.replace(/^./, (k) => k.toUpperCase())}.`);
   } else d.redigir('atividades do vínculo (PPP, descrição do cargo ou entrevista).');
   const veic = [x.veiculoTipo, x.veiculoMarca, x.veiculoModelo, x.veiculoAno].filter(Boolean).join(' ');
   const comp = [veic && `veículo conduzido: ${veic}`, v(x.tipoTransporte) && `transporte: ${minuscula(v(x.tipoTransporte))}`,

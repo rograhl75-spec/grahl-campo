@@ -17,7 +17,7 @@ export function esc(s) {
   return String(s ?? '')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
     // eslint-disable-next-line no-control-regex
-    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '');
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g, '');
 }
 
 function rPr({ b, i, size = 12, color, caps, hl, sup } = {}) {
@@ -104,7 +104,10 @@ export class Doc {
     return this.add(p(`[[Redigir: ${orientacao}]]`, { first: RECUO, after: 160 }));
   }
   h1(num, titulo, { novaPagina = true } = {}) {
-    return this.add(`<w:p>${pPr({ style: 'Ttulo1', align: 'left', before: novaPagina ? 0 : 360, after: 240, keepNext: true, pageBreakBefore: novaPagina, outline: 0 })}` +
+    // filete azul abaixo do título primário (padrão visual dos laudos)
+    const pp = pPr({ style: 'Ttulo1', align: 'left', before: novaPagina ? 0 : 360, after: 240, keepNext: true, pageBreakBefore: novaPagina, outline: 0 })
+      .replace('<w:spacing', `<w:pBdr><w:bottom w:val="single" w:sz="8" w:space="4" w:color="${AZUL}"/></w:pBdr><w:spacing`);
+    return this.add(`<w:p>${pp}` +
       `${run(`${num ? num + ' ' : ''}${String(titulo).toUpperCase()}`, { b: true, size: 12, color: AZUL })}</w:p>`);
   }
   h2(num, titulo) {
@@ -124,7 +127,8 @@ export class Doc {
     this.add(`<w:p>${pPr({ align: 'center', before: 240, after: 100, line: 276, keepNext: true })}` +
       run('Quadro ', { b: true, size: 10 }) + campoSeq('Quadro', n, { b: true, size: 10 }) + run(` – ${titulo}`, { b: true, size: 10 }) + '</w:p>');
     this.add(tabela(linhas, { larguras, header, tam, alinhar }));
-    this.add(p([run(fonte ? `Fonte: ${fonte}` : '', { size: 9 })], { align: 'both', before: 60, after: 280, line: 240 }));
+    // ABNT/IBGE: "Fonte" alinhada à esquerda, logo abaixo do quadro
+    this.add(p([run(fonte ? 'Fonte: ' : '', { size: 9, b: true, color: CINZA }), run(fonte || '', { size: 9, color: CINZA })], { align: 'left', before: 60, after: 280, line: 240 }));
     return this;
   }
   // tabela chave–valor da capa (rótulo em negrito azul, linhas finas)
@@ -155,7 +159,7 @@ export class Doc {
       });
       if (cells.length === 1) cells.push(`<w:tc><w:tcPr><w:tcW w:w="${meia}" w:type="dxa"/>${bordas('all')}</w:tcPr><w:p/></w:tc>`);
       this.add(`<w:tbl><w:tblPr><w:tblW w:w="${meia * 2}" w:type="dxa"/><w:tblLayout w:type="fixed"/><w:tblCellMar><w:top w:w="60" w:type="dxa"/><w:left w:w="60" w:type="dxa"/><w:right w:w="60" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid><w:gridCol w:w="${meia}"/><w:gridCol w:w="${meia}"/></w:tblGrid><w:tr><w:trPr><w:cantSplit/></w:trPr>${cells.join('')}</w:tr></w:tbl>`);
-      this.add(p('', { after: 120, line: 240 }));
+      this.add(p([run('Fonte: registro fotográfico do autor.', { size: 8, color: CINZA })], { align: 'left', before: 40, after: 160, line: 240 }));
     }
     return this;
   }
@@ -195,8 +199,8 @@ export class Doc {
   listaQuadros() {
     return this.add(p([run('LISTA DE QUADROS', { b: true, color: AZUL })], { align: 'center', pageBreakBefore: true, after: 240 }), campoToc('TOC \\h \\z \\c "Quadro"'));
   }
-  listaFiguras() {
-    return this.add(p([run('LISTA DE FIGURAS', { b: true, color: AZUL })], { align: 'center', before: 480, after: 240 }), campoToc('TOC \\h \\z \\c "Figura"'));
+  listaFiguras({ novaPagina = false } = {}) {
+    return this.add(p([run('LISTA DE FIGURAS', { b: true, color: AZUL })], { align: 'center', before: novaPagina ? 0 : 480, after: 240, pageBreakBefore: novaPagina }), campoToc('TOC \\h \\z \\c "Figura"'));
   }
   quebra() { return this.add('<w:p><w:r><w:br w:type="page"/></w:r></w:p>'); }
 }
@@ -222,10 +226,13 @@ function campoToc(instr) {
 const MARGEM_CELULA = '<w:tblCellMar><w:top w:w="70" w:type="dxa"/><w:left w:w="100" w:type="dxa"/><w:bottom w:w="70" w:type="dxa"/><w:right w:w="100" w:type="dxa"/></w:tblCellMar>';
 
 function bordas(tipo) {
-  const b = (n, cor = 'A6B4C8') => `<w:${n} w:val="single" w:sz="4" w:space="0" w:color="${cor}"/>`;
+  const b = (n, cor = 'A6B4C8', sz = 4) => `<w:${n} w:val="single" w:sz="${sz}" w:space="0" w:color="${cor}"/>`;
   if (tipo === 'bottom') return `<w:tcBorders><w:top w:val="nil"/><w:left w:val="nil"/>${b('bottom', 'C9D3E0')}<w:right w:val="nil"/></w:tcBorders>`;
+  // quadros: linhas horizontais finas, sem verticais internas, moldura azul em cima e embaixo
+  if (tipo === 'quadro') return `<w:tcBorders>${b('top', 'C9D3E0')}<w:left w:val="nil"/>${b('bottom', 'C9D3E0')}<w:right w:val="nil"/></w:tcBorders>`;
   return `<w:tcBorders>${b('top')}${b('left')}${b('bottom')}${b('right')}</w:tcBorders>`;
 }
+const ZEBRA = 'F3F6FA';
 
 function celula(texto, w, { b, color, tam = 10, fill, borda = 'all', align = 'both' } = {}) {
   const shade = fill ? `<w:shd w:val="clear" w:color="auto" w:fill="${fill}"/>` : '';
@@ -247,19 +254,22 @@ function alinhamentoColuna(linhas, ci, w, header) {
 }
 
 export function tabela(linhas, { larguras, header = true, tam = 10, alinhar = 'auto' } = {}) {
-  tam = Math.max(tam, 9);
+  tam = Math.max(tam, 8);
   const ncol = Math.max(...linhas.map((l) => l.length));
   const ws = larguras ? larguras.map((f) => Math.round(f * LARGURA)) : Array(ncol).fill(Math.round(LARGURA / ncol));
   const al = ws.map((w, ci) => (alinhar === 'center' ? 'center' : alinhamentoColuna(linhas, ci, w, header)));
   const grid = `<w:tblGrid>${ws.map((w) => `<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>`;
   const rows = linhas.map((l, ri) => {
     const isH = header && ri === 0;
+    // cabeçalho azul-marinho com texto branco; linhas alternadas em cinza-azulado claro
+    const zebra = !isH && (ri - (header ? 1 : 0)) % 2 === 1;
     const cells = l.map((c, ci) => celula(c, ws[ci], {
-      b: isH, color: isH ? AZUL : undefined, tam: isH ? Math.min(tam, 9) : tam, fill: isH ? AZUL_CLARO : undefined, align: isH ? 'center' : al[ci],
+      b: isH, color: isH ? 'FFFFFF' : undefined, tam: isH ? Math.min(tam, 9) : tam, fill: isH ? AZUL : zebra ? ZEBRA : undefined, align: isH ? 'center' : al[ci], borda: 'quadro',
     })).join('');
     return `<w:tr><w:trPr><w:cantSplit/>${isH ? '<w:tblHeader/>' : ''}</w:trPr>${cells}</w:tr>`;
   }).join('');
-  return `<w:tbl><w:tblPr><w:tblW w:w="${LARGURA}" w:type="dxa"/><w:jc w:val="center"/><w:tblLayout w:type="fixed"/>` +
+  const moldura = `<w:tblBorders><w:top w:val="single" w:sz="12" w:space="0" w:color="${AZUL}"/><w:bottom w:val="single" w:sz="12" w:space="0" w:color="${AZUL}"/></w:tblBorders>`;
+  return `<w:tbl><w:tblPr><w:tblW w:w="${LARGURA}" w:type="dxa"/><w:jc w:val="center"/>${moldura}<w:tblLayout w:type="fixed"/>` +
     `${MARGEM_CELULA}</w:tblPr>` +
     `${grid}${rows}</w:tbl>`;
 }
@@ -291,6 +301,15 @@ export async function montarDocx(modeloBytes, corpoXml, { imagens = [], tituloDo
   const sect = xml.lastIndexOf('<w:sectPr');
   if (ini < 8 || sect < 0) throw new Error('Modelo timbrado inválido (corpo não encontrado).');
   xml = xml.slice(0, ini) + corpoXml + xml.slice(sect);
+  // primeira página (capa ou 1ª folha da petição) sem número: usa o cabeçalho/rodapé "first" do timbrado,
+  // que tem o mesmo timbre e não recebe o campo PAGE (ABNT NBR 14724: a capa não é numerada)
+  const ultSect = xml.lastIndexOf('<w:sectPr');
+  const fimSect = xml.indexOf('</w:sectPr>', ultSect);
+  if (fimSect > 0 && !xml.slice(ultSect, fimSect).includes('<w:titlePg') && /w:type="first"/.test(xml.slice(ultSect, fimSect))) {
+    const trecho = xml.slice(ultSect, fimSect);
+    const pos = trecho.includes('<w:docGrid') ? trecho.indexOf('<w:docGrid') : trecho.length;
+    xml = xml.slice(0, ultSect) + trecho.slice(0, pos) + '<w:titlePg/>' + trecho.slice(pos) + xml.slice(fimSect);
+  }
   zip.file(docPath, xml);
   // sumário (ABNT NBR 6027): títulos com a mesma grafia do texto; seção primária em negrito
   const stPath = 'word/styles.xml';
@@ -301,6 +320,27 @@ export async function montarDocx(modeloBytes, corpoXml, { imagens = [], tituloDo
       + `<w:rPr><w:rFonts w:ascii="${FONTE}" w:hAnsi="${FONTE}"/>${b ? '<w:b/><w:bCs/>' : ''}<w:sz w:val="22"/></w:rPr></w:style>`;
     st = st.replace('</w:styles>', toc('Sumrio1', 'toc 1', 0, true) + toc('Sumrio2', 'toc 2', 220, false) + toc('Sumrio3', 'toc 3', 440, false) + '</w:styles>');
     zip.file(stPath, st);
+  }
+
+  // estilos-base no padrão do documento: o texto digitado depois no Word sai igual ao gerado
+  st = await zip.file(stPath).async('string');
+  const fonteR = `<w:rFonts w:ascii="${FONTE}" w:hAnsi="${FONTE}" w:cs="${FONTE}" w:eastAsia="${FONTE}"/>`;
+  st = st.replace(/(<w:style w:type="paragraph" w:default="1" w:styleId="Normal">)([\s\S]*?)(<\/w:style>)/, (m, a, corpo, z) => (corpo.includes('<w:rPr>') ? m
+    : `${a}${corpo}<w:pPr><w:spacing w:after="120" w:line="360" w:lineRule="auto"/><w:jc w:val="both"/></w:pPr><w:rPr>${fonteR}<w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr>${z}`));
+  for (const id of ['Ttulo1', 'Ttulo2', 'Ttulo3']) {
+    st = st.replace(new RegExp(`(<w:style w:type="paragraph" w:styleId="${id}">[\\s\\S]*?)<w:rPr>[\\s\\S]*?<\\/w:rPr>(\\s*<\\/w:style>)`),
+      `$1<w:rPr>${fonteR}<w:b/><w:bCs/><w:color w:val="${AZUL}"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr>$2`);
+  }
+  zip.file(stPath, st);
+  // número da página no rodapé (o timbrado não traz o campo PAGE)
+  for (const f of ['word/footer1.xml', 'word/footer2.xml']) {
+    if (!zip.file(f)) continue;
+    let ft = await zip.file(f).async('string');
+    if (/PAGE/.test(ft)) continue;
+    const r = (t) => `<w:r>${rPr({ size: 9, color: CINZA })}${t}</w:r>`;
+    const num = `<w:p><w:pPr><w:jc w:val="right"/><w:spacing w:before="0" w:after="0"/></w:pPr>${r('<w:fldChar w:fldCharType="begin"/>')}${r('<w:instrText xml:space="preserve"> PAGE </w:instrText>')}${r('<w:fldChar w:fldCharType="separate"/>')}${r('<w:t>1</w:t>')}${r('<w:fldChar w:fldCharType="end"/>')}</w:p>`;
+    ft = ft.replace('</w:ftr>', `${num}</w:ftr>`);
+    zip.file(f, ft);
   }
 
   if (imagens.length) {

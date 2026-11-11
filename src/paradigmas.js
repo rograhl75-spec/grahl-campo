@@ -1,5 +1,6 @@
-import { db, mergeIncoming, createRecord, updateFields } from './db.js';
+import { db, mergeIncoming, createRecord, updateFields, newId } from './db.js';
 import { normalize, mergeRecords, sameContent } from './merge.js';
+import { num as numBR } from './calc.js';
 
 // ======================================================================
 // Banco de paradigmas (veículos e máquinas medidos), similares e famílias.
@@ -20,9 +21,19 @@ export function slug(t) {
 export function veiculoParaDados(v) {
   const i = v.identificacao || {}, c = v.caracteristicas || {}, r = v.resultados || {}, f = v.fonte || {}, ins = v.instrumentacao || {};
   const ir = ins.ruido || {}, ic = ins.calibrador || {}, iv = ins.vibracao || {};
+  const mq = v.maquina || {};
   const fonteTipo = s(f.tipo);
   const extra = /extrajudicial/i.test(fonteTipo);
+  const literatura = /literatura|fabricante|banco/i.test(`${fonteTipo} ${s(mq.origem)}`);
+  const maquina = {};
+  if (Object.keys(mq).length) {
+    Object.assign(maquina, {
+      categoriaMaquina: s(mq.categoria), origemDado: s(mq.origem), operacao: s(mq.operacao), implemento: s(mq.implemento),
+      potencia: n(mq.potencia_cv), rotacao: n(mq.rotacao_rpm), velocidade: n(mq.velocidade_kmh), referencia: s(mq.referencia),
+    });
+  }
   return {
+    ...maquina,
     codigo: s(v.id),
     idsAnteriores: [s((v.ids_banco_anterior || {}).ruido), s((v.ids_banco_anterior || {}).vibracao)].filter(Boolean).join(' / '),
     tipo: s(i.tipo), marca: s(i.marca), modelo: s(i.modelo), ano: s(i.ano),
@@ -33,7 +44,7 @@ export function veiculoParaDados(v) {
     eixoDominante: s(r.eixo_dominante), arenVmb: n(r.aren_vmb), ibutg: n(r.ibutg),
     fonteTipo,
     processo: extra ? '' : s(f.processo), vara: extra ? '' : s(f.vara), dataMedicao: s(f.data),
-    citacao: extra ? `Extrajudicial – ${s(f.data)}` : s(f.citacao),
+    citacao: extra ? `Extrajudicial – ${s(f.data)}` : (literatura && s(mq.referencia)) || s(f.citacao),
     ruidoEquip: s(ir.equipamento), ruidoSerie: s(ir.serie), ruidoCert: s(ir.certificado), ruidoCertData: s(ir.data_certificado),
     calibEquip: s(ic.equipamento), calibSerie: s(ic.serie), calibCertData: s(ic.data_certificado),
     vibEquip: s(iv.equipamento), vibSerie: s(iv.serie), vibCert: s(iv.certificado), vibCertData: s(iv.data_certificado),
@@ -112,7 +123,9 @@ export async function adicionarParadigmas(veiculos, { anexoId = '' } = {}) {
     d.codigo = await proximoCodigo();
     if (anexoId) d.anexoId = anexoId;
     if (!d.situacao || d.situacao === 'OK') d.situacao = 'Revisar';
-    const id = `par-${slug(d.codigo)}`;
+    // id aleatório: dois aparelhos sem internet podem gerar o mesmo código "M12", mas nunca o mesmo id
+    // (com id derivado do código, a sincronização fundiria dois veículos diferentes num só)
+    const id = `par-${newId()}`;
     await gravarImportado(registro(id, 'paradigma', d, Date.now()));
     criados.push(d.codigo);
   }
@@ -127,10 +140,56 @@ export async function guardarAnexo(file, descricao = '', caseId = null) {
   return rec.id;
 }
 
+// ---------- Códigos duplicados entre aparelhos ----------
+// O mais antigo (createdAt) mantém o código; os outros recebem o próximo código livre e guardam o anterior
+// em "codigoAnterior", para conferência das referências (vínculos e similares) feitas com o código repetido.
+export async function resolverCodigosDuplicados() {
+  const todos = await db.records.where('kind').equals('paradigma').toArray();
+  const ativos = todos.filter((r) => !r.deleted && String(r.data.codigo || '').trim());
+  const grupos = new Map();
+  for (const r of ativos) {
+    const k = String(r.data.codigo).trim().toUpperCase();
+    (grupos.get(k) || grupos.set(k, []).get(k)).push(r);
+  }
+  let max = todos.reduce((m, r) => Math.max(m, Number(String(r.data.codigo || '').replace(/\D/g, '')) || 0), 0);
+  const renomeados = [];
+  for (const [cod, lista] of grupos) {
+    if (lista.length < 2) continue;
+    // ordem determinística: todos os aparelhos escolhem o mesmo "dono" do código
+    lista.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0) || String(a.id).localeCompare(String(b.id)));
+    for (const r of lista.slice(1)) {
+      max += 1;
+      const novo = `M${String(max).padStart(2, '0')}`;
+      const obs = [r.data.observacoes, `Código alterado de ${cod} para ${novo}: o mesmo código foi gerado em dois aparelhos sem internet. Confira os vínculos e similares que citam ${cod}.`].filter(Boolean).join('\n');
+      await updateFields(r.id, { codigo: novo, codigoAnterior: cod, situacao: 'Revisar', observacoes: obs });
+      renomeados.push({ id: r.id, de: cod, para: novo });
+    }
+  }
+  return renomeados;
+}
+
+// Vínculos e similares que citam um código que foi renumerado (para o aviso na tela)
+export async function referenciasARevisar() {
+  const pars = (await db.records.where('kind').equals('paradigma').toArray()).filter((r) => !r.deleted && r.data.codigoAnterior);
+  if (!pars.length) return [];
+  const antigos = new Map(pars.map((r) => [r.data.codigoAnterior, r]));
+  const refs = (await db.records.where('kind').anyOf('periodo', 'similar').toArray()).filter((r) => !r.deleted);
+  const out = [];
+  for (const r of refs) {
+    for (const campo of ['paradigmaRuido', 'paradigmaRuidoAlt', 'paradigmaVibracao']) {
+      const p = antigos.get(r.data[campo]);
+      if (p) out.push({ ref: r, campo, de: p.data.codigoAnterior, para: p.data.codigo });
+    }
+  }
+  return out;
+}
+
 // ---------- Busca por similaridade ----------
 export function tokensModelo(t) {
-  return norm(t).replace(/([a-z])(\d)/g, '$1 $2').replace(/(\d)([a-z])/g, '$1 $2').split(' ')
-    .filter((x) => x && !/^(19|20)\d\d$/.test(x) && !['serie', 'series', 'de', 'e'].includes(x));
+  // ano só quando vem entre parênteses ou depois de "/" ou "ano" (ex.: "(2008)", "2007/2008"); "Axor 2035" é modelo
+  const semAno = String(t || '').replace(/\(\s*(?:19|20)\d\d\s*(?:[+–-]\s*(?:(?:19|20)\d\d)?)?\s*\)|\b(?:19|20)\d\d\s*\+|\b(?:19|20)\d\d\s*\/\s*(?:19|20)\d\d\b|\bano\s*(?:19|20)\d\d\b/gi, ' ');
+  return norm(semAno).replace(/([a-z])(\d)/g, '$1 $2').replace(/(\d)([a-z])/g, '$1 $2').split(' ')
+    .filter((x) => x && !['serie', 'series', 'de', 'e'].includes(x));
 }
 export function melhorSimilar(sims, marca, modelo) {
   const mt = tokensModelo(modelo);
@@ -175,7 +234,7 @@ export async function sugerirParadigmas({ marca = '', modelo = '', tipo = '', fa
   if (resultado.familia) {
     const fam = ativos.filter((p) => p.data.familia === resultado.familia);
     const ordem = (p) => (/não usar/i.test(p.data.situacao) ? 3 : /^ok$/i.test(p.data.situacao) ? 0 : 1);
-    fam.sort((a, b) => ordem(a) - ordem(b) || String(b.data.dataMedicao).localeCompare(String(a.data.dataMedicao)));
+    fam.sort((a, b) => ordem(a) - ordem(b) || ((dataBRparaDate(b.data.dataMedicao) || 0) - (dataBRparaDate(a.data.dataMedicao) || 0)));
     for (const p of fam) {
       if (/não usar/i.test(p.data.situacao)) continue;
       if (p.data.lavg && !resultado.ruido.some((x) => x.p.id === p.id)) resultado.ruido.push({ p, papel: 'mesma família' });
@@ -219,7 +278,7 @@ export async function promoverMedicao(caso, medicao, equipamento) {
 }
 
 // ---------- Cálculos (Manual de Aposentadoria Especial do INSS; NHO-09) ----------
-export const num = (t) => { const x = Number(String(t ?? '').replace(',', '.').replace(/[^\d.-]/g, '')); return String(t ?? '').trim() === '' ? NaN : x; };
+export const num = (t) => numBR(String(t ?? '').replace(/[^\d.,-]/g, ''));
 export function nenParaJornada(lavg, T) { return num(lavg) + 16.61 * Math.log10(num(T) / 8); }
 export function arenParaJornada(arep, T) { return num(arep) * Math.sqrt(num(T) / 8); }
 export function vdvrParaJornada(vdvr, T, Tlaudo) { return num(vdvr) * Math.pow(num(T) / num(Tlaudo), 0.25); }

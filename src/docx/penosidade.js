@@ -106,8 +106,11 @@ export function matrizIAC(r, dados) {
   const cTxt = isFinite(Tc) ? String(Tc).replace('.', ',') : hTxt;
   const veic = [x.veiculoTipo, x.veiculoMarca, x.veiculoModelo, x.veiculoAno].filter(Boolean).join(' ') || x.veiculosAvaliados || '';
   const fis = agentesFisicos(r, dados);
-  const pressao = v(x.pressao) || (T >= 12 ? `jornada de cerca de ${hTxt} h/dia, que pressupõe pressão de prazos e metas de entrega` : '');
-  const pausas = v(x.pausas) || (T >= 10 ? `condução prolongada ao longo de jornada de cerca de ${hTxt} h/dia` : '');
+  // sem informação apurada, o app só SUGERE (deduzido da jornada); sai marcado para o perito confirmar ou apagar
+  const pressaoSug = !v(x.pressao) && T >= 12;
+  const pausasSug = !v(x.pausas) && T >= 10;
+  const pressao = v(x.pressao) || (pressaoSug ? `[[sugestão do app – confirmar: jornada de cerca de ${hTxt} h/dia, que pode indicar pressão de prazos e metas de entrega]]` : '');
+  const pausas = v(x.pausas) || (pausasSug ? `[[sugestão do app – confirmar: condução prolongada ao longo de jornada de cerca de ${hTxt} h/dia]]` : '');
   const L = (rot, t) => (v(t) ? `${rot}: ${v(t)}` : '');
   const criterios = [
     { id: 'veiculo', titulo: '1. Análise do veículo',
@@ -124,26 +127,30 @@ export function matrizIAC(r, dados) {
       oque: 'Responsabilidade pela carga de valor ou por vidas humanas; carga, descarga, amarração e enlonamento; metas logísticas; risco de acidente e de roubo de carga.',
       linhas: [L('Tipo de transporte', x.tipoTransporte), L('Carga, descarga e esperas', x.cargaDescarga), L('Prazos e metas', pressao)].filter(Boolean),
       adverso: adv(RE_CARGA, x.cargaDescarga) || adv(RE_RISCO, x.tipoTransporte) || !!pressao,
-      fonte: 'Entrevista do autor' },
+      fonte: pressaoSug ? 'Entrevista do autor; [[prazos e metas deduzidos da jornada – confirmar]]' : 'Entrevista do autor' },
     { id: 'jornadas', titulo: '4. Análise das jornadas',
       oque: 'Horários rígidos ou viagens extenuantes que impedem a recuperação; privação de sono; dificuldade de acesso a sanitários, alimentação e locais de descanso.',
       linhas: [L('Tempo diário de condução', cTxt && `cerca de ${cTxt} h/dia${x.conducaoBase ? ` (${x.conducaoBase})` : ''}`), L('Jornada e horas extras', x.jornadaSemanal),
         L('Direção contínua e pausas', pausas), L('Trabalho noturno e pernoites', x.noturnoPernoite), L('Sanitários, alimentação e descanso', x.fisiologicas)].filter(Boolean),
       adverso: T >= 10 || adv(RE_PERN, x.noturnoPernoite) || /sem acesso|dif[ií]cil|n[ãa]o (havia|tinha)|precária/i.test(x.fisiologicas || ''),
-      fonte: 'Entrevista do autor' },
+      fonte: pausasSug ? 'Entrevista do autor; [[pausas deduzidas da jornada – confirmar]]' : 'Entrevista do autor' },
   ];
   const nAdv = criterios.filter((c) => c.adverso).length;
   const comDados = criterios.filter((c) => c.linhas.length).length;
   let conclusao = v(x.penosidadeConclusao);
   let penoso = conclusao ? !/n[ãa]o (h[áa]|caracteriz|se caracteriz)/i.test(conclusao) : null;
+  let sugerida = false;
   if (!conclusao && comDados >= 2) {
+    sugerida = true;
     penoso = nAdv >= 3;
     const adv = criterios.filter((c) => c.adverso).map((c) => c.titulo.replace(/^\d\. Análise d[oa]s? /, ''));
     conclusao = penoso
       ? `Pela convergência cumulativa dos fatores de desgaste apurados (${adv.join(', ')}), nos parâmetros do IAC nº 5 do TRF4, a atividade foi exercida em condições excepcionalmente penosas, com exposição habitual e permanente a condições concretas de desgaste físico e mental à saúde.`
       : `Os fatores apurados (${adv.join(', ') || 'nenhum adverso'}) não convergem de forma suficiente para caracterizar, nos parâmetros do IAC nº 5 do TRF4, trabalho excepcionalmente penoso.`;
   }
-  return { criterios, conclusao, penoso, T };
+  // conclusão calculada pelo app (contagem de fatores): é proposta, não juízo técnico – sai marcada para revisão
+  if (sugerida) conclusao = `[[Proposta do app pela contagem de fatores – confirmar ou redigir no campo "Conclusão técnica da penosidade" do vínculo:]] ${conclusao}`;
+  return { criterios, conclusao, penoso, T, sugerida };
 }
 
 // numero/nivel: posição do item no documento; tipo: 'laudo' | 'parecer' | 'ltcat'
@@ -152,7 +159,7 @@ export function secaoPenosidade(d, dados, { numero = '', nivel = 'h2', tipo = 'l
   const vs = vinculosMotorista(dados);
   const jur = comJurisprudencia(dados);
   const quem = tipo === 'parecer' ? 'este Assistente Técnico' : tipo === 'ltcat' ? 'este Engenheiro de Segurança do Trabalho' : 'este Perito';
-  d[nivel](numero, 'Condições especiais por penosidade (critério jurisprudencial – IAC nº 5 do TRF4)');
+  d[nivel](numero, jur ? 'Condições especiais por penosidade (critério jurisprudencial – IAC nº 5 do TRF4)' : 'Condições especiais por penosidade (perícia individualizada)');
   d.texto('Até 28/04/1995, a atividade de motorista de ônibus e de caminhão enquadra-se por categoria profissional (Decreto nº 53.831/1964, Quadro Anexo, cód. 2.4.4; Decreto nº 83.080/1979, Anexo II, cód. 2.4.2, para ocupação em caráter permanente). A partir de 29/04/1995 (Lei nº 9.032/1995), a penosidade não consta do Anexo IV do Regulamento da Previdência Social e só pode ser reconhecida em juízo, mediante perícia técnica individualizada que demonstre a exposição habitual e permanente a condições concretas de desgaste à saúde'
     + (jur ? ' (STJ, Tema 1307).' : '.'));
   d.texto(`A penosidade das categorias de transporte não se confunde com a insalubridade: não decorre de um agente que supere um limite de tolerância, mas da conjunção de estressores físicos e mentais que, somados e mantidos ao longo da jornada, impõem desgaste excepcional ao trabalhador. Por isso, ${quem} adota os parâmetros fixados pelo Tribunal Regional Federal da 4ª Região no Incidente de Assunção de Competência nº 5 (IAC 5033888-90.2018.4.04.0000) – análise do veículo efetivamente conduzido, dos trajetos e das jornadas –, acrescidos, no transporte rodoviário de cargas, da análise das cargas. Os limites quantitativos de ruído e de vibração são dispensados nesta análise: os valores medidos entram como um dos estressores, mesmo quando abaixo dos limites de tolerância.`);
@@ -200,5 +207,5 @@ export const CAMPOS_PENOSIDADE = [
   ['riscoAcidente', 'Risco de acidente e violência (carga perigosa, roubo, ocorrências)', 'text'],
   ['pressao', 'Pressão de prazos, metas, remuneração por produção (vazio: deduzido de jornada ≥ 12 h/dia)', 'text'],
   ['fisiologicas', 'Acesso a sanitários, alimentação e descanso durante a jornada', 'text'],
-  ['penosidadeConclusao', 'Conclusão técnica da penosidade (vazio: calculada pelo app pelos critérios do IAC nº 5 – TRF4)', 'area'],
+  ['penosidadeConclusao', 'Conclusão técnica da penosidade (vazio: o app propõe uma conclusão pela contagem de fatores do IAC nº 5 – TRF4, marcada para conferir)', 'area'],
 ];

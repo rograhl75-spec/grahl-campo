@@ -2,16 +2,45 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // App novo: cada usuário só lê e grava os próprios registros.
+    // ---------------------------------------------------------------
+    // CONTAS AUTORIZADAS: troque SEU_EMAIL_AQUI pelo e-mail da conta
+    // Google que você usa no app. Para mais de uma conta (ex.: e-mail
+    // do escritório), acrescente na lista: ["a@gmail.com", "b@gmail.com"].
+    // Qualquer outra conta Google é recusada, mesmo que consiga entrar.
+    // ---------------------------------------------------------------
+    function autorizado() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email in ["SEU_EMAIL_AQUI"];
+    }
+
+    // Formato do registro gravado pelo app (src/sync.js): nada além disso é aceito
+    function registroValido() {
+      let r = request.resource.data;
+      return r.keys().hasOnly(['kind', 'caseId', 'createdAt', 'data', 'ts', 'srv'])
+        && r.kind is string && r.kind.size() <= 40
+        && (r.caseId == null || r.caseId is string)
+        && r.data is map && r.ts is map
+        && r.srv == request.time;
+    }
+
+    // App novo: cada usuário autorizado só lê e grava os próprios registros.
+    // Não há exclusão física: o app usa lixeira (campo _del), então delete é negado.
     match /usuarios/{uid}/registros/{id} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read: if autorizado() && request.auth.uid == uid;
+      allow create, update: if autorizado() && request.auth.uid == uid && registroValido();
+      allow delete: if false;
     }
 
     // App antigo: SOMENTE LEITURA, para a migração.
-    // Troque SEU_EMAIL_AQUI pelo e-mail da conta Google que você usa no app.
     // (O app antigo usa credencial de administrador e não é afetado por estas regras.)
     match /processos/{id} {
-      allow read: if request.auth != null && request.auth.token.email == "SEU_EMAIL_AQUI";
+      allow read: if autorizado();
+    }
+
+    // Todo o resto do banco fica fechado.
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

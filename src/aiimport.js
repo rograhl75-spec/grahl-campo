@@ -1,6 +1,37 @@
 import { db, createRecord, updateFields, caseChildren } from './db.js';
 import { ORIGEM_QUESITO, contextoLegal, ehSuplementar, FASE, CAMPOS_DILIGENCIA, CAMPOS_POSTO, AGENTES_MEDICAO } from './schema.js';
 import { resumoMedicao } from './medicoes.js';
+import { dataIso } from './migrate.js';
+
+// Origem do quesito por sinônimos (o Claude escreve "Reclamante", "Requerido", "Juiz"…); vazio = "Outro"
+export function origemQuesito(o) {
+  const t = String(o ?? '').trim().toLowerCase();
+  if (!t) return 'Outro';
+  if (/ju[ií]z|ju[ií]zo|magistrad/.test(t)) return 'Juízo';
+  if (/\binss\b|instituto nacional/.test(t)) return 'INSS';
+  if (/complementar|suplementar/.test(t)) return 'Complementares';
+  if (/autor|reclamante|requerente|segurad|exequente|embargante/.test(t)) return 'Autor / Reclamante';
+  if (/r[ée]u\b|r[ée]\b|reclamad|requerid|empresa|executad|embargad/.test(t)) return 'Réu / Reclamada';
+  return ORIGEM_QUESITO.find((x) => x.toLowerCase() === t) || 'Outro';
+}
+
+// Agente da medição por sinônimos
+export function agenteMedicao(a) {
+  const t = String(a ?? '').trim().toLowerCase();
+  if (/m[ãa]os|vmb|bra[cç]os/.test(t)) return 'Vibração de mãos e braços (VMB)';
+  if (/corpo|vci|vibra/.test(t)) return 'Vibração de corpo inteiro (VCI)';
+  if (/ru[ií]do|dosimetr|sonor/.test(t)) return 'Ruído';
+  if (/calor|ibutg|t[ée]rmic/.test(t)) return 'Calor (IBUTG)';
+  if (/qu[ií]mic|poeira|n[ée]voa|vapor|g[áa]s|fumo|s[íi]lica|benzeno|hidrocarbon|[óo]leo|graxa|agrot[óo]xic/.test(t)) return 'Agente químico';
+  return AGENTES_MEDICAO.find((x) => x.toLowerCase() === t) || 'Outro';
+}
+
+const CAMPOS_DATA_CASO = ['autorNascimento', 'dataAjuizamento', 'vistoriaData', 'dataDiligencia', 'laudoData', 'prazoLaudo', 'prazoManifestacao', 'prazoEsclarecimentos'];
+// a IA nunca faz o caso voltar de fase
+export function faseAvanca(atual, nova) {
+  const ia = FASE.indexOf(atual || 'A preparar'), in_ = FASE.indexOf(nova);
+  return in_ >= 0 && (ia < 0 || in_ > ia);
+}
 
 // ======================================================================
 // Biblioteca de instruções para o Claude, uma por situação.
@@ -28,7 +59,7 @@ export const CRITERIOS_TRAB = `FINALIDADE TRABALHISTA (insalubridade / periculos
 
 export const CRITERIOS_PREV = `FINALIDADE PREVIDENCIÁRIA (tempo especial – Lei 8.213/1991, Decretos 53.831/1964, 83.080/1979, 2.172/1997 e 3.048/1999, IN PRES/INSS 128/2022)
 - Use a legislação previdenciária vigente À ÉPOCA de cada período (tempus regit actum). A NR-15 entra apenas como referência técnica de limites quando o decreto do período a ela remete. NÃO use conceitos trabalhistas como critério: grau de insalubridade, adicional, período imprescrito, neutralização da NR-15, Súmulas do TST.
-- Ruído: q = 5 sempre. Até 05/03/1997: Lavg > 80 dB(A) (cód. 1.1.6 do Decreto 53.831/64). De 06/03/1997 a 18/11/2003: Lavg > 90 dB(A) (cód. 2.0.1) – a legislação remetia ao Anexo 1 da NR-15 na íntegra, compara-se o Lavg. A partir de 19/11/2003: somente o NEN > 85 dB(A), calculado conforme a jornada com q = 5. TWA não é usado. EPI não descaracteriza o ruído (STF, Tema 555).
+- Ruído: q = 5 como padrão (NR-15); a partir de 19/11/2003 a NHO-01 (q = 3) também é aceita (TNU, Tema 174) – se o laudo/medição usou q = 3, informe "q": "3" na medição. Até 05/03/1997: Lavg > 80 dB(A) (cód. 1.1.6 do Decreto 53.831/64). De 06/03/1997 a 18/11/2003: Lavg > 90 dB(A) (cód. 2.0.1) – a legislação remetia ao Anexo 1 da NR-15 na íntegra, compara-se o Lavg. A partir de 19/11/2003: somente o NEN > 85 dB(A), calculado conforme a jornada com q = 5. TWA não é usado. EPI não descaracteriza o ruído (STF, Tema 555).
 - Calor: até 05/03/1997, cód. 1.1.1 do Decreto 53.831/64 (fonte artificial, TE acima de 28 °C); depois, cód. 2.0.4 do Decreto 3.048/99 com os limites do Anexo 3 da NR-15 na redação do período (original até 10/12/2019; Portaria SEPRT 1.359/2019 depois). O Decreto 3.048/99 prevalece sobre a IN INSS mais restritiva (hierarquia normativa). IBUTG ajustado pela vestimenta (NHO-06).
 - Vibração: até 05/03/1997, cód. 1.1.5 do Decreto 53.831/64 (quantitativo, > 120 golpes/min) e cód. 1.1.4 do Decreto 83.080/79 (qualitativo); de 06/03/1997 a 13/08/2014, cód. 2.0.2 com os limites das normas ISO 2631 e ISO/DIS 5349 (art. 296, II, da IN 128/2022) – fora de perfuratriz/martelete, apresentar as duas leituras, inclusive pela ISO (VCI: fronteira superior da zona de cautela da ISO 2631-1, aren 0,9 m/s² ou VDV 17; VMB: 5 m/s², Diretiva 2002/44/CE); a partir de 14/08/2014 (vigência da Portaria MTE 1.297/2014; a IN indica 13/08/2014), limites do Anexo 8 da NR-15 (art. 296, III; NHO-09/10 facultativas desde 10/09/2012).
 - Calor: art. 293 da IN 128/2022 – NHO-06 obrigatória a partir de 01/01/2004 (facultativa desde 19/11/2003). Ruído: art. 292 – histograma ou memória de cálculo a partir de 11/10/2001; NHO-01 obrigatória a partir de 01/01/2004 (facultativa desde 19/11/2003).
@@ -182,7 +213,7 @@ export function lerJsonIA(texto) {
     const v = s((obj[grupo] || {})[k]);
     if (v) caso[k] = v;
   }
-  const origem = (o) => ORIGEM_QUESITO.find((x) => x.toLowerCase().startsWith(s(o).toLowerCase().slice(0, 4))) || 'Outro';
+  const origem = origemQuesito;
   const pegar = (o, ks) => Object.fromEntries(ks.map((k) => [k, s((o || {})[k])]).filter(([, v]) => v));
   const and = obj.andamento || {};
   for (const [k, v] of Object.entries(pegar(and, ['laudoRefPerito', 'laudoData', 'conclusaoLaudo', 'honorariosFixados', 'honorariosItem', 'dataDiligencia', 'horaDiligencia']))) caso[k] = v;
@@ -191,22 +222,24 @@ export function lerJsonIA(texto) {
   Object.assign(caso, pegar(obj.diligencia, [...CAMPOS_DILIGENCIA.map(([k]) => k).filter((k) => k !== 'vistoriaGps'), 'vistoriaCnpj']));
   if (caso.similaridade && !/^(sim|não|nao)$/i.test(caso.similaridade)) delete caso.similaridade;
   if (caso.similaridade) caso.similaridade = /^sim$/i.test(caso.similaridade) ? 'Sim' : 'Não';
-  const agenteOk = (a) => AGENTES_MEDICAO.find((x) => x.toLowerCase().slice(0, 12) === s(a).toLowerCase().slice(0, 12)) || 'Outro';
-  const KS_MED = ['dataMedicao', 'horaInicio', 'horaFim', 'tempoAmostragem', 'jornada', 'dose', 'lavg', 'lmax', 'calibInicial', 'calibFinal', 'posicao',
+  const agenteOk = agenteMedicao;
+  const KS_MED = ['dataMedicao', 'horaInicio', 'horaFim', 'tempoAmostragem', 'jornada', 'dose', 'q', 'lavg', 'lmax', 'calibInicial', 'calibFinal', 'posicao',
     'tbn', 'tbs', 'tg', 'ibutgLido', 'atividade', 'regime', 'veiculo', 'aren', 'vdv', 'eixo', 'tempoExposicao', 'descricao', 'metodo', 'valor', 'unidade', 'limite'];
   const postos = lista(obj.postos).map((x) => ({
     ...pegar(x, CAMPOS_POSTO.map(([k]) => k)),
     medicoes: lista(x.medicoes).map((m) => {
       const r = { agente: agenteOk(m.agente), ...pegar(m, KS_MED) };
+      if (r.q) r.q = String(r.q).trim().startsWith('3') ? '3 (NHO-01)' : '5 (NR-15, Anexo 1)';
       const obs = [s(m.equipamento) && `Equipamento: ${s(m.equipamento)}`, s(m.obs)].filter(Boolean).join('\n');
       if (obs) r.obs = obs;
       r.importadaDoLaudo = true;
       return r;
     }).filter((m) => Object.keys(m).length > 2),
   })).filter((p) => p.nome || p.medicoes.length);
+  for (const k of CAMPOS_DATA_CASO) if (caso[k]) { const iso = dataIso(caso[k]); if (iso) caso[k] = iso; else delete caso[k]; }
   return {
     caso,
-    periodos: lista(obj.periodos).map((x) => ({ empresa: s(x.empresa), cnpj: s(x.cnpj), inicio: s(x.inicio), fim: s(x.fim), cargo: s(x.cargo), setor: s(x.setor), atividades: s(x.atividades), agentes: s(x.agentes), fonte: s(x.fonte),
+    periodos: lista(obj.periodos).map((x) => ({ empresa: s(x.empresa), cnpj: s(x.cnpj), inicio: dataIso(s(x.inicio)) || s(x.inicio), fim: dataIso(s(x.fim)) || s(x.fim), cargo: s(x.cargo), setor: s(x.setor), atividades: s(x.atividades), agentes: s(x.agentes), fonte: s(x.fonte),
       ...Object.fromEntries(['tipoTransporte', 'jornadaSemanal', 'noturnoPernoite', 'cargaDescarga', 'vias', 'riscoAcidente', 'cabine', 'pausas', 'pressao', 'fisiologicas'].map((k) => [k, s(x[k])]).filter(([, val]) => val)) })),
     documentos: lista(obj.documentos).map((x) => ({ tipo: s(x.tipo), identificacao: s(x.identificacao), analise: s(x.analise) })),
     epis: lista(obj.epis).map((x) => ({ descricao: s(x.descricao), ca: s(x.ca), dataEntrega: s(x.dataEntrega), obs: s(x.obs) })),
@@ -466,7 +499,7 @@ export function lerJsonSuplementares(texto) {
     if ((para === 'laudoData' || para === 'prazoEsclarecimentos') && v && !/^\d{4}-\d{2}-\d{2}$/.test(v)) v = '';
     if (v) caso[para] = v;
   }
-  const origem = (o) => ORIGEM_QUESITO.find((x) => x.toLowerCase().startsWith(s(o).toLowerCase().slice(0, 4))) || 'Outro';
+  const origem = origemQuesito;
   const quesitos = (Array.isArray(obj.quesitos) ? obj.quesitos : []).filter((x) => x && typeof x === 'object')
     .map((x) => ({ origem: origem(x.origem), numero: s(x.numero), refPeticao: s(x.refPeticao), texto: s(x.texto), resposta: s(x.resposta) }))
     .filter((q) => q.texto);

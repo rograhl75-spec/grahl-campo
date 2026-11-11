@@ -157,7 +157,7 @@ describe('jurisprudência opcional e referências', () => {
     expect(comJurisprudencia({ ...base, c: { jurisprudencia: 'Não incluir' } })).toBe(false);
     const r = referencias(base, { prev: true });
     expect(r.some((t) => /NHO 01/.test(t))).toBe(true);
-    expect(r.some((t) => /NR-15/.test(t))).toBe(false); // previdenciário não lista as NR como referência principal
+    expect(r.some((t) => /NR-15/.test(t))).toBe(true); // o laudo previdenciário cita os Anexos 1, 3 e 8 da NR-15: a norma entra nas referências
     const brasil = r.filter((t) => t.startsWith('BRASIL'));
     expect(brasil[0]).toMatch(/1964/);
   });

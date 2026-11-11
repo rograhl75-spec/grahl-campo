@@ -107,7 +107,17 @@ function ImportarClaude() {
       <div class="linha-botoes"><button type="button" class="sec" onClick={copiar}>Copiar instrução</button></div>
       <label class="campo"><span class="rotulo">Cole aqui o JSON devolvido pelo Claude</span>
         <textarea rows={3} value={json} onInput={(e) => setJson(e.currentTarget.value)} /></label>
-      <div class="linha-botoes"><button type="button" class="primario" disabled={!json.trim()} onClick={aplicar}>Aplicar</button></div>
+      <div class="linha-botoes">
+        <button type="button" class="primario" disabled={!json.trim()} onClick={aplicar}>Aplicar</button>
+        <label class="botao sec">Importar arquivo .json
+          <input type="file" accept=".json,application/json" hidden onChange={async (e) => {
+            const arq = e.currentTarget.files[0];
+            e.currentTarget.value = '';
+            if (!arq) return;
+            try { const n = await importarAgentesColados(await arq.text()); avisarAlteracao(); setMsg(`✓ ${arq.name}: ${n} agente(s) incluído(s) ou completado(s). Os que já existiam mantêm o nome e a situação.`); } catch (er) { setMsg(`Erro: ${er.message}`); }
+          }} />
+        </label>
+      </div>
       {msg && <p class="ok-msg">{msg}</p>}
     </section>
   );

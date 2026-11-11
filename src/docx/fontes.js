@@ -71,7 +71,7 @@ export function registroJurisprudencia(d, dados, { numero = '', prev, tipo = 'la
   }
   if (!lista.length) return false;
   d[nivel](numero, 'Registro de entendimentos jurisprudenciais');
-  d.texto('Os entendimentos abaixo são registrados apenas para apreciação do Juízo e não integram o fundamento técnico das conclusões deste documento, que se apoiam exclusivamente na legislação e nas normas técnicas indicadas.');
+  d.texto(`Os entendimentos abaixo são registrados apenas ${dados.c.tipoAtuacao === 'Extrajudicial' ? 'como informação ao contratante' : 'para apreciação do Juízo'} e não integram o fundamento técnico das conclusões deste documento, que se apoiam exclusivamente na legislação e nas normas técnicas indicadas.`);
   for (const e of lista) d.texto(`- ${e.t}`);
   return true;
 }

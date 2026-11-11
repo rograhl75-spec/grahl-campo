@@ -110,6 +110,11 @@ function unicos(lista, chave, maisRecente = false) {
 
 // Vínculos que um posto/veículo representa: pelo nome da empresa ou pelas datas citadas no posto
 export function periodosDoPosto(ps, dados) {
+  // 1º: vínculos marcados no posto (aba Campo); 2º: nome da empresa ou datas no nome do posto;
+  // 3º: um só posto e um só vínculo → ligados
+  const marcados = Array.isArray(ps.data.vinculos) ? ps.data.vinculos : [];
+  if (marcados.length) return dados.periodos.filter((r) => marcados.includes(r.id));
+  if (dados.postos.length === 1 && dados.periodos.length === 1 && !dados.postos.some((x) => (x.data.vinculos || []).length)) return dados.periodos.slice();
   const txt = normTxt(`${ps.data.nome} ${ps.data.descricao || ''} ${ps.data.infoEmpresa || ''}`);
   const datas = (`${ps.data.nome} ${ps.data.descricao || ''}`.match(/\d{4}-\d{2}-\d{2}/g) || []);
   return dados.periodos.filter((r) => {
@@ -138,6 +143,12 @@ export function credencial(perfil) {
 
 // Rótulos das partes conforme a matéria
 export function partes(c) {
+  // extrajudicial: não há processo – trabalhador ou segurado e empresa
+  if (c.tipoAtuacao === 'Extrajudicial') {
+    const prevX = contextoLegal(c).prev === true;
+    const t = prevX ? 'Segurado' : 'Trabalhador';
+    return { autor: t, reu: 'Empresa', autorCurto: t, reuCurto: 'Empresa', trab: false, prev: prevX, extra: true };
+  }
   const trab = (c.materia === 'Trabalhista' || c.justica === 'Justiça do Trabalho') && !(reuEhInss(c) && c.justica !== 'Justiça do Trabalho');
   // prev = finalidade de tempo especial (legislação previdenciária); acidentária só muda os rótulos
   const prev = contextoLegal(c).prev === true;
@@ -153,7 +164,7 @@ export function partes(c) {
 
 // artigos conforme a parte: "o Reclamante", "a Reclamada", "o Autor", "o INSS"
 export function art(nome) {
-  const fem = /Reclamada|Requerida/.test(nome || '');
+  const fem = /Reclamada|Requerida|Empresa/.test(nome || '');
   return { o: fem ? 'a' : 'o', pelo: fem ? 'pela' : 'pelo', do: fem ? 'da' : 'do', O: fem ? 'A' : 'O' };
 }
 
@@ -285,8 +296,12 @@ export function qualificacaoCompleta(perfil) {
   return partesQ.join(', ');
 }
 
-export function blocoAssinatura(d, { c, perfil }, papel, { linha = false } = {}) {
+// documentos ligados a motorista (penosidade) só quando o caso é de motorista
+export const ehCasoMotorista = (dados) => /motorista|caminh|carreteir|cobrador|ônibus|onibus/i.test(`${dados.c.funcoes || ''} ${dados.periodos.map((r) => r.data.cargo || '').join(' ')}`);
+
+export function blocoAssinatura(d, { c, perfil }, papel, { linha = false, data } = {}) {
   return d.assinatura({
+    ...(data ? { data } : {}),
     local: perfil.cidade || 'Londrina – PR',
     nome: perfil.nome,
     linha,
@@ -352,7 +367,7 @@ const fimJanela = (j) => (j.fim === '9999-12-31' ? 'em diante' : dataBR(j.fim));
 export function quadroCriteriosRuido(d) {
   return d.quadro('Critérios – Ruído', [['Período', 'Critério e fundamento'],
     ['Até 05/03/1997', JANELAS_RUIDO[0].fund], ['06/03/1997 a 18/11/2003', JANELAS_RUIDO[1].fund], ['A partir de 19/11/2003', JANELAS_RUIDO[2].fund]],
-  { larguras: [0.27, 0.73], fonte: 'Elaborado pelo autor com base em Brasil (2022, art. 292).' });
+  { larguras: [0.27, 0.73], fonte: 'Elaborado pelo signatário com base em Brasil (2022, art. 292).' });
 }
 
 // divide cada período cadastrado pelas janelas legais do ruído
@@ -394,7 +409,7 @@ export function quadroConfrontoRuido(d, dados) {
       return [`${s.periodo.data.empresa || ''}\n${dataBR(s.ini)} a ${dataBR(s.fim)}`, ref ? nomeP(ref.data.postoId) : '—', s.janela.crit,
         isFinite(val) ? `${fmt(val)} dB(A)` : ref ? '[[valor]]' : '[[vincular posto]]', `${s.janela.lim} dB(A)`, ref ? res : '[[vincular posto ao vínculo]]'];
     })], { larguras: [0.3, 0.22, 0.1, 0.13, 0.11, 0.14],
-    fonte: `Elaborado pelo autor. Cada vínculo usa a medição do veículo/posto que o representa${semVinculo ? ' [[há vínculo sem posto vinculado: vincule o veículo/posto que o representa]]' : ''}; NEN calculado para o tempo diário de condução do vínculo, quando informado.` });
+    fonte: `Elaborado pelo signatário. Cada vínculo usa a medição do veículo/posto que o representa${semVinculo ? ' [[há vínculo sem posto vinculado: vincule o veículo/posto que o representa]]' : ''}; NEN calculado para o tempo diário de condução do vínculo, quando informado.` });
 }
 
 // ---------- medições por agente ----------
@@ -403,7 +418,7 @@ export function quadroMedicoesRuido(d, ms, eq, nomePosto, ctx = {}) {
   const e0 = ms[0] && eq.get(ms[0].data.equipamentoId);
   const qs = [...new Set(ms.map(fatorQ))];
   const qTxt = qs.length === 1 ? `q = ${qs[0]}${qs[0] === 3 ? ' (NHO-01)' : ' (NR-15, Anexo 1)'}` : 'q indicado em cada linha';
-  const fonte = `Elaborado pelo autor. ${e0 ? `Dosímetro ${e0.data.modelo}, série ${e0.data.serie}; ` : ''}critério 85 dB(A), limiar 80 dB(A), ${qTxt}, circuito A, resposta lenta.`;
+  const fonte = `Elaborado pelo signatário. ${e0 ? `Dosímetro ${e0.data.modelo}, série ${e0.data.serie}; ` : ''}critério 85 dB(A), limiar 80 dB(A), ${qTxt}, circuito A, resposta lenta.`;
   const rotNivel = qs.length === 1 ? (qs[0] === 3 ? 'Leq (q = 3)' : 'Lavg (q = 5)') : 'Lavg / Leq';
   if (ctx.prev) {
     return d.quadro('Resultados – Ruído', [['Posto / trabalhador', 'Amostragem', 'Dose', rotNivel, 'Jornada', qs.length === 1 ? `NEN (q = ${qs[0]})` : 'NEN'],
@@ -415,7 +430,7 @@ export function quadroMedicoesRuido(d, ms, eq, nomePosto, ctx = {}) {
       })], { larguras: [0.28, 0.18, 0.1, 0.15, 0.12, 0.17], alinhar: 'left', tam: 9, fonte });
   }
   // trabalhista: NR-15, Anexo 1 – dose e nível médio; NEN não se aplica
-  return d.quadro('Resultados – Ruído (NR-15, Anexo 1)', [['Posto / trabalhador', 'Amostragem', 'Jornada', 'Dose (jornada)', rotNivel, 'Situação'],
+  return d.quadro('Resultados – Ruído (NR-15, Anexo 1)', [['Posto / trabalhador', 'Amostragem', 'Jornada', 'Dose (jornada)', `${rotNivel}\n(tempo amostrado)`, 'Situação'],
     ...ms.map((m) => {
       const x = m.data;
       // dose projetada para a jornada; dosímetro com q = 3 não serve para a NR-15
@@ -433,7 +448,7 @@ export function quadroMedicoesGenerico(d, titulo, ms, nomePosto, ctx = {}) {
   if (/corpo inteiro/i.test(ms[0].data.agente || '')) {
     return d.quadro(titulo, [['Posto / veículo', 'Data e horário', 'aren (m/s²)', 'VDVR (m/s^1,75)'],
       ...ms.map((m) => { const x = m.data; return [nomePosto(x.postoId), quando(x), x.aren || '', x.vdv || '']; })],
-    { larguras: [0.4, 0.24, 0.18, 0.18], fonte: 'Elaborado pelo autor. Valores de aceleração resultante de exposição normalizada (aren) e de dose de vibração resultante (VDVR) para a exposição diária.' });
+    { larguras: [0.4, 0.24, 0.18, 0.18], fonte: 'Elaborado pelo signatário. Valores de aceleração resultante de exposição normalizada (aren) e de dose de vibração resultante (VDVR) para a exposição diária.' });
   }
   if (/mãos e braços/i.test(ms[0].data.agente || '')) {
     return d.quadro(titulo, [['Posto / ferramenta', 'Data e horário', 'aren (m/s²)', 'T diária', 'Observações'],
@@ -457,7 +472,7 @@ export function quadroCriteriosCalor(d) {
     ['Até 05/03/1997', 'Cód. 1.1.1 do Decreto 53.831/1964: operações em locais com temperatura excessivamente alta, capaz de ser nociva à saúde e proveniente de fontes artificiais; jornada normal em locais com TE acima de 28 °C, sem exigência de IBUTG. Cód. 1.1.1 do Anexo I do Decreto 83.080/1979: alimentação de caldeiras a vapor a carvão ou a lenha (art. 293, I, da IN 128/2022)'],
     ['06/03/1997 a 10/12/2019', 'Cód. 2.0.4 dos Decretos 2.172/1997 e 3.048/1999: exposição ao calor acima dos limites de tolerância da NR-15, Anexo 3, na redação original (IBUTG e quadros de regime e taxa metabólica). A partir de 01/01/2004, avaliação conforme a NHO-06, facultativa desde 19/11/2003 (art. 293, II e III, da IN 128/2022)'],
     ['A partir de 11/12/2019', 'Cód. 2.0.4 do Decreto 3.048/1999, com os limites da NR-15, Anexo 3, na redação da Portaria SEPRT nº 1.359/2019 (DOU de 11/12/2019), avaliados conforme a NHO-06 (2ª ed., 2017)'],
-  ], { larguras: [0.27, 0.73], fonte: 'Elaborado pelo autor com base em Brasil (2022, art. 293). O Decreto 3.048/1999 prevalece sobre a redação mais restritiva da IN, que limita o calor a ambientes fechados ou com fonte artificial (hierarquia normativa).' });
+  ], { larguras: [0.27, 0.73], fonte: 'Elaborado pelo signatário com base em Brasil (2022, art. 293). O Decreto 3.048/1999 prevalece sobre a redação mais restritiva da IN, que limita o calor a ambientes fechados ou com fonte artificial (hierarquia normativa).' });
 }
 
 export function quadroCriteriosVibracao(d) {
@@ -465,7 +480,7 @@ export function quadroCriteriosVibracao(d) {
     ['Até 05/03/1997', 'Cód. 1.1.5 do Decreto 53.831/1964 (trepidações e vibrações industriais: operadores de perfuratrizes e marteletes pneumáticos, e outros; jornada normal com máquinas acionadas a ar comprimido e velocidade acima de 120 golpes por minuto) e cód. 1.1.4 do Anexo I do Decreto 83.080/1979 (trabalhos com perfuratrizes e marteletes pneumáticos) – art. 296, I, da IN 128/2022'],
     ['06/03/1997 a 13/08/2014', 'Cód. 2.0.2 dos Decretos 2.172/1997 e 3.048/1999 (perfuratrizes e marteletes pneumáticos), com os limites das normas ISO 2631 e ISO/DIS 5349 (art. 296, II, da IN 128/2022). Fora dessas atividades, apresentam-se as duas leituras, inclusive pela ISO (VCI: fronteira superior da zona de cautela da ISO 2631-1; VMB: 5 m/s², Diretiva 2002/44/CE)'],
     ['A partir de 14/08/2014', 'Cód. 2.0.2 do Decreto 3.048/1999, com os limites da NR-15, Anexo 8 (Portaria MTE nº 1.297, de 13/08/2014, vigente desde a publicação no DOU de 14/08/2014; a IN 128/2022 indica 13/08/2014): VCI aren 1,1 m/s² ou VDVR 21,0 m/s^1,75; VMB aren 5 m/s², avaliados conforme as NHO-09 e NHO-10 (art. 296, III, da IN 128/2022; facultativas desde 10/09/2012)'],
-  ], { larguras: [0.27, 0.73], fonte: 'Elaborado pelo autor com base em Brasil (2022, art. 296).' });
+  ], { larguras: [0.27, 0.73], fonte: 'Elaborado pelo signatário com base em Brasil (2022, art. 296).' });
 }
 
 // documentos a requerer conforme a finalidade
@@ -477,7 +492,7 @@ export function documentosARequerer(ctx = {}) {
       'avaliações quantitativas dos agentes ambientais, com metodologia, equipamentos e certificados de calibração',
       'fichas de entrega de EPI com os números de CA e comprovantes de troca (para os períodos a partir de 03/12/1998)',
       'Fichas com Dados de Segurança (FDS/FISPQ) dos produtos químicos utilizados',
-      'para motoristas: registros de jornada e de viagem (tacógrafo, rastreamento, diários de bordo, controles de frete), para a avaliação da penosidade',
+      ...(ctx.motorista ? ['registros de jornada e de viagem (tacógrafo, rastreamento, diários de bordo, controles de frete), para a avaliação da penosidade'] : []),
     ];
   }
   return [
@@ -502,7 +517,10 @@ export function nomePostoFn(postos) {
 
 export function profissiografia(d, postos, dados, { numero, base } = {}) {
   if (!postos.length) return d.redigir('descrição do ambiente e das atividades observadas (cadastrar os postos na aba Campo).');
-  if (numero) d.h2(numero, 'Vistoria pericial – postos e veículos avaliados');
+  // "veículo" só quando algum posto é veículo ou máquina conduzida
+  const comVeiculo = postos.some((ps) => /caminh|ônibus|onibus|veículo|veiculo|trator|carreta|colhedora|empilhadeira|motociclet/i.test(`${ps.data.nome || ''} ${ps.data.descricao || ''}`));
+  const rotPosto = comVeiculo ? 'Posto / veículo avaliado' : 'Posto avaliado';
+  if (numero) d.h2(numero, comVeiculo ? 'Vistoria pericial – postos e veículos avaliados' : 'Vistoria – postos avaliados');
   postos.forEach((ps, i) => {
     const temMed = dados && dados.medicoes.some((m) => m.data.postoId === ps.id);
     const limpa = (t) => (temMed ? String(t || '').replace(/\s*\[\[[^\]]*medi[çc][õo]?[^\]]*\]\]/gi, '') : t);
@@ -512,8 +530,8 @@ export function profissiografia(d, postos, dados, { numero, base } = {}) {
     const quando = meds.map((m) => [m.data.dataMedicao && dataBR(m.data.dataMedicao), m.data.horaInicio && `${m.data.horaInicio}${m.data.horaFim ? `–${m.data.horaFim}` : ''}`].filter(Boolean).join(', ')).filter(Boolean);
     const pref = numero || base;
     d.h3(pref ? `${pref}.${i + 1}` : `${i + 1}.`, nomeCurto(x.nome));
-    const linhas = [['Posto / veículo avaliado', x.nome], ['Descrição', x.descricao],
-      ['Vínculo(s) representado(s)', vincs.map((r) => `${empresaCurta(r.data.empresa)} (${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'})`).join('\n')],
+    const linhas = [[rotPosto, x.nome], ['Descrição', x.descricao],
+      [vincs.length === 1 ? 'Vínculo representado' : 'Vínculos representados', vincs.map((r) => `${empresaCurta(r.data.empresa)} (${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'})`).join('\n')],
       ['Medições (data e horário)', [...new Set(quando)].join('\n')],
       ['Informações do trabalhador', x.infoTrabalhador], ['Informações da empresa / acompanhante', x.infoEmpresa],
       ['Agentes identificados', x.agentes], ['Fontes geradoras e localização', x.fontes], ['Via e periodicidade da exposição', x.viaPeriodicidade],
@@ -741,7 +759,7 @@ export function memoriasParadigmas(d, dados, { numero = '' } = {}) {
     cab('Vibração de corpo inteiro');
     d.quadro('Memória de cálculo da vibração de corpo inteiro', [['Subperíodo', 'Paradigma', 'arep (m/s²)', 'T', 'aren(T) (m/s²)', 'VDVR(T)', 'Critério da época', 'Resultado'], ...linhasV],
       { larguras: [0.2, 0.15, 0.09, 0.07, 0.1, 0.09, 0.15, 0.15], tam: 8.5, alinhar: 'left',
-        fonte: `Elaborado pelo autor. ISO 2631-1: fronteira superior da zona de cautela (aren ${String(LIM_ISO_AREN).replace('.', ',')} m/s² para 8 h, conforme a Nota Técnica ASPEJUDI nº 001/2013, ou VDV ${LIM_ISO_VDV} m/s^1,75); NR-15, Anexo 8: limite de exposição aren 1,1 m/s² ou VDVR 21,0 m/s^1,75.` });
+        fonte: `Elaborado pelo signatário. ISO 2631-1: fronteira superior da zona de cautela (aren ${String(LIM_ISO_AREN).replace('.', ',')} m/s² para 8 h, conforme a Nota Técnica ASPEJUDI nº 001/2013, ou VDV ${LIM_ISO_VDV} m/s^1,75); NR-15, Anexo 8: limite de exposição aren 1,1 m/s² ou VDVR 21,0 m/s^1,75.` });
   }
   return sub > 0;
 }
@@ -755,7 +773,7 @@ export function quadroFormaEnquadramento(d) {
     ['14/10/1996 a 02/12/1998', 'Agente nocivo', 'Formulário com base em LTCAT ou PPP', 'Exigida', 'EPC informado; EPI não considerado'],
     ['03/12/1998 a 31/12/2003', 'Agente nocivo', 'Formulário com base em LTCAT ou PPP', 'Exigida', 'EPC e EPI considerados (art. 291)'],
     ['A partir de 01/01/2004', 'Agente nocivo', 'PPP com base em LTCAT', 'Exigida', 'EPC e EPI considerados; NHO exigidas nas avaliações realizadas a partir de 01/01/2004 (art. 289, parágrafo único)']],
-  { larguras: [0.2, 0.18, 0.24, 0.14, 0.24], tam: 9, fonte: 'Elaborado pelo autor com base em Brasil (2022, arts. 274, 285, 286, 289 e 291).' });
+  { larguras: [0.2, 0.18, 0.24, 0.14, 0.24], tam: 9, fonte: 'Elaborado pelo signatário com base em Brasil (2022, arts. 274, 285, 286, 289 e 291).' });
 }
 
 // Requisitos cumulativos do EPI (art. 291 da IN 128/2022), para preencher por período
@@ -763,7 +781,7 @@ export function quadroRequisitosEpi(d, dados) {
   if (dados && !dados.epis.length) {
     d.quadro('Requisitos do EPI – art. 291 da IN 128/2022', [['Requisito', 'Situação', 'Evidência'],
       ...['I – hierarquia: medidas coletivas e administrativas antes do EPI', 'II – funcionamento e uso ininterrupto, conforme o fabricante', 'III – Certificado de Aprovação válido', 'IV – periodicidade de troca comprovada por recibo', 'V – higienização'].map((t) => [t, 'Não comprovado', 'Sem registros nos autos'])],
-    { larguras: [0.5, 0.18, 0.32], tam: 9, fonte: 'Elaborado pelo autor com base em Brasil (2022, art. 291). Os requisitos são cumulativos.' });
+    { larguras: [0.5, 0.18, 0.32], tam: 9, fonte: 'Elaborado pelo signatário com base em Brasil (2022, art. 291). Os requisitos são cumulativos.' });
     return d.texto('Não comprovados os requisitos cumulativos do art. 291, não se considera neutralizada a exposição pelo uso de EPI.');
   }
   return d.quadro('Requisitos do EPI – art. 291 da IN 128/2022', [['Requisito', 'Atendido?', 'Evidência'],
@@ -772,7 +790,7 @@ export function quadroRequisitosEpi(d, dados) {
     ['III – Certificado de Aprovação válido', '[[S/N]]', '[[nº do CA e validade]]'],
     ['IV – periodicidade de troca comprovada por recibo', '[[S/N]]', '[[fichas de entrega]]'],
     ['V – higienização', '[[S/N]]', '[[procedimento / registros]]']],
-  { larguras: [0.5, 0.14, 0.36], tam: 9, alinhar: 'left', fonte: 'Elaborado pelo autor com base em Brasil (2022, art. 291). Os requisitos são cumulativos e só se aplicam a partir de 03/12/1998.' });
+  { larguras: [0.5, 0.14, 0.36], tam: 9, alinhar: 'left', fonte: 'Elaborado pelo signatário com base em Brasil (2022, art. 291). Os requisitos são cumulativos e só se aplicam a partir de 03/12/1998.' });
 }
 
 
@@ -868,7 +886,7 @@ export function descricaoVinculo(d, r, dados, { refVistoria = '' } = {}) {
   const situacao = parens.length ? ` (${parens.join('; ')})` : '';
   const cargo = v(x.cargo) ? `, no cargo de ${minuscula(v(x.cargo))}` : '';
   const setor = v(x.setor) ? `, setor ${v(x.setor)}` : '';
-  d.texto(`${per}, o autor trabalhou na empresa ${empresaCurta(x.empresa) || '[[empresa]]'}${v(x.cnpj) ? `, CNPJ ${x.cnpj}` : ''}${situacao}${cargo}${setor}.`);
+  d.texto(`${per}, ${dados.c.tipoAtuacao === 'Extrajudicial' ? 'o segurado' : 'o autor'} trabalhou na empresa ${empresaCurta(x.empresa) || '[[empresa]]'}${v(x.cnpj) ? `, CNPJ ${x.cnpj}` : ''}${situacao}${cargo}${setor}.`);
   let ativ = v(x.atividades);
   if (ativ) {
     let fonte = '';

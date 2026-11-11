@@ -100,6 +100,7 @@ export function Campo({ rec }) {
             {aberto === p.id && (
               <div class="item-corpo">
                 <Campos rec={p} campos={CAMPOS_POSTO} />
+                <VinculosDoPosto rec={p} caseId={rec.id} />
                 <Medicoes caseId={rec.id} postoId={p.id} ctx={contextoLegal(rec.data)} caso={rec} />
                 <div class="campo">
                   <span class="rotulo">Fotos deste posto</span>
@@ -129,6 +130,25 @@ export function Campo({ rec }) {
       <section class="bloco largo">
         <TF rec={rec} k="vistoriaNotas" label="Anotações gerais da diligência" area rows={4} />
       </section>
+    </div>
+  );
+}
+
+// Vínculos (períodos) que o posto representa: liga as medições à conclusão por período
+function VinculosDoPosto({ rec, caseId }) {
+  const periodos = useLive(async () => (await db.records.where('[caseId+kind]').equals([caseId, 'periodo']).toArray()).filter((r) => !r.deleted)
+    .sort((a, b) => String(a.data.inicio || '').localeCompare(String(b.data.inicio || ''))), [caseId], []);
+  if (!periodos.length) return null;
+  const atual = Array.isArray(rec.data.vinculos) ? rec.data.vinculos : [];
+  const alterna = (id) => salvar(rec.id, 'vinculos', atual.includes(id) ? atual.filter((x) => x !== id) : [...atual, id]);
+  const rot = (r) => `${r.data.empresa || 'Vínculo'} (${(r.data.inicio || '?').split('-').reverse().join('/')} a ${r.data.fim ? r.data.fim.split('-').reverse().join('/') : 'atual'})`;
+  return (
+    <div class="campo">
+      <span class="rotulo">Vínculos que este posto representa (liga as medições à conclusão por período)</span>
+      <div class="chips">
+        {periodos.map((r) => <button type="button" class={`chip ${atual.includes(r.id) ? 'on' : ''}`} onClick={() => alterna(r.id)}>{rot(r)}</button>)}
+      </div>
+      {!atual.length && <small class="dica">Sem marcação, o app liga pelo nome da empresa no nome do posto ou, havendo um só posto e um só vínculo, liga os dois.</small>}
     </div>
   );
 }

@@ -169,7 +169,7 @@ export function secaoPenosidade(d, dados, { numero = '', nivel = 'h2', tipo = 'l
   d.quadro('Critérios da penosidade por período', [['Período', 'Critério'],
     ['Até 28/04/1995', 'Categoria profissional: motoristas e cobradores de ônibus e motoristas e ajudantes de caminhão (cód. 2.4.4 do Decreto 53.831/1964); motorista de ônibus e de caminhões de cargas, ocupado em caráter permanente (cód. 2.4.2 do Anexo II do Decreto 83.080/1979). Basta a prova da função (CTPS, registro de empregado).'],
     ['A partir de 29/04/1995', `Penosidade comprovada por perícia técnica individualizada, com análise do veículo, dos trajetos, das cargas e das jornadas${jur ? '; STJ, Tema 1307 (REsp 2.164.724); TRF4, IAC nº 5 e nº 12' : ''}; não basta o enquadramento presumido pela categoria.`]],
-  { larguras: [0.22, 0.78], alinhar: 'left', fonte: 'Elaborado pelo autor.' });
+  { larguras: [0.22, 0.78], alinhar: 'left', fonte: 'Elaborado pelo signatário.' });
 
   if (!vs.length) {
     d.redigir('identificar os vínculos como motorista e preencher os fatores de penosidade do vínculo (etapa 2).');
@@ -180,7 +180,7 @@ export function secaoPenosidade(d, dados, { numero = '', nivel = 'h2', tipo = 'l
     d.quadro(`Matriz de avaliação de penosidade – ${nome(r, dados)} (${periodo(r)})`, [['Critério', 'Condição apurada', 'Fonte'],
       ...m.criterios.map((c) => [c.titulo, c.linhas.length ? c.linhas.join('\n') : `[[${c.oque}]]`, c.linhas.length ? c.fonte : 'Entrevista do autor']),
       ['Conclusão técnica do vínculo', m.conclusao || '[[poucos fatores informados – complete os campos de penosidade do vínculo na etapa 2]]', 'Perícia individualizada']],
-    { larguras: [0.22, 0.56, 0.22], tam: 9, alinhar: 'left', fonte: 'Elaborado pelo autor com base na entrevista do autor, na vistoria do veículo e nas medições da diligência.' });
+    { larguras: [0.22, 0.56, 0.22], tam: 9, alinhar: 'left', fonte: 'Elaborado pelo signatário com base na entrevista do autor, na vistoria do veículo e nas medições da diligência.' });
   }
   d.texto('**Conclusão metodológica da penosidade.** Os critérios acima não são avaliados isoladamente. A convergência cumulativa da condução de veículo com desconforto e agentes físicos, dos trajetos que exigem alerta constante, da responsabilidade e do manuseio da carga e de jornadas extenuantes, que impedem a recuperação física e mental, caracteriza o trabalho excepcionalmente penoso; a ausência de convergência afasta a caracterização.');
   d.quadro('Síntese da penosidade por vínculo', [['Vínculo', 'Período', 'Até 28/04/1995', 'A partir de 29/04/1995'],
@@ -191,7 +191,7 @@ export function secaoPenosidade(d, dados, { numero = '', nivel = 'h2', tipo = 'l
       const pos = fim >= '1995-04-29' ? (m.penoso === true ? 'Penosidade caracterizada' : m.penoso === false ? 'Penosidade não caracterizada' : '[[complete os fatores do vínculo]]') : '—';
       return [nome(r, dados), periodo(r), ate95, pos];
     })],
-  { larguras: [0.26, 0.22, 0.26, 0.26], tam: 9, alinhar: 'left', fonte: 'Elaborado pelo autor.' });
+  { larguras: [0.26, 0.22, 0.26, 0.26], tam: 9, alinhar: 'left', fonte: 'Elaborado pelo signatário.' });
   return true;
 }
 

@@ -87,8 +87,8 @@ export function avaliarPeriodos(dados) {
         const vdv = isFinite(val.vdv) ? `; VDVR ${fmt(val.vdv, 2)}` : '';
         if (b <= '1997-03-05') itens.push({ t: `VCI: aren ${fmt(val.aren, 2)} m/s²${vdv} – cód. 1.1.5 do Dec. 53.831/64 (perfuratrizes e marteletes pneumáticos, e outros; máquinas a ar comprimido acima de 120 golpes/min) e cód. 1.1.4 do Dec. 83.080/79 (perfuratrizes e marteletes pneumáticos)`, cod: '1.1.5', sup: false });
         else if (b <= '2014-08-13') {
-          const sup = val.aren > 0.9 || val.vdv > 17;
-          itens.push({ t: `VCI: aren ${fmt(val.aren, 2)} m/s²${vdv} – ${sup ? 'acima da' : 'até a'} fronteira superior da zona de cautela da ISO 2631-1 (0,9 m/s² ou VDV 17) – referência técnica; o cód. 2.0.2 descreve trabalhos com perfuratrizes e marteletes pneumáticos`, cod: '2.0.2', sup });
+          const sup = val.aren > 0.86 || val.vdv > 17;
+          itens.push({ t: `VCI: aren ${fmt(val.aren, 2)} m/s²${vdv} – ${sup ? 'acima da' : 'até a'} fronteira superior da zona de cautela da ISO 2631-1 (0,86 m/s² – Nota Técnica ASPEJUDI 001/2013 – ou VDV 17) – referência técnica; o cód. 2.0.2 descreve trabalhos com perfuratrizes e marteletes pneumáticos`, cod: '2.0.2', sup });
           if (sup) algum = true;
         } else {
           const sup = val.aren > 1.1 || val.vdv > 21;

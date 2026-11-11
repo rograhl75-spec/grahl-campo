@@ -114,6 +114,7 @@ export function referencias(dados, { prev, judicial = true } = {}) {
   }
   if (x.vibracao) {
     r.push('FUNDACENTRO. NHO 09: avaliação da exposição ocupacional a vibrações de corpo inteiro. São Paulo: FUNDACENTRO, 2013.');
+    if (prev) r.push('ASSOCIAÇÃO DOS PERITOS JUDICIAIS, ÁRBITROS, CONCILIADORES E MEDIADORES DE MINAS GERAIS (ASPEJUDI). Nota Técnica nº 001/2013: avaliação de vibração de corpo inteiro (VCI). Belo Horizonte: ASPEJUDI, 5 dez. 2013.');
     r.push('BRASIL. Ministério do Trabalho e Emprego. Portaria MTE nº 1.297, de 13 de agosto de 2014. Diário Oficial da União, Brasília, DF, 14 ago. 2014.');
     r.push('INTERNATIONAL ORGANIZATION FOR STANDARDIZATION. ISO 2631-1: mechanical vibration and shock – evaluation of human exposure to whole-body vibration – part 1: general requirements. Geneva: ISO, 1997.');
   }

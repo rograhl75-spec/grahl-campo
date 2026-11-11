@@ -679,7 +679,7 @@ export function quadrosParadigmasMetodologia(d, dados) {
 }
 
 // Janelas de vibração (previdenciário)
-const LIM_ISO_AREN = 0.9; // fronteira superior da zona de cautela, ISO 2631-1 (8 h)
+const LIM_ISO_AREN = 0.86; // fronteira superior da zona de cautela, ISO 2631-1 (8 h, Figura B.1), conforme a Nota Técnica ASPEJUDI nº 001/2013
 const LIM_ISO_VDV = 17;
 const LIM_NR15_AREN = 1.1;
 const LIM_NR15_VDV = 21;
@@ -741,7 +741,7 @@ export function memoriasParadigmas(d, dados, { numero = '' } = {}) {
     cab('Vibração de corpo inteiro');
     d.quadro('Memória de cálculo da vibração de corpo inteiro', [['Subperíodo', 'Paradigma', 'arep (m/s²)', 'T', 'aren(T) (m/s²)', 'VDVR(T)', 'Critério da época', 'Resultado'], ...linhasV],
       { larguras: [0.2, 0.15, 0.09, 0.07, 0.1, 0.09, 0.15, 0.15], tam: 8.5, alinhar: 'left',
-        fonte: `Elaborado pelo autor. ISO 2631-1: fronteira superior da zona de cautela (aren ${String(LIM_ISO_AREN).replace('.', ',')} m/s² ou VDV ${LIM_ISO_VDV} m/s^1,75); NR-15, Anexo 8: limite de exposição aren 1,1 m/s² ou VDVR 21,0 m/s^1,75.` });
+        fonte: `Elaborado pelo autor. ISO 2631-1: fronteira superior da zona de cautela (aren ${String(LIM_ISO_AREN).replace('.', ',')} m/s² para 8 h, conforme a Nota Técnica ASPEJUDI nº 001/2013, ou VDV ${LIM_ISO_VDV} m/s^1,75); NR-15, Anexo 8: limite de exposição aren 1,1 m/s² ou VDVR 21,0 m/s^1,75.` });
   }
   return sub > 0;
 }

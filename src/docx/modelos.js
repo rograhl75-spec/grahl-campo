@@ -115,7 +115,7 @@ function avaliacaoTrabalhista(d, dados, base) {
     sub('Agentes químicos (NR-15, Anexos 11, 12, 13 e 13-A)');
     d.texto('No Anexo 11, a insalubridade se caracteriza quando a média aritmética das concentrações supera o limite de tolerância do Quadro 1 (itens 1 e 8) ou, para os agentes com valor teto, quando qualquer amostra o supera (item 9). Os limites valem para absorção pela via respiratória e para jornadas de até 48 horas semanais (itens 2 e 10). Os agentes dos Anexos 13 e 13-A são avaliados qualitativamente, pela atividade ou operação descrita no anexo.');
     quadroQuimicosAnexo11(d, g['Agente químico'], dados, nome);
-    if (g['Agente químico'].some((m) => !agenteDaMedicao(m, dados))) d.redigir('enquadramento dos agentes sem limite no banco (Anexo 11 ou 12, ou avaliação qualitativa pelo Anexo 13 / 13-A; álcali cáustico: referência pH 11,5).');
+    if (g['Agente químico'].some((m) => !agenteDaMedicao(m, dados))) d.redigir('enquadramento dos agentes sem limite no banco (Anexo 11 ou 12, ou avaliação qualitativa pelo Anexo 13 / 13-A; álcali cáustico: referência pH ≥ 11,5 (NBR 14725:2023, item 5.3.2.2.2.5: corrosivo à pele, Categoria 1, salvo se a reserva alcalina indicar o contrário)).');
     d.redigir('neutralização pelo EPI (respirador e filtro adequados ao agente; luvas quando há absorção pela pele – item 5 do Anexo 11).');
   }
   if (g['Outro']) {
@@ -166,7 +166,7 @@ function avaliacaoPrevidenciaria(d, dados, base, inicio = 0) {
       d.texto('Os valores de aren e VDVR normalizados para a jornada efetiva e a leitura pelo critério de cada período estão na memória de cálculo da vibração de corpo inteiro, adiante.');
       quadroConfrontoVci(d, dados);
     } else {
-      d.texto('Os valores de aren e VDVR do quadro acima referem-se à exposição diária do trabalhador, normalizados para a jornada conforme a NHO-09 da FUNDACENTRO. Cada vínculo é lido pelo critério vigente no período: até 05/03/1997, cód. 1.1.5 do Decreto 53.831/1964 (trepidações e vibrações industriais: operadores de perfuratrizes e marteletes pneumáticos, e outros; máquinas acionadas a ar comprimido com velocidade acima de 120 golpes por minuto) e cód. 1.1.4 do Anexo I do Decreto 83.080/1979 (perfuratrizes e marteletes pneumáticos); de 06/03/1997 a 13/08/2014, fronteira superior da zona de cautela da ISO 2631-1 (aren de 0,9 m/s² ou VDV de 17 m/s^1,75); a partir de 14/08/2014, NR-15, Anexo 8 (aren de 1,1 m/s² ou VDVR de 21,0 m/s^1,75).');
+      d.texto('Os valores de aren e VDVR do quadro acima referem-se à exposição diária do trabalhador, normalizados para a jornada conforme a NHO-09 da FUNDACENTRO. Cada vínculo é lido pelo critério vigente no período: até 05/03/1997, cód. 1.1.5 do Decreto 53.831/1964 (trepidações e vibrações industriais: operadores de perfuratrizes e marteletes pneumáticos, e outros; máquinas acionadas a ar comprimido com velocidade acima de 120 golpes por minuto) e cód. 1.1.4 do Anexo I do Decreto 83.080/1979 (perfuratrizes e marteletes pneumáticos); de 06/03/1997 a 13/08/2014, fronteira superior da zona de cautela da ISO 2631-1 para 8 horas (aren de 0,86 m/s², conforme a Figura B.1 e a Nota Técnica ASPEJUDI nº 001/2013, ou VDV de 17 m/s^1,75) – referência técnica, pois a ISO 2631-1 não estabelece limite de exposição; a partir de 14/08/2014, NR-15, Anexo 8 (aren de 1,1 m/s² ou VDVR de 21,0 m/s^1,75).');
       quadroConfrontoVci(d, dados);
     }
   }

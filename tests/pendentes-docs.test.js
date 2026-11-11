@@ -89,7 +89,8 @@ describe('documentos (itens pendentes)', () => {
       vistoriaPresentes: 'Fulano – supervisor – empresa', propostaValor: '3.500,00', propostaPrazo: '20' });
     let t = await texto(await termoPresenca('t5'));
     expect(t).toContain('TERMO DE PRESENÇA');
-    expect(t).toContain('Fulano – supervisor – empresa');
+    expect(t).toContain('Fulano');
+    expect(t).toContain('supervisor – empresa');
     t = await texto(await parecerTrabalhista('t5'));
     expect(t).toContain('Viabilidade por pedido');
     expect(t).toContain('não substitui a perícia judicial');
@@ -109,5 +110,19 @@ describe('similaridade na Justiça Federal (Res. CJF 305/2014, art. 30-A)', () =
     await caso('t7', { papel: 'Perito do Juízo', justica: 'Justiça Federal', materia: 'Previdenciária', similaridade: 'Não' });
     t = await texto(await laudoPrevidenciario('t7'));
     expect(t).not.toContain('art. 30-A');
+  });
+});
+
+describe('ruído com q = 3 antes de 19/11/2003', () => {
+  it('fica pendente na conclusão (não vira "não caracteriza") e o posto único liga ao vínculo único', async () => {
+    await caso('t8', { tipoAtuacao: 'Extrajudicial', contratadoPor: 'Trabalhador / segurado', objeto: ['LTCAT'], autorNome: 'Segurado Teste', reuNome: 'Serralheria Teste' });
+    await filho('t8v', 'periodo', 't8', { empresa: 'Serralheria Teste', inicio: '1998-01-01', fim: '2012-12-31', cargo: 'Soldador' });
+    await filho('t8p', 'posto', 't8', { nome: 'Solda MIG' });
+    await filho('t8m', 'medicao', 't8', { agente: 'Ruído', postoId: 't8p', dose: '110', tempoAmostragem: '300', jornada: '480', lavg: '88', q: '3' });
+    const t = await texto(await ltcatPpp('t8'));
+    expect(t).not.toContain('vincular posto');
+    expect(t).not.toContain('não caracteriza no período de 01/01/1998');
+    expect(t).toContain('pendente');
+    expect(t).toContain('19/11/2003 a 31/12/2012');
   });
 });

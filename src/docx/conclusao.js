@@ -75,7 +75,7 @@ export function avaliarPeriodos(dados) {
         const x = crit === 'Lavg' ? val.lavg : val.nen;
         // antes de 19/11/2003 a metodologia é a da NR-15 (q = 5): Leq com q = 3 não serve de Lavg
         if (crit === 'Lavg' && val.q === 3) {
-          itens.push({ t: `Ruído: medição com q = 3 (NHO-01) – [[período anterior a 19/11/2003 exige o Lavg com q = 5 (NR-15); refaça a leitura do dosímetro com q = 5]]`, cod, sup: false, ruido: true });
+          itens.push({ t: `Ruído: medição com q = 3 (NHO-01) – [[período anterior a 19/11/2003 exige o Lavg com q = 5 (NR-15); refaça a leitura do dosímetro com q = 5]]`, cod, sup: false, ruido: true, pendente: true });
         } else if (isFinite(x)) {
           const sup = superaLimite(x, lim);
           itens.push({ t: `Ruído: ${crit}${crit === 'NEN' && val.q === 3 ? ' (q = 3, NHO-01)' : ''} ${fmt(x, 1)} dB(A) ${sup ? '>' : '≤'} ${lim} dB(A) – ${sup ? 'supera' : 'não supera'}`, cod, sup, ruido: true });
@@ -85,7 +85,7 @@ export function avaliarPeriodos(dados) {
       if (isFinite(val.aren)) {
         dadosOk = true;
         const vdv = isFinite(val.vdv) ? `; VDVR ${fmt(val.vdv, 2)}` : '';
-        if (b <= '1997-03-05') itens.push({ t: `VCI: aren ${fmt(val.aren, 2)} m/s²${vdv} – cód. 1.1.5 do Dec. 53.831/64 (perfuratrizes e marteletes pneumáticos, e outros; máquinas a ar comprimido acima de 120 golpes/min) e cód. 1.1.4 do Dec. 83.080/79 (perfuratrizes e marteletes pneumáticos)`, cod: '1.1.5', sup: false });
+        if (b <= '1997-03-05') itens.push({ t: `VCI: aren ${fmt(val.aren, 2)} m/s²${vdv} – cód. 1.1.5 (Dec. 53.831/64) e 1.1.4 (Dec. 83.080/79): perfuratrizes e marteletes pneumáticos`, cod: '1.1.5', sup: false });
         else if (b <= '2014-08-13') {
           const sup = val.aren > 0.86 || val.vdv > 17;
           itens.push({ t: `VCI: aren ${fmt(val.aren, 2)} m/s²${vdv} – ${sup ? 'acima da' : 'até a'} fronteira superior da zona de cautela da ISO 2631-1 (0,86 m/s² – Nota Técnica ASPEJUDI 001/2013 – ou VDV 17) – referência técnica; o cód. 2.0.2 descreve trabalhos com perfuratrizes e marteletes pneumáticos`, cod: '2.0.2', sup });
@@ -96,7 +96,9 @@ export function avaliarPeriodos(dados) {
           if (sup) algum = true;
         }
       }
-      return { ini: a, fim: b, itens, caracteriza: dadosOk ? (algum ? 'SIM' : 'NÃO') : '[[S/N]]', codigos: [...new Set(itens.filter((i) => i.sup).map((i) => i.cod))].join('; ') || '—' };
+      // medição inválida para o período (q = 3 antes de 19/11/2003) sem outro agente que caracterize: fica pendente, não "NÃO"
+      const pend = !algum && itens.some((i) => i.pendente);
+      return { ini: a, fim: b, itens, caracteriza: pend ? '[[pendente]]' : dadosOk ? (algum ? 'SIM' : 'NÃO') : '[[S/N]]', codigos: [...new Set(itens.filter((i) => i.sup).map((i) => i.cod))].join('; ') || '—' };
     });
     return { r, val, segs };
   });
@@ -109,8 +111,8 @@ export function conclusaoPrevidenciaria(d, dados, { tituloQuadro = 'Conclusão p
   d.quadro(tituloQuadro, [['Vínculo / período', 'Avaliação pericial', 'Código', 'Caracteriza'],
     ...av.flatMap(({ r, segs }) => segs.map((s) => [`${r.data.empresa || ''}\n${dataBR(s.ini)} a ${dataBR(s.fim)}`,
       s.itens.length ? s.itens.map((i) => i.t).join('\n') : '[[sem avaliação quantitativa para o período]]', s.codigos, s.caracteriza]))],
-  { larguras: [0.27, 0.47, 0.13, 0.13], tam: 9,
-    fonte: 'Elaborado pelo autor. Ruído com q = 5; NEN e aren normalizados para o tempo diário de condução de cada vínculo, quando informado.' });
+  { larguras: [0.23, 0.45, 0.2, 0.12], tam: 9,
+    fonte: `Elaborado pelo signatário. Ruído com o fator de duplicação de cada medição (q = 5, salvo indicação de q = 3); NEN e aren normalizados para o tempo diário de exposição${/motorista|caminh|ônibus|carreteir/i.test(`${dados.c.funcoes || ''} ${dados.periodos.map((r) => r.data.cargo || '').join(' ')}`) ? ' (condução)' : ''} de cada vínculo, quando informado.` });
 
   const semEpi = !dados.epis.length;
   for (const { r, val, segs } of av) {

@@ -144,7 +144,7 @@ export class Doc {
     return this.add(p([a3, run(t3, { b: true, color: AZUL }), z3], { style: 'Ttulo3', align: 'left', before: 240, after: 120, keepNext: true, outline: 2 }));
   }
   // Quadro numerado: título acima, tabela, fonte abaixo
-  quadro(titulo, linhas, { larguras, header = true, fonte = 'Elaborado pelo autor.', tam = 10, alinhar = 'both' } = {}) {
+  quadro(titulo, linhas, { larguras, header = true, fonte = 'Elaborado pelo signatário.', tam = 10, alinhar = 'both' } = {}) {
     if (!linhas || linhas.length <= (header ? 1 : 0)) return this;
     this.nQuad += 1;
     const n = this.nQuad;
@@ -153,7 +153,7 @@ export class Doc {
       run('Quadro ', { b: true, size: 10 }) + campoSeq('Quadro', n, { b: true, size: 10 }) + run(` – ${titulo}`, { b: true, size: 10 }) + `${zq}</w:p>`);
     this.add(tabela(linhas, { larguras, header, tam, alinhar }));
     // ABNT/IBGE: "Fonte" alinhada à esquerda, logo abaixo do quadro
-    this.add(p([run(fonte ? 'Fonte: ' : '', { size: 9, b: true, color: CINZA }), run(fonte || '', { size: 9, color: CINZA })], { align: 'left', before: 60, after: 280, line: 240 }));
+    this.add(p([run(fonte ? 'Fonte: ' : '', { size: 9, b: true, color: CINZA }), rich(fonte || '', { size: 9, color: CINZA })], { align: 'left', before: 60, after: 280, line: 240 }));
     return this;
   }
   // tabela chave–valor da capa (rótulo em negrito azul, linhas finas)
@@ -216,7 +216,7 @@ export class Doc {
     this.add(p([run(`${local}, ${data}.`)], { align: 'right', before: 240, after: linha ? 480 : 720, keepNext: true }));
     if (linha) this.add(p([run('_____________________________________')], { align: 'center', after: 0, keepNext: true }));
     this.add(p([run(nome, { b: true })], { align: 'center', after: 0, keepNext: true }));
-    linhas.forEach((l, i) => this.add(p([run(l, { size: 11 })], { align: 'center', after: 0, keepNext: i < linhas.length - 1 })));
+    linhas.forEach((l, i) => this.add(p([rich(l, { size: 11 })], { align: 'center', after: 0, keepNext: i < linhas.length - 1 })));
     return this;
   }
   sumario(titulo = 'SUMÁRIO') {
@@ -274,10 +274,21 @@ function bordas(tipo) {
 }
 const ZEBRA = 'F3F6FA';
 
-function celula(texto, w, { b, color, tam = 10, fill, borda = 'all', align = 'both' } = {}) {
+// Fonte da célula reduzida só o necessário para a palavra mais longa caber na coluna sem ser
+// cortada no meio (ex.: "Enquadramen/to"); mínimo de 7 pt. Largura média do caractere ≈ 0,55 × tamanho (0,6 em negrito).
+function tamQueCabe(texto, w, tam, b) {
+  const util = Math.max(w - 230, 200) / 20; // pt úteis (margens da célula)
+  const maior = Math.max(0, ...String(texto ?? '').replace(/\[\[|\]\]|\*\*/g, '').split(/[\s/]+/).map((x) => x.length));
+  let t = tam;
+  while (t > 7 && maior * t * (b ? 0.6 : 0.55) > util) t -= 0.5;
+  return t;
+}
+
+function celula(texto, w, { b, color, tam = 10, fill, borda = 'all', align = 'both', keepNext = false } = {}) {
   const shade = fill ? `<w:shd w:val="clear" w:color="auto" w:fill="${fill}"/>` : '';
   const linhas = String(texto ?? '').split(/\r?\n/);
-  const paras = linhas.map((l, i) => p([rich(l, { size: tam, b, color })], { align, after: i < linhas.length - 1 ? 60 : 0, line: 276 })).join('');
+  const t = tamQueCabe(texto, w, tam, b);
+  const paras = linhas.map((l, i) => p([rich(l, { size: t, b, color })], { align, after: i < linhas.length - 1 ? 60 : 0, line: 276, keepNext })).join('');
   return `<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/>${bordas(borda)}${shade}<w:vAlign w:val="center"/></w:tcPr>${paras}</w:tc>`;
 }
 
@@ -293,7 +304,9 @@ function alinhamentoColuna(linhas, ci, w, header) {
   return 'left';
 }
 
-export function tabela(linhas, { larguras, header = true, tam = 10, alinhar = 'auto' } = {}) {
+export function tabela(linhas, { larguras, header = true, tam = 10, alinhar = 'auto', juntar } = {}) {
+  // quadros curtos (até 15 linhas) ficam inteiros na mesma página, junto com a "Fonte"
+  if (juntar === undefined) juntar = linhas.length <= 15;
   tam = Math.max(tam, 8);
   const ncol = Math.max(...linhas.map((l) => l.length));
   const ws = larguras ? larguras.map((f) => Math.round(f * LARGURA)) : Array(ncol).fill(Math.round(LARGURA / ncol));
@@ -304,7 +317,7 @@ export function tabela(linhas, { larguras, header = true, tam = 10, alinhar = 'a
     // cabeçalho azul-marinho com texto branco; linhas alternadas em cinza-azulado claro
     const zebra = !isH && (ri - (header ? 1 : 0)) % 2 === 1;
     const cells = l.map((c, ci) => celula(c, ws[ci], {
-      b: isH, color: isH ? 'FFFFFF' : undefined, tam: isH ? Math.min(tam, 9) : tam, fill: isH ? AZUL : zebra ? ZEBRA : undefined, align: isH ? 'center' : al[ci], borda: 'quadro',
+      b: isH, color: isH ? 'FFFFFF' : undefined, tam: isH ? Math.min(tam, 9) : tam, fill: isH ? AZUL : zebra ? ZEBRA : undefined, align: isH ? 'center' : al[ci], borda: 'quadro', keepNext: juntar,
     })).join('');
     return `<w:tr><w:trPr><w:cantSplit/>${isH ? '<w:tblHeader/>' : ''}</w:trPr>${cells}</w:tr>`;
   }).join('');

@@ -10,6 +10,7 @@ import { CAMPOS_ACIDENTE } from '../schema.js';
 import {
   laudoPericial, laudoPrevidenciario, ltcatPpp, parecerPrevidenciario, parecerAssistente, parecerPreventivo, peticaoIndicacaoAT, peticaoAgendamento, peticaoHonorarios, peticaoMajoracao, peticaoAceiteArbitrados, peticaoPagamento, respostaQuesitosSuplementares,
 } from './modelos.js';
+import { quadroQuimicosAnexo11 } from './modelos2.js';
 import { laudoAcidente, peticaoPeritoAvulsa, peticaoAssistente, termoPresenca, parecerTrabalhista, propostaServicos, PETICOES_PERITO, PETICOES_AT, POSICOES_AT } from './modelos2.js';
 
 export { PETICOES_PERITO, PETICOES_AT, POSICOES_AT };
@@ -27,26 +28,33 @@ export async function gerarPreRelatorio(caseId) {
   const { c, perfil } = dados;
   const pt = partes(c);
   const d = new Doc();
+  const extra = ehExtra(c);
+  const acid = ehAcidente(c) && contextoLegal(c).prev !== true;
+  const ltcat = extra && pt.prev;
+  const subt = !extra ? 'Análise processual e planejamento da diligência'
+    : acid ? 'Análise prévia para o laudo de acidente do trabalho'
+      : ltcat ? 'Análise prévia para elaboração de LTCAT e dos dados para o PPP' : 'Análise prévia para o laudo de insalubridade e periculosidade';
   capaTecnica(d, {
-    titulo: 'PRÉ-RELATÓRIO', subtitulo: ehExtra(c) ? 'Análise prévia para elaboração de LTCAT e PPP' : 'Análise processual e planejamento da diligência',
-    linha2: c.papel, perfil,
-    pares: [['Processo', c.numero], ['Juízo', [c.juizo, c.comarca].filter(Boolean).join(' – ')], ['Justiça / matéria', [c.justica, c.materia].filter(Boolean).join(' – ')],
+    titulo: 'PRÉ-RELATÓRIO', subtitulo: subt,
+    linha2: extra ? `Trabalho extrajudicial${c.contratadoPor ? ` – contratado por ${c.contratadoPor.toLowerCase()}` : ''}` : papelAssinatura(c), perfil,
+    pares: [['Processo', c.numero], ['Juízo', [c.juizo, c.comarca].filter(Boolean).join(' – ')], ['Justiça / matéria', extra ? '' : [c.justica, c.materia].filter(Boolean).join(' – ')],
       [pt.autor, c.autorNome], [pt.reu, c.reuNome], ['Objeto', (c.objeto || []).join(', ')],
       ['Diligência', [dataBR(c.dataDiligencia), c.horaDiligencia].filter(Boolean).join(' às ')], ['Prazo', dataBR(c.prazoLaudo || c.prazoManifestacao)]],
   });
   d.sumario();
+  d.h1NovaPagina = false; // documento de trabalho: seções em sequência
 
   d.h1('1', 'Identificação');
   const linhas = [['Processo', c.numero], ['Juízo', [c.juizo, c.comarca].filter(Boolean).join(' – ')], ['Data de ajuizamento', dataBR(c.dataAjuizamento)]];
   if (pt.trab && c.dataAjuizamento) linhas.push(['Período imprescrito', `a partir de ${menosCincoAnos(c.dataAjuizamento)} (ajuizamento – 5 anos)`]);
   linhas.push(['Valor da causa', c.valorCausa], ['Rito', c.rito], [pt.autor, c.autorNome], ['CPF / NIT', c.autorCpf], ['Nascimento', dataBR(c.autorNascimento)],
-    [pt.reu, c.reuNome], ['CNPJ', c.reuCnpj], ['Perito do Juízo', ehAT(c) ? c.peritoJuizo : ''], ['Atuação', c.papel]);
+    [pt.reu, c.reuNome], ['CNPJ', c.reuCnpj], ['Perito do Juízo', ehAT(c) ? c.peritoJuizo : ''], ['Atuação', extra ? `Trabalho extrajudicial${c.contratante || c.contratadoPor ? ` – contratante: ${c.contratante || c.contratadoPor}` : ''}` : papelAssinatura(c)]);
   d.identificacao(linhas);
 
   d.h1('2', 'Contrato, funções e períodos');
   d.texto(c.funcoes || '');
   quadroPeriodos(d, dados.periodos);
-  if ((pt.prev || ehExtra(c)) && dados.periodos.length) {
+  if (pt.prev && dados.periodos.length) {
     d.h2('2.1', 'Divisão dos períodos pelos critérios de ruído');
     quadroCriteriosRuido(d);
     const subs = subperiodosRuido(dados.periodos);
@@ -55,10 +63,10 @@ export async function gerarPreRelatorio(caseId) {
     d.texto('Marcos adicionais a observar: 14/08/2014 (vigência da nova redação do Anexo 8 da NR-15 – vibração, Portaria MTE nº 1.297/2014) e 13/11/2019 (Emenda Constitucional nº 103/2019).');
   }
 
-  d.h1('3', 'Síntese da petição inicial');
+  d.h1('3', extra ? 'Informações do contratante' : 'Síntese da petição inicial');
   d.h2('3.1', 'Atividades descritas'); d.texto(c.atividadesAlegadas || '[[não informado]]');
-  d.h2('3.2', 'Agentes nocivos / riscos alegados'); d.texto(c.agentesAlegados || '[[não informado]]');
-  d.h2('3.3', 'Pedidos técnicos'); d.texto(c.pedidos || '[[não informado]]');
+  d.h2('3.2', acid ? 'Riscos envolvidos' : 'Agentes nocivos / riscos alegados'); d.texto(c.agentesAlegados || '[[não informado]]');
+  d.h2('3.3', extra ? 'Objeto contratado' : 'Pedidos técnicos'); d.texto(c.pedidos || '[[não informado]]');
 
   if (!ehExtra(c)) {
     d.h1('4', 'Síntese da defesa');
@@ -74,7 +82,7 @@ export async function gerarPreRelatorio(caseId) {
   if (!dados.documentos.length) d.texto('[[Nenhum documento cadastrado.]]');
 
   d.h1('6', 'Equipamentos de proteção individual');
-  quadroEpis(d, dados.epis);
+  quadroEpis(d, dados.epis, { extra });
   if (c.analiseEpi) { d.h2('6.1', 'Análise crítica'); d.texto(c.analiseEpi); }
 
   d.h1('7', 'Quesitos');
@@ -90,15 +98,15 @@ export async function gerarPreRelatorio(caseId) {
 
   d.h1('8', 'Planejamento da diligência');
   d.identificacao([['Data e horário', [dataBR(c.dataDiligencia), c.horaDiligencia].filter(Boolean).join(' às ') || 'a definir'], ['Local', [localVistoria(c), c.vistoriaEndereco].filter(Boolean).join(' – ')]]);
-  d.h2('8.1', 'Roteiro e documentos a solicitar'); d.texto(c.roteiro || '[[roteiro]]');
+  d.h2('8.1', 'Roteiro e documentos a solicitar'); d.texto(c.roteiro || '[[roteiro da vistoria e documentos a solicitar]]');
   d.h2('8.2', 'Equipamentos');
   const levar = dados.equipamentos.filter((e) => (c.equipamentos || []).includes(e.id));
   quadroEquipamentos(d, levar, 'Equipamentos a levar');
-  if (ehExtra(c)) {
+  if (ltcat) {
     d.h2('8.3', 'Estrutura prevista do LTCAT e campos do PPP');
     d.texto('O LTCAT seguirá os elementos do art. 276 da IN 128/2022, com sumário e formatação ABNT, e o PPP será emitido por subperíodo, com código GFIP 04 quando houver enquadramento.');
   }
-  if (c.observacoes) { d.h2(ehExtra(c) ? '8.4' : '8.3', 'Observações'); d.texto(c.observacoes); }
+  if (c.observacoes) { d.h2(ltcat ? '8.4' : '8.3', 'Observações'); d.texto(c.observacoes); }
   let nx = 8;
   if (CAMPOS_ACIDENTE.some(([k]) => String(c[k] || '').trim())) {
     nx += 1;
@@ -130,43 +138,46 @@ export async function gerarRegistroDiligencia(caseId) {
   const d = new Doc();
   d.add(p([run(at ? 'RELATÓRIO DE ACOMPANHAMENTO DA DILIGÊNCIA PERICIAL' : 'REGISTRO DA DILIGÊNCIA', { b: true, size: 14, color: '1B365D' })], { align: 'center', after: 60 }));
   if (c.numero) d.add(p([run(`Processo nº ${c.numero}${c.juizo ? ` – ${c.juizo}` : ''}`)], { align: 'center', after: 0 }));
-  d.add(p([run([c.autorNome, c.reuNome].filter(Boolean).join(' × '))], { align: 'center', after: 240 }));
-  d.h1('1', 'Dados da diligência', { novaPagina: false });
+  d.add(p([run([c.autorNome, c.reuNome].filter(Boolean).join(ehExtra(c) ? ' – ' : ' × '))], { align: 'center', after: 240 }));
+  let n = 0;
+  const sec = (t) => { n += 1; d.h1(String(n), t, { novaPagina: false }); return String(n); };
+  sec('Dados da diligência');
   quadroDiligencia(d, c);
-  d.h1('2', 'Equipamentos utilizados', { novaPagina: false });
+  sec('Equipamentos utilizados');
   quadroEquipamentos(d, equipamentosUsados(dados));
-  d.h1('3', 'Postos e atividades avaliados', { novaPagina: false });
-  profissiografia(d, dados.postos, dados, { base: '3' });
+  const sp = sec('Postos e atividades avaliados');
+  profissiografia(d, dados.postos, dados, { base: sp });
   const g = medicoesPorAgente(dados);
   const nome = nomePostoFn(dados.postos);
   const eq = new Map(dados.equipamentos.map((e) => [e.id, e]));
   if (dados.medicoes.length) {
-    d.h1('4', 'Medições', { novaPagina: false });
+    sec('Medições');
     const ctx = contextoLegal(c);
     if (g['Ruído']) quadroMedicoesRuido(d, g['Ruído'], eq, nome, ctx);
-    for (const [k, ms] of Object.entries(g)) if (k !== 'Ruído') quadroMedicoesGenerico(d, `Resultados – ${k}`, ms, nome, ctx);
+    if (g['Agente químico']) quadroQuimicosAnexo11(d, g['Agente químico'], dados, nome);
+    for (const [k, ms] of Object.entries(g)) if (k !== 'Ruído' && k !== 'Agente químico') quadroMedicoesGenerico(d, `Resultados – ${k}`, ms, nome, ctx);
   }
   const resp = dados.quesitos.filter((q) => (q.data.resposta || '').trim());
   if (resp.length) {
-    d.h1('5', 'Anotações de campo sobre os quesitos', { novaPagina: false });
+    sec('Anotações de campo sobre os quesitos');
     for (const q of resp) {
       d.add(p([run(`Quesitos ${nomeOrigemQuesito(q.data.origem, c)} – ${prefixoQuesito(q)}`, { b: true }), run(q.data.texto || '', { i: true })], { after: 40 }));
       d.add(p(q.data.resposta, { left: 709 }));
     }
   }
-  if (c.vistoriaNotas) { d.h1('6', 'Anotações gerais', { novaPagina: false }); d.texto(c.vistoriaNotas); }
+  if (c.vistoriaNotas) { sec('Anotações gerais'); d.texto(c.vistoriaNotas); }
   if (at) {
     // relatório para o cliente (advogado ou empresa): como o perito conduziu a diligência e o que esperar do laudo
-    d.h1('7', 'Procedimentos do perito', { novaPagina: false });
+    sec('Procedimentos do perito');
     d.quadro('Verificação dos procedimentos adotados pelo perito', [['Item', 'Constatação', 'Observação para a manifestação'],
       ...['Instrumentos utilizados e certificados de calibração apresentados', 'Calibração do dosímetro antes e depois da medição', 'Tempo de amostragem representativo da jornada',
         'Postos e atividades avaliados (todos os do período discutido?)', 'Condições de operação no dia (normais ou atípicas)', 'Documentos solicitados e recebidos pelo perito',
-        'Informações colhidas e de quem', 'Pedidos e observações apresentados pela assistência'].map((t) => [t, '[[ ]]', '[[ ]]'])],
+        'Informações colhidas e de quem', 'Pedidos e observações apresentados pela assistência'].map((t) => [t, '[[preencher]]', '[[preencher]]'])],
     { larguras: [0.38, 0.31, 0.31], tam: 9, alinhar: 'left' });
-    d.h1('8', 'Avaliação da assistência técnica', { novaPagina: false });
-    d.h2('8.1', `Pontos favoráveis ${art(ladoCurto(c)).o === 'a' ? 'à' : 'ao'} ${ladoCurto(c)}`); d.redigir('o que a diligência confirmou a favor da tese da parte.');
-    d.h2('8.2', 'Pontos de atenção'); d.redigir('o que pode pesar contra a parte e como tratar na manifestação.');
-    d.h1('9', 'Próximos passos', { novaPagina: false });
+    const sa = sec('Avaliação da assistência técnica');
+    d.h2(`${sa}.1`, `Pontos favoráveis ${art(ladoCurto(c)).o === 'a' ? 'à' : 'ao'} ${ladoCurto(c)}`); d.redigir('o que a diligência confirmou a favor da tese da parte.');
+    d.h2(`${sa}.2`, 'Pontos de atenção'); d.redigir('o que pode pesar contra a parte e como tratar na manifestação.');
+    sec('Próximos passos');
     d.texto(`Prazo do laudo: ${dataBR(c.prazoLaudo) || '[[conforme o despacho]]'}. Depois da intimação do laudo, o prazo comum para o parecer do assistente técnico é de 15 dias (art. 477, § 1º, do CPC).`);
     d.redigir('documentos ou quesitos a apresentar antes do laudo, se houver.');
   }
@@ -181,8 +192,8 @@ export async function gerarRelatorioFotografico(caseId) {
   const d = new Doc();
   d.add(p([run('RELATÓRIO FOTOGRÁFICO', { b: true, size: 14, color: '1B365D' })], { align: 'center', after: 60 }));
   if (c.numero) d.add(p([run(`Processo nº ${c.numero}`)], { align: 'center', after: 0 }));
-  d.add(p([run([c.autorNome, c.reuNome].filter(Boolean).join(' × '))], { align: 'center', after: 60 }));
-  d.add(p([run(`Diligência: ${dataBR(c.vistoriaData) || '—'}${localVistoria(c) ? ` – ${localVistoria(c)}` : ''}`)], { align: 'center', after: 240 }));
+  d.add(p([run([c.autorNome, c.reuNome].filter(Boolean).join(ehExtra(c) ? ' – ' : ' × '))], { align: 'center', after: 60 }));
+  d.add(p([run(`${ehExtra(c) ? 'Vistoria' : 'Diligência'}: ${dataBR(c.vistoriaData || c.dataDiligencia) || '[[data]]'}${localVistoria(c) ? ` – ${localVistoria(c)}` : ''}`)], { align: 'center', after: 240 }));
   const { lista, faltando } = await figurasDoCaso(dados);
   if (lista.length) d.figuras(lista); else d.texto('Nenhuma foto registrada.');
   const r = await finalizar(d, { titulo: 'Relatório fotográfico', arquivo: 'Relatorio_fotografico', c });

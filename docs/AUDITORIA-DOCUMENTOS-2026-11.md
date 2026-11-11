@@ -314,3 +314,51 @@ Cada citação do app foi conferida contra o texto oficial: gov.br (NRs e portar
 - **TNU, PEDILEF 0506002-13.2018.4.05.8312:** o PDF não foi encontrado no CJF.
 - **Textos históricos:** a redação original de 1978 dos Anexos 3 e 8 da NR-15 e os anos das NHOs.
 - **Jurisprudência:** as situações a acompanhar foram registradas no próprio texto (embargos do Tema 1209 no STF; RE pendente no Tema 1291).
+
+---
+
+## 8. Revisão visual dos documentos Word (11/11/2026)
+
+Foram gerados 64 documentos (todos os modelos, inclusive as variações das petições) a partir de 7 casos fictícios completos:
+- perito: Justiça Federal previdenciário e Fazenda Pública;
+- assistente técnico: Justiça do Trabalho e previdenciário;
+- extrajudicial: insalubridade para empresa, LTCAT para segurado e acidente.
+
+Os documentos foram convertidos em PDF e revisados página por página: 300 páginas e 166 achados, contando os repetidos entre documentos. Depois das correções, o mesmo conjunto tem 262 páginas.
+
+### Corrigido
+- **Layout:**
+  - a fonte das células se ajusta para nenhuma palavra ser cortada no meio da coluna ("Enquadrament/o", "Document/o");
+  - quadros de até 15 linhas ficam inteiros na página, junto com a "Fonte";
+  - marcadores [[…]] destacados também na Fonte e na assinatura;
+  - pré-relatório sem página nova a cada título;
+  - "Nestes termos, pede deferimento." preso à assinatura;
+  - coluna "Código" mais larga na conclusão por período.
+- **Extrajudicial sem linguagem de processo:**
+  - partes como Trabalhador ou Segurado e Empresa;
+  - "Informações do contratante" e "Objeto contratado";
+  - jurisprudência "como informação ao contratante";
+  - pré-relatório com subtítulo e seções conforme o tipo (LTCAT só quando previdenciário);
+  - parecer preventivo sem "contestação" nem "condenação";
+  - proposta de acidente com os documentos próprios (CAT, análise da empresa, NR-12).
+- **Servidor público (Fazenda):**
+  - NR-16 por remissão da lei do ente, sem CLT nem 30%;
+  - agendamento e ofício dirigidos ao ente, e não "à empresa".
+- **Vínculo × posto:** novo campo no posto (aba Campo) para marcar os vínculos que ele representa. Sem marcação, vale o nome da empresa e, havendo um posto e um vínculo só, os dois se ligam. Antes, a medição ficava fora da conclusão ("vincular posto").
+- **Conclusão previdenciária:** medição com q = 3 antes de 19/11/2003 fica "[[pendente]]", e não "NÃO".
+- **Outros:**
+  - roteiro da NR-16 e quadro conclusivo com o anexo identificado;
+  - acompanhamento do assistente técnico com numeração contínua;
+  - "Lavg (tempo amostrado)" ao lado da dose projetada;
+  - registro da diligência com o quadro do Anexo 11 para químicos;
+  - pedido de pagamento só do saldo quando houve adiantamento;
+  - termo de presença com a data da diligência e nome separado da função;
+  - indicação de assistente técnico no previdenciário requisita os documentos às empregadoras;
+  - item de motorista (tacógrafo) só em caso de motorista;
+  - "Posto / veículo" só quando há veículo;
+  - "Elaborado pelo signatário" no lugar de "pelo autor";
+  - plurais e células vazias com "[[preencher]]".
+
+### Não alterado
+- **Números de página do sumário:** saem "–" na conversão pelo LibreOffice. O Word preenche ao abrir e confirmar a atualização dos campos.
+- **Achados dos dados fictícios:** horários, datas das fotos e valores de honorários vinham do próprio teste.

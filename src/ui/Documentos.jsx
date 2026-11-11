@@ -1,7 +1,7 @@
 import { useState } from 'preact/hooks';
-import { CATALOGO } from '../docx/reports.js';
+import { CATALOGO, HONORARIOS, situacaoHonorarios, PETICOES_PERITO, PETICOES_AT, POSICOES_AT } from '../docx/reports.js';
 import { exportarBackup, baixarArquivo, carimbo } from '../backup.js';
-import { OPCOES_REDACAO, exportarParaClaude } from '../aiimport.js';
+import { exportarParaClaude } from '../aiimport.js';
 import { gravarTudoAgora, salvar, TF, Sel } from './fields.jsx';
 import { FORMAS_PAGAMENTO, localVistoria } from '../schema.js';
 import { db } from '../db.js';
@@ -9,17 +9,14 @@ import { PERFIL_ID, contasDoPerfil, PERFIL_PADRAO, ehSimilaridade, empresaDoDesp
 import { useLive } from './hooks.js';
 import { Icone } from './Icone.jsx';
 
-const SUGESTAO_REDACAO = (c) => (c.papel === 'Perito do Juízo' ? 'laudo'
-  : /Assistente/i.test(c.papel || '') ? 'parecerAT'
-    : c.tipoAtuacao === 'Extrajudicial' ? 'ltcat' : 'laudo');
-
 const QUANDO = {
   '1. Início do caso': 'Logo após extrair os dados dos autos (etapa 2).',
   '2. Antes da diligência': 'Com a data da vistoria definida.',
   '3. Depois da diligência': 'Com o campo e as fotos registrados (etapas 4 e 5).',
   '4. Laudo / parecer': 'O Word traz a estrutura e os quadros prontos. Para o texto completo, use também "Redigir com o Claude", logo abaixo.',
-  '5. Quesitos suplementares e esclarecimentos': 'Quando o Juízo manda responder quesitos suplementares ou esclarecer o laudo. Cadastre e responda os quesitos na etapa 3 (há o atalho com o Claude lá) e gere a resposta aqui.',
+  '5. Quesitos suplementares e esclarecimentos': 'Depois do laudo: quesitos suplementares, pedidos de esclarecimento e respostas. Cadastre os quesitos na etapa 3 (há o atalho com o Claude lá) e gere a petição aqui.',
   '6. Recebimento dos honorários': 'Após a entrega do laudo e dos esclarecimentos.',
+  '7. Outras petições do perito': 'Quando surge um imprevisto: prazo curto, empresa que não recebe ou não entrega documentos, ou impedimento.',
 };
 
 export function Documentos({ rec }) {
@@ -75,7 +72,7 @@ export function Documentos({ rec }) {
           {verTodos && <div class="grade-docs">{outros.map((d) => <CartaoDoc d={d} ocupado={ocupado} gerar={gerar} contas={contas} contaSel={contaSel} recId={rec.id} rec={rec} />)}</div>}
         </section>
       )}
-      <LevarParaClaude rec={rec} />
+      <RespostasClaude rec={rec} />
       <section class="grupo-docs">
         <h3>Cópia de segurança</h3>
         <div class="bloco doc">
@@ -101,8 +98,28 @@ function CartaoDoc({ d, ocupado, gerar, contas = [], contaSel, recId, rec }) {
         </label>
       ) : <p class="alerta-txt">Cadastre as contas em Configurações → Meus dados.</p>)}
       {d.id === 'agenda' && rec && <DadosAgendamento rec={rec} />}
-      {d.id === 'aceiteArb' && rec && <Sel rec={rec} k="honorariosForma" label="Forma de pagamento (conforme o despacho)" opcoes={FORMAS_PAGAMENTO} />}
-      <button type="button" class="primario" disabled={!!ocupado} onClick={() => gerar(d)}>{ocupado === d.id ? 'Gerando…' : 'Gerar Word'}</button>
+      {d.id === 'honorarios' && rec && <>
+        <label class="campo"><span class="rotulo">Situação</span>
+          <select value={situacaoHonorarios(rec.data)} onChange={(e) => salvar(rec.id, 'honorariosSituacao', e.currentTarget.value)}>
+            {HONORARIOS.map((o) => <option value={o}>{o}</option>)}
+          </select>
+        </label>
+        {situacaoHonorarios(rec.data) === HONORARIOS[2] && <Sel rec={rec} k="honorariosForma" label="Forma de pagamento (conforme o despacho)" opcoes={FORMAS_PAGAMENTO} />}
+      </>}
+      {d.id === 'peritoAvulsa' && rec && <>
+        <Sel rec={rec} k="peticaoPerito" label="Petição" opcoes={PETICOES_PERITO} vazio={false} />
+        {(rec.data.peticaoPerito || PETICOES_PERITO[0]) === PETICOES_PERITO[0] && <TF rec={rec} k="prorrogacaoDias" label="Prorrogação pedida (dias) – em branco = metade do prazo original" inputMode="numeric" />}
+        <TF rec={rec} k="peticaoMotivo" label="Motivo / o que ocorreu" area rows={3} />
+      </>}
+      {d.id === 'atAvulsa' && rec && <>
+        <Sel rec={rec} k="peticaoAT" label="Petição" opcoes={PETICOES_AT} vazio={false} />
+        {rec.data.peticaoAT === PETICOES_AT[2] && <Sel rec={rec} k="posicaoAT" label="Posição sobre o laudo e os esclarecimentos" opcoes={POSICOES_AT} />}
+      </>}
+      {d.id === 'parecerAT' && rec && <Sel rec={rec} k="posicaoAT" label="Posição sobre o laudo" opcoes={POSICOES_AT} />}
+      <div class="linha-botoes">
+        <button type="button" class="primario" disabled={!!ocupado} onClick={() => gerar(d)}>{ocupado === d.id ? 'Gerando…' : 'Gerar Word'}</button>
+        {d.redacao && rec && <BotaoClaude rec={rec} tipo={d.redacao} />}
+      </div>
       {d.id === 'agenda' && rec && <LinkAgenda c={rec.data} />}
     </div>
   );
@@ -170,32 +187,33 @@ function LinkAgenda({ c }) {
   return <a class="botao sec" href={url} target="_blank" rel="noopener"><Icone nome="agenda" /> Agendar no Google Agenda</a>;
 }
 
-function LevarParaClaude({ rec }) {
-  const [tipo, setTipo] = useState(SUGESTAO_REDACAO(rec.data));
+// "Redigir com o Claude": copia o caso inteiro com a instrução de redação do documento do cartão
+function BotaoClaude({ rec, tipo, rotulo = 'Redigir com o Claude' }) {
   const [msg, setMsg] = useState('');
   const copiar = async () => {
     gravarTudoAgora();
     const texto = await exportarParaClaude(rec.id, tipo);
     try {
       await navigator.clipboard.writeText(texto);
-      setMsg(`✓ Caso copiado (${Math.round(texto.length / 1000)} mil caracteres). Cole no Claude, anexe os autos e, se quiser, o Word gerado acima e as fotos.`);
+      setMsg(`✓ Caso copiado (${Math.round(texto.length / 1000)} mil caracteres). Cole no Claude e anexe os autos (e, se quiser, o Word gerado e as fotos).`);
     } catch (e) {
       baixarArquivo(new Blob([texto], { type: 'text/markdown' }), `Caso_para_Claude_${carimbo()}.md`);
       setMsg('Não foi possível copiar; o texto foi baixado como arquivo .md para anexar no Claude.');
     }
   };
+  return <>
+    <button type="button" class="sec" onClick={copiar}>{rotulo}</button>
+    {msg && <p class="ok-msg">{msg}</p>}
+  </>;
+}
+
+function RespostasClaude({ rec }) {
   return (
     <section class="grupo-docs">
-      <h3>Redigir com o Claude (texto completo do laudo ou parecer)</h3>
+      <h3>Responder os quesitos com o Claude</h3>
       <div class="bloco destaque">
-        <p>Copia tudo o que está no caso (síntese dos autos, campo, medições, paradigmas, quesitos com anotações e seus critérios técnicos) com a instrução de redação do documento escolhido. Cole no Claude e anexe o PDF do processo (etapa 2).</p>
-        <label class="campo"><span class="rotulo">Documento a redigir</span>
-          <select value={tipo} onChange={(e) => setTipo(e.currentTarget.value)}>
-            {OPCOES_REDACAO.map(([k, r]) => <option value={k}>{r}</option>)}
-          </select>
-        </label>
-        <button type="button" class="primario" onClick={copiar}>Copiar caso para o Claude</button>
-        {msg && <p class="ok-msg">{msg}</p>}
+        <p>Para o texto completo de um documento, use o botão "Redigir com o Claude" do próprio cartão. Este aqui pede ao Claude as respostas de todos os quesitos num JSON que volta para o app (etapa 2. Autos → B) e preenche só as respostas em branco.</p>
+        <div class="linha-botoes"><BotaoClaude rec={rec} tipo="respostas" rotulo="Copiar caso para responder os quesitos" /></div>
       </div>
     </section>
   );

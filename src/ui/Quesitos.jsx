@@ -1,5 +1,7 @@
 import { useState } from 'preact/hooks';
-import { ORIGEM_QUESITO, CAMPOS_ESCLARECIMENTOS, ehSuplementar } from '../schema.js';
+import { ORIGEM_QUESITO, CAMPOS_ESCLARECIMENTOS, ehSuplementar, rotuloOrigem } from '../schema.js';
+
+const OPCOES_ORIGEM = ORIGEM_QUESITO.map((o) => [o, rotuloOrigem(o)]);
 import { montarPromptSuplementares, lerJsonSuplementares, aplicarSuplementares } from '../aiimport.js';
 import { avisarAlteracao } from '../sync.js';
 import { RecordList } from './RecordList.jsx';
@@ -11,7 +13,7 @@ import { baixarArquivo, carimbo } from '../backup.js';
 const SUPL = ['Sim', 'Não'];
 
 const CAMPOS = [
-  ['origem', 'Origem', 'select', ORIGEM_QUESITO],
+  ['origem', 'Origem', 'select', OPCOES_ORIGEM],
   ['numero', 'Número', 'text'],
   ['texto', 'Texto literal do quesito', 'area'],
   ['resposta', 'Anotações / resposta (em campo ou no escritório)', 'area'],
@@ -19,7 +21,7 @@ const CAMPOS = [
 ];
 
 const CAMPOS_SUPL = [
-  ['origem', 'Origem (quem formulou)', 'select', ORIGEM_QUESITO],
+  ['origem', 'Origem (quem formulou)', 'select', OPCOES_ORIGEM],
   ['numero', 'Número', 'text'],
   ['refPeticao', 'Petição (ex.: "mov. 67.1")', 'text'],
   ['texto', 'Texto literal do quesito (com as alíneas)', 'area'],

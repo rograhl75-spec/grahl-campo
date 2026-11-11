@@ -54,14 +54,14 @@ export function veiculoParaDados(v) {
 
 export const FAMILIAS_PADRAO_TEXTO = 'Cadastre as famílias técnicas em Paradigmas → Famílias.';
 
-function registro(id, kind, data, tsVal = 1) {
+export function registro(id, kind, data, tsVal = 1) {
   const ts = {};
   for (const k of Object.keys(data)) ts[k] = tsVal;
   return normalize({ id, kind, caseId: null, createdAt: Date.now(), data, ts });
 }
 
 // Grava um registro importado: só altera (e marca para envio) se algo mudou
-async function gravarImportado(rec) {
+export async function gravarImportado(rec) {
   return db.transaction('rw', db.records, async () => {
     const local = await db.records.get(rec.id);
     const m = mergeRecords(local, rec);

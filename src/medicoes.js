@@ -37,12 +37,15 @@ export const CAMPOS_MEDICAO = {
     ['aren', 'aren (m/s²)', 'num'],
     ['tempoExposicao', 'Tempo de exposição diária', 'text'],
   ],
+  // o agente do banco (campo "agenteBanco") é escolhido na tela da medição
   'Agente químico': [
-    ['descricao', 'Agente / produto', 'text'],
+    ['descricao', 'Agente / produto (como no rótulo ou na FISPQ)', 'text'],
     ['metodo', 'Método / amostrador', 'text'],
-    ['valor', 'Resultado', 'text'],
-    ['unidade', 'Unidade', 'text'],
-    ['limite', 'Limite de tolerância de referência', 'text'],
+    ['nAmostras', 'Nº de amostras', 'text'],
+    ['valor', 'Resultado (média aritmética das amostras – NR-15, Anexo 11, item 8)', 'text'],
+    ['maximo', 'Maior concentração entre as amostras', 'text'],
+    ['unidade', 'Unidade', 'select', ['ppm', 'mg/m³', 'f/cm³', '%']],
+    ['limite', 'Limite de referência (em branco = o do banco)', 'text'],
   ],
   'Outro': [
     ['descricao', 'Agente / parâmetro', 'text'],

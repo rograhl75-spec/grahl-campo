@@ -63,6 +63,7 @@ export async function carregar(caseId) {
   const equipamentos = (await db.records.where('kind').equals('equip').toArray()).filter((e) => !e.deleted)
     .sort((a, b) => (a.data.ordem || 0) - (b.data.ordem || 0));
   const paradigmas = new Map((await db.records.where('kind').equals('paradigma').toArray()).filter((r) => !r.deleted).map((r) => [r.data.codigo, r]));
+  const quimicos = (await db.records.where('kind').equals('quimico').toArray()).filter((r) => !r.deleted);
   const cfgPar = await db.records.get('cfg-paradigmas');
   const perfilRec = await db.records.get(PERFIL_ID);
   const perfil = { ...PERFIL_PADRAO, ...(perfilRec ? perfilRec.data : {}) };
@@ -83,7 +84,7 @@ export async function carregar(caseId) {
   }
   // referências internas aos arquivos PDF (Parte N, p. X) e datas ISO no meio do texto não vão para o documento
   const limpa = (lst) => lst.map((r) => ({ ...r, data: limpaDados(r.data) }));
-  const dados = { id: caseId, c: limpaDados(caso.data), quesitos: limpa(quesitos), periodos: limpa(pers), documentos: limpa(documentos), epis, postos: limpa(psts), medicoes: meds, fotos, equipamentos, perfil, paradigmas,
+  const dados = { id: caseId, c: limpaDados(caso.data), quesitos: limpa(quesitos), periodos: limpa(pers), documentos: limpa(documentos), epis, postos: limpa(psts), medicoes: meds, fotos, equipamentos, perfil, paradigmas, quimicos,
     regraCertMeses: Number((cfgPar && cfgPar.data.regraCertMeses) || 24) };
   // ordem cronológica: cada posto/veículo vai para a posição do primeiro vínculo que representa
   const ordemP = new Map(dados.postos.map((ps) => [ps.id, (periodosDoPosto(ps, dados)[0] || {}).data?.inicio || '9999']));
@@ -326,8 +327,8 @@ export function quadroPeriodos(d, periodos, titulo = 'Períodos avaliados') {
   { larguras: [0.32, 0.22, 0.26, 0.2], alinhar: 'left' });
 }
 
-export function quadroEpis(d, epis) {
-  if (!epis.length) return d.texto('Não foram apresentados nos autos registros de fornecimento de EPI (fichas de entrega com CA, periodicidade de troca, treinamento e higienização), cuja guarda é de responsabilidade do empregador.');
+export function quadroEpis(d, epis, { extra = false } = {}) {
+  if (!epis.length) return d.texto(extra ? 'Não foram apresentados registros de fornecimento de EPI (fichas de entrega com CA, periodicidade de troca, treinamento e higienização), cuja guarda é de responsabilidade do empregador.' : 'Não foram apresentados nos autos registros de fornecimento de EPI (fichas de entrega com CA, periodicidade de troca, treinamento e higienização), cuja guarda é de responsabilidade do empregador.');
   return d.quadro('Equipamentos de proteção individual registrados', [['EPI', 'CA', 'Entrega', 'Observações'],
     ...epis.map((e) => [e.data.descricao, e.data.ca, dataBR(e.data.dataEntrega), e.data.obs])], { larguras: [0.34, 0.12, 0.16, 0.38] });
 }
@@ -545,7 +546,7 @@ export function nomeOrigemQuesito(o, c) {
   if (o === 'Réu / Reclamada') return pt.trab ? 'da Reclamada' : pt.reuCurto === 'INSS' ? 'do INSS' : 'da parte ré';
   if (o === 'Juízo') return 'do Juízo';
   if (o === 'INSS') return 'do INSS';
-  if (o === 'Complementares') return 'complementares';
+  if (o === 'Complementares') return 'de esclarecimento';
   return (o || '').toLowerCase();
 }
 

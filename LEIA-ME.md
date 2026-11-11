@@ -28,13 +28,27 @@ O indicador no topo da tela mostra sempre o estado: *Salvo neste aparelho*, *Sem
   - **Vibração:** registra VCI e VMB.
   - **Químicos e outros:** registro livre.
 - **Fotos:** tiradas pela câmera ou escolhidas da galeria. Ficam no tablet no mesmo instante e depois sobem para a nuvem. Têm legenda, posto, ordem, data/hora e GPS.
-- **Documentos (Word no seu timbrado, fonte Abadi, espaçamento 1,5):**
-  - **Pré-relatório:** capa, sumário e cada título principal em página nova.
-  - **Registro da diligência.**
-  - **Relatório fotográfico.**
-  - **Aceite dos honorários arbitrados (majorados):** depois da decisão que arbitra os honorários, aceita o valor e os termos (adiantamento e saldo), indica a conta para o alvará após o depósito e se compromete a informar a data da perícia após o levantamento, com a antecedência do despacho. Os itens do despacho ficam em 1. Cadastro → Honorários e itens do despacho. Há também a fase "Aguardando depósito dos honorários".
-  - **Resposta aos quesitos suplementares:** depois do laudo (art. 477, § 2º, I, do CPC), com a decisão que mandou responder, a referência ao laudo (mov. e data), cada quesito suplementar transcrito por parte com a resposta, retificação de erro material ("onde se lê / leia-se") e ratificação das conclusões.
+- **Documentos (Word no seu timbrado, fonte Abadi, espaçamento 1,5):** aparecem só os modelos do seu papel no caso, agrupados pela fase. Cada cartão tem "Gerar Word" e "Redigir com o Claude".
+  - **Todos:** pré-relatório (para o assistente, com a estratégia da assistência; para o perito, com as verificações de impedimento e prazo) e relatório fotográfico avulso.
+  - **Perito do Juízo:**
+    - **Honorários:** um cartão com três situações: proposta (art. 465, § 2º), majoração do valor fixado ou aceite do valor arbitrado.
+    - Agendamento da vistoria e registro da diligência.
+    - Laudo de insalubridade e periculosidade (inclusive adicional de servidor), com confronto do Anexo 11 e quadro conclusivo por agente.
+    - Laudo previdenciário e laudo de acidente do trabalho.
+    - Resposta aos quesitos suplementares e pagamento dos honorários.
+    - **Outras petições:** prorrogação do prazo do laudo (art. 476), diligência frustrada ou documentos não apresentados, escusa (art. 157).
+  - **Assistente técnico:**
+    - Indicação com quesitos e relatório de acompanhamento da diligência para o cliente.
+    - Parecer sobre o laudo conforme a sua posição: concorda, impugna em parte ou impugna. No previdenciário, a análise é por período.
+    - Petições de quesitos suplementares (art. 469), pedido de esclarecimentos (art. 477, § 2º) e manifestação sobre os esclarecimentos.
+    - Parecer preventivo, quando assiste o réu.
+  - **Extrajudicial:** o documento sai do objeto marcado e de quem contratou:
+    - LTCAT e parecer previdenciário (aposentadoria especial, LTCAT, PPP);
+    - laudo de insalubridade e periculosidade, sem endereçamento ao Juízo e com ART (insalubridade, periculosidade);
+    - laudo de acidente do trabalho (acidente);
+    - parecer preventivo, quando a empresa contratou.
   - **Exportação do caso em ZIP.**
+- **Paradigmas → Agentes químicos:** fichas com propriedades físico-químicas, toxicologia (NIOSH), limites do Anexo 11 da NR-15, LINACH e IARC. A base inicial vem de fontes abertas e entra como "A conferir". Valores da ACGIH: digite do seu livreto. Inclusão de novos agentes pelo Claude, a partir de FISPQs. Calculadora: ppm ↔ mg/m³, valor máximo (LT × fator de desvio), Brief & Scala e misturas. Na medição de agente químico (aba Campo), escolha o agente do banco: o app confronta a média com o limite e o valor máximo e indica os do Grupo 1 da LINACH.
 - **Paradigmas → Máquinas – ruído e vibração:** banco de tratores (sem cabine, cabine original, cabine adaptada, fruteiros), microtratores, colhedoras, pulverizadores, máquinas florestais e de construção, empilhadeiras e ferramentas portáteis (motosserra, roçadeira, derriçadora). Cada registro guarda a categoria, a origem do dado (medição própria, laudo de terceiro, literatura técnica, declaração do fabricante), a operação e o implemento, a rotação, a velocidade e a referência bibliográfica. O resumo por categoria mostra n, faixa e mediana de Lavg, Leq, aren, VDVR e VMB, com cor pelo nível de ação e pelo limite (NR-9, Anexo I; NR-15, Anexos 1 e 8). Para alimentar o banco a partir de artigos, manuais e laudos, use **Importar → Copiar instrução de máquinas**. O app não traz valores prontos: os números entram só com a fonte conferida.
 - **Configurações:** nuvem, backup, importação do app antigo, equipamentos e certificados (DoseMax V2, iTemp e AxPro já cadastrados; falta preencher o CalPro), lixeira e armazenamento.
 

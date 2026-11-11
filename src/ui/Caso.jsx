@@ -1,11 +1,11 @@
 import { db, softDelete } from '../db.js';
 import { avisarAlteracao } from '../sync.js';
 import {
-  TIPO_ATUACAO, JUSTICA, MATERIA, PAPEL, OBJETO, FASE, CAMPOS_PROCESSO, CAMPOS_PARTES, CAMPOS_PRAZOS, CAMPOS_HONORARIOS, tituloCaso, contextoLegal,
+  TIPO_ATUACAO, JUSTICA, MATERIA, PAPEL, OBJETO, FASE, CONTRATADO_POR, CAMPOS_ACIDENTE, ehAcidente, CAMPOS_PROCESSO, CAMPOS_PARTES, CAMPOS_PRAZOS, CAMPOS_HONORARIOS, tituloCaso, contextoLegal,
 } from '../schema.js';
 import { useLive, ir } from './hooks.js';
 import { siglaTipo, FASE_COR } from './Casos.jsx';
-import { Campos, Chips, Opcoes, Sel } from './fields.jsx';
+import { Campos, Chips, Opcoes, Sel, TF } from './fields.jsx';
 import { Preparacao } from './Preparacao.jsx';
 import { Quesitos } from './Quesitos.jsx';
 import { Campo } from './Campo.jsx';
@@ -113,8 +113,20 @@ function Resumo({ rec }) {
         <Sel rec={rec} k="fase" label="Fase" opcoes={FASE} vazio={false} />
         <Sel rec={rec} k="jurisprudencia" label="Súmulas e jurisprudência nos documentos deste caso" opcoes={['Padrão (Meus dados)', 'Incluir', 'Não incluir']} vazio={false} />
         {contextoLegal(rec.data).prev && <Sel rec={rec} k="penosidade" label="Avaliação de penosidade (motorista / cobrador)" opcoes={['Automático', 'Sim', 'Não']} vazio={false} />}
+        {rec.data.tipoAtuacao === 'Extrajudicial' && <>
+          <Sel rec={rec} k="contratadoPor" label="Quem contratou" opcoes={CONTRATADO_POR} />
+          <TF rec={rec} k="art" label="Nº da ART" />
+          <p class="dica">Extrajudicial: o objeto define o documento. Aposentadoria especial, LTCAT ou PPP → LTCAT e parecer previdenciário; Insalubridade ou Periculosidade → laudo de insalubridade e periculosidade; Acidente → laudo de acidente.</p>
+        </>}
         {rec.data.faseLegado && <p class="dica">Fase no app antigo: {rec.data.faseLegado}</p>}
       </section>
+      {ehAcidente(rec.data) && (
+        <section class="bloco">
+          <h3>Acidente do trabalho</h3>
+          <p class="dica">Usado no laudo de acidente. Pode vir preenchido pela importação dos autos com o Claude (etapa 2).</p>
+          <Campos rec={rec} campos={CAMPOS_ACIDENTE} />
+        </section>
+      )}
       <section class="bloco">
         <h3>Processo</h3>
         <Campos rec={rec} campos={CAMPOS_PROCESSO} />
@@ -130,7 +142,7 @@ function Resumo({ rec }) {
       {rec.data.papel === 'Perito do Juízo' && (
         <section class="bloco">
           <h3>Honorários e itens do despacho</h3>
-          <p class="dica">Usados nas petições de majoração, de aceite dos honorários arbitrados e de agendamento da vistoria.</p>
+          <p class="dica">Usados nas petições de honorários (proposta, majoração e aceite) e de agendamento da vistoria.</p>
           <Campos rec={rec} campos={CAMPOS_HONORARIOS} />
         </section>
       )}

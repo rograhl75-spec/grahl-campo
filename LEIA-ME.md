@@ -11,7 +11,7 @@ O app antigo perdia informação porque nada ficava guardado no tablet: tudo dep
 3. **A nuvem (Firebase) é uma cópia, sincronizada sozinha quando há internet.** A sincronização é feita campo a campo: editar o "local" no tablet e a "síntese" no PC não apaga nenhum dos dois.
 4. **Nada é apagado de verdade.** O que você exclui vai para a Lixeira (Configurações) e pode ser restaurado.
 5. **Os textos longos guardam versões anteriores.** O botão "⟲ versões" ao lado do campo mostra as versões e permite restaurar.
-6. **O backup em ZIP é completo.** Em Configurações → Backup você gera um arquivo com dados, histórico e fotos originais. Guarde no Drive ou no PC.
+6. **O backup em ZIP é completo.** Em Configurações → Backup você gera um arquivo com dados, histórico, fotos originais e anexos (PDFs dos autos e de laudos antigos). Os anexos acima de 39 MB não vão para a nuvem: o backup é a única cópia deles fora do aparelho. Guarde no Drive ou no PC.
 
 O indicador no topo da tela mostra sempre o estado: *Salvo neste aparelho*, *Sem internet · N alterações guardadas*, *Enviando…* ou *Sincronizado às hh:mm*.
 
@@ -62,8 +62,8 @@ O indicador no topo da tela mostra sempre o estado: *Salvo neste aparelho*, *Sem
    - Ative o provedor **Google** (Sign-in method).
    - Em **Settings → Authorized domains**, adicione `SEU_USUARIO.github.io`.
 2. **Registre o app da Web:** em Configurações do projeto → Geral → Seus apps → **Adicionar app (Web)**. Copie o bloco `firebaseConfig`.
-3. **Firestore → Regras:** cole o conteúdo de `firebase/firestore.rules`, trocando `SEU_EMAIL_AQUI` pelo seu e-mail do Google. Publique.
-4. **Storage → Regras:** cole `firebase/storage.rules`, com a mesma troca. Publique.
+3. **Firestore → Regras:** cole o conteúdo de `firebase/firestore.rules`, trocando `SEU_EMAIL_AQUI` pelo seu e-mail do Google (para mais de uma conta: `["a@gmail.com", "b@gmail.com"]`). Publique. Só as contas da lista leem e gravam; qualquer outra conta Google é recusada, e os registros só são aceitos no formato que o app grava.
+4. **Storage → Regras:** cole `firebase/storage.rules`, com a mesma lista de e-mails. Publique. Fotos: só JPEG até 15 MB; anexos: PDF, imagens, texto e Word até 40 MB. Nada pode ser apagado da nuvem pelo app (a exclusão é pela lixeira).
 5. **CORS do Storage (permite baixar as fotos em outro aparelho e no Word):**
    1. Abra o Cloud Shell no console do Google Cloud.
    2. Crie o arquivo `cors.json` com o conteúdo de `firebase/cors.json`, trocando `SEU_USUARIO`.

@@ -1,9 +1,9 @@
-import { useState } from 'preact/hooks';
-import { db, createRecord, softDelete } from '../db.js';
+import { useState, useEffect } from 'preact/hooks';
+import { db, createRecord, softDelete, updateFields } from '../db.js';
 import { avisarAlteracao, obterAnexo } from '../sync.js';
 import {
   importarBaseJson, sugerirParadigmas, lerJsonVeiculos, adicionarParadigmas, guardarAnexo, PROMPT_LAUDO_ANTIGO,
-  rotuloParadigma, certificadoVencido, REGRA_CERT_MESES_PADRAO,
+  rotuloParadigma, certificadoVencido, REGRA_CERT_MESES_PADRAO, resolverCodigosDuplicados, referenciasARevisar,
 } from '../paradigmas.js';
 import {
   CATEGORIAS_MAQUINA, GRUPOS_MAQUINA, OPCOES_CATEGORIA, ORIGEM_DADO, FAMILIAS_MAQUINAS, LIMITES, CAMPOS_ESTAT, PROMPT_MAQUINAS,
@@ -96,6 +96,7 @@ function Veiculos() {
   const novo = async () => { const r = await createRecord('paradigma', null, { codigo: '', situacao: 'Revisar' }); avisarAlteracao(); setAberto(r.id); };
   return (
     <div class="grade">
+      <AvisoCodigos />
       <section class="bloco largo">
         <div class="barra-casos">
           <input class="busca" type="search" placeholder="Buscar marca, modelo, processo…" value={busca} onInput={(e) => setBusca(e.currentTarget.value)} />
@@ -295,6 +296,29 @@ function Maquinas() {
         <p class="dica">Previdenciário: VCI de 06/03/1997 a 13/08/2014 pela ISO 2631-1 (zona de cautela até 0,9 m/s² / VDV 17); antes de 06/03/1997, o cód. 1.1.5 do Dec. 53.831/64 restringe-se a perfuratrizes e marteletes.</p>
       </section>
     </div>
+  );
+}
+
+// Paradigmas renumerados por código repetido entre aparelhos: mostra o que conferir
+function AvisoCodigos() {
+  useEffect(() => { resolverCodigosDuplicados().then((r) => { if (r.length) avisarAlteracao(); }).catch(() => {}); }, []);
+  const renomeados = useLive(async () => (await db.records.where('kind').equals('paradigma').toArray()).filter((r) => !r.deleted && r.data.codigoAnterior), [], []);
+  const refs = useLive(() => referenciasARevisar(), [], []);
+  if (!renomeados.length) return null;
+  const conferido = async (r) => { await updateFields(r.id, { codigoAnterior: '' }); avisarAlteracao(); };
+  return (
+    <section class="bloco largo evidencias alerta" role="status">
+      <b>Códigos de paradigma repetidos entre aparelhos – conferir</b>
+      {renomeados.map((r) => (
+        <div class="lixo">
+          <span>{rotuloParadigma(r)}: era <b>{r.data.codigoAnterior}</b>, passou a <b>{r.data.codigo}</b>. O código {r.data.codigoAnterior} continua com o outro veículo.</span>
+          <button type="button" class="mini" onClick={() => conferido(r)}>Conferido</button>
+        </div>
+      ))}
+      {refs.length > 0 && (
+        <small>Registros que citam um código renumerado (confira se se referem ao veículo que manteve o código ou ao renumerado): {refs.map((x) => `${x.ref.kind === 'periodo' ? `vínculo ${x.ref.data.empresa || ''}` : `similar ${x.ref.data.marca || ''} ${x.ref.data.modelo || ''}`} (${x.campo}: ${x.de})`).join('; ')}.</small>
+      )}
+    </section>
   );
 }
 

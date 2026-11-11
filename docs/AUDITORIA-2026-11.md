@@ -61,15 +61,17 @@
 - Instrução própria para o Claude extrair valores de artigos, manuais de fabricante e laudos, com a referência ABNT.
 - **Nenhum valor numérico foi incluído sem fonte conferida.** A busca encontrou estudos brasileiros sobre trator sem cabine (até cerca de 98 dB(A)) e com cabine, e o Portale Agenti Fisici (INAIL), que tem banco de vibração por modelo. Os sites dos periódicos estão bloqueados na rede desta sessão, então os valores não foram conferidos no original nem cadastrados.
 
+## Resolvido na v2.25.0
+1. **Firebase:** as regras aceitam só as contas da lista de e-mails, com e-mail verificado. No Firestore, os registros precisam estar no formato que o app grava, a exclusão física é negada e o resto do banco fica fechado. No Storage, fotos só em JPEG até 15 MB e anexos (PDF, imagem, texto, Word) até 40 MB.
+2. **Backup ZIP:** passa a levar os anexos, na pasta `anexos/` com `indice.json`. Os anexos que estão só na nuvem são baixados antes de gerar o ZIP, e o LEIA-ME avisa quando o backup é a única cópia de um anexo grande. A restauração devolve o PDF sem tratá-lo como foto, e os grandes continuam só no aparelho.
+3. **Códigos de paradigma:** os paradigmas incluídos a partir de laudos passam a ter id aleatório. Se dois aparelhos gerarem o mesmo código, o mais antigo o mantém e o outro é renumerado: fica com "codigoAnterior", situação "Revisar" e um aviso em Paradigmas que lista os vínculos e similares que citam o código. A renumeração roda após a sincronização e ao abrir Paradigmas.
+
 ## Pendências recomendadas (não alteradas)
-1. **Firebase:** restringir as regras a uma lista de e-mails autorizados e limitar o tipo e o tamanho dos arquivos. Hoje qualquer conta Google pode gravar no próprio espaço.
-2. **Backup ZIP:** incluir os anexos PDF (laudos antigos, sobretudo os acima de 39 MB, que ficam só no aparelho). Hoje o backup leva só as fotos.
-3. **Códigos de paradigma (M12…):** usar id aleatório. Dois aparelhos sem internet podem gerar o mesmo código e mesclar dois veículos.
-4. **Recuperação do registro de digitação:** gravar com o horário original, para não sobrescrever uma edição mais nova vinda da nuvem.
-5. **Penosidade:** marcar como "sugestão – confirmar" as inferências automáticas (pressão de prazos deduzida de jornada ≥ 12 h).
-6. **Jurisprudência:**
+1. **Registro de digitação:** a recuperação deve gravar com o horário original, para não sobrescrever uma edição mais nova vinda da nuvem.
+2. **Penosidade:** marcar como "sugestão – confirmar" as inferências automáticas (por exemplo, pressão de prazos deduzida de jornada ≥ 12 h).
+3. **Jurisprudência:**
    - conferir a numeração e o teor dos Temas 317 e 323 da TNU e do Tema 1307 do STJ;
    - avaliar a inclusão dos Temas 534 (eletricidade) e 1031 (vigilante) do STJ;
    - incluir as Leis 9.032/95 e 9.732/98, a EC 103/2019 e a NR-9 nas referências.
-7. **Ruído com q = 3 (NHO-01):** o app calcula só com q = 5 (NR-15), que o Tema 174 da TNU também admite. Avaliar um campo de fator de duplicação.
-8. **Capa sem número de página** (ABNT) e lista de figuras no LTCAT.
+4. **Ruído com q = 3 (NHO-01):** o app calcula só com q = 5. Avaliar um campo de fator de duplicação.
+5. **Capa sem número de página** (ABNT) e lista de figuras no LTCAT.

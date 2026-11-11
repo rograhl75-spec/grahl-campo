@@ -1,4 +1,4 @@
-import { db, mergeIncoming, createRecord, updateFields } from './db.js';
+import { db, mergeIncoming, createRecord, updateFields, newId } from './db.js';
 import { normalize, mergeRecords, sameContent } from './merge.js';
 import { num as numBR } from './calc.js';
 
@@ -123,7 +123,9 @@ export async function adicionarParadigmas(veiculos, { anexoId = '' } = {}) {
     d.codigo = await proximoCodigo();
     if (anexoId) d.anexoId = anexoId;
     if (!d.situacao || d.situacao === 'OK') d.situacao = 'Revisar';
-    const id = `par-${slug(d.codigo)}`;
+    // id aleatório: dois aparelhos sem internet podem gerar o mesmo código "M12", mas nunca o mesmo id
+    // (com id derivado do código, a sincronização fundiria dois veículos diferentes num só)
+    const id = `par-${newId()}`;
     await gravarImportado(registro(id, 'paradigma', d, Date.now()));
     criados.push(d.codigo);
   }
@@ -136,6 +138,50 @@ export async function guardarAnexo(file, descricao = '', caseId = null) {
   const rec = await createRecord('anexo', caseId, { nome: file.name, tamanho: file.size, mime: file.type || 'application/pdf', descricao, soLocal });
   await db.blobs.put({ id: rec.id, blob: file, uploaded: soLocal ? 2 : 0, mime: file.type || 'application/pdf' });
   return rec.id;
+}
+
+// ---------- Códigos duplicados entre aparelhos ----------
+// O mais antigo (createdAt) mantém o código; os outros recebem o próximo código livre e guardam o anterior
+// em "codigoAnterior", para conferência das referências (vínculos e similares) feitas com o código repetido.
+export async function resolverCodigosDuplicados() {
+  const todos = await db.records.where('kind').equals('paradigma').toArray();
+  const ativos = todos.filter((r) => !r.deleted && String(r.data.codigo || '').trim());
+  const grupos = new Map();
+  for (const r of ativos) {
+    const k = String(r.data.codigo).trim().toUpperCase();
+    (grupos.get(k) || grupos.set(k, []).get(k)).push(r);
+  }
+  let max = todos.reduce((m, r) => Math.max(m, Number(String(r.data.codigo || '').replace(/\D/g, '')) || 0), 0);
+  const renomeados = [];
+  for (const [cod, lista] of grupos) {
+    if (lista.length < 2) continue;
+    // ordem determinística: todos os aparelhos escolhem o mesmo "dono" do código
+    lista.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0) || String(a.id).localeCompare(String(b.id)));
+    for (const r of lista.slice(1)) {
+      max += 1;
+      const novo = `M${String(max).padStart(2, '0')}`;
+      const obs = [r.data.observacoes, `Código alterado de ${cod} para ${novo}: o mesmo código foi gerado em dois aparelhos sem internet. Confira os vínculos e similares que citam ${cod}.`].filter(Boolean).join('\n');
+      await updateFields(r.id, { codigo: novo, codigoAnterior: cod, situacao: 'Revisar', observacoes: obs });
+      renomeados.push({ id: r.id, de: cod, para: novo });
+    }
+  }
+  return renomeados;
+}
+
+// Vínculos e similares que citam um código que foi renumerado (para o aviso na tela)
+export async function referenciasARevisar() {
+  const pars = (await db.records.where('kind').equals('paradigma').toArray()).filter((r) => !r.deleted && r.data.codigoAnterior);
+  if (!pars.length) return [];
+  const antigos = new Map(pars.map((r) => [r.data.codigoAnterior, r]));
+  const refs = (await db.records.where('kind').anyOf('periodo', 'similar').toArray()).filter((r) => !r.deleted);
+  const out = [];
+  for (const r of refs) {
+    for (const campo of ['paradigmaRuido', 'paradigmaRuidoAlt', 'paradigmaVibracao']) {
+      const p = antigos.get(r.data[campo]);
+      if (p) out.push({ ref: r, campo, de: p.data.codigoAnterior, para: p.data.codigo });
+    }
+  }
+  return out;
 }
 
 // ---------- Busca por similaridade ----------

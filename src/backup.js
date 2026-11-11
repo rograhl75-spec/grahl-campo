@@ -1,6 +1,7 @@
 import JSZip from 'jszip';
 import { db, setMeta, mergeIncoming } from './db.js';
 import { processarFoto } from './photos.js';
+import { obterAnexo } from './sync.js';
 
 export const BACKUP_SCHEMA = 'grahl-campo-backup-v1';
 
@@ -23,17 +24,46 @@ export async function exportarBackup({ caseId = null } = {}) {
     if (b) zip.file(`fotos/${f.id}.jpg`, b.blob);
     else semArquivo += 1;
   }
+  // anexos (PDFs de laudos antigos e outros arquivos): os acima de 39 MB existem só neste aparelho
+  const anexos = records.filter((r) => r.kind === 'anexo' && !r.deleted);
+  let anexosSemArquivo = 0, soAqui = 0;
+  const indiceAnexos = [];
+  for (const a of anexos) {
+    let b = await db.blobs.get(a.id);
+    if (!b) {
+      // anexo que está só na nuvem: baixa para entrar no backup
+      try { await obterAnexo(a.id); b = await db.blobs.get(a.id); } catch (e) { /* sem internet ou sem nuvem */ }
+    }
+    if (!b) { anexosSemArquivo += 1; continue; }
+    const nome = `anexos/${a.id}${extensao(a.data.nome, b.mime || a.data.mime)}`;
+    zip.file(nome, b.blob);
+    if (b.uploaded === 2) soAqui += 1;
+    indiceAnexos.push({ id: a.id, arquivo: nome, nome: a.data.nome || '', mime: b.mime || a.data.mime || '', soLocal: b.uploaded === 2 });
+  }
+  if (indiceAnexos.length) zip.file('anexos/indice.json', JSON.stringify(indiceAnexos, null, 1));
   zip.file('LEIA-ME.txt', [
     'Backup do app GRAHL Campo.',
     `Gerado em ${new Date().toLocaleString('pt-BR')}.`,
-    `Registros: ${records.length}. Fotos: ${fotos.length - semArquivo} de ${fotos.length}.`,
+    `Registros: ${records.length}. Fotos: ${fotos.length - semArquivo} de ${fotos.length}. Anexos: ${anexos.length - anexosSemArquivo} de ${anexos.length}${soAqui ? ` (${soAqui} grande(s) demais para a nuvem: este backup é a única cópia fora do aparelho)` : ''}.`,
+    anexosSemArquivo ? `${anexosSemArquivo} anexo(s) não estavam neste aparelho e ficaram fora do ZIP (abra-os uma vez com internet e gere o backup de novo).` : '',
     'Para restaurar: Configurações → Backup → Restaurar backup (nada é apagado; os dados são mesclados).',
-    'As fotos estão na pasta "fotos" e podem ser abertas diretamente.',
-  ].join('\r\n'));
+    'As fotos estão na pasta "fotos" e os anexos (PDFs) na pasta "anexos"; podem ser abertos diretamente. O nome original de cada anexo está em anexos/indice.json.',
+  ].filter(Boolean).join('\r\n'));
   const blob = await zip.generateAsync({ type: 'blob', compression: 'STORE' });
   if (!caseId) await setMeta('ultimoBackup', Date.now());
-  return { blob, total: records.length, fotos: fotos.length, semArquivo };
+  return { blob, total: records.length, fotos: fotos.length, semArquivo, anexos: anexos.length, anexosSemArquivo, anexosSoLocal: soAqui };
 }
+
+function extensao(nome, mime) {
+  const m = String(nome || '').match(/\.[a-z0-9]{1,5}$/i);
+  if (m) return m[0].toLowerCase();
+  if (/pdf/.test(mime || '')) return '.pdf';
+  if (/jpe?g/.test(mime || '')) return '.jpg';
+  if (/png/.test(mime || '')) return '.png';
+  return '';
+}
+
+export const LIMITE_NUVEM_BACKUP = 39 * 1024 * 1024;
 
 export async function importarBackup(file) {
   const zip = await JSZip.loadAsync(file);
@@ -41,7 +71,7 @@ export async function importarBackup(file) {
   if (!jf) throw new Error('Arquivo não é um backup do GRAHL Campo (falta backup.json).');
   const dados = JSON.parse(await jf.async('string'));
   if (dados.schema !== BACKUP_SCHEMA) throw new Error('Versão de backup não reconhecida.');
-  let novos = 0, atualizados = 0, fotos = 0;
+  let novos = 0, atualizados = 0, fotos = 0, anexos = 0;
   for (const r of dados.records) {
     const existia = await db.records.get(r.id);
     const { changed } = await mergeIncoming({ ...r, dirty: 0 }, { markDirtyIfLocalNewer: true });
@@ -66,7 +96,19 @@ export async function importarBackup(file) {
     await db.blobs.put({ id: m[1], blob: jpeg, thumb, uploaded: 0 });
     fotos += 1;
   }
-  return { novos, atualizados, fotos };
+  // anexos: voltam como estão (PDF não passa pelo tratamento de foto); os grandes continuam só no aparelho
+  const ij = zip.file('anexos/indice.json');
+  const indice = ij ? JSON.parse(await ij.async('string')) : [];
+  for (const a of indice) {
+    if (await db.blobs.get(a.id)) continue;
+    const f = zip.file(a.arquivo);
+    if (!f) continue;
+    const mime = a.mime || 'application/pdf';
+    const blob = new Blob([await f.async('blob')], { type: mime });
+    await db.blobs.put({ id: a.id, blob, mime, uploaded: a.soLocal || blob.size > LIMITE_NUVEM_BACKUP ? 2 : 0 });
+    anexos += 1;
+  }
+  return { novos, atualizados, fotos, anexos };
 }
 
 export function baixarArquivo(blob, nome) {

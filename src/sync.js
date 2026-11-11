@@ -11,6 +11,7 @@ import { getStorage, ref as sref, uploadBytes, getBlob } from 'firebase/storage'
 import { db, getMeta, setMeta, mergeIncoming } from './db.js';
 import { mergeRecords, normalize } from './merge.js';
 import { processarFoto } from './photos.js';
+import { resolverCodigosDuplicados } from './paradigmas.js';
 
 // ---------- estado observável (mostrado no topo da tela) ----------
 const state = {
@@ -128,7 +129,11 @@ async function começar() {
     if (maxSrv > lastSrv) await setMeta('lastSrv:' + auth.currentUser.uid, maxSrv);
     set({ lastSync: Date.now(), error: '' });
     await refreshPending();
-    if (novos) baixarFotosFaltantes();
+    if (novos) {
+      baixarFotosFaltantes();
+      // paradigmas criados em dois aparelhos offline com o mesmo código: renumera o mais novo
+      try { if ((await resolverCodigosDuplicados()).length) agendar(500); } catch (e) { /* tenta de novo na próxima sincronização */ }
+    }
   }, (e) => set({ error: 'Leitura da nuvem: ' + traduzErro(e) }));
   agendar(200);
   baixarFotosFaltantes();
@@ -249,12 +254,12 @@ function limpar(obj) {
 export function traduzErro(e) {
   const c = String((e && e.code) || '');
   const map = {
-    'permission-denied': 'Permissão negada pelo Firebase (verifique as regras de segurança).',
+    'permission-denied': 'Permissão negada pelo Firebase: confira se esta conta Google está na lista de contas autorizadas das regras (firebase/firestore.rules). Os dados continuam salvos no aparelho.',
     'auth/unauthorized-domain': 'Este endereço não está autorizado no Firebase (Authentication → Settings → Authorized domains).',
     'auth/popup-closed-by-user': 'Janela de login fechada antes de concluir.',
     'auth/network-request-failed': 'Sem conexão com a internet.',
     'unavailable': 'Nuvem indisponível no momento (sem conexão). Os dados continuam salvos no aparelho.',
-    'storage/unauthorized': 'Sem permissão no Storage (verifique as regras do Storage).',
+    'storage/unauthorized': 'Sem permissão no Storage: confira a lista de contas autorizadas em firebase/storage.rules (fotos JPEG até 15 MB; anexos até 40 MB).',
     'storage/retry-limit-exceeded': 'Conexão instável ao enviar fotos; nova tentativa em seguida.',
   };
   return map[c] || map[c.replace('firestore/', '')] || (e && e.message) || String(e);

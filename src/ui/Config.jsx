@@ -127,7 +127,7 @@ function Backup() {
     try {
       const r = await exportarBackup();
       baixarArquivo(r.blob, `GRAHL_Campo_backup_${carimbo()}.zip`);
-      setMsg(`✓ Backup gerado: ${r.total} registros, ${r.fotos - r.semArquivo} fotos.${r.semArquivo ? ` ${r.semArquivo} foto(s) ainda não baixadas neste aparelho.` : ''}`);
+      setMsg(`✓ Backup gerado: ${r.total} registros, ${r.fotos - r.semArquivo} fotos.${r.anexos ? ` ${r.anexos - r.anexosSemArquivo} anexo(s) PDF.` : ''}${r.semArquivo ? ` ${r.semArquivo} foto(s) ainda não baixadas neste aparelho.` : ''}${r.anexosSemArquivo ? ` ${r.anexosSemArquivo} anexo(s) não puderam ser baixados (sem internet?).` : ''}${r.anexosSoLocal ? ` Atenção: ${r.anexosSoLocal} anexo(s) grandes existem só neste aparelho – guarde este ZIP fora dele.` : ''}`);
     } catch (e) { setMsg('Erro: ' + e.message); } finally { setOcupado(false); }
   };
   const importar = async (e) => {
@@ -138,7 +138,7 @@ function Backup() {
     try {
       const r = await importarBackup(f);
       avisarAlteracao();
-      setMsg(`✓ Restaurado: ${r.novos} novo(s), ${r.atualizados} mesclado(s), ${r.fotos} foto(s). Nada foi apagado.`);
+      setMsg(`✓ Restaurado: ${r.novos} novo(s), ${r.atualizados} mesclado(s), ${r.fotos} foto(s), ${r.anexos} anexo(s). Nada foi apagado.`);
     } catch (err) { setMsg('Erro: ' + err.message); } finally { setOcupado(false); }
   };
   const dias = ultimo ? Math.floor((Date.now() - ultimo) / 86400000) : null;

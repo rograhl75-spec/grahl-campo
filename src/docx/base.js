@@ -1,6 +1,6 @@
 import { db, caseChildren } from '../db.js';
 import { resumoMedicao, calculados } from '../medicoes.js';
-import { nenQ5, num, fmt } from '../calc.js';
+import { nen, num, fmt, fatorQ, doseJornada } from '../calc.js';
 import { ORIGEM_QUESITO, contextoLegal, ehSuplementar , reuEhInss, localVistoria } from '../schema.js';
 import { Doc, p, run, rich, montarDocx } from './ooxml.js';
 import { nenParaJornada, arenParaJornada, vdvrParaJornada, certificadoVencido, rotuloParadigma, num as numP } from '../paradigmas.js';
@@ -384,8 +384,10 @@ export function quadroConfrontoRuido(d, dados) {
   return d.quadro('Confronto do ruído com o limite de cada período', [['Vínculo / subperíodo', 'Medição representativa', 'Critério', 'Valor', 'Limite', 'Resultado'],
     ...subs.map((s) => {
       const ref = refDo(s.periodo);
-      const val = !ref ? NaN : s.janela.crit === 'Lavg' ? num(ref.data.lavg) : nenQ5(ref.data.lavg, s.periodo.data.conducaoH ? `${s.periodo.data.conducaoH}h` : ref.data.jornada);
-      const res = isFinite(val) ? (superaLimite(val, s.janela.lim) ? 'Supera' : 'Não supera') : '[[medir]]';
+      const q = ref ? fatorQ(ref) : 5;
+      const q3antes = ref && q === 3 && s.janela.crit === 'Lavg';
+      const val = !ref || q3antes ? NaN : s.janela.crit === 'Lavg' ? num(ref.data.lavg) : nen(ref.data.lavg, s.periodo.data.conducaoH ? `${s.periodo.data.conducaoH}h` : ref.data.jornada, q);
+      const res = q3antes ? '[[q = 3 não serve antes de 19/11/2003]]' : isFinite(val) ? (superaLimite(val, s.janela.lim) ? 'Supera' : 'Não supera') : '[[medir]]';
       return [`${s.periodo.data.empresa || ''}\n${dataBR(s.ini)} a ${dataBR(s.fim)}`, ref ? nomeP(ref.data.postoId) : '—', s.janela.crit,
         isFinite(val) ? `${fmt(val)} dB(A)` : ref ? '[[valor]]' : '[[vincular posto]]', `${s.janela.lim} dB(A)`, ref ? res : '[[vincular posto ao vínculo]]'];
     })], { larguras: [0.3, 0.22, 0.1, 0.13, 0.11, 0.14],
@@ -396,24 +398,30 @@ export function quadroConfrontoRuido(d, dados) {
 export function quadroMedicoesRuido(d, ms, eq, nomePosto, ctx = {}) {
   if (!ms.length) return d;
   const e0 = ms[0] && eq.get(ms[0].data.equipamentoId);
-  const fonte = `Elaborado pelo autor. ${e0 ? `Dosímetro ${e0.data.modelo}, série ${e0.data.serie}; ` : ''}critério 85 dB(A), limiar 80 dB(A), q = 5, circuito A, resposta lenta.`;
+  const qs = [...new Set(ms.map(fatorQ))];
+  const qTxt = qs.length === 1 ? `q = ${qs[0]}${qs[0] === 3 ? ' (NHO-01)' : ' (NR-15, Anexo 1)'}` : 'q indicado em cada linha';
+  const fonte = `Elaborado pelo autor. ${e0 ? `Dosímetro ${e0.data.modelo}, série ${e0.data.serie}; ` : ''}critério 85 dB(A), limiar 80 dB(A), ${qTxt}, circuito A, resposta lenta.`;
+  const rotNivel = qs.length === 1 ? (qs[0] === 3 ? 'Leq (q = 3)' : 'Lavg (q = 5)') : 'Lavg / Leq';
   if (ctx.prev) {
-    return d.quadro('Resultados – Ruído', [['Posto / trabalhador', 'Amostragem', 'Dose', 'Lavg (q = 5)', 'Jornada', 'NEN (q = 5)'],
+    return d.quadro('Resultados – Ruído', [['Posto / trabalhador', 'Amostragem', 'Dose', rotNivel, 'Jornada', qs.length === 1 ? `NEN (q = ${qs[0]})` : 'NEN'],
       ...ms.map((m) => {
         const x = m.data;
-        const n = nenQ5(x.lavg, x.jornada);
+        const n = nen(x.lavg, x.jornada, fatorQ(m));
         return [[nomePosto(x.postoId), x.posicao].filter(Boolean).join(' – '), [x.tempoAmostragem, x.horaInicio && x.horaFim && `${x.horaInicio}–${x.horaFim}`].filter(Boolean).join(', '),
           x.dose ? `${x.dose}%` : '', x.lavg ? `${x.lavg} dB(A)` : '', x.jornada || '', isFinite(n) ? `${fmt(n)} dB(A)` : ''];
       })], { larguras: [0.28, 0.18, 0.1, 0.15, 0.12, 0.17], alinhar: 'left', tam: 9, fonte });
   }
   // trabalhista: NR-15, Anexo 1 – dose e nível médio; NEN não se aplica
-  return d.quadro('Resultados – Ruído (NR-15, Anexo 1)', [['Posto / trabalhador', 'Amostragem', 'Jornada', 'Dose', 'Lavg (q = 5)', 'Situação'],
+  return d.quadro('Resultados – Ruído (NR-15, Anexo 1)', [['Posto / trabalhador', 'Amostragem', 'Jornada', 'Dose (jornada)', rotNivel, 'Situação'],
     ...ms.map((m) => {
       const x = m.data;
-      const dose = num(x.dose);
+      // dose projetada para a jornada; dosímetro com q = 3 não serve para a NR-15
+      const dj = doseJornada(x.dose, x.tempoAmostragem, x.jornada);
+      const proj = isFinite(dj) && Math.abs(dj - num(x.dose)) > 0.05;
+      const sit = fatorQ(m) === 3 ? '[[q = 3: refazer com q = 5]]' : isFinite(dj) ? (dj > 100 ? 'Acima do LT' : 'Dentro do LT') : '[[conferir]]';
       return [[nomePosto(x.postoId), x.posicao].filter(Boolean).join(' – '), [x.tempoAmostragem, x.horaInicio && x.horaFim && `${x.horaInicio}–${x.horaFim}`].filter(Boolean).join(', '),
-        x.jornada || '', x.dose ? `${x.dose}%` : '', x.lavg ? `${x.lavg} dB(A)` : '', isFinite(dose) ? (dose > 100 ? 'Acima do LT' : 'Dentro do LT') : '[[conferir]]'];
-    })], { larguras: [0.27, 0.17, 0.12, 0.11, 0.15, 0.18], alinhar: 'left', tam: 9, fonte });
+        x.jornada || '', x.dose ? (proj ? `${fmt(dj)}%\n(medida ${x.dose}%)` : `${x.dose}%`) : '', x.lavg ? `${x.lavg} dB(A)` : '', sit];
+    })], { larguras: [0.27, 0.17, 0.12, 0.12, 0.14, 0.18], alinhar: 'left', tam: 9, fonte: `${fonte} Dose projetada para a jornada: D × TE / T amostrado.` });
 }
 
 export function quadroMedicoesGenerico(d, titulo, ms, nomePosto, ctx = {}) {

@@ -30,20 +30,33 @@ export function minutos(v) {
   return h > 24 ? h : h * 60;
 }
 
-// NEN com q = 5 (NR-15): NEN = Lavg + 16,61 × log10(TE / 480)
-export function nenQ5(lavg, jornada) {
-  const L = num(lavg);
+// Fator de duplicação: q = 5 (NR-15, Anexo 1) ou q = 3 (NHO-01 da FUNDACENTRO).
+// k = q / log10(2): 16,61 para q = 5; 10 (9,97) para q = 3.
+export const fatorQ = (m) => (String((m && (m.data || m).q) || '').trim().startsWith('3') ? 3 : 5);
+const kQ = (q) => (q === 3 ? 10 : 16.61);
+
+// NEN = Lavg (q = 5) ou Leq (q = 3) + k × log10(TE / 480)
+export function nen(nivel, jornada, q = 5) {
+  const L = num(nivel);
   const te = minutos(jornada);
   if (!isFinite(L) || !isFinite(te) || te <= 0) return NaN;
-  return L + 16.61 * Math.log10(te / 480);
+  return L + kQ(q) * Math.log10(te / 480);
 }
+export const nenQ5 = (lavg, jornada) => nen(lavg, jornada, 5);
 
-// Lavg a partir da dose (%) e do tempo de amostragem, critério 85 dB(A), q = 5
-export function lavgDaDose(dose, tempoAmostragem) {
+// Nível médio a partir da dose (%) e do tempo de amostragem, critério 85 dB(A)
+export function lavgDaDose(dose, tempoAmostragem, q = 5) {
   const D = num(dose);
   const t = minutos(tempoAmostragem);
   if (!isFinite(D) || D <= 0 || !isFinite(t) || t <= 0) return NaN;
-  return 85 + 16.61 * Math.log10(D / (100 * (t / 480)));
+  return 85 + kQ(q) * Math.log10(D / (100 * (t / 480)));
+}
+
+// Dose projetada para a jornada (mesma condição de exposição): D × TE / T amostrado
+export function doseJornada(dose, tempoAmostragem, jornada) {
+  const D = num(dose), ta = minutos(tempoAmostragem), te = minutos(jornada);
+  if (!isFinite(D)) return NaN;
+  return isFinite(ta) && isFinite(te) && ta > 0 && Math.abs(te - ta) > 1 ? D * (te / ta) : D;
 }
 
 export function ibutg(tbn, tg, tbs, comCargaSolar) {

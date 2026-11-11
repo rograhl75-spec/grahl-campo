@@ -199,8 +199,8 @@ export class Doc {
   listaQuadros() {
     return this.add(p([run('LISTA DE QUADROS', { b: true, color: AZUL })], { align: 'center', pageBreakBefore: true, after: 240 }), campoToc('TOC \\h \\z \\c "Quadro"'));
   }
-  listaFiguras() {
-    return this.add(p([run('LISTA DE FIGURAS', { b: true, color: AZUL })], { align: 'center', before: 480, after: 240 }), campoToc('TOC \\h \\z \\c "Figura"'));
+  listaFiguras({ novaPagina = false } = {}) {
+    return this.add(p([run('LISTA DE FIGURAS', { b: true, color: AZUL })], { align: 'center', before: novaPagina ? 0 : 480, after: 240, pageBreakBefore: novaPagina }), campoToc('TOC \\h \\z \\c "Figura"'));
   }
   quebra() { return this.add('<w:p><w:r><w:br w:type="page"/></w:r></w:p>'); }
 }
@@ -301,6 +301,15 @@ export async function montarDocx(modeloBytes, corpoXml, { imagens = [], tituloDo
   const sect = xml.lastIndexOf('<w:sectPr');
   if (ini < 8 || sect < 0) throw new Error('Modelo timbrado inválido (corpo não encontrado).');
   xml = xml.slice(0, ini) + corpoXml + xml.slice(sect);
+  // primeira página (capa ou 1ª folha da petição) sem número: usa o cabeçalho/rodapé "first" do timbrado,
+  // que tem o mesmo timbre e não recebe o campo PAGE (ABNT NBR 14724: a capa não é numerada)
+  const ultSect = xml.lastIndexOf('<w:sectPr');
+  const fimSect = xml.indexOf('</w:sectPr>', ultSect);
+  if (fimSect > 0 && !xml.slice(ultSect, fimSect).includes('<w:titlePg') && /w:type="first"/.test(xml.slice(ultSect, fimSect))) {
+    const trecho = xml.slice(ultSect, fimSect);
+    const pos = trecho.includes('<w:docGrid') ? trecho.indexOf('<w:docGrid') : trecho.length;
+    xml = xml.slice(0, ultSect) + trecho.slice(0, pos) + '<w:titlePg/>' + trecho.slice(pos) + xml.slice(fimSect);
+  }
   zip.file(docPath, xml);
   // sumário (ABNT NBR 6027): títulos com a mesma grafia do texto; seção primária em negrito
   const stPath = 'word/styles.xml';

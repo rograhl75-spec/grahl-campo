@@ -5,7 +5,7 @@ import { dataBR, postosDoPeriodo, nomeCurto, hojeLocal, superaLimite } from './b
 import { comJurisprudencia } from './fontes.js';
 import { avaliaPenosidade, vinculosMotorista, matrizIAC } from './penosidade.js';
 import { nenParaJornada, arenParaJornada, vdvrParaJornada } from '../paradigmas.js';
-import { num, fmt, nenQ5 } from '../calc.js';
+import { num, fmt, nen, fatorQ } from '../calc.js';
 
 const CORTES = ['1995-04-28', '1997-03-05', '2003-11-18', '2014-08-13'];
 const dia = (iso, n) => { const d = new Date(`${iso}T12:00:00`); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
@@ -35,8 +35,9 @@ export function valores(r, dados) {
   const mv = dados.medicoes.find((m) => /corpo inteiro/.test(m.data.agente || '') && ids.has(m.data.postoId));
   if (pr) { out.lavg = num(pr.data.lavg); out.nen = isFinite(T) ? nenParaJornada(pr.data.lavg, T) : NaN; out.fonteR = `paradigma ${pr.data.codigo}`; }
   else if (mr) {
+    out.q = fatorQ(mr);
     out.lavg = num(mr.data.lavg);
-    out.nen = isFinite(T) ? nenQ5(mr.data.lavg, `${T}h`) : nenQ5(mr.data.lavg, mr.data.jornada);
+    out.nen = isFinite(T) ? nen(mr.data.lavg, `${T}h`, out.q) : nen(mr.data.lavg, mr.data.jornada, out.q);
     out.fonteR = nomeCurto(dados.postos.find((p) => p.id === mr.data.postoId)?.data.nome);
   }
   if (pv) {
@@ -72,9 +73,12 @@ export function avaliarPeriodos(dados) {
         dadosOk = true;
         const [crit, lim, cod] = b <= '1997-03-05' ? ['Lavg', 80, '1.1.6'] : b <= '2003-11-18' ? ['Lavg', 90, '2.0.1'] : ['NEN', 85, '2.0.1'];
         const x = crit === 'Lavg' ? val.lavg : val.nen;
-        if (isFinite(x)) {
+        // antes de 19/11/2003 a metodologia é a da NR-15 (q = 5): Leq com q = 3 não serve de Lavg
+        if (crit === 'Lavg' && val.q === 3) {
+          itens.push({ t: `Ruído: medição com q = 3 (NHO-01) – [[período anterior a 19/11/2003 exige o Lavg com q = 5 (NR-15); refaça a leitura do dosímetro com q = 5]]`, cod, sup: false, ruido: true });
+        } else if (isFinite(x)) {
           const sup = superaLimite(x, lim);
-          itens.push({ t: `Ruído: ${crit} ${fmt(x, 1)} dB(A) ${sup ? '>' : '≤'} ${lim} dB(A) – ${sup ? 'supera' : 'não supera'}`, cod, sup, ruido: true });
+          itens.push({ t: `Ruído: ${crit}${crit === 'NEN' && val.q === 3 ? ' (q = 3, NHO-01)' : ''} ${fmt(x, 1)} dB(A) ${sup ? '>' : '≤'} ${lim} dB(A) – ${sup ? 'supera' : 'não supera'}`, cod, sup, ruido: true });
           if (sup) algum = true;
         }
       }

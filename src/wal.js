@@ -1,4 +1,4 @@
-import { db, updateField } from './db.js';
+import { db, updateFields } from './db.js';
 
 // Registro de segurança (write-ahead log): cada tecla é copiada de forma
 // SÍNCRONA para o localStorage antes da gravação no banco. Se o Android
@@ -31,7 +31,8 @@ export async function walRecuperar() {
       const { id, k, v, t } = JSON.parse(localStorage.getItem(chave));
       const rec = await db.records.get(id);
       if (rec && ((rec.ts || {})[k] || 0) < t && rec.data[k] !== v) {
-        await updateField(id, k, v);
+        // grava com o horário da digitação: se o campo foi editado depois em outro aparelho, a versão mais nova vence na sincronização
+        await updateFields(id, { [k]: v }, { at: t });
         recuperados += 1;
       }
       localStorage.removeItem(chave);

@@ -63,3 +63,56 @@ describe('backup com anexos', () => {
     expect(b2.uploaded).toBe(2); // continua só no aparelho
   });
 });
+
+describe('recuperação do registro de digitação', () => {
+  it('grava com o horário da digitação e não vence edição mais nova da nuvem', async () => {
+    const { walGravar, walRecuperar } = await import('../src/wal.js');
+    const store = {};
+    const api = { getItem: (k) => store[k] ?? null, setItem: (k, v) => { store[k] = String(v); }, removeItem: (k) => { delete store[k]; } };
+    // Object.keys(localStorage) lista as chaves gravadas, como no navegador
+    globalThis.localStorage = new Proxy(api, { ownKeys: () => Object.keys(store), getOwnPropertyDescriptor: () => ({ enumerable: true, configurable: true }) });
+    const rec = await createRecord('caso', null, { sintese: 'antes' });
+    await new Promise((r) => setTimeout(r, 5));
+    const t0 = Date.now();
+    walGravar(rec.id, 'sintese', 'digitado no tablet');
+    expect(await walRecuperar()).toBe(1);
+    const local = await db.records.get(rec.id);
+    expect(local.data.sintese).toBe('digitado no tablet');
+    expect(local.ts.sintese).toBeLessThanOrEqual(Date.now());
+    expect(local.ts.sintese).toBeGreaterThanOrEqual(t0);
+    // edição feita depois no PC chega pela nuvem e prevalece
+    const remoto = { ...local, data: { ...local.data, sintese: 'editado no PC' }, ts: { ...local.ts, sintese: local.ts.sintese + 60000 } };
+    expect(mergeRecords(local, remoto).data.sintese).toBe('editado no PC');
+  });
+});
+
+describe('ruído com q = 3 (NHO-01)', async () => {
+  const { nen, lavgDaDose, doseJornada, fatorQ } = await import('../src/calc.js');
+  const { calculados } = await import('../src/medicoes.js');
+  it('NEN e nível pela dose com k = 10', () => {
+    expect(nen('88', '4h', 3)).toBeCloseTo(88 + 10 * Math.log10(0.5), 6);
+    expect(nen('88', '4h')).toBeCloseTo(88 + 16.61 * Math.log10(0.5), 6);
+    expect(lavgDaDose('100', '8h', 3)).toBeCloseTo(85, 6);
+    expect(lavgDaDose('200', '8h', 3)).toBeCloseTo(88.01, 2);
+    expect(fatorQ({ data: { q: '3 (NHO-01)' } })).toBe(3);
+    expect(fatorQ({ data: {} })).toBe(5);
+    expect(doseJornada('70', '4h', '8h')).toBeCloseTo(140, 6);
+  });
+  it('trabalhista com q = 3 pede nova leitura com q = 5', () => {
+    const c = calculados({ agente: 'Ruído', q: '3 (NHO-01)', dose: '80', lavg: '86', jornada: '8h', tempoAmostragem: '8h' }, { prev: false });
+    expect(c.find((x) => /NR-15/.test(x[0]))[1]).toMatch(/q = 5/);
+  });
+  it('previdenciário: q = 3 não serve antes de 19/11/2003', async () => {
+    const { avaliarPeriodos } = await import('../src/docx/conclusao.js');
+    const dados = { periodos: [{ id: 'p', data: { empresa: 'Usina Ômega', inicio: '2002-01-01', fim: '2004-12-31' } }],
+      postos: [{ id: 'x1', data: { nome: 'Caldeira – Usina Ômega' } }], paradigmas: new Map(), epis: [], c: {}, perfil: {},
+      medicoes: [{ data: { agente: 'Ruído', q: '3 (NHO-01)', lavg: '88', jornada: '8h', postoId: 'x1' } }] };
+    const [a] = avaliarPeriodos(dados);
+    const antes = a.segs.find((s) => s.fim === '2003-11-18');
+    const depois = a.segs.find((s) => s.ini === '2003-11-19');
+    expect(antes.itens[0].t).toMatch(/q = 5/);
+    expect(antes.caracteriza).not.toBe('SIM');
+    expect(depois.itens[0].t).toMatch(/NEN \(q = 3, NHO-01\) 88,0/);
+    expect(depois.caracteriza).toBe('SIM');
+  });
+});

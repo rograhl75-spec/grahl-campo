@@ -45,7 +45,9 @@ export async function createRecord(kind, caseId, data = {}) {
 
 const HISTORY_WINDOW = 90 * 1000; // agrupa digitação contínua do mesmo campo
 
-export async function updateFields(id, changes) {
+// opts.at: horário da alteração (padrão: agora). A recuperação do registro de segurança usa o horário
+// em que a tecla foi digitada, para não vencer uma edição mais nova feita em outro aparelho.
+export async function updateFields(id, changes, opts = {}) {
   return db.transaction('rw', db.records, db.history, async () => {
     const rec = await db.records.get(id);
     if (!rec) throw new Error('Registro não encontrado: ' + id);
@@ -56,7 +58,7 @@ export async function updateFields(id, changes) {
       const old = data[k];
       if (JSON.stringify(old) === JSON.stringify(v)) continue;
       changed = true;
-      const t = now();
+      const t = opts.at || now();
       data[k] = v;
       ts[k] = t;
       if (typeof v === 'string' || typeof old === 'string') {

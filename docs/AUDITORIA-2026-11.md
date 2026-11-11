@@ -66,12 +66,25 @@
 2. **Backup ZIP:** passa a levar os anexos, na pasta `anexos/` com `indice.json`. Os anexos que estão só na nuvem são baixados antes de gerar o ZIP, e o LEIA-ME avisa quando o backup é a única cópia de um anexo grande. A restauração devolve o PDF sem tratá-lo como foto, e os grandes continuam só no aparelho.
 3. **Códigos de paradigma:** os paradigmas incluídos a partir de laudos passam a ter id aleatório. Se dois aparelhos gerarem o mesmo código, o mais antigo o mantém e o outro é renumerado: fica com "codigoAnterior", situação "Revisar" e um aviso em Paradigmas que lista os vínculos e similares que citam o código. A renumeração roda após a sincronização e ao abrir Paradigmas.
 
-## Pendências recomendadas (não alteradas)
-1. **Registro de digitação:** a recuperação deve gravar com o horário original, para não sobrescrever uma edição mais nova vinda da nuvem.
-2. **Penosidade:** marcar como "sugestão – confirmar" as inferências automáticas (por exemplo, pressão de prazos deduzida de jornada ≥ 12 h).
-3. **Jurisprudência:**
-   - conferir a numeração e o teor dos Temas 317 e 323 da TNU e do Tema 1307 do STJ;
-   - avaliar a inclusão dos Temas 534 (eletricidade) e 1031 (vigilante) do STJ;
-   - incluir as Leis 9.032/95 e 9.732/98, a EC 103/2019 e a NR-9 nas referências.
-4. **Ruído com q = 3 (NHO-01):** o app calcula só com q = 5. Avaliar um campo de fator de duplicação.
-5. **Capa sem número de página** (ABNT) e lista de figuras no LTCAT.
+## Resolvido na v2.26.0
+1. **Registro de digitação:** o texto recuperado após o navegador fechar é gravado com o horário em que foi digitado. Assim, uma edição mais nova feita em outro aparelho prevalece na sincronização.
+2. **Penosidade:** "pressão de prazos" e "condução prolongada" deduzidas da jornada saem como `[[sugestão do app – confirmar]]`, com a fonte indicando a dedução. A conclusão calculada pela contagem de fatores sai como proposta a confirmar; se o perito redigir a conclusão no vínculo, vale a dele. Sem jurisprudência habilitada, o título passa a ser "perícia individualizada".
+3. **Jurisprudência e referências:**
+   - Tema 317 da TNU: PEDILEF 5000648-28.2020.4.02.5002/ES, novo julgamento em 18/09/2025, aplicável a partir de 19/11/2003.
+   - Tema 323 da TNU: PEDILEF 0510577-41.2020.4.05.8200/PB, embargos rejeitados em 11/03/2026.
+   - Tema 1307 do STJ: REsp 2.164.724/RS, julgado em 07/05/2026 e publicado em 20/05/2026. Uma fonte secundária indica publicação em 03/06/2026; conferir no site do STJ.
+   - Incluídos os Temas 534 (eletricidade) e 1031 (vigilante) do STJ; entram quando o caso trata de eletricidade ou vigilância.
+   - Novas referências no laudo previdenciário: Leis 9.032/1995 e 9.732/1998, EC 103/2019, NR-15 e NR-9 (Portaria SEPRT 6.735/2020).
+   - A NHO 08 só entra quando há particulado (poeira, sílica, fumos metálicos…).
+4. **Ruído com q = 3 (NHO-01):**
+   - novo campo "Fator de duplicação" na medição, com q = 5 como padrão;
+   - NEN e nível pela dose calculados com k = 10 quando q = 3;
+   - antes de 19/11/2003, a medição com q = 3 não é usada e fica marcada para nova leitura com q = 5; no trabalhista (NR-15), também pede q = 5;
+   - o quadro trabalhista mostra a dose projetada para a jornada.
+5. **Capa e listas:**
+   - a primeira página (capa) sai sem número, mantendo o timbrado;
+   - o LTCAT com fotos ganha a Lista de Figuras antes da Lista de Quadros (NBR 14724).
+
+## Observações
+- As regras do Firebase não foram testadas em emulador nesta sessão. Publique e confira o login no tablet e no PC.
+- Confira no original a tese e as datas da jurisprudência antes de usá-las em peça: as conferências desta sessão foram feitas em fontes secundárias.

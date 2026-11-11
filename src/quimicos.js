@@ -42,7 +42,8 @@ export const CAMPOS_QUIMICO = {
     ['nr7', 'NR-7 – indicador biológico (Quadro 1)', 'area'],
   ],
   'Referências internacionais': [
-    ['acgihTwa', 'ACGIH – TLV-TWA', 'text'], ['acgihStel', 'ACGIH – TLV-STEL / C', 'text'], ['acgihEdicao', 'ACGIH – edição do livreto', 'text'],
+    ['acgihTwa', 'ACGIH – TLV-TWA', 'text'], ['acgihStel', 'ACGIH – TLV-STEL / C', 'text'], ['acgihNotacoes', 'ACGIH – notações (Skin, DSEN, A1…)', 'text'],
+    ['acgihBase', 'ACGIH – base do TLV (efeitos críticos)', 'text'], ['acgihBei', 'ACGIH – BEI', 'area'], ['acgihEdicao', 'ACGIH – edição do livreto', 'text'],
     ['rel', 'NIOSH – REL', 'area'], ['idlh', 'NIOSH – IDLH', 'text'], ['oshaPel', 'OSHA – PEL', 'text'], ['iarc', 'IARC – grupo', 'text'],
   ],
   'Toxicologia': [
@@ -63,7 +64,7 @@ export const num = (v) => (typeof v === 'number' ? v : numCalc(String(v ?? '').r
 
 // Agente do arquivo-base → dados planos do registro
 export function agenteParaDados(a) {
-  const f = a.fisico || {}, n = a.niosh || {}, nr = a.nr15 || {}, a11 = nr.anexo11 || null;
+  const f = a.fisico || {}, n = a.niosh || {}, nr = a.nr15 || {}, a11 = nr.anexo11 || null, ac = a.acgih || {};
   const d = {
     nome: s(a.nome), sinonimos: (a.sinonimos || []).map(s).filter(Boolean).join('; '), cas: s(a.cas), tipo: s(a.tipo),
     grupos: (a.grupos || []).map(s).filter(Boolean).join('; '), formula: s(a.formula), massaMolar: s(a.massaMolar),
@@ -73,6 +74,8 @@ export function agenteParaDados(a) {
     rel: s(n.rel), idlh: s(n.idlh), oshaPel: s(n.oshaPel), vias: s(n.vias), orgaosAlvo: s(n.orgaosAlvo), sintomas: s(n.sintomas),
     metodos: s(n.metodos), nioshUrl: s(n.url),
     nr15Obs: s(nr.observacao), linach: s(a.linach), iarc: s(a.iarc),
+    acgihTwa: s(ac.twa), acgihStel: s(ac.stel), acgihNotacoes: s(ac.notacoes), acgihBase: s(ac.baseTlv), acgihBei: s(ac.bei),
+    acgihEdicao: s(ac.edicao) || (Object.values(ac).some((x) => s(x)) ? s(a.acgihEdicao) : ''),
     fontes: (a.fontes || []).map((x) => [s(x.referencia), s(x.campos) && `(${s(x.campos)})`, s(x.url), s(x.consultadoEm) && `consultado em ${s(x.consultadoEm)}`].filter(Boolean).join(' – ')).join('\n'),
     situacao: s(a.situacao) || 'A conferir',
   };
@@ -102,8 +105,10 @@ export async function carregarBaseQuimicos() {
   return r.json();
 }
 
-// Agentes vindos do Claude (JSON colado): mesmo formato do arquivo-base; chave = CAS ou nome
-export async function importarAgentesColados(texto) {
+// Agentes colados (JSON do Claude ou arquivo de valores da ACGIH): mesmo formato do arquivo-base.
+// Se o agente já existe no banco (mesmo id, CAS ou nome), atualiza só os campos que vieram,
+// acrescenta as fontes às já registradas e mantém o nome e a situação da ficha.
+export async function importarAgentesColados(texto, existentes = null) {
   let t = String(texto || '').trim();
   const bloco = t.match(/```(?:json)?\s*([\s\S]*?)```/i);
   if (bloco) t = bloco[1];
@@ -111,12 +116,22 @@ export async function importarAgentesColados(texto) {
   if (i < 0 || f < i) throw new Error('Não encontrei um JSON no texto colado.');
   const obj = JSON.parse(t.slice(i, f + 1));
   const lista = Array.isArray(obj.agentes) ? obj.agentes : [obj];
+  const { db } = await import('./db.js');
+  const banco = existentes || (await db.records.where('kind').equals('quimico').toArray()).filter((r) => !r.deleted);
   let n = 0;
   for (const a of lista) {
-    const d = agenteParaDados({ ...a, situacao: 'A conferir' });
-    if (!d.nome) continue;
+    const d = agenteParaDados({ ...a, situacao: '' });
+    const ja = (a.id && banco.find((r) => r.id === idDoAgente(a))) || acharAgente(banco, a.cas) || acharAgente(banco, a.nome);
+    if (!ja && !d.nome) continue;
+    if (ja) {
+      delete d.nome; delete d.situacao;
+      const antigas = String(ja.data.fontes || '').split('\n').filter(Boolean);
+      const novas = String(d.fontes || '').split('\n').filter((x) => x && !antigas.includes(x));
+      if (novas.length) d.fontes = [...antigas, ...novas].join('\n'); else delete d.fontes;
+    } else d.situacao = 'A conferir';
     // colado pelo usuário: relógio de agora (prevalece sobre a base)
-    if (await gravarImportado(registro(idDoAgente({ id: a.cas || a.nome }), 'quimico', d, Date.now()))) n += 1;
+    const id = ja ? ja.id : idDoAgente({ id: a.id || a.cas || a.nome });
+    if (await gravarImportado(registro(id, 'quimico', d, Date.now()))) n += 1;
   }
   return n;
 }

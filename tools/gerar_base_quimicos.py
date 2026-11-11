@@ -40,7 +40,8 @@ def get(url, binary=False):
     for tentativa in range(3):
         time.sleep((2 if "cdc.gov" in url else 0.3) + 30 * tentativa)
         try:
-            with urllib.request.urlopen(url, context=CTX, timeout=60) as r:
+            req = urllib.request.Request(url, headers={"User-Agent": "gerar-base-quimicos/1.0 (Python-urllib)"})
+            with urllib.request.urlopen(req, context=CTX, timeout=60) as r:
                 b = r.read()
             if arq:
                 os.makedirs(CACHE, exist_ok=True); open(arq, "wb").write(b)
@@ -57,6 +58,7 @@ def get(url, binary=False):
 
 def limpa(s):
     s = re.sub(r"<sup>(.*?)</sup>", lambda m: {"3": "³", "2": "²"}.get(m.group(1), m.group(1)), s, flags=re.I | re.S)
+    s = re.sub(r"\s*<sub>(\d+)</sub>", lambda m: m.group(1).translate(str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")), s, flags=re.I)
     s = re.sub(r"<br\s*/?>|<h6>", " ", s, flags=re.I)
     s = html.unescape(re.sub(r"<[^>]+>", " ", s))
     s = re.sub(r"\s+", " ", s).strip()
@@ -107,6 +109,7 @@ A = [
  dict(id="tgic", nome="TGIC (isocianurato de triglicidila)", sinonimos=["Triglicidil isocianurato", "Triglycidyl isocyanurate"], cas="2451-62-9", grupos=[TINTAS], tipo="substância"),
  dict(id="cromo-vi-compostos", nome="Cromo VI – compostos", sinonimos=["Cromo hexavalente", "Cromato de zinco", "Ácido crômico e cromatos", "Chromium(VI) compounds"], cas="", grupos=[TINTAS, SOLDA], tipo="grupo/fumos", npg="0138",
       linach="Compostos de cromo (VI)", iarc="Chromium (VI) compounds", linachNota=[SOLDA_L], iarcNota=[SOLDA_I],
+      npgNota="Página 'Chromic acid and chromates'; as propriedades físicas da página referem-se ao CrO₃ (trióxido de cromo), não ao cromato de zinco.",
       nr15obs="O Quadro n.º 1 não tem entrada genérica para compostos de cromo VI; consta 'Ácido crômico (névoa)' (ver PDF)."),
  dict(id="chumbo", nome="Chumbo", sinonimos=["Lead", "Pb"], cas="7439-92-1", grupos=[TINTAS], tipo="substância", npg="0368", nr15="Chumbo", linach="Chumbo|",
       linachNota=["Chumbo inorgânico, compostos de"], iarcNota=["Lead compounds, inorganic"]),
@@ -175,9 +178,9 @@ def niosh(pid):
         if k in c and not fis.get(campo):
             v = limpa(c[k])
             fis[campo] = f2c(v) if campo in CONV else v
-    return dict(url=url, nome=limpa(re.search(r"<title>(.*?)</title>", t, re.S).group(1)).split("|")[0].strip(),
+    return dict(url=url, nome=limpa(re.search(r"<title>(.*?)</title>", t, re.S).group(1)).split(" - ")[-1].strip(),
                 cas=limpa(c.get("CAS No.", "")), mw=limpa(c.get("Molecular Weight", "")), fis=fis,
-                rel=limpa(rel.group(1)) if rel else "", pel=limpa(pel.group(1)) if pel else "",
+                rel=re.sub(r"^NIOSH REL:\s*", "", limpa(rel.group(1))) if rel else "", pel=limpa(pel.group(1)) if pel else "",
                 idlh=re.sub(r"\s*See:.*$", "", limpa(c.get("IDLH", ""))), metodos=met,
                 vias=limpa(c.get("Exposure Routes", "")), orgaos=limpa(c.get("Target Organs", "")), sint=limpa(c.get("Symptoms", "")))
 
@@ -286,7 +289,7 @@ def main():
         if ni:
             fis.update(ni["fis"])
             nio.update(rel=ni["rel"], idlh=ni["idlh"], oshaPel=ni["pel"], vias=ni["vias"], orgaosAlvo=ni["orgaos"], sintomas=ni["sint"], metodos=ni["metodos"], url=ni["url"])
-            if not ag["massaMolar"] and ni["mw"]:
+            if not ag["massaMolar"] and ni["mw"] and a["tipo"] != "grupo/fumos":
                 ag["massaMolar"] = ni["mw"] + " (NIOSH)"
             fontes.append(fonte("propriedades físico-químicas e bloco niosh", f"NIOSH Pocket Guide to Chemical Hazards – {ni['nome']} (CAS na página: {ni['cas']})",
                                 ni["url"], a.get("npgNota")))
@@ -350,7 +353,7 @@ def main():
                 e = next((e for e in IA if e["nome"].startswith(n)), None)
                 if e:
                     notas.append(f"'{e['nome']}' – Grupo {e['grupo']}")
-            nota = (f"Entrada usada: '{hit['nome']}'. " if hit else "Agente não localizado na lista. ") + \
+            nota = (f"Entrada usada: '{hit['nome']}'. " if hit else "Nenhuma entrada atribuída ao agente. ") + \
                    (("Entradas relacionadas (não atribuídas ao agente): " + "; ".join(notas)) if notas else "")
             fontes.append(fonte("iarc", "IARC Monographs – List of Classifications", IARC_URL, nota.strip()))
         ag["fontes"], ag["situacao"] = fontes, "A conferir"

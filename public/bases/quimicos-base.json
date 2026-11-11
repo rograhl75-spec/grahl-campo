@@ -16,30 +16,30 @@
    ],
    "tipo": "mistura",
    "formula": "",
-   "massaMolar": "",
+   "massaMolar": "Varies (NIOSH)",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Colorless, oily liquid aerosol dispersed in air. [Note: Has an odor like burned lubricating oil.]",
+    "pontoEbulicao": "680°F (360 °C)",
+    "pontoFusao": "0°F (-18 °C)",
+    "pressaoVapor": "<0.5 mmHg",
+    "densidadeRelativa": "0.90",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "Insoluble",
+    "pontoFulgor": "(oc) 380°F (193 °C)",
+    "lie": "?",
+    "lse": "?",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA 5 mg/m³ ST 10 mg/m³",
+    "idlh": "2500 mg/m³",
+    "oshaPel": "TWA 5 mg/m³",
+    "vias": "inhalation, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, skin, respiratory system",
+    "sintomas": "irritation eyes, skin, respiratory system",
+    "metodos": "NIOSH 5524, 5026",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0472.html"
    },
    "nr15": {
     "anexo11": null,
@@ -52,6 +52,12 @@
      "campos": "confirmação do CAS",
      "referencia": "PubChem Substance, SID 176259087 (CAS registrado como sinônimo; sem registro em PubChem Compound)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/substance/176259087",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Oil mist (mineral) (CAS na página: 8012-95-1)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0472.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -72,7 +78,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista. Entradas relacionadas (não atribuídas ao agente): 'Mineral oils, untreated or mildly treated' – Grupo 1; 'Mineral oils, highly-refined' – Grupo 3"
+     "nota": "Nenhuma entrada atribuída ao agente. Entradas relacionadas (não atribuídas ao agente): 'Mineral oils, untreated or mildly treated' – Grupo 1; 'Mineral oils, highly-refined' – Grupo 3"
     }
    ],
    "situacao": "A conferir"
@@ -91,30 +97,30 @@
    ],
    "tipo": "mistura",
    "formula": "",
-   "massaMolar": "",
+   "massaMolar": "170 (approx) (NIOSH)",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Colorless to yellowish, oily liquid with a strong, characteristic odor.",
+    "pontoEbulicao": "347-617°F (175–325 °C)",
+    "pontoFusao": "-50°F (-46 °C)",
+    "pressaoVapor": "(100°F): 5 mmHg",
+    "densidadeRelativa": "0.81",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "Insoluble",
+    "pontoFulgor": "100-162°F (38–72 °C)",
+    "lie": "0.7%",
+    "lse": "5%",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA 100 mg/m³",
+    "idlh": "N.D.",
+    "oshaPel": "none",
+    "vias": "inhalation, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, skin, respiratory system, central nervous system",
+    "sintomas": "irritation eyes, skin, nose, throat; burning sensation in chest; headache, nausea, lassitude (weakness, exhaustion), restlessness, incoordination, confusion, drowsiness; vomiting, diarrhea; dermatitis; chemical pneumonitis (aspiration liquid)",
+    "metodos": "NIOSH 1550",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0366.html"
    },
    "nr15": {
     "anexo11": null,
@@ -127,6 +133,12 @@
      "campos": "confirmação do CAS",
      "referencia": "PubChem Substance, SID 135356845 (CAS registrado como sinônimo; sem registro em PubChem Compound)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/substance/135356845",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Kerosene (CAS na página: 8008-20-6)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0366.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -147,7 +159,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista."
+     "nota": "Nenhuma entrada atribuída ao agente."
     }
    ],
    "situacao": "A conferir"
@@ -168,30 +180,30 @@
    ],
    "tipo": "mistura",
    "formula": "",
-   "massaMolar": "",
+   "massaMolar": "varies (NIOSH)",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Colorless liquid with a kerosene-like odor.",
+    "pontoEbulicao": "309-396°F (154–202 °C)",
+    "pontoFusao": "?",
+    "pressaoVapor": "?",
+    "densidadeRelativa": "0.78",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "Insoluble",
+    "pontoFulgor": "102-110°F (39–43 °C)",
+    "lie": "?",
+    "lse": "?",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA 350 mg/m³ C 1800 mg/m³ [15-minute]",
+    "idlh": "20,000 mg/m³",
+    "oshaPel": "TWA 500 ppm (2900 mg/m³) See Appendix G",
+    "vias": "inhalation, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, skin, respiratory system, central nervous system, kidneys",
+    "sintomas": "irritation eyes, nose, throat; dizziness; dermatitis; chemical pneumonitis (aspiration liquid); In Animals: kidney damage",
+    "metodos": "NIOSH 1550",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0569.html"
    },
    "nr15": {
     "anexo11": null,
@@ -204,6 +216,12 @@
      "campos": "confirmação do CAS",
      "referencia": "PubChem Substance, SID 373826743 (CAS registrado como sinônimo; sem registro em PubChem Compound)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/substance/373826743",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Stoddard solvent (CAS na página: 8052-41-3)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0569.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -224,7 +242,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista."
+     "nota": "Nenhuma entrada atribuída ao agente."
     }
    ],
    "situacao": "A conferir"
@@ -317,28 +335,28 @@
    "formula": "C8H6Cl2O3",
    "massaMolar": "221.03 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "White to yellow, crystalline, odorless powder. [herbicide]",
+    "pontoEbulicao": "Decomposes",
+    "pontoFusao": "280°F (138 °C)",
+    "pressaoVapor": "(320°F): 0.4 mmHg",
+    "densidadeRelativa": "1.57",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "0.05%",
+    "pontoFulgor": "NA",
+    "lie": "NA",
+    "lse": "NA",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA 10 mg/m³",
+    "idlh": "100 mg/m³",
+    "oshaPel": "TWA 10 mg/m³",
+    "vias": "inhalation, skin absorption, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Skin, central nervous system, liver, kidneys",
+    "sintomas": "lassitude (weakness, exhaustion), stupor, hyporeflexia, muscle twitching; convulsions; dermatitis; In Animals: liver, kidney injury",
+    "metodos": "NIOSH 5001",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0173.html"
    },
    "nr15": {
     "anexo11": null,
@@ -351,6 +369,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 1486 ((2,4-Dichlorophenoxy)Acetic Acid)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/1486",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – 2,4-D (CAS na página: 94-75-7)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0173.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -391,28 +415,28 @@
    "formula": "C12H14Cl2N2",
    "massaMolar": "257.16 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Yellow solid with a faint, ammonia-like odor. [herbicide] [Note: Paraquat may also be found commercially as a methyl sulfate salt C₁₂H₁₄N₂ • 2CH₃SO₄.]",
+    "pontoEbulicao": "Decomposes",
+    "pontoFusao": "572°F (300 °C) (Decomposes)",
+    "pressaoVapor": "<0.0000001 mmHg",
+    "densidadeRelativa": "1.24",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "Miscible",
+    "pontoFulgor": "NA",
+    "lie": "NA",
+    "lse": "NA",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA 0.1 mg/m³ (resp) [skin]",
+    "idlh": "1 mg/m³",
+    "oshaPel": "TWA 0.5 mg/m³ (resp) [skin] See Appendix G",
+    "vias": "inhalation, skin absorption, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, skin, respiratory system, heart, liver, kidneys, gastrointestinal tract",
+    "sintomas": "irritation eyes, skin, nose, throat, respiratory system; epistaxis (nosebleed); dermatitis; fingernail damage; irritation gastrointestinal tract; heart, liver, kidney damage",
+    "metodos": "NIOSH 5003",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0478.html"
    },
    "nr15": {
     "anexo11": null,
@@ -425,6 +449,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 15938 (Paraquat dichloride)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/15938",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Paraquat (Paraquat dichloride) (CAS na página: 1910-42-5)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0478.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -445,7 +475,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista."
+     "nota": "Nenhuma entrada atribuída ao agente."
     }
    ],
    "situacao": "A conferir"
@@ -464,28 +494,28 @@
    "formula": "C9H11Cl3NO3PS",
    "massaMolar": "350.6 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Colorless to white, crystalline solid with a mild, mercaptan-like odor. [pesticide] [Note: Commercial formulations may be combined with combustible liquids.]",
+    "pontoEbulicao": "320°F (160 °C) (Decomposes)",
+    "pontoFusao": "108°F (42 °C)",
+    "pressaoVapor": "0.00002 mmHg",
+    "densidadeRelativa": "1.40 (Liquid at 110°F)",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "0.0002%",
+    "pontoFulgor": "?",
+    "lie": "?",
+    "lse": "?",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA 0.2 mg/m³ ST 0.6 mg/m³ [skin]",
+    "idlh": "N.D.",
+    "oshaPel": "none See Appendix G",
+    "vias": "inhalation, skin absorption, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "respiratory system, central nervous system, peripheral nervous system, plasma cholinesterase",
+    "sintomas": "wheezing, laryngeal spasms, salivation; bluish lips, skin; miosis, blurred vision; nausea, vomiting, abdominal cramps, diarrhea",
+    "metodos": "NIOSH 5600; OSHA 62",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0137.html"
    },
    "nr15": {
     "anexo11": null,
@@ -498,6 +528,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 2730 (Chlorpyrifos)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/2730",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Chlorpyrifos (CAS na página: 2921-88-2)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0137.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -518,7 +554,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista."
+     "nota": "Nenhuma entrada atribuída ao agente."
     }
    ],
    "situacao": "A conferir"
@@ -591,7 +627,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista."
+     "nota": "Nenhuma entrada atribuída ao agente."
     }
    ],
    "situacao": "A conferir"
@@ -610,28 +646,28 @@
    "formula": "C8H14ClN5",
    "massaMolar": "215.68 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Colorless or white, odorless, crystalline powder. [herbicide]",
+    "pontoEbulicao": "Decomposes",
+    "pontoFusao": "340°F (171 °C)",
+    "pressaoVapor": "0.0000003 mmHg",
+    "densidadeRelativa": "1.19",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "0.003%",
+    "pontoFulgor": "NA",
+    "lie": "NA",
+    "lse": "NA",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA 5 mg/m³",
+    "idlh": "N.D.",
+    "oshaPel": "none See Appendix G",
+    "vias": "inhalation, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, skin, respiratory system, central nervous system, liver",
+    "sintomas": "irritation eyes, skin; dermatitis, sensitization skin; dyspnea (breathing difficulty), lassitude (weakness, exhaustion), incoordination, salivation; hypothermia; liver injury",
+    "metodos": "NIOSH 5602, 8315",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0043.html"
    },
    "nr15": {
     "anexo11": null,
@@ -644,6 +680,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 2256 (Atrazine)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/2256",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Atrazine (CAS na página: 1912-24-9)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0043.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -684,28 +726,28 @@
    "formula": "C10H19O6PS2",
    "massaMolar": "330.4 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Deep-brown to yellow liquid with a garlic-like odor. [insecticide] [Note: A solid below 37°F.]",
+    "pontoEbulicao": "140°F (60 °C) (Decomposes)",
+    "pontoFusao": "37°F (3 °C)",
+    "pressaoVapor": "0.00004 mmHg",
+    "densidadeRelativa": "1.21",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "0.02%",
+    "pontoFulgor": "(oc) >325°F (163 °C)",
+    "lie": "?",
+    "lse": "?",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA 10 mg/m³ [skin]",
+    "idlh": "250 mg/m³",
+    "oshaPel": "TWA 15 mg/m³ [skin] See Appendix G",
+    "vias": "inhalation, skin absorption, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, skin, respiratory system, liver, blood cholinesterase, central nervous system, cardiovascular system, gastrointestinal tract",
+    "sintomas": "irritation eyes, skin; miosis, aching eyes, blurred vision, lacrimation (discharge of tears); salivation; anorexia, nausea, vomiting, abdominal cramps, diarrhea, dizziness, confusion, ataxia; rhinorrhea (discharge of thin nasal mucus), headache; chest tightness, wheezing, laryngeal spasm",
+    "metodos": "NIOSH 5600; OSHA 62",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0375.html"
    },
    "nr15": {
     "anexo11": null,
@@ -718,6 +760,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 4004 (Malathion)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/4004",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Malathion (CAS na página: 121-75-5)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0375.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -757,28 +805,28 @@
    "formula": "C12H15NO3",
    "massaMolar": "221.25 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Odorless, white or grayish, crystalline solid. [insecticide] [Note: May be dissolved in a liquid carrier.]",
+    "pontoEbulicao": "?",
+    "pontoFusao": "304°F (151 °C)",
+    "pressaoVapor": "(77°F): 0.000003 mmHg",
+    "densidadeRelativa": "1.18",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "(77°F): 0.07%",
+    "pontoFulgor": "NA",
+    "lie": "NA",
+    "lse": "NA",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA 0.1 mg/m³",
+    "idlh": "N.D.",
+    "oshaPel": "none See Appendix G",
+    "vias": "inhalation, skin absorption, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "central nervous system, peripheral nervous system, blood cholinesterase",
+    "sintomas": "Miosis, blurred vision; sweating, salivation, abdominal cramps, diarrhea, headache, nausea, vomiting; lassitude (weakness, exhaustion), muscle twitching, incoordination, convulsions",
+    "metodos": "NIOSH 5601",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0101.html"
    },
    "nr15": {
     "anexo11": null,
@@ -791,6 +839,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 2566 (Carbofuran)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/2566",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Carbofuran (CAS na página: 1563-66-2)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0101.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -811,7 +865,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista."
+     "nota": "Nenhuma entrada atribuída ao agente."
     }
    ],
    "situacao": "A conferir"
@@ -884,7 +938,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista."
+     "nota": "Nenhuma entrada atribuída ao agente."
     }
    ],
    "situacao": "A conferir"
@@ -957,7 +1011,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista."
+     "nota": "Nenhuma entrada atribuída ao agente."
     }
    ],
    "situacao": "A conferir"
@@ -978,28 +1032,28 @@
    "formula": "C7H8",
    "massaMolar": "92.14 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Colorless liquid with a sweet, pungent, benzene-like odor.",
+    "pontoEbulicao": "232°F (111 °C)",
+    "pontoFusao": "-139°F (-95 °C)",
+    "pressaoVapor": "21 mmHg",
+    "densidadeRelativa": "0.87",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "(74°F): 0.07%",
+    "pontoFulgor": "40°F (4 °C)",
+    "lie": "1.1%",
+    "lse": "7.1%",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA 100 ppm (375 mg/m³) ST 150 ppm (560 mg/m³)",
+    "idlh": "500 ppm",
+    "oshaPel": "TWA 200 ppm C 300 ppm 500 ppm (10-minute maximum peak) See Appendix G",
+    "vias": "inhalation, skin absorption, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, skin, respiratory system, central nervous system, liver, kidneys",
+    "sintomas": "irritation eyes, nose; lassitude (weakness, exhaustion), confusion, euphoria, dizziness, headache; dilated pupils, lacrimation (discharge of tears); anxiety, muscle fatigue, insomnia; paresthesia; dermatitis; liver, kidney damage",
+    "metodos": "NIOSH 1500, 1501, 3800, 4000; OSHA 111",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0619.html"
    },
    "nr15": {
     "anexo11": {
@@ -1018,6 +1072,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 1140 (Toluene)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/1140",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Toluene (CAS na página: 108-88-3)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0619.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -1148,28 +1208,28 @@
    "formula": "C3H6O",
    "massaMolar": "58.08 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Colorless liquid with a fragrant, mint-like odor.",
+    "pontoEbulicao": "133°F (56 °C)",
+    "pontoFusao": "-140°F (-96 °C)",
+    "pressaoVapor": "180 mmHg",
+    "densidadeRelativa": "0.79",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "Miscible",
+    "pontoFulgor": "0°F (-18 °C)",
+    "lie": "2.5%",
+    "lse": "12.8%",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA 250 ppm (590 mg/m³)",
+    "idlh": "2500 ppm [10%LEL]",
+    "oshaPel": "TWA 1000 ppm (2400 mg/m³) See Appendix G",
+    "vias": "inhalation, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, skin, respiratory system, central nervous system",
+    "sintomas": "irritation eyes, nose, throat; headache, dizziness, central nervous system depression; dermatitis",
+    "metodos": "NIOSH 1300, 2555, 3800; OSHA 69",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0004.html"
    },
    "nr15": {
     "anexo11": {
@@ -1191,6 +1251,12 @@
      "consultadoEm": "2026-11-11"
     },
     {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Acetone (CAS na página: 67-64-1)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0004.html",
+     "consultadoEm": "2026-11-11"
+    },
+    {
      "campos": "nr15",
      "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
      "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
@@ -1208,7 +1274,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista."
+     "nota": "Nenhuma entrada atribuída ao agente."
     }
    ],
    "situacao": "A conferir"
@@ -1230,28 +1296,28 @@
    "formula": "C4H8O",
    "massaMolar": "72.11 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Colorless liquid with a moderately sharp, fragrant, mint- or acetone-like odor.",
+    "pontoEbulicao": "175°F (79 °C)",
+    "pontoFusao": "-123°F (-86 °C)",
+    "pressaoVapor": "78 mmHg",
+    "densidadeRelativa": "0.81",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "28%",
+    "pontoFulgor": "16°F (-9 °C)",
+    "lie": "(200°F): 1.4%",
+    "lse": "(200°F): 11.4%",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA 200 ppm (590 mg/m³) ST 300 ppm (885 mg/m³)",
+    "idlh": "3000 ppm",
+    "oshaPel": "TWA 200 ppm (590 mg/m³) See Appendix G",
+    "vias": "inhalation, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, skin, respiratory system, central nervous system",
+    "sintomas": "irritation eyes, skin, nose; headache; dizziness; vomiting; dermatitis",
+    "metodos": "NIOSH 2500, 2555, 3800; OSHA 16, 84, 1004",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0069.html"
    },
    "nr15": {
     "anexo11": {
@@ -1273,6 +1339,12 @@
      "consultadoEm": "2026-11-11"
     },
     {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – 2-Butanone (CAS na página: 78-93-3)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0069.html",
+     "consultadoEm": "2026-11-11"
+    },
+    {
      "campos": "nr15",
      "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
      "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
@@ -1290,7 +1362,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista."
+     "nota": "Nenhuma entrada atribuída ao agente."
     }
    ],
    "situacao": "A conferir"
@@ -1310,28 +1382,28 @@
    "formula": "C4H8O2",
    "massaMolar": "88.11 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Colorless liquid with an ether-like, fruity odor.",
+    "pontoEbulicao": "171°F (77 °C)",
+    "pontoFusao": "-117°F (-83 °C)",
+    "pressaoVapor": "73 mmHg",
+    "densidadeRelativa": "0.90",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "(77°F): 10%",
+    "pontoFulgor": "24°F (-4 °C)",
+    "lie": "2.0%",
+    "lse": "11.5%",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA 400 ppm (1400 mg/m³)",
+    "idlh": "2000 ppm [10%LEL]",
+    "oshaPel": "TWA 400 ppm (1400 mg/m³)",
+    "vias": "inhalation, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, skin, respiratory system",
+    "sintomas": "irritation eyes, skin, nose, throat; narcosis; dermatitis",
+    "metodos": "NIOSH 1457; OSHA 7",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0260.html"
    },
    "nr15": {
     "anexo11": {
@@ -1353,6 +1425,12 @@
      "consultadoEm": "2026-11-11"
     },
     {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Ethyl acetate (CAS na página: 141-78-6)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0260.html",
+     "consultadoEm": "2026-11-11"
+    },
+    {
      "campos": "nr15",
      "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
      "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
@@ -1370,7 +1448,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista."
+     "nota": "Nenhuma entrada atribuída ao agente."
     }
    ],
    "situacao": "A conferir"
@@ -1390,28 +1468,28 @@
    "formula": "C6H12O2",
    "massaMolar": "116.16 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Colorless liquid with a fruity odor.",
+    "pontoEbulicao": "258°F (126 °C)",
+    "pontoFusao": "-107°F (-77 °C)",
+    "pressaoVapor": "10 mmHg",
+    "densidadeRelativa": "0.88",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "1%",
+    "pontoFulgor": "72°F (22 °C)",
+    "lie": "1.7%",
+    "lse": "7.6%",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA 150 ppm (710 mg/m³) ST 200 ppm (950 mg/m³)",
+    "idlh": "1700 ppm [10%LEL]",
+    "oshaPel": "TWA 150 ppm (710 mg/m³) See Appendix G",
+    "vias": "inhalation, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, skin, respiratory system, central nervous system",
+    "sintomas": "irritation eyes, skin, upper respiratory system; headache, drowsiness, narcosis",
+    "metodos": "NIOSH 1450; OSHA 7",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0072.html"
    },
    "nr15": {
     "anexo11": null,
@@ -1424,6 +1502,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 31272 (Butyl Acetate)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/31272",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – n-Butyl acetate (CAS na página: 123-86-4)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0072.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -1444,7 +1528,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista."
+     "nota": "Nenhuma entrada atribuída ao agente."
     }
    ],
    "situacao": "A conferir"
@@ -1464,28 +1548,28 @@
    "formula": "C6H14",
    "massaMolar": "86.18 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Colorless liquid with a gasoline-like odor.",
+    "pontoEbulicao": "156°F (69 °C)",
+    "pontoFusao": "-219°F (-139 °C)",
+    "pressaoVapor": "124 mmHg",
+    "densidadeRelativa": "0.66",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "0.002%",
+    "pontoFulgor": "-7°F (-22 °C)",
+    "lie": "1.1%",
+    "lse": "7.5%",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA 50 ppm (180 mg/m³)",
+    "idlh": "1100 ppm [10%LEL]",
+    "oshaPel": "TWA 500 ppm (1800 mg/m³) See Appendix G",
+    "vias": "inhalation, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, skin, respiratory system, central nervous system, peripheral nervous system",
+    "sintomas": "irritation eyes, nose; nausea, headache; peripheral neuropathy: numb extremities, muscle weak; dermatitis; dizziness; chemical pneumonitis (aspiration liquid)",
+    "metodos": "NIOSH 1500, 3800; OSHA 7",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0322.html"
    },
    "nr15": {
     "anexo11": null,
@@ -1498,6 +1582,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 8058 (Hexane)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/8058",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – n-Hexane (CAS na página: 110-54-3)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0322.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -1518,7 +1608,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista."
+     "nota": "Nenhuma entrada atribuída ao agente."
     }
    ],
    "situacao": "A conferir"
@@ -1539,28 +1629,28 @@
    "formula": "C8H12N2O2",
    "massaMolar": "168.19 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Clear, colorless to slightly yellow liquid with a sharp, pungent odor.",
+    "pontoEbulicao": "415°F (213 °C)",
+    "pontoFusao": "-89°F (-67 °C)",
+    "pressaoVapor": "(77°F): 0.05 mmHg",
+    "densidadeRelativa": "(77°F): 1.04",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "Low (Reacts)",
+    "pontoFulgor": "284°F (140 °C)",
+    "lie": "?",
+    "lse": "?",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA 0.005 ppm (0.035 mg/m³) C 0.020 ppm (0.140 mg/m³) [10-minute]",
+    "idlh": "N.D.",
+    "oshaPel": "none",
+    "vias": "inhalation, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, skin, respiratory system",
+    "sintomas": "irritation eyes, skin, respiratory system; cough, dyspnea (breathing difficulty), bronchitis, wheezing, pulmonary edema, asthma; corneal damage, skin blisters",
+    "metodos": "NIOSH 5521, 5522, 5525; OSHA 42",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0320.html"
    },
    "nr15": {
     "anexo11": null,
@@ -1573,6 +1663,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 13192 (Hexamethylene diisocyanate)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/13192",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Hexamethylene diisocyanate (CAS na página: 822-06-0)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0320.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -1593,7 +1689,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista."
+     "nota": "Nenhuma entrada atribuída ao agente."
     }
    ],
    "situacao": "A conferir"
@@ -1613,28 +1709,28 @@
    "formula": "O2Ti",
    "massaMolar": "79.866 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "White, odorless powder.",
+    "pontoEbulicao": "4532-5432°F (2500–3000 °C)",
+    "pontoFusao": "3326-3362°F (1830–1850 °C)",
+    "pressaoVapor": "0 mmHg (approx)",
+    "densidadeRelativa": "4.26",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "Insoluble",
+    "pontoFulgor": "NA",
+    "lie": "NA",
+    "lse": "NA",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "Ca See Appendix A",
+    "idlh": "Ca [5000 mg/m³]",
+    "oshaPel": "TWA 15 mg/m³ See Appendix G",
+    "vias": "inhalation",
+    "orgaosAlvo": "respiratory system",
+    "sintomas": "Lung fibrosis; [potential occupational carcinogen]",
+    "metodos": "NIOSH S385 (II-3)",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0617.html"
    },
    "nr15": {
     "anexo11": null,
@@ -1647,6 +1743,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 26042 (Titanium dioxide)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/26042",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Titanium dioxide (CAS na página: 13463-67-7)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0617.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -1740,7 +1842,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista."
+     "nota": "Nenhuma entrada atribuída ao agente."
     }
    ],
    "situacao": "A conferir"
@@ -1763,28 +1865,28 @@
    "formula": "",
    "massaMolar": "",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "CrO₃: Dark-red, odorless flakes or powder. [Note: Often used in an aqueous solution (H₂CrO₄).]",
+    "pontoEbulicao": "482°F (250 °C) (Decomposes)",
+    "pontoFusao": "387°F (197 °C) (Decomposes)",
+    "pressaoVapor": "Very low",
+    "densidadeRelativa": "2.70 (CrO₃)",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "63%",
+    "pontoFulgor": "NA",
+    "lie": "NA",
+    "lse": "NA",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "(as Cr): Ca TWA 0.0002 mg/m³ (8-hours) See Appendix A See Appendix C",
+    "idlh": "Ca [15 mg/m3 {as Cr(VI)}]",
+    "oshaPel": "(as CrO₃): TWA 0.005 mg/m³ See Appendix C",
+    "vias": "inhalation, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Blood, respiratory system, liver, kidneys, eyes, skin",
+    "sintomas": "irritation respiratory system; nasal septum perforation; liver, kidney damage; leukocytosis (increased blood leukocytes), leukopenia (reduced blood leukocytes), eosinophilia; eye injury, conjunctivitis; skin ulcer, sensitization dermatitis; [potential occupational carcinogen]",
+    "metodos": "NIOSH 7600, 7604, 7605, 7703, 9101; OSHA ID103, ID215, W4001",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0138.html"
    },
    "nr15": {
     "anexo11": null,
@@ -1793,6 +1895,13 @@
    "linach": "Grupo 1",
    "iarc": "Grupo 1",
    "fontes": [
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Chromic acid and chromates (CAS na página: 1333-82-0 (CrO₃))",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0138.html",
+     "consultadoEm": "2026-11-11",
+     "nota": "Página 'Chromic acid and chromates'; as propriedades físicas da página referem-se ao CrO₃ (trióxido de cromo), não ao cromato de zinco."
+    },
     {
      "campos": "nr15",
      "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
@@ -1831,28 +1940,28 @@
    "formula": "Pb",
    "massaMolar": "207 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "A heavy, ductile, soft, gray solid.",
+    "pontoEbulicao": "3164°F (1740 °C)",
+    "pontoFusao": "621°F (327 °C)",
+    "pressaoVapor": "0 mmHg (approx)",
+    "densidadeRelativa": "11.34",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "Insoluble",
+    "pontoFulgor": "NA",
+    "lie": "NA",
+    "lse": "NA",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA (8-hour) 0.050 mg/m³ See Appendix C [*Note: The REL also applies to other lead compounds (as Pb) -- see Appendix C.]",
+    "idlh": "100 mg/m³ (as Pb)",
+    "oshaPel": "[1910.1025] TWA 0.050 mg/m³ See Appendix C [*Note: The PEL also applies to other lead compounds (as Pb) -- see Appendix C.]",
+    "vias": "inhalation, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, gastrointestinal tract, central nervous system, kidneys, blood, gingival tissue",
+    "sintomas": "lassitude (weakness, exhaustion), insomnia; facial pallor; anorexia, weight loss, malnutrition; constipation, abdominal pain, colic; anemia; gingival lead line; tremor; paralysis wrist, ankles; encephalopathy; kidney disease; irritation eyes; hypertension",
+    "metodos": "NIOSH 7082, 7105, 7300, 7301, 7303, 7700, 7701, 7702, 9100, 9102, 9105; OSHA ID206, ID121, ID125G",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0368.html"
    },
    "nr15": {
     "anexo11": {
@@ -1871,6 +1980,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 5352425 (Lead)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/5352425",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Lead (CAS na página: 7439-92-1)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0368.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -1911,28 +2026,28 @@
    "formula": "Mn",
    "massaMolar": "54.93804 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "A lustrous, brittle, silvery solid.",
+    "pontoEbulicao": "3564°F (1962 °C)",
+    "pontoFusao": "2271°F (1244 °C)",
+    "pressaoVapor": "0 mmHg (approx)",
+    "densidadeRelativa": "7.20 (metal)",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "Insoluble",
+    "pontoFulgor": "NA",
+    "lie": "NA",
+    "lse": "NA",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA 1 mg/m³ ST 3 mg/m³ [*Note: Also see specific listings for Manganese cyclopentadienyl tricarbonyl, Methyl cyclopentadienyl manganese tricarbonyl, and Manganese tetroxide.]",
+    "idlh": "500 mg/m³ (as Mn)",
+    "oshaPel": "C 5 mg/m³ [*Note: Also see specific listings for Manganese cyclopentadienyl tricarbonyl and Methyl cyclopentadienyl manganese tricarbonyl.]",
+    "vias": "inhalation, ingestion",
+    "orgaosAlvo": "respiratory system, central nervous system, blood, kidneys",
+    "sintomas": "Manganism; asthenia, insomnia, mental confusion; metal fume fever: dry throat, cough, chest tightness, dyspnea (breathing difficulty), rales, flu-like fever; low-back pain; vomiting; malaise (vague feeling of discomfort); lassitude (weakness, exhaustion); kidney damage",
+    "metodos": "NIOSH 7300, 7301, 7303, 9102; OSHA ID121, ID125G",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0379.html"
    },
    "nr15": {
     "anexo11": null,
@@ -1945,6 +2060,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 23930 (Manganese)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/23930",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Manganese compounds and fume (as Mn) (CAS na página: 7439-96-5 (metal))",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0379.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -1965,7 +2086,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista. Entradas relacionadas (não atribuídas ao agente): 'Welding fumes' – Grupo 1"
+     "nota": "Nenhuma entrada atribuída ao agente. Entradas relacionadas (não atribuídas ao agente): 'Welding fumes' – Grupo 1"
     }
    ],
    "situacao": "A conferir"
@@ -1985,28 +2106,28 @@
    "formula": "Fe2O3",
    "massaMolar": "159.69 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Reddish-brown solid. [Note: Exposure to fume may occur during the arc-welding of iron.]",
+    "pontoEbulicao": "?",
+    "pontoFusao": "2664°F (1462 °C)",
+    "pressaoVapor": "0 mmHg (approx)",
+    "densidadeRelativa": "5.24",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "Insoluble",
+    "pontoFulgor": "NA",
+    "lie": "NA",
+    "lse": "NA",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA 5 mg/m³",
+    "idlh": "2500 mg/m³ (as Fe)",
+    "oshaPel": "TWA 10 mg/m³",
+    "vias": "inhalation",
+    "orgaosAlvo": "respiratory system",
+    "sintomas": "Benign pneumoconiosis with X-ray shadows indistinguishable from fibrotic pneumoconiosis (siderosis)",
+    "metodos": "NIOSH 7300, 7301, 7303, 9102; OSHA ID121, ID125G",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0344.html"
    },
    "nr15": {
     "anexo11": null,
@@ -2019,6 +2140,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 518696 (Iron oxide (Fe2O3))",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/518696",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Iron oxide dust and fume (as Fe) (CAS na página: 1309-37-1)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0344.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -2059,28 +2186,28 @@
    "formula": "OZn",
    "massaMolar": "81.4 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "White, odorless solid.",
+    "pontoEbulicao": "?",
+    "pontoFusao": "3587°F (1975 °C)",
+    "pressaoVapor": "0 mmHg (approx)",
+    "densidadeRelativa": "5.61",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "(64°F): 0.0004%",
+    "pontoFulgor": "NA",
+    "lie": "NA",
+    "lse": "NA",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "Dust: TWA 5 mg/m³ C 15 mg/m³ Fume: TWA 5 mg/m³ ST 10 mg/m³",
+    "idlh": "500 mg/m³",
+    "oshaPel": "TWA 5 mg/m³ (fume) TWA 15 mg/m³ (total dust) TWA 5 mg/m³ (resp dust) See Appendix G",
+    "vias": "inhalation",
+    "orgaosAlvo": "respiratory system",
+    "sintomas": "Metal fume fever: chills, muscle ache, nausea, fever, dry throat, cough; lassitude (weakness, exhaustion); metallic taste; headache; blurred vision; low back pain; vomiting; malaise (vague feeling of discomfort); chest tightness; dyspnea (breathing difficulty), rales, decreased pulmonary function",
+    "metodos": "NIOSH 7303, 7502; OSHA ID121, ID143",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0675.html"
    },
    "nr15": {
     "anexo11": null,
@@ -2093,6 +2220,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 3007857 (Zinc Oxide)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/3007857",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Zinc oxide (CAS na página: 1314-13-2)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0675.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -2113,7 +2246,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista. Entradas relacionadas (não atribuídas ao agente): 'Welding fumes' – Grupo 1"
+     "nota": "Nenhuma entrada atribuída ao agente. Entradas relacionadas (não atribuídas ao agente): 'Welding fumes' – Grupo 1"
     }
    ],
    "situacao": "A conferir"
@@ -2133,28 +2266,28 @@
    "formula": "Ni",
    "massaMolar": "58.693 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Metal: Lustrous, silvery, odorless solid.",
+    "pontoEbulicao": "5139°F (2837 °C)",
+    "pontoFusao": "2831°F (1555 °C)",
+    "pressaoVapor": "0 mmHg (approx)",
+    "densidadeRelativa": "8.90 (Metal)",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "Insoluble",
+    "pontoFulgor": "NA",
+    "lie": "NA",
+    "lse": "NA",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "Ca TWA 0.015 mg/m³ See Appendix A [*Note: The REL does not apply to Nickel carbonyl.]",
+    "idlh": "Ca [10 mg/m³ (as Ni)]",
+    "oshaPel": "TWA 1 mg/m³ [*Note: The PEL does not apply to Nickel carbonyl.] See Appendix G",
+    "vias": "inhalation, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Nasal cavities, lungs, skin",
+    "sintomas": "sensitization dermatitis, allergic asthma, pneumonitis; [potential occupational carcinogen]",
+    "metodos": "NIOSH 7300, 7301, 7303, 9102; OSHA ID121, ID125G",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0445.html"
    },
    "nr15": {
     "anexo11": null,
@@ -2167,6 +2300,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 935 (Nickel)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/935",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Nickel metal and other compounds (as Ni) (CAS na página: 7440-02-0 (Metal))",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0445.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -2207,28 +2346,28 @@
    "formula": "CO",
    "massaMolar": "28.010 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
+    "estado": "Colorless, odorless gas. [Note: Shipped as a nonliquefied or liquefied compressed gas.]",
+    "pontoEbulicao": "-313°F (-192 °C)",
+    "pontoFusao": "-337°F (-205 °C)",
+    "pressaoVapor": ">35 atm",
     "densidadeRelativa": "",
-    "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "densidadeVapor": "0.97",
+    "solubilidadeAgua": "2%",
+    "pontoFulgor": "NA (Gas)",
+    "lie": "12.5%",
+    "lse": "74%",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA 35 ppm (40 mg/m³) C 200 ppm (229 mg/m³)",
+    "idlh": "1200 ppm",
+    "oshaPel": "TWA 50 ppm (55 mg/m³) See Appendix G",
+    "vias": "inhalation, skin and/or eye contact (liquid)",
+    "orgaosAlvo": "cardiovascular system, lungs, blood, central nervous system",
+    "sintomas": "headache, tachypnea, nausea, lassitude (weakness, exhaustion), dizziness, confusion, hallucinations; cyanosis; depressed S-T segment of electrocardiogram, angina, syncope",
+    "metodos": "NIOSH 6604; OSHA ID209, ID210",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0105.html"
    },
    "nr15": {
     "anexo11": {
@@ -2250,6 +2389,12 @@
      "consultadoEm": "2026-11-11"
     },
     {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Carbon monoxide (CAS na página: 630-08-0)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0105.html",
+     "consultadoEm": "2026-11-11"
+    },
+    {
      "campos": "nr15",
      "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
      "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
@@ -2267,7 +2412,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista."
+     "nota": "Nenhuma entrada atribuída ao agente."
     }
    ],
    "situacao": "A conferir"
@@ -2287,28 +2432,28 @@
    "formula": "NO2",
    "massaMolar": "46.006 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
-    "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "estado": "Yellowish-brown liquid or reddish-brown gas (above 70°F) with a pungent, acrid odor. [Note: In solid form (below 15°F) it is found structurally as N₂O₂.]",
+    "pontoEbulicao": "70°F (21 °C)",
+    "pontoFusao": "15°F (-9 °C)",
+    "pressaoVapor": "720 mmHg",
+    "densidadeRelativa": "1.44 (Liquid at 68°F)",
+    "densidadeVapor": "2.62",
+    "solubilidadeAgua": "Reacts",
+    "pontoFulgor": "NA",
+    "lie": "NA",
+    "lse": "NA",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "ST 1 ppm (1.8 mg/m³)",
+    "idlh": "13 ppm",
+    "oshaPel": "C 5 ppm (9 mg/m³) See Appendix G",
+    "vias": "inhalation, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, respiratory system, cardiovascular system",
+    "sintomas": "irritation eyes, nose, throat; cough, mucoid frothy sputum, decreased pulmonary function, chronic bronchitis, dyspnea (breathing difficulty); chest pain; pulmonary edema, cyanosis, tachypnea, tachycardia",
+    "metodos": "NIOSH 6014; OSHA ID182",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0454.html"
    },
    "nr15": {
     "anexo11": {
@@ -2330,6 +2475,12 @@
      "consultadoEm": "2026-11-11"
     },
     {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Nitrogen dioxide (CAS na página: 10102-44-0)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0454.html",
+     "consultadoEm": "2026-11-11"
+    },
+    {
      "campos": "nr15",
      "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
      "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
@@ -2347,7 +2498,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista."
+     "nota": "Nenhuma entrada atribuída ao agente."
     }
    ],
    "situacao": "A conferir"
@@ -2368,28 +2519,28 @@
    "formula": "O3",
    "massaMolar": "47.998 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
+    "estado": "Colorless to blue gas with a very pungent odor.",
+    "pontoEbulicao": "-169°F (-112 °C)",
+    "pontoFusao": "-315°F (-193 °C)",
+    "pressaoVapor": ">1 atm",
     "densidadeRelativa": "",
-    "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "densidadeVapor": "1.66",
+    "solubilidadeAgua": "(32°F): 0.001%",
+    "pontoFulgor": "NA",
+    "lie": "NA",
+    "lse": "NA",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "C 0.1 ppm (0.2 mg/m³)",
+    "idlh": "5 ppm",
+    "oshaPel": "TWA 0.1 ppm (0.2 mg/m³) See Appendix G",
+    "vias": "inhalation, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, respiratory system",
+    "sintomas": "irritation eyes, mucous membrane; pulmonary edema; chronic resp disease",
+    "metodos": "OSHA ID214",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0476.html"
    },
    "nr15": {
     "anexo11": {
@@ -2411,6 +2562,12 @@
      "consultadoEm": "2026-11-11"
     },
     {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Ozone (CAS na página: 10028-15-6)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0476.html",
+     "consultadoEm": "2026-11-11"
+    },
+    {
      "campos": "nr15",
      "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
      "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
@@ -2428,7 +2585,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista."
+     "nota": "Nenhuma entrada atribuída ao agente."
     }
    ],
    "situacao": "A conferir"
@@ -2448,28 +2605,28 @@
    "formula": "Cd",
    "massaMolar": "112.41 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Metal: Silver-white, blue-tinged lustrous, odorless solid.",
+    "pontoEbulicao": "1409°F (765 °C)",
+    "pontoFusao": "610°F (321 °C)",
+    "pressaoVapor": "0 mmHg (approx)",
+    "densidadeRelativa": "8.65 (metal)",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "Insoluble",
+    "pontoFulgor": "NA",
+    "lie": "NA",
+    "lse": "NA",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "Ca See Appendix A [*Note: The REL applies to all Cadmium compounds (as Cd).]",
+    "idlh": "Ca [9 mg/m³ (as Cd)]",
+    "oshaPel": "[1910.1027] TWA 0.005 mg/m³ [*Note: The PEL applies to all Cadmium compounds (as Cd).]",
+    "vias": "inhalation, ingestion",
+    "orgaosAlvo": "respiratory system, kidneys, prostate, blood",
+    "sintomas": "pulmonary edema, dyspnea (breathing difficulty), cough, chest tightness, substernal (occurring beneath the sternum) pain; headache; chills, muscle aches; nausea, vomiting, diarrhea; anosmia (loss of the sense of smell), emphysema, proteinuria, mild anemia; [potential occupational carcinogen]",
+    "metodos": "NIOSH 7048, 7300, 7301, 7303, 9102; OSHA ID121, ID125G, ID189, ID206",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0087.html"
    },
    "nr15": {
     "anexo11": null,
@@ -2485,9 +2642,9 @@
      "consultadoEm": "2026-11-11"
     },
     {
-     "campos": "bloco niosh",
-     "referencia": "NIOSH Pocket Guide to Chemical Hazards",
-     "url": "https://www.cdc.gov/niosh/npg/npgdcas.html",
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Cadmium dust (as Cd) (CAS na página: 7440-43-9 (metal))",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0087.html",
      "consultadoEm": "2026-11-11",
      "nota": "Página usada: 'Cadmium dust (as Cd)'. O NIOSH tem página própria para 'Cadmium fume (as Cd)' (npgd0088, CAS 1306-19-0 CdO)."
     },
@@ -2591,7 +2748,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista. Entradas relacionadas (não atribuídas ao agente): 'Diesel fuels, distillate (light)' – Grupo 3; 'Diesel fuel, marine' – Grupo 2B; 'Engine exhaust, diesel' – Grupo 1"
+     "nota": "Nenhuma entrada atribuída ao agente. Entradas relacionadas (não atribuídas ao agente): 'Diesel fuels, distillate (light)' – Grupo 3; 'Diesel fuel, marine' – Grupo 2B; 'Engine exhaust, diesel' – Grupo 1"
     }
    ],
    "situacao": "A conferir"
@@ -2609,30 +2766,30 @@
    ],
    "tipo": "mistura",
    "formula": "",
-   "massaMolar": "",
+   "massaMolar": "110 (approx) (NIOSH)",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Clear liquid with a characteristic odor.",
+    "pontoEbulicao": "102°F (39 °C)",
+    "pontoFusao": "?",
+    "pressaoVapor": "38-300 mmHg",
+    "densidadeRelativa": "(60°F): 0.72-0.76",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "Insoluble",
+    "pontoFulgor": "-45°F (-43 °C)",
+    "lie": "1.4%",
+    "lse": "7.6%",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "Ca See Appendix A",
+    "idlh": "Ca [N.D.]",
+    "oshaPel": "none See Appendix G",
+    "vias": "inhalation, skin absorption, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, skin, respiratory system, central nervous system, liver, kidneys",
+    "sintomas": "irritation eyes, skin, mucous membrane; dermatitis; headache, lassitude (weakness, exhaustion), blurred vision, dizziness, slurred speech, confusion, convulsions; chemical pneumonitis (aspiration liquid); possible liver, kidney damage; [potential occupational carcinogen]",
+    "metodos": "OSHA PV2028",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0299.html"
    },
    "nr15": {
     "anexo11": null,
@@ -2645,6 +2802,12 @@
      "campos": "confirmação do CAS",
      "referencia": "PubChem Substance, SID 423980 (CAS registrado como sinônimo; sem registro em PubChem Compound)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/substance/423980",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Gasoline (CAS na página: 8006-61-9)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0299.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -2685,28 +2848,28 @@
    "formula": "C2H6O",
    "massaMolar": "46.07 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Clear, colorless liquid with a weak, ethereal, vinous odor.",
+    "pontoEbulicao": "173°F (78 °C)",
+    "pontoFusao": "-173°F (-114 °C)",
+    "pressaoVapor": "44 mmHg",
+    "densidadeRelativa": "0.79",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "Miscible",
+    "pontoFulgor": "55°F (13 °C)",
+    "lie": "3.3%",
+    "lse": "19%",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA 1000 ppm (1900 mg/m³)",
+    "idlh": "3300 ppm [10%LEL]",
+    "oshaPel": "TWA 1000 ppm (1900 mg/m³)",
+    "vias": "inhalation, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, skin, respiratory system, central nervous system, liver, blood, reproductive system",
+    "sintomas": "irritation eyes, skin, nose; headache, drowsiness, lassitude (weakness, exhaustion), narcosis; cough; liver damage; anemia; reproductive, teratogenic effects",
+    "metodos": "NIOSH 1400; OSHA 100",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0262.html"
    },
    "nr15": {
     "anexo11": {
@@ -2728,6 +2891,12 @@
      "consultadoEm": "2026-11-11"
     },
     {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Ethyl alcohol (CAS na página: 64-17-5)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0262.html",
+     "consultadoEm": "2026-11-11"
+    },
+    {
      "campos": "nr15",
      "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
      "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
@@ -2745,7 +2914,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista. Entradas relacionadas (não atribuídas ao agente): 'Ethanol in alcoholic beverages' – Grupo 1"
+     "nota": "Nenhuma entrada atribuída ao agente. Entradas relacionadas (não atribuídas ao agente): 'Ethanol in alcoholic beverages' – Grupo 1"
     }
    ],
    "situacao": "A conferir"
@@ -2766,28 +2935,28 @@
    "formula": "CH4O",
    "massaMolar": "32.042 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Colorless liquid with a characteristic pungent odor.",
+    "pontoEbulicao": "147°F (64 °C)",
+    "pontoFusao": "-144°F (-98 °C)",
+    "pressaoVapor": "96 mmHg",
+    "densidadeRelativa": "0.79",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "Miscible",
+    "pontoFulgor": "52°F (11 °C)",
+    "lie": "6.0%",
+    "lse": "36%",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA 200 ppm (260 mg/m³) ST 250 ppm (325 mg/m³) [skin]",
+    "idlh": "6000 ppm",
+    "oshaPel": "TWA 200 ppm (260 mg/m³) See Appendix G",
+    "vias": "inhalation, skin absorption, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, skin, respiratory system, central nervous system, gastrointestinal tract",
+    "sintomas": "irritation eyes, skin, upper respiratory system; headache, drowsiness, dizziness, nausea, vomiting; visual disturbance, optic nerve damage (blindness); dermatitis",
+    "metodos": "NIOSH 2000, 3800; OSHA 91",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0397.html"
    },
    "nr15": {
     "anexo11": {
@@ -2809,6 +2978,12 @@
      "consultadoEm": "2026-11-11"
     },
     {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Methyl alcohol (CAS na página: 67-56-1)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0397.html",
+     "consultadoEm": "2026-11-11"
+    },
+    {
      "campos": "nr15",
      "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
      "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
@@ -2826,7 +3001,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista."
+     "nota": "Nenhuma entrada atribuída ao agente."
     }
    ],
    "situacao": "A conferir"
@@ -2846,28 +3021,28 @@
    "formula": "C6H6",
    "massaMolar": "78.11 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Colorless to light-yellow liquid with an aromatic odor. [Note: A solid below 42°F.]",
+    "pontoEbulicao": "176°F (80 °C)",
+    "pontoFusao": "42°F (6 °C)",
+    "pressaoVapor": "75 mmHg",
+    "densidadeRelativa": "0.88",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "0.07%",
+    "pontoFulgor": "12°F (-11 °C)",
+    "lie": "1.2%",
+    "lse": "7.8%",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "Ca TWA 0.1 ppm ST 1 ppm See Appendix A",
+    "idlh": "Ca [500 ppm]",
+    "oshaPel": "[1910.1028] TWA 1 ppm ST 5 ppm See Appendix F",
+    "vias": "inhalation, skin absorption, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, skin, respiratory system, blood, central nervous system, bone marrow",
+    "sintomas": "irritation eyes, skin, nose, respiratory system; dizziness; headache, nausea, staggered gait; anorexia, lassitude (weakness, exhaustion); dermatitis; bone marrow depression; [potential occupational carcinogen]",
+    "metodos": "NIOSH 1500, 1501, 3700, 3800; OSHA 1005, 5000",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0049.html"
    },
    "nr15": {
     "anexo11": null,
@@ -2880,6 +3055,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 241 (Benzene)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/241",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Benzene (CAS na página: 71-43-2)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0049.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -2920,28 +3101,28 @@
    "formula": "Hg",
    "massaMolar": "200.59 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Metal: Silver-white, heavy, odorless liquid. [Note: \"Other\" Hg compounds include all inorganic & aryl Hg compounds except (organo) alkyls.]",
+    "pontoEbulicao": "674°F (357 °C)",
+    "pontoFusao": "-38°F (-39 °C)",
+    "pressaoVapor": "0.0012 mmHg",
+    "densidadeRelativa": "13.6 (metal)",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "Insoluble",
+    "pontoFulgor": "NA",
+    "lie": "NA",
+    "lse": "NA",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "Hg Vapor: TWA 0.05 mg/m³ [skin] Other: C 0.1 mg/m³ [skin]",
+    "idlh": "10 mg/m³ (as Hg)",
+    "oshaPel": "TWA 0.1 mg/m³ See Appendix G",
+    "vias": "inhalation, skin absorption, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, skin, respiratory system, central nervous system, kidneys",
+    "sintomas": "irritation eyes, skin; cough, chest pain, dyspnea (breathing difficulty), bronchitis, pneumonitis; tremor, insomnia, irritability, indecision, headache, lassitude (weakness, exhaustion); stomatitis, salivation; gastrointestinal disturbance, anorexia, weight loss; proteinuria",
+    "metodos": "NIOSH 6009; OSHA ID140",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0383.html"
    },
    "nr15": {
     "anexo11": {
@@ -2960,6 +3141,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 23931 (Mercury)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/23931",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Mercury compounds [except (organo) alkyls] (as Hg) (CAS na página: 7439-97-6 (metal))",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0383.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -3000,28 +3187,28 @@
    "formula": "C5H8O2",
    "massaMolar": "100.12 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Colorless liquid with a pungent odor.",
+    "pontoEbulicao": "212°F (100 °C)",
+    "pontoFusao": "7°F (-14 °C)",
+    "pressaoVapor": "17 mmHg",
+    "densidadeRelativa": "1.10",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "Miscible",
+    "pontoFulgor": "NA",
+    "lie": "NA",
+    "lse": "NA",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "C 0.2 ppm (0.8 mg/m³) See Appendix C (Aldehydes)",
+    "idlh": "N.D.",
+    "oshaPel": "none See Appendix G",
+    "vias": "inhalation, skin absorption, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, skin, respiratory system",
+    "sintomas": "irritation eyes, skin, respiratory system; dermatitis, sensitization skin; cough, asthma; nausea, vomiting",
+    "metodos": "NIOSH 2532; OSHA 64",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0301.html"
    },
    "nr15": {
     "anexo11": null,
@@ -3034,6 +3221,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 3485 (Glutaraldehyde)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/3485",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Glutaraldehyde (CAS na página: 111-30-8)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0301.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -3054,7 +3247,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista."
+     "nota": "Nenhuma entrada atribuída ao agente."
     }
    ],
    "situacao": "A conferir"
@@ -3075,28 +3268,28 @@
    "formula": "CH2O",
    "massaMolar": "30.026 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
+    "estado": "Nearly colorless gas with a pungent, suffocating odor. [Note: Often used in an aqueous solution (see specific listing for Formalin).]",
+    "pontoEbulicao": "-6°F (-21 °C)",
+    "pontoFusao": "-134°F (-92 °C)",
+    "pressaoVapor": ">1 atm",
     "densidadeRelativa": "",
-    "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "densidadeVapor": "1.04",
+    "solubilidadeAgua": "Miscible",
+    "pontoFulgor": "NA (Gas)",
+    "lie": "7.0%",
+    "lse": "73%",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "Ca TWA 0.016 ppm C 0.1 ppm [15-minute] See Appendix A",
+    "idlh": "Ca [20 ppm]",
+    "oshaPel": "[1910.1048] TWA 0.75 ppm ST 2 ppm",
+    "vias": "inhalation, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, respiratory system",
+    "sintomas": "irritation eyes, nose, throat, respiratory system; lacrimation (discharge of tears); cough; wheezing; [potential occupational carcinogen]",
+    "metodos": "NIOSH 2016, 2541, 3500, 3800; OSHA ID205, 52",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0293.html"
    },
    "nr15": {
     "anexo11": {
@@ -3115,6 +3308,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 712 (Formaldehyde)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/712",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Formaldehyde (CAS na página: 50-00-0)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0293.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -3154,28 +3353,28 @@
    "formula": "C5H8O2",
    "massaMolar": "100.12 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Colorless liquid with an acrid, fruity odor.",
+    "pontoEbulicao": "214°F (101 °C)",
+    "pontoFusao": "-54°F (-48 °C)",
+    "pressaoVapor": "29 mmHg",
+    "densidadeRelativa": "0.94",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "1.5%",
+    "pontoFulgor": "(oc) 50°F (10 °C)",
+    "lie": "1.7%",
+    "lse": "8.2%",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA 100 ppm (410 mg/m³)",
+    "idlh": "1000 ppm",
+    "oshaPel": "TWA 100 ppm (410 mg/m³)",
+    "vias": "inhalation, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, skin, respiratory system",
+    "sintomas": "irritation eyes, skin, nose, throat; dermatitis",
+    "metodos": "NIOSH 2537; OSHA 94",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0426.html"
    },
    "nr15": {
     "anexo11": {
@@ -3194,6 +3393,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 6658 (Methyl Methacrylate)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/6658",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Methyl methacrylate (CAS na página: 80-62-6)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0426.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -3235,28 +3440,28 @@
    "formula": "N2O",
    "massaMolar": "44.013 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
+    "estado": "Colorless gas with a slightly sweet odor. [inhalation anesthetic] [Note: Shipped as a liquefied compressed gas.]",
+    "pontoEbulicao": "-127°F (-88 °C)",
+    "pontoFusao": "-132°F (-91 °C)",
+    "pressaoVapor": "51.3 atm",
     "densidadeRelativa": "",
-    "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "densidadeVapor": "1.53",
+    "solubilidadeAgua": "(77°F): 0.1%",
+    "pontoFulgor": "NA",
+    "lie": "NA",
+    "lse": "NA",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA 25 ppm (46 mg/m³) (TWA over the time exposed) [*Note: REL for exposure to waste anesthetic gas.]",
+    "idlh": "N.D.",
+    "oshaPel": "none",
+    "vias": "inhalation, skin and/or eye contact (liquid)",
+    "orgaosAlvo": "respiratory system, central nervous system, reproductive system",
+    "sintomas": "dyspnea (breathing difficulty); drowsiness, headache; asphyxia; reproductive effects; liquid: frostbite",
+    "metodos": "NIOSH 3800, 6600; OSHA ID166",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0465.html"
    },
    "nr15": {
     "anexo11": null,
@@ -3269,6 +3474,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 948 (Nitrous Oxide)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/948",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Nitrous oxide (CAS na página: 10024-97-2)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0465.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -3289,7 +3500,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista."
+     "nota": "Nenhuma entrada atribuída ao agente."
     }
    ],
    "situacao": "A conferir"
@@ -3309,28 +3520,28 @@
    "formula": "H2O2",
    "massaMolar": "34.015 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Colorless liquid with a slightly sharp odor. [Note: The pure compound is a crystalline solid below 12°F. Often used in an aqueous solution.]",
+    "pontoEbulicao": "286°F (141 °C)",
+    "pontoFusao": "12°F (-11 °C)",
+    "pressaoVapor": "(86°F): 5 mmHg",
+    "densidadeRelativa": "1.39",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "Miscible",
+    "pontoFulgor": "NA",
+    "lie": "NA",
+    "lse": "NA",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA 1 ppm (1.4 mg/m³)",
+    "idlh": "75 ppm",
+    "oshaPel": "TWA 1 ppm (1.4 mg/m³)",
+    "vias": "inhalation, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, skin, respiratory system",
+    "sintomas": "irritation eyes, nose, throat; corneal ulcer; erythema (skin redness), vesiculation skin; bleaching hair",
+    "metodos": "OSHA ID126SG",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0335.html"
    },
    "nr15": {
     "anexo11": null,
@@ -3343,6 +3554,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 784 (Hydrogen Peroxide)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/784",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Hydrogen peroxide (CAS na página: 7722-84-1)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0335.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -3457,28 +3674,28 @@
    "formula": "H3O4P",
    "massaMolar": "97.995 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Thick, colorless, odorless, crystalline solid. [Note: Often used in an aqueous solution.]",
+    "pontoEbulicao": "415°F (213 °C)",
+    "pontoFusao": "108°F (42 °C)",
+    "pressaoVapor": "0.03 mmHg",
+    "densidadeRelativa": "(77°F): 1.87 (pure) 1.33 (50% solution)",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "Miscible",
+    "pontoFulgor": "NA",
+    "lie": "NA",
+    "lse": "NA",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA 1 mg/m³ ST 3 mg/m³",
+    "idlh": "1000 mg/m³",
+    "oshaPel": "TWA 1 mg/m³ See Appendix G",
+    "vias": "inhalation, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, skin, respiratory system",
+    "sintomas": "irritation eyes, skin, upper respiratory system; eye, skin, burns; dermatitis",
+    "metodos": "NIOSH 7903; OSHA ID165SG",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0506.html"
    },
    "nr15": {
     "anexo11": null,
@@ -3491,6 +3708,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 1004 (Phosphoric Acid)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/1004",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Phosphoric acid (CAS na página: 7664-38-2)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0506.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -3511,7 +3734,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista."
+     "nota": "Nenhuma entrada atribuída ao agente."
     }
    ],
    "situacao": "A conferir"
@@ -3532,28 +3755,28 @@
    "formula": "C15H10N2O2",
    "massaMolar": "250.25 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "White to light-yellow, odorless flakes. [Note: A liquid above 99°F.]",
+    "pontoEbulicao": "597°F (314 °C)",
+    "pontoFusao": "99°F (37 °C)",
+    "pressaoVapor": "(77°F): 0.000005 mmHg",
+    "densidadeRelativa": "1.23 (Solid at 77°F) 1.19 (Liquid at 122°F)",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "0.2%",
+    "pontoFulgor": "390°F (199 °C)",
+    "lie": "?",
+    "lse": "?",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA 0.05 mg/m³ (0.005 ppm) C 0.2 mg/m³ (0.020 ppm) [10-minute]",
+    "idlh": "75 mg/m³",
+    "oshaPel": "C 0.2 mg/m³ (0.02 ppm)",
+    "vias": "inhalation, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, respiratory system",
+    "sintomas": "irritation eyes, nose, throat; resp sensitization; cough, pulmonary secretions, chest pain, dyspnea (breathing difficulty); asthma",
+    "metodos": "NIOSH 5521, 5522, 5525; OSHA 18",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0413.html"
    },
    "nr15": {
     "anexo11": null,
@@ -3566,6 +3789,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 7570 (Diphenylmethane diisocyanate)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/7570",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Methylene bisphenyl isocyanate (CAS na página: 101-68-8)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0413.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -3607,28 +3836,28 @@
    "formula": "C9H6N2O2",
    "massaMolar": "174.16 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Colorless to pale-yellow solid or liquid (above 71°F) with a sharp, pungent odor.",
+    "pontoEbulicao": "484°F (251 °C)",
+    "pontoFusao": "71°F (22 °C)",
+    "pressaoVapor": "(77°F): 0.01 mmHg",
+    "densidadeRelativa": "1.22",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "Insoluble",
+    "pontoFulgor": "260°F (127 °C)",
+    "lie": "0.9%",
+    "lse": "9.5%",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "Ca See Appendix A",
+    "idlh": "Ca [2.5 ppm]",
+    "oshaPel": "C 0.02 ppm (0.14 mg/m³) See Appendix G",
+    "vias": "inhalation, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, skin, respiratory system",
+    "sintomas": "irritation eyes, skin, nose, throat; choke, paroxysmal cough; chest pain, retrosternal (occurring behind the sternum) soreness; nausea, vomiting, abdominal pain; bronchitis, bronchospasm, pulmonary edema; dyspnea (breathing difficulty), asthma; conjunctivitis, lacrimation (discharge of tears); dermatitis, skin sensitization; [potential occupational carcinogen]",
+    "metodos": "NIOSH 2535, 5521, 5522, 5525; OSHA 18, 33, 42",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0621.html"
    },
    "nr15": {
     "anexo11": {
@@ -3647,6 +3876,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 11443 (Toluene 2,4-Diisocyanate)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/11443",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Toluene-2,4-diisocyanate (CAS na página: 584-84-9)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0621.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -3685,28 +3920,28 @@
    "formula": "C5H10",
    "massaMolar": "70.13 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Colorless liquid with a mild, sweet odor.",
+    "pontoEbulicao": "121°F (49 °C)",
+    "pontoFusao": "-137°F (-94 °C)",
+    "pressaoVapor": "(88°F): 400 mmHg",
+    "densidadeRelativa": "0.75",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "Insoluble",
+    "pontoFulgor": "-35°F (-37 °C)",
+    "lie": "1.1%",
+    "lse": "8.7%",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA 600 ppm (1720 mg/m³)",
+    "idlh": "N.D.",
+    "oshaPel": "none See Appendix G",
+    "vias": "inhalation, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, skin, respiratory system, central nervous system",
+    "sintomas": "irritation eyes, skin, nose, throat; dizziness, euphoria, incoordination, nausea, vomiting, stupor; dry, cracking skin",
+    "metodos": "None available",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0171.html"
    },
    "nr15": {
     "anexo11": null,
@@ -3719,6 +3954,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 9253 (Cyclopentane)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/9253",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Cyclopentane (CAS na página: 287-92-3)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0171.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -3739,7 +3980,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista."
+     "nota": "Nenhuma entrada atribuída ao agente."
     }
    ],
    "situacao": "A conferir"
@@ -3813,7 +4054,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista."
+     "nota": "Nenhuma entrada atribuída ao agente."
     }
    ],
    "situacao": "A conferir"
@@ -3889,7 +4130,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista."
+     "nota": "Nenhuma entrada atribuída ao agente."
     }
    ],
    "situacao": "A conferir"
@@ -3910,28 +4151,28 @@
    "formula": "C2H6O2",
    "massaMolar": "62.07 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Clear, colorless, syrupy, odorless liquid. [antifreeze] [Note: A solid below 9°F.]",
+    "pontoEbulicao": "388°F (198 °C)",
+    "pontoFusao": "9°F (-13 °C)",
+    "pressaoVapor": "0.06 mmHg",
+    "densidadeRelativa": "1.11",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "Miscible",
+    "pontoFulgor": "232°F (111 °C)",
+    "lie": "3.2%",
+    "lse": "15.3%",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "See Appendix D",
+    "idlh": "N.D.",
+    "oshaPel": "none See Appendix G",
+    "vias": "inhalation, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, skin, respiratory system, central nervous system",
+    "sintomas": "irritation eyes, skin, nose, throat; nausea, vomiting, abdominal pain, lassitude (weakness, exhaustion); dizziness, stupor, convulsions, central nervous system depression; skin sensitization",
+    "metodos": "NIOSH 5523; OSHA PV2024",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0272.html"
    },
    "nr15": {
     "anexo11": null,
@@ -3944,6 +4185,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 174 (Ethylene Glycol)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/174",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Ethylene glycol (CAS na página: 107-21-1)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0272.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -3964,7 +4211,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista."
+     "nota": "Nenhuma entrada atribuída ao agente."
     }
    ],
    "situacao": "A conferir"
@@ -4038,7 +4285,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista."
+     "nota": "Nenhuma entrada atribuída ao agente."
     }
    ],
    "situacao": "A conferir"
@@ -4112,7 +4359,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista."
+     "nota": "Nenhuma entrada atribuída ao agente."
     }
    ],
    "situacao": "A conferir"
@@ -4133,28 +4380,28 @@
    "formula": "",
    "massaMolar": "",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "White or greenish (chrysotile), blue (crocidolite), or gray-green (amosite) fibrous, odorless solids.",
+    "pontoEbulicao": "Decomposes",
+    "pontoFusao": "1112°F (600 °C) (Decomposes)",
+    "pressaoVapor": "0 mmHg (approx)",
+    "densidadeRelativa": "?",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "Insoluble",
+    "pontoFulgor": "NA",
+    "lie": "NA",
+    "lse": "NA",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "Ca See Appendix A See Appendix C",
+    "idlh": "Ca [N.D.]",
+    "oshaPel": "[1910.1001] [1926.1101] See Appendix C",
+    "vias": "inhalation, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "respiratory system, eyes",
+    "sintomas": "Asbestosis (chronic exposure): dyspnea (breathing difficulty), interstitial fibrosis, restricted pulmonary function, finger clubbing; irritation eyes; [potential occupational carcinogen]",
+    "metodos": "NIOSH 7400, 7402; OSHA ID160, ID191",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0041.html"
    },
    "nr15": {
     "anexo11": null,
@@ -4167,6 +4414,12 @@
      "campos": "confirmação do CAS",
      "referencia": "PubChem Substance, SID 47205738 (CAS registrado como sinônimo; sem registro em PubChem Compound)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/substance/47205738",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Asbestos (CAS na página: 1332-21-4)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0041.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -4206,28 +4459,28 @@
    "formula": "H2O4S",
    "massaMolar": "98.08 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Colorless to dark-brown, oily, odorless liquid. [Note: Pure compound is a solid below 51°F. Often used in an aqueous solution.]",
+    "pontoEbulicao": "554°F (290 °C)",
+    "pontoFusao": "51°F (11 °C)",
+    "pressaoVapor": "0.001 mmHg",
+    "densidadeRelativa": "1.84 (96-98% acid)",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "Miscible",
+    "pontoFulgor": "NA",
+    "lie": "NA",
+    "lse": "NA",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "TWA 1 mg/m³",
+    "idlh": "15 mg/m³",
+    "oshaPel": "TWA 1 mg/m³",
+    "vias": "inhalation, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, skin, respiratory system, teeth",
+    "sintomas": "irritation eyes, skin, nose, throat; pulmonary edema, bronchitis; emphysema; conjunctivitis; stomatis; dental erosion; eye, skin burns; dermatitis",
+    "metodos": "NIOSH 7903; OSHA ID113, ID165SG",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0577.html"
    },
    "nr15": {
     "anexo11": null,
@@ -4240,6 +4493,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 1118 (Sulfuric Acid)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/1118",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Sulfuric acid (CAS na página: 7664-93-9)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0577.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -4260,7 +4519,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Agente não localizado na lista. Entradas relacionadas (não atribuídas ao agente): 'Acid mists, strong inorganic' – Grupo 1"
+     "nota": "Nenhuma entrada atribuída ao agente. Entradas relacionadas (não atribuídas ao agente): 'Acid mists, strong inorganic' – Grupo 1"
     }
    ],
    "situacao": "A conferir"
@@ -4281,28 +4540,28 @@
    "formula": "C2HCl3",
    "massaMolar": "131.38 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Colorless liquid (unless dyed blue) with a chloroform-like odor.",
+    "pontoEbulicao": "189°F (87 °C)",
+    "pontoFusao": "-99°F (-73 °C)",
+    "pressaoVapor": "58 mmHg",
+    "densidadeRelativa": "1.46",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "0.1%",
+    "pontoFulgor": "?",
+    "lie": "(77°F): 8%",
+    "lse": "(77°F): 10.5%",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "Ca See Appendix A See Appendix C",
+    "idlh": "Ca [1000 ppm]",
+    "oshaPel": "TWA 100 ppm C 200 ppm 300 ppm (5-minute maximum peak in any 2 hours) See Appendix G",
+    "vias": "inhalation, skin absorption, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, skin, respiratory system, heart, liver, kidneys, central nervous system",
+    "sintomas": "irritation eyes, skin; headache, visual disturbance, lassitude (weakness, exhaustion), dizziness, tremor, drowsiness, nausea, vomiting; dermatitis; cardiac arrhythmias, paresthesia; liver injury; [potential occupational carcinogen]",
+    "metodos": "NIOSH 1022, 3800; OSHA 1001",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0629.html"
    },
    "nr15": {
     "anexo11": {
@@ -4321,6 +4580,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 6575 (Trichloroethylene)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/6575",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Trichloroethylene (CAS na página: 79-01-6)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0629.html",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -4361,28 +4626,28 @@
    "formula": "CH2Cl2",
    "massaMolar": "84.93 g/mol",
    "fisico": {
-    "estado": "",
-    "pontoEbulicao": "",
-    "pontoFusao": "",
-    "pressaoVapor": "",
-    "densidadeRelativa": "",
+    "estado": "Colorless liquid with a chloroform-like odor. [Note: A gas above 104°F.]",
+    "pontoEbulicao": "104°F (40 °C)",
+    "pontoFusao": "-139°F (-95 °C)",
+    "pressaoVapor": "350 mmHg",
+    "densidadeRelativa": "1.33",
     "densidadeVapor": "",
-    "solubilidadeAgua": "",
-    "pontoFulgor": "",
-    "lie": "",
-    "lse": "",
+    "solubilidadeAgua": "2%",
+    "pontoFulgor": "?",
+    "lie": "13%",
+    "lse": "23%",
     "autoignicao": "",
     "limiarOdor": ""
    },
    "niosh": {
-    "rel": "",
-    "idlh": "",
-    "oshaPel": "",
-    "vias": "",
-    "orgaosAlvo": "",
-    "sintomas": "",
-    "metodos": "",
-    "url": ""
+    "rel": "Ca See Appendix A",
+    "idlh": "Ca [2300 ppm]",
+    "oshaPel": "[1910.1052] TWA 25 ppm ST 125 ppm",
+    "vias": "inhalation, skin absorption, ingestion, skin and/or eye contact",
+    "orgaosAlvo": "Eyes, skin, cardiovascular system, central nervous system",
+    "sintomas": "irritation eyes, skin; lassitude (weakness, exhaustion), drowsiness, dizziness; numb, tingle limbs; nausea; [potential occupational carcinogen]",
+    "metodos": "NIOSH 1005, 3800; OSHA 59, 80",
+    "url": "https://www.cdc.gov/niosh/npg/npgd0414.html"
    },
    "nr15": {
     "anexo11": {
@@ -4401,6 +4666,12 @@
      "campos": "identificação (CAS), fórmula e massa molar",
      "referencia": "PubChem, CID 6344 (Dichloromethane)",
      "url": "https://pubchem.ncbi.nlm.nih.gov/compound/6344",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "propriedades físico-químicas e bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards – Methylene chloride (CAS na página: 75-09-2)",
+     "url": "https://www.cdc.gov/niosh/npg/npgd0414.html",
      "consultadoEm": "2026-11-11"
     },
     {

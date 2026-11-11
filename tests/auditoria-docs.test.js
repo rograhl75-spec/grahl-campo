@@ -62,6 +62,19 @@ describe('modelos sugeridos por tipo de trabalho', () => {
   });
 });
 
+describe('agentes químicos – importação colada', () => {
+  it('completa o agente existente pelo CAS, acrescenta a fonte e não cria repetido', async () => {
+    const { importarAgentesColados } = await import('../src/quimicos.js');
+    await db.records.put({ id: 'qui-agente-y', kind: 'quimico', caseId: null, ts: { nome: 1 }, data: { nome: 'Agente Y', cas: '111-11-1', fontes: 'Fonte base', situacao: 'Conferido' } });
+    const json = JSON.stringify({ agentes: [{ nome: 'Agent Y', cas: '111-11-1', acgih: { twa: '10 ppm', notacoes: 'Skin', edicao: '2026' }, fontes: [{ referencia: 'Livro de referência 2026' }] }] });
+    expect(await importarAgentesColados(json)).toBe(1);
+    const lista = (await db.records.where('kind').equals('quimico').toArray()).filter((r) => r.data.cas === '111-11-1');
+    expect(lista).toHaveLength(1);
+    expect(lista[0].data).toMatchObject({ nome: 'Agente Y', acgihTwa: '10 ppm', acgihNotacoes: 'Skin', acgihEdicao: '2026', situacao: 'Conferido' });
+    expect(lista[0].data.fontes).toBe('Fonte base\nLivro de referência 2026');
+  });
+});
+
 describe('agentes químicos – cálculos', () => {
   it('converte ppm e mg/m³ pela massa molar (24,45 L/mol)', () => {
     expect(ppmParaMgm3(100, 92.14)).toBeCloseTo(376.85, 1);

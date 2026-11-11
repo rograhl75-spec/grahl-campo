@@ -33,7 +33,10 @@ export function quadroQuimicosAnexo11(d, ms, dados, nome) {
     }
     const agente = [x.descricao || (ag && ag.data.nome) || '', ag && ag.data.cas ? `CAS ${ag.data.cas}` : ''].filter(Boolean).join('\n');
     const res = [v(x.valor) && `${x.valor} ${x.unidade || ''}`.trim(), v(x.nAmostras) && `${x.nAmostras} amostra(s)`, v(x.maximo) && `máx. ${x.maximo}`].filter(Boolean).join('\n');
-    if (!cf) return [nome(x.postoId), agente, res, '[[limite – Anexo 11, 12 ou 13]]', '[[conferir]]'];
+    if (!cf) {
+      const ref = ag && ag.data.acgihTwa ? `\nReferência técnica ACGIH${ag.data.acgihEdicao ? ` ${ag.data.acgihEdicao}` : ''}: TWA ${ag.data.acgihTwa}${ag.data.acgihStel ? `; ${ag.data.acgihStel}` : ''}` : '';
+      return [nome(x.postoId), agente, res, `[[sem LT no Anexo 11 – Anexo 12 ou 13]]${ref}`, '[[conferir]]'];
+    }
     const lt = `${f2(cf.lt)} ${cf.un}${cf.teto ? ' (teto)' : ''}${cf.pele ? '\n+ pele' : ''}${cf.grau ? `\ngrau ${cf.grau}` : ''}`;
     const sit = `${fmt(cf.pct, 0)}% do LT – ${cf.supera ? 'supera' : 'não supera'}${cf.graveIminente ? '\nacima do valor máximo (item 7)' : ''}`;
     return [nome(x.postoId), agente, res, lt, sit];

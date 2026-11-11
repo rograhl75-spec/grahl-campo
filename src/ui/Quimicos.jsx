@@ -61,7 +61,7 @@ export function Quimicos() {
                   <b>{d.nome || '(sem nome)'}</b>{d.cas && <small class="suave"> · CAS {d.cas}</small>}{' '}
                   {d.linach && <span class="etq fase">LINACH {d.linach}</span>}{' '}
                   {d.situacao !== 'Conferido' && <span class="etq">A conferir</span>}
-                  <br /><small class="suave">{[lt && `NR-15: ${lt}${d.nr15Teto === 'Sim' ? ' (teto)' : ''}${d.nr15Grau ? ` – grau ${d.nr15Grau}` : ''}`, d.iarc && `IARC ${d.iarc}`, d.grupos].filter(Boolean).join(' · ')}</small>
+                  <br /><small class="suave">{[d.acgihTwa && `ACGIH${d.acgihEdicao ? ` ${d.acgihEdicao}` : ''}: ${d.acgihTwa}`, lt && `NR-15: ${lt}${d.nr15Teto === 'Sim' ? ' (teto)' : ''}${d.nr15Grau ? ` – grau ${d.nr15Grau}` : ''}`, d.iarc && `IARC ${d.iarc}`, d.grupos].filter(Boolean).join(' · ')}</small>
                 </span>
                 <span class="item-acoes" onClick={(e) => e.stopPropagation()}>
                   <button type="button" class="mini perigo" onClick={async () => { if (await confirmar('Mover para a lixeira?')) { await softDelete(r.id); avisarAlteracao(); } }}>✕</button>
@@ -101,7 +101,7 @@ function ImportarClaude() {
   };
   return (
     <section class="bloco largo">
-      <h3>Incluir agentes com o Claude (FISPQ, NIOSH, artigo)</h3>
+      <h3>Incluir ou completar agentes (Claude, FISPQ, arquivo de valores da ACGIH)</h3>
       <label class="campo"><span class="rotulo">Agentes ou produtos (um por linha)</span>
         <textarea rows={2} value={nomes} onInput={(e) => setNomes(e.currentTarget.value)} /></label>
       <div class="linha-botoes"><button type="button" class="sec" onClick={copiar}>Copiar instrução</button></div>

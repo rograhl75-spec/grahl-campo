@@ -2,7 +2,47 @@
 
 Esta auditoria não procura só erros. Ela confere se os documentos cobrem todos os tipos de trabalho (perícia judicial e extrajudicial, perito do juízo, assistente técnico do autor ou do réu, laudo para contratante), se há modelos repetidos e o que pode melhorar no conteúdo. No fim está a proposta do banco de agentes químicos.
 
-Nada foi alterado no código nesta etapa. Os itens estão numerados para você escolher o que implementar.
+A seção 0 resume o que já foi implementado na v2.28.0. As seções 1 a 6 são o relatório original da auditoria.
+
+---
+
+## 0. Implementado na v2.28.0
+
+Decisões tomadas por você:
+- Você não atua mais como perito na Justiça do Trabalho, só como assistente técnico.
+- O extrajudicial inclui insalubridade, periculosidade e acidente do trabalho.
+- As petições foram agrupadas em cartões com opções.
+- O eSocial fica de fora, porque o trabalho é corrigir os períodos anteriores.
+- O banco químico usa fontes abertas até a compra do livreto da ACGIH.
+
+| Item | O que mudou |
+|---|---|
+| R1 | Cartão único **Honorários** com três situações (proposta, majoração, aceite do valor arbitrado). |
+| R2 | Botão **"Redigir com o Claude"** em cada cartão. A lista separada saiu; ficou só "Responder os quesitos com o Claude". |
+| R3 | **Extrajudicial pelo objeto e por quem contratou** (novo campo "Quem contratou" e nº da ART no Resumo). Objeto previdenciário → LTCAT e, se não foi a empresa, parecer previdenciário. Insalubridade ou periculosidade → laudo extrajudicial. Acidente → laudo de acidente. Casos antigos sem objeto continuam como LTCAT. O assistente técnico não recebe mais o parecer previdenciário. |
+| R4 | A origem "Complementares" aparece como **"Esclarecimentos ao perito (após o laudo)"**. O valor gravado não mudou, então nada precisa ser convertido. |
+| R5 | Cartão renomeado para "Relatório fotográfico avulso". |
+| P1 | **Laudo de acidente do trabalho** (judicial e extrajudicial), com novo bloco "Acidente do trabalho" no Resumo, que também é importado dos autos pelo Claude. As NRs aplicáveis são detectadas pela máquina e pela atividade. Tem árvore de causas e ressalva do nexo médico. A Vara Cível e a matéria Acidentária não recebem mais o laudo da CLT. |
+| P2, P3, P4 | Cartão **"Prorrogação, diligência frustrada ou escusa"** (arts. 476, 380/473 § 3º/474 e 157). |
+| A1, A3, item 10 | **Parecer de AT** conforme a posição (concorda / impugna em parte / impugna). No previdenciário: síntese e análise por período e quadro de critérios. Quadro de pontos divergentes. |
+| A2 | **Relatório de acompanhamento da diligência** para o cliente: verificação dos procedimentos do perito, pontos favoráveis, pontos de atenção e próximos prazos. |
+| A4, A5 | Cartão **"Petições do assistente técnico"**: quesitos suplementares, pedido de esclarecimentos e manifestação sobre os esclarecimentos. |
+| E1 | **Laudo de insalubridade e periculosidade extrajudicial**: capa com contratante e ART, sem endereçamento ao Juízo, com recomendações. |
+| E4, E6 | Parecer preventivo também quando a empresa contrata o extrajudicial; nº da ART no caso. |
+| 4, 6 | **Quadro conclusivo por agente** no laudo trabalhista e no extrajudicial. **Confronto automático com o Anexo 11** (média, valor teto, valor máximo = LT × FD, absorção pela pele, grau). |
+| 7 | **LINACH Grupo 1** registrada no laudo previdenciário (Dec. 3.048/1999, art. 68, § 4º). |
+| 11 | Justiça do Trabalho: a proposta de honorários não pede mais conta para depósito (CLT, art. 790-B, § 3º). |
+| 13, 14 | Pré-relatório com a estratégia da assistência (AT) ou as verificações do perito, e com os dados do acidente. |
+
+**Correção de conteúdo encontrada na conferência do texto oficial do Anexo 11 da NR-15:** o app dizia que, para jornada acima de 48 h, o limite se corrige por Brief & Scala. O item 10.1 do Anexo 11 apenas remete ao art. 60 da CLT; a norma não prevê fator de correção. A instrução do Claude e o laudo foram corrigidos, e a calculadora apresenta Brief & Scala como critério técnico, não normativo.
+
+Banco de agentes químicos: está na seção 5 e em Paradigmas → Agentes químicos.
+
+Ficaram para depois:
+- E2 (dados para o PPP): sem eSocial; a versão em papel para períodos anteriores pode ser feita se você quiser.
+- E3 e E5 (parecer trabalhista de viabilidade; proposta de serviços).
+- P5 e P6 (esclarecimentos sobre o parecer do AT ponto a ponto; roteiro por anexo da NR-16).
+- Itens 1 a 3, 8, 9, 12 e 15.
 
 ---
 

@@ -134,14 +134,15 @@ export function TF({ rec, k, label, type = 'text', area = false, rows = 3, place
 
 export function Sel({ rec, k, label, opcoes, vazio = true }) {
   const v = rec ? rec.data[k] ?? '' : '';
-  const lista = [...opcoes];
-  if (v && !lista.includes(v)) lista.push(v);
+  // opção simples ("Sim") ou par [valor gravado, rótulo exibido]
+  const lista = opcoes.map((o) => (Array.isArray(o) ? o : [o, o]));
+  if (v && !lista.some(([x]) => x === v)) lista.push([v, v]);
   return (
     <label class="campo">
       <span class="rotulo">{label}</span>
       <select value={v} onChange={(e) => salvar(rec.id, k, e.currentTarget.value)}>
         {vazio && <option value="">—</option>}
-        {lista.map((o) => <option value={o}>{o}</option>)}
+        {lista.map(([o, r]) => <option value={o}>{r}</option>)}
       </select>
     </label>
   );

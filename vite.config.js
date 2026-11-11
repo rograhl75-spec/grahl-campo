@@ -12,7 +12,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['logo-sm.png', 'favicon.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'modelos/*.docx'],
       workbox: {
-        globPatterns: ['**/*.{js,css,html,png,docx,svg,woff2}'],
+        globPatterns: ['**/*.{js,css,html,png,docx,svg,woff2,json}'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         navigateFallback: 'index.html',
       },

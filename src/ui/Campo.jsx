@@ -3,6 +3,8 @@ import { db, createRecord, softDelete, updateFields } from '../db.js';
 import { avisarAlteracao } from '../sync.js';
 import { CAMPOS_POSTO, AGENTES_MEDICAO, contextoLegal } from '../schema.js';
 import { CAMPOS_MEDICAO, CAMPOS_MEDICAO_COMUNS, calculados } from '../medicoes.js';
+import { confrontoAnexo11 } from '../quimicos.js';
+import { fmt } from '../calc.js';
 import { lerGps } from '../photos.js';
 import { promoverMedicao } from '../paradigmas.js';
 import { evidenciasDaDiligencia, aplicarEvidencias } from '../fotosLaudo.js';
@@ -146,6 +148,38 @@ function equipPadrao(equip, agente) {
   return e ? e.id : '';
 }
 
+// Medição de agente químico: escolha do agente no banco e confronto com o Anexo 11 da NR-15
+function QuimicoDoBanco({ m }) {
+  const agentes = useLive(async () => (await db.records.where('kind').equals('quimico').toArray()).filter((r) => !r.deleted)
+    .sort((a, b) => String(a.data.nome || '').localeCompare(String(b.data.nome || ''), 'pt-BR')), [], []);
+  const ag = agentes.find((a) => a.id === m.data.agenteBanco);
+  const cf = ag ? confrontoAnexo11(ag.data, m.data.valor, m.data.unidade, { maximo: m.data.maximo }) : null;
+  const f = (x) => fmt(x, x < 10 ? 2 : 1);
+  return (
+    <div class="calculos">
+      <label class="campo"><span class="rotulo">Agente do banco de químicos</span>
+        <select value={m.data.agenteBanco || ''} onChange={(e) => {
+          const a = agentes.find((x) => x.id === e.currentTarget.value);
+          salvar(m.id, 'agenteBanco', e.currentTarget.value);
+          if (a && !String(m.data.descricao || '').trim()) salvar(m.id, 'descricao', a.data.nome);
+        }}>
+          <option value="">—</option>
+          {agentes.map((a) => <option value={a.id}>{a.data.nome}{a.data.cas ? ` (CAS ${a.data.cas})` : ''}</option>)}
+        </select>
+      </label>
+      {!agentes.length && <small class="dica">O banco está vazio. Carregue a base em Paradigmas → Agentes químicos.</small>}
+      {ag && !ag.data.nr15Ppm && !ag.data.nr15Mgm3 && <div>Este agente não tem limite no Quadro 1 do Anexo 11 no banco. {ag.data.nr15Obs || 'Veja os Anexos 12, 13 e 13-A.'}</div>}
+      {ag && ag.data.linach && <div><b>LINACH {ag.data.linach}</b>{ag.data.linach === 'Grupo 1' ? ' – previdenciário: avaliação qualitativa; a presença no ambiente basta (Dec. 3.048/1999, art. 68, § 4º).' : ''}</div>}
+      {cf && <>
+        <div><b>Anexo 11:</b> LT {f(cf.lt)} {cf.un}{cf.teto ? ' (valor teto)' : ''}{cf.grau ? ` – grau ${cf.grau}` : ''}{cf.pele ? ' – absorção também pela pele' : ''}</div>
+        <div><b>Resultado:</b> {f(cf.c)} {cf.un} = {fmt(cf.pct, 0)}% do LT – {cf.supera ? 'ACIMA do limite' : 'dentro do limite'}</div>
+        {!cf.teto && <div><b>Valor máximo</b> (LT × FD {String(cf.fd).replace('.', ',')}): {f(cf.vmax)} {cf.un}{cf.graveIminente ? ' – SUPERADO: risco grave e iminente (item 7)' : ''}</div>}
+      </>}
+      {ag && ag.data.situacao !== 'Conferido' && <small class="dica">Ficha do agente "A conferir": confira o limite no texto da NR-15 antes de usar no laudo.</small>}
+    </div>
+  );
+}
+
 function Medicoes({ caseId, postoId, ctx = {}, caso }) {
   const lista = useLive(async () => (await db.records.where('[caseId+kind]').equals([caseId, 'medicao']).toArray())
     .filter((r) => !r.deleted && (r.data.postoId || '') === postoId).sort((a, b) => a.createdAt - b.createdAt), [caseId, postoId], []);
@@ -191,6 +225,7 @@ function Medicoes({ caseId, postoId, ctx = {}, caso }) {
                   <Campos rec={m} campos={(CAMPOS_MEDICAO[m.data.agente] || CAMPOS_MEDICAO.Outro)} />
                   <Campos rec={m} campos={CAMPOS_MEDICAO_COMUNS.slice(0, 2)} />
                 </div>
+                {m.data.agente === 'Agente químico' && <QuimicoDoBanco m={m} />}
                 {calc.length > 0 && (
                   <div class="calculos">
                     {calc.map(([r, v, f]) => <div><b>{r}:</b> {v} {f && <small>({f})</small>}</div>)}

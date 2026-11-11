@@ -1,5 +1,5 @@
 import { db, createRecord, updateFields, caseChildren } from './db.js';
-import { ORIGEM_QUESITO, contextoLegal, ehSuplementar, FASE, CAMPOS_DILIGENCIA, CAMPOS_POSTO, AGENTES_MEDICAO } from './schema.js';
+import { ORIGEM_QUESITO, contextoLegal, ehSuplementar, FASE, CAMPOS_DILIGENCIA, CAMPOS_POSTO, AGENTES_MEDICAO, ehAcidente, CAMPOS_ACIDENTE } from './schema.js';
 import { resumoMedicao } from './medicoes.js';
 import { dataIso } from './migrate.js';
 
@@ -26,7 +26,7 @@ export function agenteMedicao(a) {
   return AGENTES_MEDICAO.find((x) => x.toLowerCase() === t) || 'Outro';
 }
 
-const CAMPOS_DATA_CASO = ['autorNascimento', 'dataAjuizamento', 'vistoriaData', 'dataDiligencia', 'laudoData', 'prazoLaudo', 'prazoManifestacao', 'prazoEsclarecimentos'];
+const CAMPOS_DATA_CASO = ['acidenteData', 'autorNascimento', 'dataAjuizamento', 'vistoriaData', 'dataDiligencia', 'laudoData', 'prazoLaudo', 'prazoManifestacao', 'prazoEsclarecimentos'];
 // a IA nunca faz o caso voltar de fase
 export function faseAvanca(atual, nova) {
   const ia = FASE.indexOf(atual || 'A preparar'), in_ = FASE.indexOf(nova);
@@ -53,7 +53,7 @@ export const CRITERIOS_TRAB = `FINALIDADE TRABALHISTA (insalubridade / periculos
 - Ruído: NR-15, Anexo 1 – limite de 85 dB(A) para 8 h, q = 5; caracteriza com dose diária acima de 100%. Neutralização pelo protetor (item 15.4.1, "b", da NR-15 e NR-6: CA válido, NRRsf, fichas de entrega, troca, treinamento).
 - Calor: NR-15, Anexo 3 – até 10/12/2019 redação original (IBUTG; taxa metabólica entre linhas do quadro → linha imediatamente superior, sem interpolar); a partir de 11/12/2019, Portaria SEPRT 1.359/2019 (NHO-06, IBUTG ajustado pela vestimenta); calor a céu aberto sem fonte artificial depois de 11/12/2019 não caracteriza.
 - Vibração: NR-15, Anexo 8 – a partir de 14/08/2014 (Portaria MTE 1.297, de 13/08/2014, DOU de 14/08/2014; NHO-09/10; VMB aren 5 m/s²; VCI aren 1,1 m/s² ou VDVR 21,0 m/s^1,75); antes, redação original (ISO 2631 e ISO/DIS 5349).
-- Químicos: Anexo 11 (quantitativo; jornada > 48 h: correção do limite por Brief & Scala), Anexo 13 (qualitativo); álcali cáustico: referência pH 11,5 (NBR 14725:2023).
+- Químicos: Anexo 11 (quantitativo; média aritmética das amostras – item 8; valor teto – item 9; valor máximo = LT × fator de desvio – item 7; limites válidos até 48 h semanais – item 10, e acima disso o item 10.1 remete ao art. 60 da CLT: a correção por Brief & Scala é só critério técnico, não está na norma), Anexo 12 (poeiras minerais), Anexos 13 e 13-A (qualitativos); álcali cáustico: referência pH 11,5 (NBR 14725:2023). Agentes do Grupo 1 da LINACH no previdenciário: avaliação qualitativa (Dec. 3.048/1999, art. 68, § 4º).
 - Biológicos: NR-15, Anexo 14; área de isolamento: adequação mês a mês – havendo no mês frequência intermitente na área de isolamento, grau máximo naquele mês.
 - Periculosidade: NR-16, anexos em algarismos romanos – I explosivos; II inflamáveis; III segurança pessoal ou patrimonial; IV energia elétrica; V motocicleta (nova redação da Portaria MTE 2.021/2025, vigente desde 03/04/2026); VI agentes das autoridades de trânsito (Portaria MTE 1.411/2025); radiações ionizantes no anexo sem número (*) (Portaria 518/2003). Troca de cilindro de GLP de empilhadeira não está listada no Anexo II (enquadramento só por jurisprudência, que fica apenas registrada).`;
 
@@ -109,6 +109,7 @@ Responda SOMENTE com um bloco JSON válido, sem texto antes ou depois, neste for
     "analiseEpi": "", "roteiro": "roteiro da vistoria e documentos a solicitar, um por linha começando com '- '",
     "observacoes": ""
   },
+  "acidente": {"acidenteData": "só em caso de acidente do trabalho", "acidenteHora": "", "acidenteLocal": "", "acidenteAtividade": "", "acidenteMaquina": "", "acidenteRelato": "versão do acidentado", "acidenteRelatoEmpresa": "versão da empresa e das testemunhas", "acidenteLesao": "", "acidenteCat": "", "acidenteAlteracoes": ""},
   "periodos": [{"empresa": "", "cnpj": "", "inicio": "", "fim": "", "cargo": "", "setor": "", "atividades": "", "agentes": "", "fonte": "", "tipoTransporte": "só motorista/cobrador", "jornadaSemanal": "", "noturnoPernoite": "", "cargaDescarga": "", "vias": "", "riscoAcidente": "", "cabine": "", "pausas": "", "pressao": "", "fisiologicas": "acesso a sanitários, alimentação e descanso"}],
   "documentos": [{"tipo": "PPP | LTCAT | PGR / PPRA | Laudo pericial | Ficha de EPI | CTPS / CNIS | Outro", "identificacao": "", "analise": ""}],
   "epis": [{"descricao": "", "ca": "", "dataEntrega": "", "obs": ""}],
@@ -172,15 +173,29 @@ Em "quesitos", transcreva os quesitos já respondidos pelo perito e SUGIRA quesi
     foco: `Vou elaborar um LTCAT + PPP extrajudicial para fins de aposentadoria especial (Lei 8.213/91, Decreto 3.048/99, IN PRES/INSS 128/2022). Leia os documentos anexados (CNIS, CTPS, cartão CNPJ, contrato social, laudos anteriores, anotações) e prepare o pré-relatório.
 FOCO: segurado e categoria (empregado / contribuinte individual – STJ, Tema 1291), vínculos com datas da CTPS, lacunas do CNIS, empresa ativa ou extinta (similaridade: o INSS não aceita laudo de empresa diversa – art. 277, parágrafo único, da IN 128/2022; em juízo, Súmula 106 do TRF4 e TNU, PEDILEF 0001323-30.2010.4.03.6318), atividades e agentes por subperíodo, marcos legais e EC 103/2019, laudos existentes da empresa e suas falhas.
 Em "preliminares", as pendências e documentos a pedir ao segurado antes da vistoria. Em "roteiro", o checklist de campo (o que perguntar, observar, medir e fotografar).`,
+  },  {
+    id: 'extra-trab', titulo: 'Extrajudicial – laudo de insalubridade e periculosidade para a empresa',
+    foco: `Vou elaborar um LAUDO TÉCNICO EXTRAJUDICIAL de caracterização de insalubridade e periculosidade (CLT, arts. 189 a 195; NR-15 e NR-16) contratado pela empresa (ou por trabalhador/advogado, veja no caso). Leia os documentos anexados (PGR, inventário de riscos, PCMSO, fichas de EPI, FISPQs, laudos anteriores, descrição de cargos).
+FOCO: setores, cargos e atividades; agentes por posto com o anexo da NR-15 ou da NR-16 aplicável; produtos químicos e suas FISPQs; EPC e EPI (CA, fichas, troca, treinamento); avaliações quantitativas existentes e o que precisa ser medido.
+Em "preliminares", as pendências e documentos a pedir antes da vistoria. Em "roteiro", o checklist de campo por setor (o que observar, medir e fotografar).`,
+  },
+  {
+    id: 'acidente', titulo: 'Acidente do trabalho – análise técnica (judicial ou extrajudicial)',
+    foco: `Vou analisar tecnicamente um ACIDENTE DO TRABALHO (veja no caso se é perícia judicial ou laudo extrajudicial). Leia os documentos anexados (inicial, contestação, CAT, boletim de ocorrência, análise de acidente da empresa, PGR, ordens de serviço, treinamentos, manuais da máquina, fotos).
+FOCO: data, local, atividade em execução e máquina/equipamento envolvido; dinâmica do acidente segundo cada versão (acidentado, empresa, testemunhas) e as divergências; normas aplicáveis (NR-1, NR-6, NR-10, NR-11, NR-12, NR-18, NR-31, NR-33, NR-35, conforme o caso); proteções existentes e exigíveis; treinamentos e capacitação; alterações no local depois do acidente. O nexo com a lesão e a incapacidade é matéria médica: registre só a lesão informada.
+Em "preliminares", os pontos controvertidos da dinâmica e o que verificar. Em "roteiro", o que inspecionar, medir e fotografar na máquina ou no local, e os documentos a pedir.`,
   },
 ];
 
 export function situacaoDoCaso(c) {
-  if (c.tipoAtuacao === 'Extrajudicial' || /extrajudicial/i.test(c.papel || '')) return 'extra-ltcat';
+  const extra = c.tipoAtuacao === 'Extrajudicial' || /extrajudicial/i.test(c.papel || '');
+  const ctx = contextoLegal(c);
+  if (ehAcidente(c) && ctx.prev !== true && !/Assistente/i.test(c.papel || '')) return 'acidente';
+  if (extra) return ctx.prev === false ? 'extra-trab' : 'extra-ltcat';
   if (/Assistente/i.test(c.papel || '')) return c.refLaudo || /laudo|manifesta|esclarec/i.test(c.fase || '') ? 'at-laudo' : 'at-estudo';
   // (os critérios do assistente técnico seguem a matéria do caso: trabalhista ou previdenciária)
   if (/Fazenda/i.test(c.justica || '') || c.materia === 'Administrativa (servidor)') return 'perito-faz';
-  if (c.materia === 'Previdenciária' || c.materia === 'Acidentária') return 'perito-prev';
+  if (c.materia === 'Previdenciária' || ctx.prev === true) return 'perito-prev';
   return 'perito-trab';
 }
 
@@ -197,6 +212,7 @@ const CAMPOS_CASO = {
   processo: ['numero', 'juizo', 'comarca', 'dataAjuizamento', 'valorCausa', 'rito', 'peritoJuizo', 'refLaudo', 'despachoRef', 'similaridade', 'empresaOriginal'],
   partes: ['autorNome', 'autorCpf', 'autorNascimento', 'reuNome', 'reuCnpj'],
   sintese: ['funcoes', 'atividadesAlegadas', 'agentesAlegados', 'pedidos', 'defesa', 'preliminares', 'analiseEpi', 'roteiro', 'observacoes'],
+  acidente: CAMPOS_ACIDENTE.map(([k]) => k),
 };
 
 export function lerJsonIA(texto) {
@@ -352,6 +368,12 @@ const REDACAO = {
   supl: 'Redija a PETIÇÃO DE RESPOSTA AOS QUESITOS SUPLEMENTARES (perito do juízo, art. 477, § 2º, I, do CPC): referência à decisão e ao laudo; para cada parte, transcrição literal de cada quesito suplementar seguida da resposta técnica, apoiada no laudo e nos registros de campo abaixo (fonte primária da diligência); retificação de erro material ("onde se lê / leia-se") quando houver divergência; ratificação das conclusões; encerramento. Sem juridiquês e sem citar o advogado.',
 };
 
+Object.assign(REDACAO, {
+  laudoExtra: 'Redija o LAUDO TÉCNICO EXTRAJUDICIAL de caracterização de insalubridade e periculosidade (CLT, arts. 189 a 195; NR-15 e NR-16, na redação vigente), sem endereçamento ao Juízo: 1 Identificação (contratante, empresa, responsável técnico e ART); 2 Objetivo e metodologia; 3 Ambiente e atividades por setor/posto; 4 EPC e EPI (neutralização: item 15.4.1 da NR-15 e NR-6); 5 Avaliação dos agentes por anexo, com quadro conclusivo (agente, anexo, limite, resultado, grau ou periculosidade); 6 Conclusão por setor/função; 7 Recomendações (ordem da NR-1); 8 Encerramento. Linguagem técnica e simples.',
+  acidente: 'Redija o LAUDO TÉCNICO DE ACIDENTE DO TRABALHO (perícia judicial ou laudo extrajudicial, conforme o caso): identificação; objetivo e metodologia (inspeção, entrevistas, documentos, análise de causas por árvore de causas ou método equivalente); descrição do local, da máquina/equipamento e da atividade; dinâmica do acidente com as versões de cada parte e as divergências; confronto com as normas aplicáveis em quadro (requisito / situação constatada / atendido?); análise das causas (fatores técnicos, organizacionais e humanos, sem atribuir culpa jurídica); medidas de prevenção existentes e exigíveis; capacitação e EPI; conclusão técnica e respostas aos quesitos, se houver. O nexo com a lesão e a incapacidade é matéria médica: não opine sobre ele.',
+  peticaoAT: 'Redija a PETIÇÃO do assistente técnico escolhida no app (quesitos suplementares, pedido de esclarecimentos ao perito ou manifestação sobre os esclarecimentos): objetiva, técnica, com cada ponto ligado ao item do laudo e à norma aplicável.',
+});
+
 export const OPCOES_REDACAO = [
   ['laudo', 'Laudo pericial'], ['parecerAT', 'Parecer de assistente técnico / impugnação'], ['ltcat', 'LTCAT + PPP'],
   ['parprev', 'Parecer técnico previdenciário'], ['prevent', 'Parecer preventivo para a empresa'], ['indic', 'Petição de indicação e quesitos'],
@@ -403,6 +425,10 @@ export async function textoDoCaso(caseId) {
   L.push('\n## Síntese dos autos');
   for (const [k, r] of [['funcoes', 'Funções e períodos'], ['atividadesAlegadas', 'Atividades alegadas'], ['agentesAlegados', 'Agentes alegados'], ['pedidos', 'Pedidos'],
     ['defesa', 'Defesa'], ['preliminares', 'Pontos de atenção'], ['analiseEpi', 'Análise dos EPIs'], ['observacoes', 'Observações'], ['conclusaoLaudo', 'Conclusão do laudo já apresentado']]) campo(r, c[k]);
+  if (CAMPOS_ACIDENTE.some(([k]) => String(c[k] || '').trim())) {
+    L.push('\n## Acidente do trabalho');
+    for (const [k, r] of CAMPOS_ACIDENTE) campo(r, c[k]);
+  }
   if (periodos.length) { L.push('\n## Períodos'); periodos.forEach((p) => L.push(`- ${p.data.empresa || ''} (${p.data.cnpj || ''}) – ${p.data.inicio || '?'} a ${p.data.fim || 'atual'} – ${p.data.cargo || ''} / ${p.data.setor || ''}. Atividades: ${p.data.atividades || ''}. Agentes: ${p.data.agentes || ''}. Fonte: ${p.data.fonte || ''}${['tipoTransporte', 'jornadaSemanal', 'pausas', 'noturnoPernoite', 'cargaDescarga', 'vias', 'cabine', 'riscoAcidente', 'pressao', 'penosidadeConclusao'].filter((k) => p.data[k]).map((k) => `. ${k}: ${p.data[k]}`).join('')}`)); }
   const comPar = periodos.filter((p) => p.data.paradigmaRuido || p.data.paradigmaVibracao || p.data.veiculoModelo);
   if (comPar.length) {

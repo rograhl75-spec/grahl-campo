@@ -33,6 +33,29 @@ export const FASE = [
 ];
 
 export const ORIGEM_QUESITO = ['Juízo', 'Autor / Reclamante', 'Réu / Reclamada', 'INSS', 'Complementares', 'Outro'];
+// "Complementares" = pedido de esclarecimentos ao perito depois do laudo (art. 477, § 2º, do CPC).
+// O valor gravado continua "Complementares" (compatível com os casos já cadastrados); só o rótulo muda.
+export const ROTULO_ORIGEM = { Complementares: 'Esclarecimentos ao perito (após o laudo)' };
+export const rotuloOrigem = (o) => ROTULO_ORIGEM[o] || o;
+
+// Extrajudicial: quem contratou o trabalho (decide os modelos sugeridos)
+export const CONTRATADO_POR = ['Empresa', 'Trabalhador / segurado', 'Advogado'];
+
+// Acidente do trabalho (judicial ou extrajudicial)
+export const CAMPOS_ACIDENTE = [
+  ['acidenteData', 'Data do acidente', 'date'],
+  ['acidenteHora', 'Horário', 'time'],
+  ['acidenteLocal', 'Local / setor do acidente', 'text'],
+  ['acidenteAtividade', 'Atividade em execução no momento', 'area'],
+  ['acidenteMaquina', 'Máquina, equipamento, ferramenta ou estrutura envolvida (marca, modelo, ano)', 'area'],
+  ['acidenteRelato', 'Dinâmica do acidente – relato do acidentado', 'area'],
+  ['acidenteRelatoEmpresa', 'Dinâmica do acidente – versão da empresa / testemunhas', 'area'],
+  ['acidenteLesao', 'Lesão informada (sem diagnóstico médico)', 'text'],
+  ['acidenteCat', 'CAT (nº e data) / boletim de ocorrência / análise da empresa', 'text'],
+  ['acidenteAlteracoes', 'Alterações no local ou na máquina depois do acidente', 'area'],
+];
+export const ehAcidente = (c = {}) => (c.objeto || []).includes('Acidente / doença ocupacional')
+  || ((c.materia === 'Acidentária' || c.materia === 'Cível') && !(c.objeto || []).some((o) => /Insalub|Periculos|Aposentadoria|LTCAT|PPP|Adicional/.test(o)));
 
 export const AGENTES_MEDICAO = [
   'Ruído', 'Calor (IBUTG)', 'Vibração de corpo inteiro (VCI)', 'Vibração de mãos e braços (VMB)',
@@ -260,8 +283,18 @@ export const NOVO_CASO = {
 // Finalidade do caso: decide qual legislação os documentos e as instruções usam.
 // true = previdenciário (tempo especial); false = trabalhista / servidor; undefined = outro.
 export const reuEhInss = (c = {}) => /\bINSS\b|Instituto Nacional do Seguro Social/i.test(c.reuNome || '');
+const OBJ_PREV = /Aposentadoria|LTCAT|PPP/;
+const OBJ_TRAB = /Insalub|Periculos|Adicional/;
 export function contextoLegal(c = {}) {
-  if (c.tipoAtuacao === 'Extrajudicial' || c.materia === 'Previdenciária') return { prev: true };
+  if (c.materia === 'Previdenciária') return { prev: true };
+  if (c.tipoAtuacao === 'Extrajudicial') {
+    // extrajudicial: a finalidade sai do objeto marcado (sem objeto = LTCAT, como antes)
+    const obj = c.objeto || [];
+    if (obj.some((o) => OBJ_PREV.test(o))) return { prev: true };
+    if (obj.some((o) => OBJ_TRAB.test(o))) return { prev: false };
+    if (ehAcidente(c)) return {};
+    return { prev: true };
+  }
   // ação contra o INSS fora da Justiça do Trabalho é previdenciária, mesmo com a matéria marcada errada
   if (reuEhInss(c) && c.justica !== 'Justiça do Trabalho' && c.materia !== 'Acidentária') return { prev: true };
   if (c.materia === 'Trabalhista' || c.materia === 'Administrativa (servidor)' || c.justica === 'Justiça do Trabalho' || /Fazenda/i.test(c.justica || '')) return { prev: false };

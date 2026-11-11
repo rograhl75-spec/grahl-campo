@@ -15,6 +15,7 @@ import { Campos } from './fields.jsx';
 import { RecordList } from './RecordList.jsx';
 import { Icone } from './Icone.jsx';
 import { confirmar } from './dialogo.jsx';
+import { Quimicos } from './Quimicos.jsx';
 
 export const CAMPOS_PARADIGMA = {
   'Identificação': [
@@ -53,18 +54,19 @@ export const CAMPOS_PARADIGMA = {
   ],
 };
 
-const ABAS = [['veiculos', 'Veículos medidos'], ['maquinas', 'Máquinas – ruído e vibração'], ['similares', 'Similares'], ['familias', 'Famílias'], ['buscar', 'Buscar paradigma'], ['importar', 'Importar']];
+const ABAS = [['veiculos', 'Veículos medidos'], ['maquinas', 'Máquinas – ruído e vibração'], ['quimicos', 'Agentes químicos'], ['similares', 'Similares'], ['familias', 'Famílias'], ['buscar', 'Buscar paradigma'], ['importar', 'Importar']];
 
 export function Paradigmas({ aba = 'veiculos' }) {
   return (
     <div class="pagina">
       <div class="caso-topo"><div class="caso-id">
         <h1>Banco de paradigmas</h1>
-        <div class="caso-sub">Veículos, máquinas agrícolas, de construção e ferramentas medidos em perícias, laudos e na literatura – usados como paradigma por similaridade.</div>
+        <div class="caso-sub">Veículos, máquinas e ferramentas medidos em perícias, laudos e na literatura (paradigmas por similaridade) e o banco de agentes químicos.</div>
       </div></div>
       <nav class="abas">{ABAS.map(([k, r]) => <a href={`#/paradigmas/${k}`} class={aba === k ? 'ativo' : ''}>{r}</a>)}</nav>
       {aba === 'veiculos' && <Veiculos />}
       {aba === 'maquinas' && <Maquinas />}
+      {aba === 'quimicos' && <Quimicos />}
       {aba === 'similares' && <Similares />}
       {aba === 'familias' && <Familias />}
       {aba === 'buscar' && <Buscar />}

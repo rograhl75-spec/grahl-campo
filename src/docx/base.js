@@ -454,7 +454,7 @@ export function quadroMedicoesGenerico(d, titulo, ms, nomePosto, ctx = {}) {
 // ---------- critérios por período (somente previdenciário) ----------
 export function quadroCriteriosCalor(d) {
   return d.quadro('Critérios – Calor', [['Período', 'Critério e fundamento'],
-    ['Até 05/03/1997', 'Cód. 1.1.1 dos Decretos 53.831/1964 e 83.080/1979: operações em locais com temperatura excessivamente alta, proveniente de fontes artificiais; jornada normal em locais com TE acima de 28 °C, sem exigência de IBUTG (art. 293, I, da IN 128/2022)'],
+    ['Até 05/03/1997', 'Cód. 1.1.1 do Decreto 53.831/1964: operações em locais com temperatura excessivamente alta, capaz de ser nociva à saúde e proveniente de fontes artificiais; jornada normal em locais com TE acima de 28 °C, sem exigência de IBUTG. Cód. 1.1.1 do Anexo I do Decreto 83.080/1979: alimentação de caldeiras a vapor a carvão ou a lenha (art. 293, I, da IN 128/2022)'],
     ['06/03/1997 a 10/12/2019', 'Cód. 2.0.4 dos Decretos 2.172/1997 e 3.048/1999: exposição ao calor acima dos limites de tolerância da NR-15, Anexo 3, na redação original (IBUTG e quadros de regime e taxa metabólica). A partir de 01/01/2004, avaliação conforme a NHO-06, facultativa desde 19/11/2003 (art. 293, II e III, da IN 128/2022)'],
     ['A partir de 11/12/2019', 'Cód. 2.0.4 do Decreto 3.048/1999, com os limites da NR-15, Anexo 3, na redação da Portaria SEPRT nº 1.359/2019 (DOU de 11/12/2019), avaliados conforme a NHO-06 (2ª ed., 2017)'],
   ], { larguras: [0.27, 0.73], fonte: 'Elaborado pelo autor com base em Brasil (2022, art. 293). O Decreto 3.048/1999 prevalece sobre a redação mais restritiva da IN, que limita o calor a ambientes fechados ou com fonte artificial (hierarquia normativa).' });
@@ -462,7 +462,7 @@ export function quadroCriteriosCalor(d) {
 
 export function quadroCriteriosVibracao(d) {
   return d.quadro('Critérios – Vibração', [['Período', 'Critério e fundamento'],
-    ['Até 05/03/1997', 'Cód. 1.1.5 do Decreto 53.831/1964 (trepidação: máquinas acionadas a ar comprimido acima de 120 golpes por minuto, medição quantitativa) e cód. 1.1.4 do Decreto 83.080/1979 (avaliação qualitativa) – art. 296, I, da IN 128/2022'],
+    ['Até 05/03/1997', 'Cód. 1.1.5 do Decreto 53.831/1964 (trepidações e vibrações industriais: operadores de perfuratrizes e marteletes pneumáticos, e outros; jornada normal com máquinas acionadas a ar comprimido e velocidade acima de 120 golpes por minuto) e cód. 1.1.4 do Anexo I do Decreto 83.080/1979 (trabalhos com perfuratrizes e marteletes pneumáticos) – art. 296, I, da IN 128/2022'],
     ['06/03/1997 a 13/08/2014', 'Cód. 2.0.2 dos Decretos 2.172/1997 e 3.048/1999 (perfuratrizes e marteletes pneumáticos), com os limites das normas ISO 2631 e ISO/DIS 5349 (art. 296, II, da IN 128/2022). Fora dessas atividades, apresentam-se as duas leituras, inclusive pela ISO (VCI: fronteira superior da zona de cautela da ISO 2631-1; VMB: 5 m/s², Diretiva 2002/44/CE)'],
     ['A partir de 14/08/2014', 'Cód. 2.0.2 do Decreto 3.048/1999, com os limites da NR-15, Anexo 8 (Portaria MTE nº 1.297, de 13/08/2014, vigente desde a publicação no DOU de 14/08/2014; a IN 128/2022 indica 13/08/2014): VCI aren 1,1 m/s² ou VDVR 21,0 m/s^1,75; VMB aren 5 m/s², avaliados conforme as NHO-09 e NHO-10 (art. 296, III, da IN 128/2022; facultativas desde 10/09/2012)'],
   ], { larguras: [0.27, 0.73], fonte: 'Elaborado pelo autor com base em Brasil (2022, art. 296).' });
@@ -780,7 +780,7 @@ export function quadroRequisitosEpi(d, dados) {
 // (antes de 06/03/1997: Decretos 53.831/64 e 83.080/79; depois: Anexo IV dos Decretos 2.172/97 e 3.048/99)
 const COD = [
   [/ru[ií]do/i, '1.1.6', '2.0.1'], [/calor|temperatura/i, '1.1.1', '2.0.4'], [/vibra|trepida/i, '1.1.5', '2.0.2'],
-  [/biol|microrganism|esgoto|lixo|hospital/i, '1.3.2', '3.0.1'], [/[óo]leo|graxa|hidrocarb|mineral/i, '1.2.11', '1.0.17'],
+  [/biol|microrganism|hospital/i, '1.3.2', '3.0.1'], [/esgoto|lixo/i, '', '3.0.1'], [/[óo]leo|graxa|hidrocarb|mineral/i, '1.2.11', '1.0.17'],
   [/s[ií]lica|poeira/i, '1.2.10', '1.0.18'], [/benzeno/i, '1.2.11', '1.0.3'], [/eletric/i, '1.1.8', ''],
 ];
 export function codigosEnquadramento(agentes, inicio, fim) {

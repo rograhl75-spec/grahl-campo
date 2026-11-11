@@ -243,3 +243,59 @@ Segue a regra do banco de máquinas: **nenhum valor entra sem fonte conferida**.
 2. No extrajudicial, você faz **laudo de insalubridade/periculosidade para empresas** (E1) ou só LTCAT/parecer para o segurado?
 3. Prefere o cartão único de **honorários** (R1) ou manter as três petições separadas?
 4. Para o banco químico: quais são os **agentes mais frequentes** nos seus casos? Você tem o livreto da **ACGIH** (edição) para digitar os TLVs?
+
+---
+
+## 7. Auditoria das citações normativas e de jurisprudência (11/11/2026)
+
+Cada citação do app foi conferida contra o texto oficial: gov.br (NRs e portarias), Senado, Câmara e normas.leg.br (leis e decretos), CJF, STF, STJ, TNU, TRF4 e TST. Não se preencheu nada de memória; o que não pôde ser aberto ficou como "não conferido".
+
+### Erros corrigidos
+| Ponto | Antes | Agora |
+|---|---|---|
+| Vigilante | STJ, Tema 1031 (especialidade admitida) | **STF, Tema 1209** (RE 1.368.225, julgado em 13/02/2026, acórdão publicado em 04/03/2026): a atividade de vigilante, com ou sem arma de fogo, não é especial. Há embargos pendentes, com proposta de modulação, e o Tema 1031 do STJ está superado. |
+| LINACH (Dec. 3.048/1999, art. 68, § 4º) | "a presença no ambiente basta" | Essa era a redação do Dec. 8.123/2013 (até 30/06/2020). Desde o Dec. 10.410/2020 (01/07/2020), medidas de controle que eliminem a nocividade descaracterizam a exposição. O texto passou a separar os dois períodos. |
+
+### Imprecisões corrigidas
+- **CJF – majoração:** o teto de três vezes está no art. 28, § 1º, da Res. 305/2014 (incluído pela Res. 575/2019), com lista fechada de critérios (I a VII). A petição indica os incisos aplicáveis.
+- **CJF – adiantamento:** na Justiça Federal com AJG, o adiantamento é de até 30% (art. 29, parágrafo único), mediante comprovação da necessidade. O padrão passou de 50% para 30%.
+- **CPC:**
+  - art. 476: prorrogação por uma vez, pela metade do prazo original (o app avisa quando o pedido excede);
+  - art. 379, III, para a parte, e art. 380 para o terceiro;
+  - art. 477, § 2º, para complementação e art. 480 para nova perícia;
+  - art. 157, caput e § 1º, na escusa.
+- **NR-16:**
+  - anexos em algarismos romanos;
+  - inclusão do Anexo VI (agentes das autoridades de trânsito, Portaria MTE 1.411/2025);
+  - Anexo IV com a alínea "c" (baixa tensão quando descumprido o item 10.2.8 da NR-10);
+  - Anexo V na redação da Portaria MTE 2.021/2025, vigente desde 03/04/2026 (a de 2014 foi anulada judicialmente).
+- **NR-15:**
+  - o ajuste do IBUTG pela vestimenta está no Quadro 4 do Anexo III da NR-9;
+  - o Anexo 14 exige contato permanente para o grau máximo (o intermitente é construção jurisprudencial);
+  - 14/08/2014 é a vigência da nova redação do Anexo 8.
+- **NR-1:** a ordem de prioridade é a do item 1.4.1, "g", que não inclui "substituição".
+- **Títulos:** NHO 10, NR-13 e NR-7 (Anexo I, Quadros 1 e 2).
+- **Decretos previdenciários:**
+  - cód. 1.1.5 do Dec. 53.831/64: perfuratrizes e marteletes pneumáticos "e outros"; os 120 golpes por minuto são característica da máquina, não nível medido;
+  - cód. 1.1.4 do Dec. 83.080/79: perfuratrizes e marteletes;
+  - cód. 2.0.2: perfuratrizes e marteletes, com a ISO 2631-1 como referência técnica para as demais atividades;
+  - cód. 1.1.1 diferente em cada decreto (o do 83.080 é alimentação de caldeiras a carvão ou lenha);
+  - cód. 2.4.4 / 2.4.2: redação de cada decreto;
+  - cód. 2.0.4 nos dois decretos;
+  - esgoto e lixo sem o cód. 1.3.2 antes de 1997;
+  - martelete elétrico não previsto.
+- **Jurisprudência:**
+  - STJ, Temas 1090, 534 e 1307: tese oficial, datas, processos e embargos do 1307;
+  - TRF4: IAC nº 5 (sobrestado) e IAC nº 12 (motorista de caminhão);
+  - TNU, PEDILEF 0001323: todos os requisitos da similaridade;
+  - TST, OJ 173: a observação sobre a Portaria 1.359 foi separada da tese;
+  - os parâmetros da matriz de penosidade passam a ser apresentados como do perito, não como tese do IAC.
+- **Novo:** art. 30-A da Res. CJF 305/2014 (prova emprestada) no laudo previdenciário por similaridade na Justiça Federal.
+
+### Não conferido (fontes inacessíveis nesta sessão)
+- **IN PRES/INSS 128/2022:** todos os artigos citados (in.gov.br recusou a conexão). Também a data de corte de 01/01/2004, que depende dela, e o quadro "Forma de enquadramento".
+- **Portaria Interministerial 9/2014 (LINACH):** sem fonte oficial acessível.
+- **Normas pagas:** ISO 2631-1, NBR 14724 e NBR 14725.
+- **TNU, PEDILEF 0506002-13.2018.4.05.8312:** o PDF não foi encontrado no CJF.
+- **Textos históricos:** a redação original de 1978 dos Anexos 3 e 8 da NR-15 e os anos das NHOs.
+- **Jurisprudência:** as situações a acompanhar foram registradas no próprio texto (embargos do Tema 1209 no STF; RE pendente no Tema 1291).

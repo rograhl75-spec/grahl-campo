@@ -170,7 +170,7 @@ function QuimicoDoBanco({ m }) {
       {!agentes.length && <small class="dica">O banco está vazio. Carregue a base em Paradigmas → Agentes químicos.</small>}
       {ag && !ag.data.nr15Ppm && !ag.data.nr15Mgm3 && <div>Este agente não tem limite no Quadro 1 do Anexo 11 no banco. {ag.data.nr15Obs || 'Veja os Anexos 12, 13 e 13-A.'}</div>}
       {ag && ag.data.acgihTwa && <div><b>ACGIH{ag.data.acgihEdicao ? ` ${ag.data.acgihEdicao}` : ''}</b> (referência técnica, NR-9): TWA {ag.data.acgihTwa}{ag.data.acgihStel ? ` · ${ag.data.acgihStel}` : ''}{ag.data.acgihNotacoes ? ` · ${ag.data.acgihNotacoes}` : ''}</div>}
-      {ag && ag.data.linach && <div><b>LINACH {ag.data.linach}</b>{ag.data.linach === 'Grupo 1' ? ' – previdenciário: avaliação qualitativa; a presença no ambiente basta (Dec. 3.048/1999, art. 68, § 4º).' : ''}</div>}
+      {ag && ag.data.linach && <div><b>LINACH {ag.data.linach}</b>{ag.data.linach === 'Grupo 1' ? ' – previdenciário: avaliação qualitativa (Dec. 3.048/1999, art. 68, § 4º). A presença no ambiente bastava na redação do Dec. 8.123/2013 (até 30/06/2020); a partir de 01/07/2020 (Dec. 10.410/2020), medidas de controle que eliminem a nocividade descaracterizam a exposição.' : ''}</div>}
       {cf && <>
         <div><b>Anexo 11:</b> LT {f(cf.lt)} {cf.un}{cf.teto ? ' (valor teto)' : ''}{cf.grau ? ` – grau ${cf.grau}` : ''}{cf.pele ? ' – absorção também pela pele' : ''}</div>
         <div><b>Resultado:</b> {f(cf.c)} {cf.un} = {fmt(cf.pct, 0)}% do LT – {cf.supera ? 'ACIMA do limite' : 'dentro do limite'}</div>

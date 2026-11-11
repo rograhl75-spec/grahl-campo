@@ -29,13 +29,15 @@ function rPr({ b, i, size = 12, color, caps, hl, sup } = {}) {
 
 // unidade do VDV (m/s elevado a 1,75), escrita de várias formas nos textos, sai sempre com o expoente sobrescrito
 const RE_VDV = /m\/s(?:\^\s*\{?1[,.]75\}?|¹[·,.]?⁷⁵)/g;
+// tabulação literal dentro de <w:t> não é válida no Word: vira <w:tab/>
+const tx = (t) => esc(t).replace(/\t/g, '</w:t><w:tab/><w:t xml:space="preserve">');
 export function run(text, opts = {}) {
   return String(text ?? '').split(/\r?\n/).map((t, i) => {
     const br = i ? '<w:br/>' : '';
-    if (!RE_VDV.test(t)) return `<w:r>${rPr(opts)}${br}<w:t xml:space="preserve">${esc(t)}</w:t></w:r>`;
+    if (!RE_VDV.test(t)) return `<w:r>${rPr(opts)}${br}<w:t xml:space="preserve">${tx(t)}</w:t></w:r>`;
     RE_VDV.lastIndex = 0;
     const partes = t.split(RE_VDV);
-    return partes.map((pt, k) => `<w:r>${rPr(opts)}${k === 0 ? br : ''}<w:t xml:space="preserve">${esc(pt)}${k < partes.length - 1 ? 'm/s' : ''}</w:t></w:r>`
+    return partes.map((pt, k) => `<w:r>${rPr(opts)}${k === 0 ? br : ''}<w:t xml:space="preserve">${tx(pt)}${k < partes.length - 1 ? 'm/s' : ''}</w:t></w:r>`
       + (k < partes.length - 1 ? `<w:r>${rPr({ ...opts, sup: true })}<w:t xml:space="preserve">1,75</w:t></w:r>` : '')).join('');
   }).join('');
 }
@@ -57,9 +59,11 @@ export function rich(text, base = {}) {
   return out.join('');
 }
 
-function pPr({ style, align = 'both', before = 0, after = 120, line = 360, keepNext, keepLines, pageBreakBefore, left, hanging, first, outline } = {}) {
+export const NUM_MARCADOR = 901; // numId da lista com marcador ▪ azul (acrescentada em montarDocx)
+function pPr({ style, align = 'both', before = 0, after = 120, line = 360, keepNext, keepLines, pageBreakBefore, left, hanging, first, outline, lista } = {}) {
   return '<w:pPr>' + (style ? `<w:pStyle w:val="${style}"/>` : '') +
     (keepNext ? '<w:keepNext/>' : '') + (keepLines ? '<w:keepLines/>' : '') + (pageBreakBefore ? '<w:pageBreakBefore/>' : '') +
+    (lista ? `<w:numPr><w:ilvl w:val="0"/><w:numId w:val="${NUM_MARCADOR}"/></w:numPr>` : '') +
     `<w:spacing w:before="${before}" w:after="${after}" w:line="${line}" w:lineRule="auto"/>` +
     (left || hanging || first ? `<w:ind${left ? ` w:left="${left}"` : ''}${hanging ? ` w:hanging="${hanging}"` : ''}${first ? ` w:firstLine="${first}"` : ''}/>` : '') +
     `<w:jc w:val="${align}"/>` + (outline !== undefined ? `<w:outlineLvl w:val="${outline}"/>` : '') + '</w:pPr>';
@@ -78,9 +82,21 @@ export class Doc {
     this.nQuad = 0;
     this.nFig = 0;
     this.imagens = [];
+    // entradas do sumário e das listas, para montá-los já preenchidos (sem depender de "Atualizar campo")
+    this.entradas = { toc: [], Quadro: [], Figura: [] };
+    this.nMarca = 7000;
   }
   add(...xs) { this.x.push(...xs.filter(Boolean)); return this; }
-  xml() { return this.x.join(''); }
+  xml() {
+    return this.x.join('').replace(/<!--LISTA:(toc|Quadro|Figura)-->/g, (m, tipo) => listaPronta(tipo, this.entradas[tipo]));
+  }
+  // marcador (bookmark) para o número de página no sumário e nas listas
+  marca(tipo, texto, nivel = 1) {
+    const id = ++this.nMarca;
+    const nome = `_Grahl${id}`;
+    this.entradas[tipo].push({ nome, texto, nivel });
+    return [`<w:bookmarkStart w:id="${id}" w:name="${nome}"/>`, `<w:bookmarkEnd w:id="${id}"/>`];
+  }
 
   // parágrafos de corpo: recuo de primeira linha; "- " vira marcador; "a) " vira alínea
   texto(t, { recuo = true, size } = {}) {
@@ -90,7 +106,8 @@ export class Doc {
       if (!l) continue;
       const run = size ? { size } : {};
       if (/^[-•▪]\s+/.test(l)) {
-        this.add(p([runMarcador(), rich(l.replace(/^[-•▪]\s+/, ''), run)], { left: 1069, hanging: 360, after: 100 }));
+        // lista de verdade (numbering.xml): ao editar no Word, Enter continua a lista com o mesmo marcador
+        this.add(p([rich(l.replace(/^[-•▪]\s+/, ''), run)], { left: 1069, hanging: 360, after: 100, lista: true }));
       } else if (/^[a-z]\)\s+/i.test(l) || /^[ivx]+\)\s+/i.test(l)) {
         this.add(p(l, { left: 1069, hanging: 360, after: 100, run }));
       } else {
@@ -103,29 +120,37 @@ export class Doc {
   redigir(orientacao) {
     return this.add(p(`[[Redigir: ${orientacao}]]`, { first: RECUO, after: 160 }));
   }
-  h1(num, titulo, { novaPagina = true } = {}) {
+  // novaPagina: padrão do documento (this.h1NovaPagina), para pareceres curtos não virarem páginas quase vazias
+  h1(num, titulo, { novaPagina = this.h1NovaPagina ?? true } = {}) {
     // filete azul abaixo do título primário (padrão visual dos laudos)
     const pp = pPr({ style: 'Ttulo1', align: 'left', before: novaPagina ? 0 : 360, after: 240, keepNext: true, pageBreakBefore: novaPagina, outline: 0 })
       .replace('<w:spacing', `<w:pBdr><w:bottom w:val="single" w:sz="8" w:space="4" w:color="${AZUL}"/></w:pBdr><w:spacing`);
-    return this.add(`<w:p>${pp}` +
-      `${run(`${num ? num + ' ' : ''}${String(titulo).toUpperCase()}`, { b: true, size: 12, color: AZUL })}</w:p>`);
+    const t1 = `${num ? num + ' ' : ''}${String(titulo).toUpperCase()}`;
+    const [a1, z1] = this.marca('toc', t1, 1);
+    return this.add(`<w:p>${pp}${a1}` +
+      `${run(t1, { b: true, size: 12, color: AZUL })}${z1}</w:p>`);
   }
   h2(num, titulo) {
-    return this.add(`<w:p>${pPr({ style: 'Ttulo2', align: 'left', before: 360, after: 160, keepNext: true, outline: 1 })}` +
-      `${run(`${num ? num + ' ' : ''}${String(titulo).toUpperCase()}`, { b: true, size: 12, color: AZUL })}</w:p>`);
+    const t2 = `${num ? num + ' ' : ''}${String(titulo).toUpperCase()}`;
+    const [a2, z2] = this.marca('toc', t2, 2);
+    return this.add(`<w:p>${pPr({ style: 'Ttulo2', align: 'left', before: 360, after: 160, keepNext: true, outline: 1 })}${a2}` +
+      `${run(t2, { b: true, size: 12, color: AZUL })}${z2}</w:p>`);
   }
   // seção terciária (ABNT NBR 6024): número progressivo e título em negrito, sem caixa alta
   h3(num, titulo) {
     if (titulo === undefined) { titulo = num; num = ''; }
-    return this.add(p([run(`${num ? `${num} ` : ''}${titulo}`, { b: true, color: AZUL })], { style: 'Ttulo3', align: 'left', before: 240, after: 120, keepNext: true, outline: 2 }));
+    const t3 = `${num ? `${num} ` : ''}${titulo}`;
+    const [a3, z3] = this.marca('toc', t3, 3);
+    return this.add(p([a3, run(t3, { b: true, color: AZUL }), z3], { style: 'Ttulo3', align: 'left', before: 240, after: 120, keepNext: true, outline: 2 }));
   }
   // Quadro numerado: título acima, tabela, fonte abaixo
   quadro(titulo, linhas, { larguras, header = true, fonte = 'Elaborado pelo autor.', tam = 10, alinhar = 'both' } = {}) {
     if (!linhas || linhas.length <= (header ? 1 : 0)) return this;
     this.nQuad += 1;
     const n = this.nQuad;
-    this.add(`<w:p>${pPr({ align: 'center', before: 240, after: 100, line: 276, keepNext: true })}` +
-      run('Quadro ', { b: true, size: 10 }) + campoSeq('Quadro', n, { b: true, size: 10 }) + run(` – ${titulo}`, { b: true, size: 10 }) + '</w:p>');
+    const [aq, zq] = this.marca('Quadro', `Quadro ${n} – ${titulo}`);
+    this.add(`<w:p>${pPr({ align: 'center', before: 240, after: 100, line: 276, keepNext: true })}${aq}` +
+      run('Quadro ', { b: true, size: 10 }) + campoSeq('Quadro', n, { b: true, size: 10 }) + run(` – ${titulo}`, { b: true, size: 10 }) + `${zq}</w:p>`);
     this.add(tabela(linhas, { larguras, header, tam, alinhar }));
     // ABNT/IBGE: "Fonte" alinhada à esquerda, logo abaixo do quadro
     this.add(p([run(fonte ? 'Fonte: ' : '', { size: 9, b: true, color: CINZA }), run(fonte || '', { size: 9, color: CINZA })], { align: 'left', before: 60, after: 280, line: 240 }));
@@ -153,7 +178,8 @@ export class Doc {
         let alt = (larg * f.h) / f.w;
         let lg = larg;
         if (alt > 9.5) { alt = 9.5; lg = (9.5 * f.w) / f.h; }
-        const cap = `<w:p>${pPr({ align: 'center', after: 60, line: 240, keepNext: true })}${run('Figura ', { b: true, size: 9 })}${campoSeq('Figura', n, { b: true, size: 9 })}${run(' – ', { b: true, size: 9 })}${rich(f.legenda || 'Registro fotográfico.', { size: 9 })}</w:p>`;
+        const [af, zf] = this.marca('Figura', `Figura ${n} – ${String(f.legenda || 'Registro fotográfico.').replace(/\*\*|\[\[|\]\]/g, '')}`);
+        const cap = `<w:p>${pPr({ align: 'center', after: 60, line: 240, keepNext: true })}${af}${zf}${run('Figura ', { b: true, size: 9 })}${campoSeq('Figura', n, { b: true, size: 9 })}${run(' – ', { b: true, size: 9 })}${rich(f.legenda || 'Registro fotográfico.', { size: 9 })}</w:p>`;
         const det = f.detalhe ? p([run(f.detalhe, { size: 8, color: CINZA })], { align: 'center', after: 0, line: 240 }) : '';
         return `<w:tc><w:tcPr><w:tcW w:w="${meia}" w:type="dxa"/>${bordas('all')}</w:tcPr>${cap}${imagemXml(rId, 2000 + n, lg, alt)}${det}</w:tc>`;
       });
@@ -194,24 +220,38 @@ export class Doc {
     return this;
   }
   sumario(titulo = 'SUMÁRIO') {
-    return this.add(p([run(titulo, { b: true, color: AZUL })], { align: 'center', pageBreakBefore: true, after: 240 }), campoToc('TOC \\o "1-3" \\h \\z \\u'));
+    return this.add(p([run(titulo, { b: true, color: AZUL })], { align: 'center', pageBreakBefore: true, after: 240 }), '<!--LISTA:toc-->');
   }
   listaQuadros() {
-    return this.add(p([run('LISTA DE QUADROS', { b: true, color: AZUL })], { align: 'center', pageBreakBefore: true, after: 240 }), campoToc('TOC \\h \\z \\c "Quadro"'));
+    return this.add(p([run('LISTA DE QUADROS', { b: true, color: AZUL })], { align: 'center', pageBreakBefore: true, after: 240 }), '<!--LISTA:Quadro-->');
   }
   listaFiguras({ novaPagina = false } = {}) {
-    return this.add(p([run('LISTA DE FIGURAS', { b: true, color: AZUL })], { align: 'center', before: novaPagina ? 0 : 480, after: 240, pageBreakBefore: novaPagina }), campoToc('TOC \\h \\z \\c "Figura"'));
+    return this.add(p([run('LISTA DE FIGURAS', { b: true, color: AZUL })], { align: 'center', before: novaPagina ? 0 : 480, after: 240, pageBreakBefore: novaPagina }), '<!--LISTA:Figura-->');
   }
   quebra() { return this.add('<w:p><w:r><w:br w:type="page"/></w:r></w:p>'); }
-}
-
-function runMarcador() {
-  return run('▪\t', { color: AZUL });
 }
 
 function campoSeq(nome, n, opts) {
   return `<w:r>${rPr(opts)}<w:fldChar w:fldCharType="begin"/></w:r><w:r>${rPr(opts)}<w:instrText xml:space="preserve"> SEQ ${nome} \\* ARABIC </w:instrText></w:r>` +
     `<w:r>${rPr(opts)}<w:fldChar w:fldCharType="separate"/></w:r>${run(String(n), opts)}<w:r>${rPr(opts)}<w:fldChar w:fldCharType="end"/></w:r>`;
+}
+
+// Sumário / lista já preenchidos: cada entrada com o título, pontilhado e o número da página (PAGEREF ao marcador).
+// Continua sendo um campo TOC: no Word, "Atualizar campo" refaz tudo; sem atualizar, os títulos já aparecem
+// (antes ficava só o texto "Para montar: clique…", que ia para o PDF se ninguém atualizasse).
+const INSTR_LISTA = { toc: 'TOC \\o "1-3" \\h \\z \\u', Quadro: 'TOC \\h \\z \\c "Quadro"', Figura: 'TOC \\h \\z \\c "Figura"' };
+function listaPronta(tipo, entradas) {
+  if (!entradas.length) return campoToc(INSTR_LISTA[tipo]);
+  const r = (x) => `<w:r>${x}</w:r>`;
+  const fld = (t) => r(`<w:fldChar w:fldCharType="${t}"/>`);
+  return entradas.map((e, i) => {
+    const estilo = tipo === 'toc' ? `Sumrio${e.nivel}` : 'Sumrio2';
+    const ini = i === 0 ? `${r('<w:fldChar w:fldCharType="begin"/>')}${r(`<w:instrText xml:space="preserve"> ${INSTR_LISTA[tipo]} </w:instrText>`)}${fld('separate')}` : '';
+    const fim = i === entradas.length - 1 ? fld('end') : '';
+    const pagina = `${fld('begin')}${r(`<w:instrText xml:space="preserve"> PAGEREF ${e.nome} \\h </w:instrText>`)}${fld('separate')}${r('<w:t>–</w:t>')}${fld('end')}`;
+    return `<w:p><w:pPr><w:pStyle w:val="${estilo}"/><w:tabs><w:tab w:val="right" w:leader="dot" w:pos="8494"/></w:tabs></w:pPr>${ini}`
+      + `<w:hyperlink w:anchor="${e.nome}" w:history="1">${run(e.texto, { size: 11, b: tipo === 'toc' && e.nivel === 1 })}${r('<w:tab/>')}${pagina}</w:hyperlink>${fim}</w:p>`;
+  }).join('');
 }
 
 function campoToc(instr) {
@@ -288,8 +328,10 @@ function imagemXml(rId, id, larguraCm, alturaCm) {
     '</pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>';
 }
 
+// primeiro dia do mês por extenso como ordinal ("1º de março de 2026"), como na redação forense
+export const ordinalDia1 = (t) => String(t).replace(/^1 de /, '1º de ');
 export function dataExtenso(d = new Date()) {
-  return d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
+  return ordinalDia1(d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }));
 }
 
 // Monta o .docx a partir do modelo: substitui o corpo e acrescenta as imagens.
@@ -332,6 +374,45 @@ export async function montarDocx(modeloBytes, corpoXml, { imagens = [], tituloDo
       `$1<w:rPr>${fonteR}<w:b/><w:bCs/><w:color w:val="${AZUL}"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr>$2`);
   }
   zip.file(stPath, st);
+  // lista com marcador: parte numbering.xml (o timbrado não tem); acrescenta a definição se faltar
+  const numPath = 'word/numbering.xml';
+  const abs = `<w:abstractNum w:abstractNumId="${NUM_MARCADOR}"><w:multiLevelType w:val="hybridMultilevel"/><w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="bullet"/><w:lvlText w:val="▪"/><w:lvlJc w:val="left"/>`
+    + `<w:pPr><w:ind w:left="1069" w:hanging="360"/></w:pPr><w:rPr><w:rFonts w:ascii="${FONTE}" w:hAnsi="${FONTE}"/><w:color w:val="${AZUL}"/></w:rPr></w:lvl></w:abstractNum>`;
+  const numDef = `<w:num w:numId="${NUM_MARCADOR}"><w:abstractNumId w:val="${NUM_MARCADOR}"/></w:num>`;
+  const NS_W = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"';
+  if (zip.file(numPath)) {
+    let nx = await zip.file(numPath).async('string');
+    if (!nx.includes(`w:abstractNumId="${NUM_MARCADOR}"`)) {
+      // abstractNum vem antes dos num (ordem exigida pelo esquema)
+      nx = nx.replace(/(<w:num\s)/, `${abs}$1`);
+      if (!nx.includes(abs)) nx = nx.replace('</w:numbering>', `${abs}</w:numbering>`);
+      nx = nx.replace('</w:numbering>', `${numDef}</w:numbering>`);
+      zip.file(numPath, nx);
+    }
+  } else {
+    zip.file(numPath, `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:numbering ${NS_W}>${abs}${numDef}</w:numbering>`);
+    const relPath = 'word/_rels/document.xml.rels';
+    let rels = await zip.file(relPath).async('string');
+    if (!rels.includes('numbering.xml')) {
+      rels = rels.replace('</Relationships>', '<Relationship Id="rIdNumGrahl" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/></Relationships>');
+      zip.file(relPath, rels);
+    }
+    let ct = await zip.file('[Content_Types].xml').async('string');
+    if (!ct.includes('/word/numbering.xml')) {
+      ct = ct.replace('</Types>', '<Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/></Types>');
+      zip.file('[Content_Types].xml', ct);
+    }
+  }
+  // Abadi não é embutida (fonte licenciada): sem ela no computador, o Word/LibreOffice usa uma sem serifa parecida
+  const ftPath = 'word/fontTable.xml';
+  if (zip.file(ftPath)) {
+    let ft = await zip.file(ftPath).async('string');
+    if (!ft.includes(`w:name="${FONTE}"`)) {
+      ft = ft.replace('</w:fonts>', `<w:font w:name="${FONTE}"><w:altName w:val="Arial"/><w:panose1 w:val="020B0604020104020204"/><w:charset w:val="00"/><w:family w:val="swiss"/><w:pitch w:val="variable"/></w:font></w:fonts>`);
+      zip.file(ftPath, ft);
+    }
+  }
+
   // número da página no rodapé (o timbrado não traz o campo PAGE)
   for (const f of ['word/footer1.xml', 'word/footer2.xml']) {
     if (!zip.file(f)) continue;

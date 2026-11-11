@@ -109,7 +109,7 @@ function ImportarClaude() {
         <textarea rows={3} value={json} onInput={(e) => setJson(e.currentTarget.value)} /></label>
       <div class="linha-botoes">
         <button type="button" class="primario" disabled={!json.trim()} onClick={aplicar}>Aplicar</button>
-        <label class="botao sec">Importar arquivo .json
+        <label class="botao-arquivo">Importar arquivo .json
           <input type="file" accept=".json,application/json" hidden onChange={async (e) => {
             const arq = e.currentTarget.files[0];
             e.currentTarget.value = '';

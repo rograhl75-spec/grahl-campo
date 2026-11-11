@@ -1,0 +1,642 @@
+{
+ "_fontes": {
+  "Decreto nº 2.172/1997": "https://legis.senado.leg.br/norma/395734/publicacao/15798688",
+  "Decreto nº 3.048/1999": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
+  "Decreto nº 53.831/1964": "não conferido (anexo indisponível)",
+  "Decreto nº 83.080/1979": "não conferido (anexo indisponível)",
+  "consultadoEm": "2026-11-11"
+ },
+ "oleo-mineral-nevoa": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.7",
+   "titulo": "CARVÃO MINERAL E SEUS DERIVADOS",
+   "trecho": "1.0.7 CARVÃO MINERAL E SEUS DERIVADOS 25 ANOS a) extração, fabricação, beneficiamento e utilização de carvão mineral, piche, alcatrão, betume e breu; b) extração, produção e utilização de óleos minerais e parafinas; c) extração e utilização de antraceno e negro de fumo; d) produção de coque.",
+   "porFamilia": true,
+   "nota": "óleos minerais citados na alínea b do código (agente: carvão mineral e seus derivados)"
+  },
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.17",
+   "titulo": "PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS",
+   "trecho": "17 PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL 25 ANOS E SEUS DERIVADOS a) extração, processamento, beneficiamento e atividades de manutenção realizadas em unidades de extração, plantas petrolíferas e petroquímicas. b) beneficiamento e aplicação de misturas asfálticas contendo hidrocarbonetos policíclicos.",
+   "porFamilia": true,
+   "nota": "derivado de petróleo"
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.7",
+   "titulo": "CARVÃO MINERAL E SEUS DERIVADOS",
+   "trecho": "1.0.7 CARVÃO MINERAL E SEUS DERIVADOS a) extração, fabricação, beneficiamento e utilização de carvão mineral, piche, alcatrão, betume e breu; b) extração, produção e utilização de óleos minerais e parafinas; c) extração e utilização de antraceno e negro de fumo; d) produção de coque 25 ANOS",
+   "porFamilia": true,
+   "nota": "óleos minerais citados na alínea b do código (agente: carvão mineral e seus derivados)"
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.17",
+   "titulo": "PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS",
+   "trecho": "1.0.17 PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS a) extração, processamento, beneficiamento e atividades de manutenção realizadas em unidades de extração, plantas petrolíferas e petroquímicas; b) beneficiamento e aplicação de misturas asfálticas contendo hidrocarbonetos policíclicos. 25 ANOS",
+   "porFamilia": true,
+   "nota": "derivado de petróleo"
+  }
+ ],
+ "querosene": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.17",
+   "titulo": "PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS",
+   "trecho": "17 PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL 25 ANOS E SEUS DERIVADOS a) extração, processamento, beneficiamento e atividades de manutenção realizadas em unidades de extração, plantas petrolíferas e petroquímicas. b) beneficiamento e aplicação de misturas asfálticas contendo hidrocarbonetos policíclicos.",
+   "porFamilia": true,
+   "nota": "derivado de petróleo"
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.17",
+   "titulo": "PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS",
+   "trecho": "1.0.17 PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS a) extração, processamento, beneficiamento e atividades de manutenção realizadas em unidades de extração, plantas petrolíferas e petroquímicas; b) beneficiamento e aplicação de misturas asfálticas contendo hidrocarbonetos policíclicos. 25 ANOS",
+   "porFamilia": true,
+   "nota": "derivado de petróleo"
+  }
+ ],
+ "solvente-stoddard": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.17",
+   "titulo": "PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS",
+   "trecho": "17 PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL 25 ANOS E SEUS DERIVADOS a) extração, processamento, beneficiamento e atividades de manutenção realizadas em unidades de extração, plantas petrolíferas e petroquímicas. b) beneficiamento e aplicação de misturas asfálticas contendo hidrocarbonetos policíclicos.",
+   "porFamilia": true,
+   "nota": "derivado de petróleo"
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.17",
+   "titulo": "PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS",
+   "trecho": "1.0.17 PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS a) extração, processamento, beneficiamento e atividades de manutenção realizadas em unidades de extração, plantas petrolíferas e petroquímicas; b) beneficiamento e aplicação de misturas asfálticas contendo hidrocarbonetos policíclicos. 25 ANOS",
+   "porFamilia": true,
+   "nota": "derivado de petróleo"
+  }
+ ],
+ "glifosato": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.12",
+   "titulo": "FÓSFORO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.12 FÓSFORO E SEUS COMPOSTOS TÓXICOS 25 ANOS a) extração e preparação de fósforo branco e seus compostos; b) fabricação e aplicação de produtos fosforados e organofosforados (sínteses orgânicas, fertilizantes e praguicidas); c) fabricação de munições e armamentos explosivos.",
+   "porFamilia": true,
+   "nota": "glifosato é organofosforado do tipo fosfonato (não é éster organofosfato anticolinesterásico) – enquadramento discutível"
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.12",
+   "titulo": "FÓSFORO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.12 FÓSFORO E SEUS COMPOSTOS TÓXICOS a) extração e preparação de fósforo branco e seus compostos; b) fabricação e aplicação de produtos fosforados e organofosforados (sínteses orgânicas, fertilizantes e praguicidas); c) fabricação de munições e armamentos explosivos. 25 ANOS",
+   "porFamilia": true,
+   "nota": "glifosato é organofosforado do tipo fosfonato (não é éster organofosfato anticolinesterásico) – enquadramento discutível"
+  }
+ ],
+ "2-4-d": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.9",
+   "titulo": "CLORO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.9 CLORO E SEUS COMPOSTOS TÓXICOS 25 ANOS a) fabricação e emprego de defensivos organoclorados; b) fabricação e emprego de cloroetilaminas (mostarda nitrogenadas); c) fabricação e manuseio de bifenis policlorados (PBC); d) fabricação e emprego de cloreto de vinil como monômetro na fabricação de policloreto de vinil (PVC) e outras resinas e como intermediário em produções químicas ou como solvente orgânico; e) fabricação de policloroprene; f) fabricação e emprego de clorofórmio (triclorometano) e de tetracloreto de carbono.",
+   "porFamilia": true,
+   "nota": "herbicida clorofenoxiacético; \"organoclorado\" no sentido químico – enquadramento discutível"
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.9",
+   "titulo": "CLORO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.9 CLORO E SEUS COMPOSTOS TÓXICOS a) fabricação e emprego de defensivos organoclorados; b) fabricação e emprego de cloroetilaminas (mostardas nitrogenadas); c) fabricação e manuseio de bifenis policlorados (PCB); d) fabricação e emprego de cloreto de vinil como monômero na fabricação de policloreto de vinil (PVC) e outras resinas e como intermediário em produções químicas ou como solvente orgânico; e) fabricação de policloroprene; f) fabricação e emprego de clorofórmio (triclorometano) e de tetracloreto de carbono. 25 ANOS",
+   "porFamilia": true,
+   "nota": "herbicida clorofenoxiacético; \"organoclorado\" no sentido químico – enquadramento discutível"
+  }
+ ],
+ "paraquat-dicloreto": [],
+ "clorpirifos": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.12",
+   "titulo": "FÓSFORO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.12 FÓSFORO E SEUS COMPOSTOS TÓXICOS 25 ANOS a) extração e preparação de fósforo branco e seus compostos; b) fabricação e aplicação de produtos fosforados e organofosforados (sínteses orgânicas, fertilizantes e praguicidas); c) fabricação de munições e armamentos explosivos.",
+   "porFamilia": false,
+   "nota": "praguicida organofosforado"
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.12",
+   "titulo": "FÓSFORO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.12 FÓSFORO E SEUS COMPOSTOS TÓXICOS a) extração e preparação de fósforo branco e seus compostos; b) fabricação e aplicação de produtos fosforados e organofosforados (sínteses orgânicas, fertilizantes e praguicidas); c) fabricação de munições e armamentos explosivos. 25 ANOS",
+   "porFamilia": false,
+   "nota": "praguicida organofosforado"
+  }
+ ],
+ "mancozebe": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.14",
+   "titulo": "MANGANÊS E SEUS COMPOSTOS",
+   "trecho": "1.0.14 MANGANÊS E SEUS COMPOSTOS 25 ANOS a) extração e beneficiamento de minérios de manganês; b) fabricação de ligas e compostos de manganês; c) fabricação de pilhas secas e acumuladores; d) preparação de permanganato de potássio e de corantes; e) fabricação de vidros especiais e cerâmicas; f) utilização de eletrodos contendo manganês; g) fabricação de tintas e fertilizantes.",
+   "porFamilia": false,
+   "nota": "composto de manganês (ditiocarbamato de Mn/Zn); fungicida não nominado"
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.14",
+   "titulo": "MANGANÊS E SEUS COMPOSTOS",
+   "trecho": "1.0.14 MANGANÊS E SEUS COMPOSTOS a) extração e beneficiamento de minérios de manganês; b) fabricação de ligas e compostos de manganês; c) fabricação de pilhas secas e acumuladores; d) preparação de permanganato de potássio e de corantes; e) fabricação de vidros especiais e cerâmicas; f) utilização de eletrodos contendo manganês; g) fabricação de tintas e fertilizantes. 25 ANOS",
+   "porFamilia": false,
+   "nota": "composto de manganês (ditiocarbamato de Mn/Zn); fungicida não nominado"
+  }
+ ],
+ "atrazina": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.9",
+   "titulo": "CLORO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.9 CLORO E SEUS COMPOSTOS TÓXICOS 25 ANOS a) fabricação e emprego de defensivos organoclorados; b) fabricação e emprego de cloroetilaminas (mostarda nitrogenadas); c) fabricação e manuseio de bifenis policlorados (PBC); d) fabricação e emprego de cloreto de vinil como monômetro na fabricação de policloreto de vinil (PVC) e outras resinas e como intermediário em produções químicas ou como solvente orgânico; e) fabricação de policloroprene; f) fabricação e emprego de clorofórmio (triclorometano) e de tetracloreto de carbono.",
+   "porFamilia": true,
+   "nota": "herbicida clorotriazínico; \"organoclorado\" no sentido químico – enquadramento discutível"
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.9",
+   "titulo": "CLORO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.9 CLORO E SEUS COMPOSTOS TÓXICOS a) fabricação e emprego de defensivos organoclorados; b) fabricação e emprego de cloroetilaminas (mostardas nitrogenadas); c) fabricação e manuseio de bifenis policlorados (PCB); d) fabricação e emprego de cloreto de vinil como monômero na fabricação de policloreto de vinil (PVC) e outras resinas e como intermediário em produções químicas ou como solvente orgânico; e) fabricação de policloroprene; f) fabricação e emprego de clorofórmio (triclorometano) e de tetracloreto de carbono. 25 ANOS",
+   "porFamilia": true,
+   "nota": "herbicida clorotriazínico; \"organoclorado\" no sentido químico – enquadramento discutível"
+  }
+ ],
+ "malationa": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.12",
+   "titulo": "FÓSFORO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.12 FÓSFORO E SEUS COMPOSTOS TÓXICOS 25 ANOS a) extração e preparação de fósforo branco e seus compostos; b) fabricação e aplicação de produtos fosforados e organofosforados (sínteses orgânicas, fertilizantes e praguicidas); c) fabricação de munições e armamentos explosivos.",
+   "porFamilia": false,
+   "nota": "praguicida organofosforado"
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.12",
+   "titulo": "FÓSFORO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.12 FÓSFORO E SEUS COMPOSTOS TÓXICOS a) extração e preparação de fósforo branco e seus compostos; b) fabricação e aplicação de produtos fosforados e organofosforados (sínteses orgânicas, fertilizantes e praguicidas); c) fabricação de munições e armamentos explosivos. 25 ANOS",
+   "porFamilia": false,
+   "nota": "praguicida organofosforado"
+  }
+ ],
+ "carbofurano": [],
+ "cipermetrina": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.9",
+   "titulo": "CLORO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.9 CLORO E SEUS COMPOSTOS TÓXICOS 25 ANOS a) fabricação e emprego de defensivos organoclorados; b) fabricação e emprego de cloroetilaminas (mostarda nitrogenadas); c) fabricação e manuseio de bifenis policlorados (PBC); d) fabricação e emprego de cloreto de vinil como monômetro na fabricação de policloreto de vinil (PVC) e outras resinas e como intermediário em produções químicas ou como solvente orgânico; e) fabricação de policloroprene; f) fabricação e emprego de clorofórmio (triclorometano) e de tetracloreto de carbono.",
+   "porFamilia": true,
+   "nota": "piretroide com cloro na molécula; \"organoclorado\" no sentido químico – enquadramento discutível"
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.9",
+   "titulo": "CLORO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.9 CLORO E SEUS COMPOSTOS TÓXICOS a) fabricação e emprego de defensivos organoclorados; b) fabricação e emprego de cloroetilaminas (mostardas nitrogenadas); c) fabricação e manuseio de bifenis policlorados (PCB); d) fabricação e emprego de cloreto de vinil como monômero na fabricação de policloreto de vinil (PVC) e outras resinas e como intermediário em produções químicas ou como solvente orgânico; e) fabricação de policloroprene; f) fabricação e emprego de clorofórmio (triclorometano) e de tetracloreto de carbono. 25 ANOS",
+   "porFamilia": true,
+   "nota": "piretroide com cloro na molécula; \"organoclorado\" no sentido químico – enquadramento discutível"
+  }
+ ],
+ "acefato": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.12",
+   "titulo": "FÓSFORO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.12 FÓSFORO E SEUS COMPOSTOS TÓXICOS 25 ANOS a) extração e preparação de fósforo branco e seus compostos; b) fabricação e aplicação de produtos fosforados e organofosforados (sínteses orgânicas, fertilizantes e praguicidas); c) fabricação de munições e armamentos explosivos.",
+   "porFamilia": false,
+   "nota": "praguicida organofosforado"
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.12",
+   "titulo": "FÓSFORO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.12 FÓSFORO E SEUS COMPOSTOS TÓXICOS a) extração e preparação de fósforo branco e seus compostos; b) fabricação e aplicação de produtos fosforados e organofosforados (sínteses orgânicas, fertilizantes e praguicidas); c) fabricação de munições e armamentos explosivos. 25 ANOS",
+   "porFamilia": false,
+   "nota": "praguicida organofosforado"
+  }
+ ],
+ "tolueno": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.17",
+   "titulo": "PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS",
+   "trecho": "17 PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL 25 ANOS E SEUS DERIVADOS a) extração, processamento, beneficiamento e atividades de manutenção realizadas em unidades de extração, plantas petrolíferas e petroquímicas. b) beneficiamento e aplicação de misturas asfálticas contendo hidrocarbonetos policíclicos.",
+   "porFamilia": true,
+   "nota": "hidrocarboneto de origem petroquímica; tolueno não é nominado (apenas diisocianato de tolueno em 1.0.19)"
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.17",
+   "titulo": "PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS",
+   "trecho": "1.0.17 PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS a) extração, processamento, beneficiamento e atividades de manutenção realizadas em unidades de extração, plantas petrolíferas e petroquímicas; b) beneficiamento e aplicação de misturas asfálticas contendo hidrocarbonetos policíclicos. 25 ANOS",
+   "porFamilia": true,
+   "nota": "hidrocarboneto de origem petroquímica; tolueno não é nominado (apenas diisocianato de tolueno em 1.0.19)"
+  }
+ ],
+ "xilenos": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.17",
+   "titulo": "PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS",
+   "trecho": "17 PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL 25 ANOS E SEUS DERIVADOS a) extração, processamento, beneficiamento e atividades de manutenção realizadas em unidades de extração, plantas petrolíferas e petroquímicas. b) beneficiamento e aplicação de misturas asfálticas contendo hidrocarbonetos policíclicos.",
+   "porFamilia": true,
+   "nota": "hidrocarboneto de origem petroquímica; não nominado"
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.17",
+   "titulo": "PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS",
+   "trecho": "1.0.17 PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS a) extração, processamento, beneficiamento e atividades de manutenção realizadas em unidades de extração, plantas petrolíferas e petroquímicas; b) beneficiamento e aplicação de misturas asfálticas contendo hidrocarbonetos policíclicos. 25 ANOS",
+   "porFamilia": true,
+   "nota": "hidrocarboneto de origem petroquímica; não nominado"
+  }
+ ],
+ "acetona": [],
+ "metiletilcetona": [],
+ "acetato-de-etila": [],
+ "acetato-de-n-butila": [],
+ "n-hexano": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.19",
+   "titulo": "OUTRAS SUBSTÂNCIAS QUÍMICAS",
+   "trecho": "1.0.19 OUTRAS SUBSTÂNCIAS QUÍMICAS 25 ANOS GRUPO I – ESTIRENO; BUTADIENO-ESTIRENO; ACRILONTRILA; 1-3 BUTADIENO; CLOROPRENO; MERCAPTANOS, n-HEXANO, DIISOCIANATO DE TOLUENO (TDI); AMINAS AROMÁTICAS a) fabricação e vulcanização de artefatos de borracha; b) fabricação e recauchutagem de pneus. GRUPO II – AMINAS AROMÁTICAS, AMINOBIFENILA, AURAMINA, AZATIOPRINA, BIS (CLORO METIL) ÉTER, 1-4 BUTANODIOL DIMETANOSULFONATO (MIRELAN), CICLOFOSFAMIDA, CLOROAMBUCIL, DIETILESTILBESTROL, ACRONiTrILA, NITRONAFTILAMINA 4-DIMETIL-AMINOAZOBENZENO, BENZOPIRENO, BETAPROPIOLACTONA, BISCLOROETILETER, BISCLOROMETIL, CLOROMETILETER, DIANIZIDINA, DICLOROBENZIDINA, DIETILSULFATO, DIMETILSULFATO, ETILENOAMINA, ETILENOTIUREIA, FENACETINA, IODETO DE METILA, ETILNITROSURÉIAS, METILENO-ORTOCLOROAMILINA (MOCA), NITROSAMINA, ORTOTOLUIDINA , OXIMETALONA, PROCARBAZINA, PROPANOSULTONA, 1-3-BUTADIENO, ÓXIDO DE ETILENO, ESTILBENZENO, DIISOCIANATO DE TOLUENO (TDI), CREOSOTO, 4-AMINODIFENIL, BENZIDINA, BETANAFTILANIMA, ESTIRENO, 1-CLORO-2, 4 – NITRODIFENIL, 3-POXIPROPANO a) manufatura de magenta (anilina e orto-toluidina) b) fabricação de fibras sintéticas; c) sínteses químicas; d) fabricação de borracha e espumas; e) fabricação de plásticos; f) produção e medicamentos; g) operações de preservação da madeira com creosoto; h) esterilização de materiais cirúrgicos.",
+   "porFamilia": false,
+   "nota": "nominado no Grupo I"
+  },
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.17",
+   "titulo": "PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS",
+   "trecho": "17 PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL 25 ANOS E SEUS DERIVADOS a) extração, processamento, beneficiamento e atividades de manutenção realizadas em unidades de extração, plantas petrolíferas e petroquímicas. b) beneficiamento e aplicação de misturas asfálticas contendo hidrocarbonetos policíclicos.",
+   "porFamilia": true,
+   "nota": "hidrocarboneto derivado de petróleo"
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.19",
+   "titulo": "OUTRAS SUBSTÂNCIAS QUÍMICAS",
+   "trecho": "1.0.19 OUTRAS SUBSTÂNCIAS QUÍMICAS GRUPO I - ESTIRENO; BUTADIENO-ESTIRENO; ACRILONITRILA; 1-3 BUTADIENO; CLOROPRENO; MERCAPTANOS, n-HEXANO, DIISOCIANATO DE TOLUENO (TDI); AMINAS AROMÁTICAS a) fabricação e vulcanização de artefatos de borracha; b) fabricação e recauchutagem de pneus. GRUPO II - AMINAS AROMÁTICAS, AMINOBIFENILA, AURAMINA, AZATIOPRINA, BIS (CLORO METIL) ÉTER, 1-4 BUTANODIOL, DIMETANOSULFONATO (MILERAN), CICLOFOSFAMIDA, CLOROAMBUCIL, DIETILESTIL-BESTROL, ACRONITRILA, NITRONAFTILAMINA 4-DIMETIL-AMINOAZOBENZENO, BENZOPIRENO, BETA-PROPIOLACTONA, BISCLOROETILETER, BISCLOROMETIL, CLOROMETILETER, DIANIZIDINA, DICLOROBENZIDINA, DIETILSULFATO, DIMETILSULFATO, ETILENOAMINA, ETILENOTIUREIA, FENACETINA, IODETO DE METILA, ETILNITROSURÉIAS, METILENO-ORTOCLOROANILINA (MOCA), NITROSAMINA, ORTOTOLUIDINA, OXIME-TALONA, PROCARBAZINA, PROPANOSULTONA, 1-3-BUTADIENO, ÓXIDO DE ETILENO, ESTILBENZENO, DIISOCIANATO DE TOLUENO (TDI), CREOSOTO, 4-AMINODIFENIL, BENZIDINA, BETANAFTILAMINA, ESTIRENO, 1-CLORO-2, 4 - NITRODIFENIL, 3-POXIPRO-PANO a) manufatura de magenta (anilina e ortotoluidina); b) fabricação de fibras sintéticas; c) sínteses químicas; d) fabricação da borracha e espumas; e) fabricação de plásticos; f ) produção de medicamentos; g) operações de preservação da madeira com creosoto; h) esterilização de materiais cirúrgicos. 25 ANOS 2.0.0",
+   "porFamilia": false,
+   "nota": "nominado no Grupo I"
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.17",
+   "titulo": "PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS",
+   "trecho": "1.0.17 PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS a) extração, processamento, beneficiamento e atividades de manutenção realizadas em unidades de extração, plantas petrolíferas e petroquímicas; b) beneficiamento e aplicação de misturas asfálticas contendo hidrocarbonetos policíclicos. 25 ANOS",
+   "porFamilia": true,
+   "nota": "hidrocarboneto derivado de petróleo"
+  }
+ ],
+ "hdi": [],
+ "dioxido-de-titanio": [],
+ "tgic": [],
+ "cromo-vi-compostos": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.10",
+   "titulo": "CROMO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.10 CROMO E SEUS COMPOSTOS TÓXICOS 25 ANOS a) fabricação, emprego industrial, manipulação de cromo, ácido crômico, cromatos e bicromatos; b) fabricação de ligas de ferro-cromo; c) revestimento eletrolítico de metais e polimento de superfícies cromadas; d) pintura com pistola utilizando tintas como pigmentos de cromo; e) soldagem de aço inoxidável.",
+   "porFamilia": false,
+   "nota": ""
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.10",
+   "titulo": "CROMO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.10 CROMO E SEUS COMPOSTOS TÓXICOS a) fabricação, emprego industrial, manipulação de cromo, ácido crômico, cromatos e bicromatos; b) fabricação de ligas de ferro-cromo; c) revestimento eletrolítico de metais e polimento de superfícies cromadas; d) pintura com pistola utilizando tintas com pigmentos de cromo; e) soldagem de aço inoxidável. 25 ANOS",
+   "porFamilia": false,
+   "nota": ""
+  }
+ ],
+ "chumbo": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.8",
+   "titulo": "CHUMBO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.8 CHUMBO E SEUS COMPOSTOS TÓXICOS 25 ANOS a) extração e processamento de minério de chumbo; b) metalurgia e fabricação de ligas e compostos de chumbo; c) fabricação e reformas de acumuladores elétricos; d) fabricação e emprego de chumbo-tetraetila e chumbo-tertrametila; e) fabricação de tintas, esmaltes e vernizes à base de compostos de chumbo; f) pintura com pistola empregando tintas com pigmentos de chumbo; g) fabricação de objetos e artefatos de chumbo e suas ligas; h) vulcanização da borracha pelo litargírio ou outros compostos de chumbo; i) utilização de chumbo em processos de soldagem; j) fabricação de vidro, cristal e esmalte vitrificado; l) fabricação de pérolas artificiais; m) fabricação e utilização de aditivos à base de chumbo para a indústria de plásticos.",
+   "porFamilia": false,
+   "nota": ""
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.8",
+   "titulo": "CHUMBO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.8 CHUMBO E SEUS COMPOSTOS TÓXICOS a) extração e processamento de minério de chumbo; b) metalurgia e fabricação de ligas e compostos de chumbo; c) fabricação e reformas de acumuladores elétricos; d) fabricação e emprego de chumbo-tetraetila e chumbo-tetrametila; e) fabricação de tintas, esmaltes e vernizes à base de compostos de chumbo; f) pintura com pistola empregando tintas com pigmentos de chumbo; g) fabricação de objetos e artefatos de chumbo e suas ligas; h) vulcanização da borracha pelo litargírio ou outros compostos de chumbo; i) utilização de chumbo em processos de soldagem; j) fabricação de vidro, cristal e esmalte vitrificado; l) fabricação de pérolas artificiais; m) fabricação e utilização de aditivos à base de chumbo para a indústria de plásticos. 25 ANOS",
+   "porFamilia": false,
+   "nota": ""
+  }
+ ],
+ "manganes-fumos": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.14",
+   "titulo": "MANGANÊS E SEUS COMPOSTOS",
+   "trecho": "1.0.14 MANGANÊS E SEUS COMPOSTOS 25 ANOS a) extração e beneficiamento de minérios de manganês; b) fabricação de ligas e compostos de manganês; c) fabricação de pilhas secas e acumuladores; d) preparação de permanganato de potássio e de corantes; e) fabricação de vidros especiais e cerâmicas; f) utilização de eletrodos contendo manganês; g) fabricação de tintas e fertilizantes.",
+   "porFamilia": false,
+   "nota": "inclui \"utilização de eletrodos contendo manganês\""
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.14",
+   "titulo": "MANGANÊS E SEUS COMPOSTOS",
+   "trecho": "1.0.14 MANGANÊS E SEUS COMPOSTOS a) extração e beneficiamento de minérios de manganês; b) fabricação de ligas e compostos de manganês; c) fabricação de pilhas secas e acumuladores; d) preparação de permanganato de potássio e de corantes; e) fabricação de vidros especiais e cerâmicas; f) utilização de eletrodos contendo manganês; g) fabricação de tintas e fertilizantes. 25 ANOS",
+   "porFamilia": false,
+   "nota": "inclui \"utilização de eletrodos contendo manganês\""
+  }
+ ],
+ "oxido-de-ferro-fumos": [],
+ "oxido-de-zinco-fumos": [],
+ "niquel": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.16",
+   "titulo": "NÍQUEL E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.16 NÍQUEL E SEUS COMPOSTOS TÓXICOS 25 ANOS a) extração e beneficiamento do níquel; b) niquelagem de metais; c) fabricação de acumuladores de níquel-cádmio.",
+   "porFamilia": false,
+   "nota": ""
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.16",
+   "titulo": "NÍQUEL E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.16 NÍQUEL E SEUS COMPOSTOS TÓXICOS a) extração e beneficiamento do níquel; b) niquelagem de metais; c) fabricação de acumuladores de níquel-cádmio. 25 ANOS",
+   "porFamilia": false,
+   "nota": ""
+  }
+ ],
+ "monoxido-de-carbono": [],
+ "dioxido-de-nitrogenio": [],
+ "ozonio": [],
+ "cadmio": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.6",
+   "titulo": "CÁDMIO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.6 CÁDMIO E SEUS COMPOSTOS TÓXICOS 25 ANOS a) extração, tratamento e preparação de ligas de cádmio; b) fabricação de compostos de cádmio; c) utilização de eletrodos de cádmio em soldas; d) utilização de cádmio no revestimento eletrolítico de metais e) utilização de cádmio como pigmento e estabilizador na indústria do plástico; f) fabricação de eletrodos de baterias alcalinas de níquel-cádmio.",
+   "porFamilia": false,
+   "nota": ""
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.6",
+   "titulo": "CÁDMIO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.6 CÁDMIO E SEUS COMPOSTOS TÓXICOS a) extração, tratamento e preparação de ligas de cádmio; b) fabricação de compostos de cádmio; c) utilização de eletrodos de cádmio em soldas; d) utilização de cádmio no revestimento eletrolítico de metais; e) utilização de cádmio como pigmento e estabilizador na indústria do plástico; f) fabricação de eletrodos de baterias alcalinas de níquel-cádmio. 25 ANOS",
+   "porFamilia": false,
+   "nota": ""
+  }
+ ],
+ "oleo-diesel": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.17",
+   "titulo": "PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS",
+   "trecho": "17 PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL 25 ANOS E SEUS DERIVADOS a) extração, processamento, beneficiamento e atividades de manutenção realizadas em unidades de extração, plantas petrolíferas e petroquímicas. b) beneficiamento e aplicação de misturas asfálticas contendo hidrocarbonetos policíclicos.",
+   "porFamilia": true,
+   "nota": "derivado de petróleo"
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.17",
+   "titulo": "PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS",
+   "trecho": "1.0.17 PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS a) extração, processamento, beneficiamento e atividades de manutenção realizadas em unidades de extração, plantas petrolíferas e petroquímicas; b) beneficiamento e aplicação de misturas asfálticas contendo hidrocarbonetos policíclicos. 25 ANOS",
+   "porFamilia": true,
+   "nota": "derivado de petróleo"
+  }
+ ],
+ "gasolina": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.3",
+   "titulo": "BENZENO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.3 BENZENO E SEUS COMPOSTOS TÓXICOS 25 ANOS a) produção e processamento de benzeno; b) utilização de benzeno como matéria prima em síntese orgânicas e na produção de derivados; c) utilização de benzeno como insumo na extração de óleos vegetais e álcoois; d) utilização de produtos que contenham benzeno, como colas, tintas, vernizes, produtos gráficos e solventes; e) produção e utilização de clorobenzenos e derivados; f) fabricação e vulcanização de artefatos de borracha; g) fabricação e recauchutagem de pneumáticos.",
+   "porFamilia": true,
+   "nota": "gasolina contém benzeno (alínea d: produtos que contenham benzeno)"
+  },
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.17",
+   "titulo": "PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS",
+   "trecho": "17 PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL 25 ANOS E SEUS DERIVADOS a) extração, processamento, beneficiamento e atividades de manutenção realizadas em unidades de extração, plantas petrolíferas e petroquímicas. b) beneficiamento e aplicação de misturas asfálticas contendo hidrocarbonetos policíclicos.",
+   "porFamilia": true,
+   "nota": "derivado de petróleo"
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.3",
+   "titulo": "BENZENO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.3 BENZENO E SEUS COMPOSTOS TÓXICOS a) produção e processamento de benzeno; b) utilização de benzeno como matéria-prima em sínteses orgânicas e na produção de derivados; c) utilização de benzeno como insumo na extração de óleos vegetais e álcoois; d) utilização de produtos que contenham benzeno, como colas, tintas, vernizes, produtos gráficos e solventes; e) produção e utilização de clorobenzenos e derivados; f) fabricação e vulcanização de artefatos de borracha; g) fabricação e recauchutagem de pneumáticos. 25 ANOS",
+   "porFamilia": true,
+   "nota": "gasolina contém benzeno (alínea d: produtos que contenham benzeno)"
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.17",
+   "titulo": "PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS",
+   "trecho": "1.0.17 PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS a) extração, processamento, beneficiamento e atividades de manutenção realizadas em unidades de extração, plantas petrolíferas e petroquímicas; b) beneficiamento e aplicação de misturas asfálticas contendo hidrocarbonetos policíclicos. 25 ANOS",
+   "porFamilia": true,
+   "nota": "derivado de petróleo"
+  }
+ ],
+ "etanol": [],
+ "metanol": [],
+ "benzeno": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.3",
+   "titulo": "BENZENO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.3 BENZENO E SEUS COMPOSTOS TÓXICOS 25 ANOS a) produção e processamento de benzeno; b) utilização de benzeno como matéria prima em síntese orgânicas e na produção de derivados; c) utilização de benzeno como insumo na extração de óleos vegetais e álcoois; d) utilização de produtos que contenham benzeno, como colas, tintas, vernizes, produtos gráficos e solventes; e) produção e utilização de clorobenzenos e derivados; f) fabricação e vulcanização de artefatos de borracha; g) fabricação e recauchutagem de pneumáticos.",
+   "porFamilia": false,
+   "nota": ""
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.3",
+   "titulo": "BENZENO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.3 BENZENO E SEUS COMPOSTOS TÓXICOS a) produção e processamento de benzeno; b) utilização de benzeno como matéria-prima em sínteses orgânicas e na produção de derivados; c) utilização de benzeno como insumo na extração de óleos vegetais e álcoois; d) utilização de produtos que contenham benzeno, como colas, tintas, vernizes, produtos gráficos e solventes; e) produção e utilização de clorobenzenos e derivados; f) fabricação e vulcanização de artefatos de borracha; g) fabricação e recauchutagem de pneumáticos. 25 ANOS",
+   "porFamilia": false,
+   "nota": ""
+  }
+ ],
+ "mercurio": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.15",
+   "titulo": "MERCÚRIO E SEUS COMPOSTOS",
+   "trecho": "1.0.15 MERCÚRIO E SEUS COMPOSTOS 25 ANOS a) extração e utilização de mercúrio e fabricação de seus compostos; b) fabricação de espoletas com fulminato de mercúrio; c) fabricação de tintas com pigmento contendo mercúrio; d) fabricação e manutenção de aparelhos de medição e de laboratório; e) fabricação de lâmpadas, válvulas eletrônicas e ampolas de raio X; f) fabricação de minuterias, acumuladores e retificadores de corrente; g) utilização como agente catalítico e de eletrólise; h) douração, prateamento, bronzeamento e estanhagem de espelhos e metais; i) curtimento e feltragem de couro e conservação da madeira; j) recuperação do mercúrio; l) amalgamação de zinco; m) tratamento a quente de amálgamas de metais; n) fabricação e aplicação de fungicidas.",
+   "porFamilia": false,
+   "nota": ""
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.15",
+   "titulo": "MERCÚRIO E SEUS COMPOSTOS",
+   "trecho": "1.0.15 MERCÚRIO E SEUS COMPOSTOS a) extração e utilização de mercúrio e fabricação de seus compostos; b) fabricação de espoletas com fulminato de mercúrio; c) fabricação de tintas com pigmento contendo mercúrio; d) fabricação e manutenção de aparelhos de medição e de laboratório; e) fabricação de lâmpadas, válvulas eletrônicas e ampolas de raio X; f) fabricação de minuterias, acumuladores e retificadores de corrente; g) utilização como agente catalítico e de eletrólise; h) douração, prateamento, bronzeamento e estanhagem de espelhos e metais; i) curtimento e feltragem do couro e conservação da madeira; j) recuperação do mercúrio; l) amalgamação do zinco. m) tratamento a quente de amálgamas de metais; n) fabricação e aplicação de fungicidas. 25 ANOS",
+   "porFamilia": false,
+   "nota": ""
+  }
+ ],
+ "glutaraldeido": [],
+ "formaldeido": [],
+ "metacrilato-de-metila": [],
+ "oxido-nitroso": [],
+ "peroxido-de-hidrogenio": [],
+ "hipoclorito-de-sodio": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.9",
+   "titulo": "CLORO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.9 CLORO E SEUS COMPOSTOS TÓXICOS 25 ANOS a) fabricação e emprego de defensivos organoclorados; b) fabricação e emprego de cloroetilaminas (mostarda nitrogenadas); c) fabricação e manuseio de bifenis policlorados (PBC); d) fabricação e emprego de cloreto de vinil como monômetro na fabricação de policloreto de vinil (PVC) e outras resinas e como intermediário em produções químicas ou como solvente orgânico; e) fabricação de policloroprene; f) fabricação e emprego de clorofórmio (triclorometano) e de tetracloreto de carbono.",
+   "porFamilia": true,
+   "nota": "composto de cloro só pelo título do código; nenhuma atividade listada o abrange – enquadramento discutível"
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.9",
+   "titulo": "CLORO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.9 CLORO E SEUS COMPOSTOS TÓXICOS a) fabricação e emprego de defensivos organoclorados; b) fabricação e emprego de cloroetilaminas (mostardas nitrogenadas); c) fabricação e manuseio de bifenis policlorados (PCB); d) fabricação e emprego de cloreto de vinil como monômero na fabricação de policloreto de vinil (PVC) e outras resinas e como intermediário em produções químicas ou como solvente orgânico; e) fabricação de policloroprene; f) fabricação e emprego de clorofórmio (triclorometano) e de tetracloreto de carbono. 25 ANOS",
+   "porFamilia": true,
+   "nota": "composto de cloro só pelo título do código; nenhuma atividade listada o abrange – enquadramento discutível"
+  }
+ ],
+ "acido-fosforico": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.12",
+   "titulo": "FÓSFORO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.12 FÓSFORO E SEUS COMPOSTOS TÓXICOS 25 ANOS a) extração e preparação de fósforo branco e seus compostos; b) fabricação e aplicação de produtos fosforados e organofosforados (sínteses orgânicas, fertilizantes e praguicidas); c) fabricação de munições e armamentos explosivos.",
+   "porFamilia": true,
+   "nota": "composto de fósforo só pelo título do código (atividades: fósforo branco, fosforados/organofosforados, fertilizantes) – enquadramento discutível"
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.12",
+   "titulo": "FÓSFORO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.12 FÓSFORO E SEUS COMPOSTOS TÓXICOS a) extração e preparação de fósforo branco e seus compostos; b) fabricação e aplicação de produtos fosforados e organofosforados (sínteses orgânicas, fertilizantes e praguicidas); c) fabricação de munições e armamentos explosivos. 25 ANOS",
+   "porFamilia": true,
+   "nota": "composto de fósforo só pelo título do código (atividades: fósforo branco, fosforados/organofosforados, fertilizantes) – enquadramento discutível"
+  }
+ ],
+ "mdi": [],
+ "tdi": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.19",
+   "titulo": "OUTRAS SUBSTÂNCIAS QUÍMICAS",
+   "trecho": "1.0.19 OUTRAS SUBSTÂNCIAS QUÍMICAS 25 ANOS GRUPO I – ESTIRENO; BUTADIENO-ESTIRENO; ACRILONTRILA; 1-3 BUTADIENO; CLOROPRENO; MERCAPTANOS, n-HEXANO, DIISOCIANATO DE TOLUENO (TDI); AMINAS AROMÁTICAS a) fabricação e vulcanização de artefatos de borracha; b) fabricação e recauchutagem de pneus. GRUPO II – AMINAS AROMÁTICAS, AMINOBIFENILA, AURAMINA, AZATIOPRINA, BIS (CLORO METIL) ÉTER, 1-4 BUTANODIOL DIMETANOSULFONATO (MIRELAN), CICLOFOSFAMIDA, CLOROAMBUCIL, DIETILESTILBESTROL, ACRONiTrILA, NITRONAFTILAMINA 4-DIMETIL-AMINOAZOBENZENO, BENZOPIRENO, BETAPROPIOLACTONA, BISCLOROETILETER, BISCLOROMETIL, CLOROMETILETER, DIANIZIDINA, DICLOROBENZIDINA, DIETILSULFATO, DIMETILSULFATO, ETILENOAMINA, ETILENOTIUREIA, FENACETINA, IODETO DE METILA, ETILNITROSURÉIAS, METILENO-ORTOCLOROAMILINA (MOCA), NITROSAMINA, ORTOTOLUIDINA , OXIMETALONA, PROCARBAZINA, PROPANOSULTONA, 1-3-BUTADIENO, ÓXIDO DE ETILENO, ESTILBENZENO, DIISOCIANATO DE TOLUENO (TDI), CREOSOTO, 4-AMINODIFENIL, BENZIDINA, BETANAFTILANIMA, ESTIRENO, 1-CLORO-2, 4 – NITRODIFENIL, 3-POXIPROPANO a) manufatura de magenta (anilina e orto-toluidina) b) fabricação de fibras sintéticas; c) sínteses químicas; d) fabricação de borracha e espumas; e) fabricação de plásticos; f) produção e medicamentos; g) operações de preservação da madeira com creosoto; h) esterilização de materiais cirúrgicos.",
+   "porFamilia": false,
+   "nota": "nominado nos Grupos I e II"
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.19",
+   "titulo": "OUTRAS SUBSTÂNCIAS QUÍMICAS",
+   "trecho": "1.0.19 OUTRAS SUBSTÂNCIAS QUÍMICAS GRUPO I - ESTIRENO; BUTADIENO-ESTIRENO; ACRILONITRILA; 1-3 BUTADIENO; CLOROPRENO; MERCAPTANOS, n-HEXANO, DIISOCIANATO DE TOLUENO (TDI); AMINAS AROMÁTICAS a) fabricação e vulcanização de artefatos de borracha; b) fabricação e recauchutagem de pneus. GRUPO II - AMINAS AROMÁTICAS, AMINOBIFENILA, AURAMINA, AZATIOPRINA, BIS (CLORO METIL) ÉTER, 1-4 BUTANODIOL, DIMETANOSULFONATO (MILERAN), CICLOFOSFAMIDA, CLOROAMBUCIL, DIETILESTIL-BESTROL, ACRONITRILA, NITRONAFTILAMINA 4-DIMETIL-AMINOAZOBENZENO, BENZOPIRENO, BETA-PROPIOLACTONA, BISCLOROETILETER, BISCLOROMETIL, CLOROMETILETER, DIANIZIDINA, DICLOROBENZIDINA, DIETILSULFATO, DIMETILSULFATO, ETILENOAMINA, ETILENOTIUREIA, FENACETINA, IODETO DE METILA, ETILNITROSURÉIAS, METILENO-ORTOCLOROANILINA (MOCA), NITROSAMINA, ORTOTOLUIDINA, OXIME-TALONA, PROCARBAZINA, PROPANOSULTONA, 1-3-BUTADIENO, ÓXIDO DE ETILENO, ESTILBENZENO, DIISOCIANATO DE TOLUENO (TDI), CREOSOTO, 4-AMINODIFENIL, BENZIDINA, BETANAFTILAMINA, ESTIRENO, 1-CLORO-2, 4 - NITRODIFENIL, 3-POXIPRO-PANO a) manufatura de magenta (anilina e ortotoluidina); b) fabricação de fibras sintéticas; c) sínteses químicas; d) fabricação da borracha e espumas; e) fabricação de plásticos; f ) produção de medicamentos; g) operações de preservação da madeira com creosoto; h) esterilização de materiais cirúrgicos. 25 ANOS 2.0.0",
+   "porFamilia": false,
+   "nota": "nominado nos Grupos I e II"
+  }
+ ],
+ "ciclopentano": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.17",
+   "titulo": "PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS",
+   "trecho": "17 PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL 25 ANOS E SEUS DERIVADOS a) extração, processamento, beneficiamento e atividades de manutenção realizadas em unidades de extração, plantas petrolíferas e petroquímicas. b) beneficiamento e aplicação de misturas asfálticas contendo hidrocarbonetos policíclicos.",
+   "porFamilia": true,
+   "nota": "hidrocarboneto derivado de petróleo/gás natural; não nominado"
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.17",
+   "titulo": "PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS",
+   "trecho": "1.0.17 PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS a) extração, processamento, beneficiamento e atividades de manutenção realizadas em unidades de extração, plantas petrolíferas e petroquímicas; b) beneficiamento e aplicação de misturas asfálticas contendo hidrocarbonetos policíclicos. 25 ANOS",
+   "porFamilia": true,
+   "nota": "hidrocarboneto derivado de petróleo/gás natural; não nominado"
+  }
+ ],
+ "hcfc-141b": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.9",
+   "titulo": "CLORO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.9 CLORO E SEUS COMPOSTOS TÓXICOS 25 ANOS a) fabricação e emprego de defensivos organoclorados; b) fabricação e emprego de cloroetilaminas (mostarda nitrogenadas); c) fabricação e manuseio de bifenis policlorados (PBC); d) fabricação e emprego de cloreto de vinil como monômetro na fabricação de policloreto de vinil (PVC) e outras resinas e como intermediário em produções químicas ou como solvente orgânico; e) fabricação de policloroprene; f) fabricação e emprego de clorofórmio (triclorometano) e de tetracloreto de carbono.",
+   "porFamilia": true,
+   "nota": "hidroclorofluorcarbono; não nominado"
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.9",
+   "titulo": "CLORO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.9 CLORO E SEUS COMPOSTOS TÓXICOS a) fabricação e emprego de defensivos organoclorados; b) fabricação e emprego de cloroetilaminas (mostardas nitrogenadas); c) fabricação e manuseio de bifenis policlorados (PCB); d) fabricação e emprego de cloreto de vinil como monômero na fabricação de policloreto de vinil (PVC) e outras resinas e como intermediário em produções químicas ou como solvente orgânico; e) fabricação de policloroprene; f) fabricação e emprego de clorofórmio (triclorometano) e de tetracloreto de carbono. 25 ANOS",
+   "porFamilia": true,
+   "nota": "hidroclorofluorcarbono; não nominado"
+  }
+ ],
+ "trietilenodiamina": [],
+ "etilenoglicol": [],
+ "dietilenoglicol": [],
+ "propilenoglicol": [],
+ "amianto": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.2",
+   "titulo": "ASBESTOS",
+   "trecho": "1.0.2 ASBESTOS 20 ANOS a) extração, processamento e manipulação de rochas amiantíferas; b) fabricação de guarnições para freios, embreagens e materiais isolantes contendo asbestos; c) fabricação de produtos de fibrocimento; d) mistura, cardagem, fiação e tecelagem de fribras de asbestos;",
+   "porFamilia": false,
+   "nota": ""
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.2",
+   "titulo": "ASBESTOS",
+   "trecho": "1.0.2 ASBESTOS a) extração, processamento e manipulação de rochas amiantíferas; b) fabricação de guarnições para freios, embreagens e materiais isolantes contendo asbestos; c) fabricação de produtos de fibrocimento; d) mistura, cardagem, fiação e tecelagem de fibras de asbestos. 20 ANOS",
+   "porFamilia": false,
+   "nota": ""
+  }
+ ],
+ "acido-sulfurico": [],
+ "tricloroetileno": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.9",
+   "titulo": "CLORO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.9 CLORO E SEUS COMPOSTOS TÓXICOS 25 ANOS a) fabricação e emprego de defensivos organoclorados; b) fabricação e emprego de cloroetilaminas (mostarda nitrogenadas); c) fabricação e manuseio de bifenis policlorados (PBC); d) fabricação e emprego de cloreto de vinil como monômetro na fabricação de policloreto de vinil (PVC) e outras resinas e como intermediário em produções químicas ou como solvente orgânico; e) fabricação de policloroprene; f) fabricação e emprego de clorofórmio (triclorometano) e de tetracloreto de carbono.",
+   "porFamilia": true,
+   "nota": "solvente organoclorado; não nominado (o código cita clorofórmio, tetracloreto de carbono e cloreto de vinil)"
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.9",
+   "titulo": "CLORO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.9 CLORO E SEUS COMPOSTOS TÓXICOS a) fabricação e emprego de defensivos organoclorados; b) fabricação e emprego de cloroetilaminas (mostardas nitrogenadas); c) fabricação e manuseio de bifenis policlorados (PCB); d) fabricação e emprego de cloreto de vinil como monômero na fabricação de policloreto de vinil (PVC) e outras resinas e como intermediário em produções químicas ou como solvente orgânico; e) fabricação de policloroprene; f) fabricação e emprego de clorofórmio (triclorometano) e de tetracloreto de carbono. 25 ANOS",
+   "porFamilia": true,
+   "nota": "solvente organoclorado; não nominado (o código cita clorofórmio, tetracloreto de carbono e cloreto de vinil)"
+  }
+ ],
+ "diclorometano": [
+  {
+   "decreto": "Decreto nº 2.172/1997, Anexo IV",
+   "codigo": "1.0.9",
+   "titulo": "CLORO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.9 CLORO E SEUS COMPOSTOS TÓXICOS 25 ANOS a) fabricação e emprego de defensivos organoclorados; b) fabricação e emprego de cloroetilaminas (mostarda nitrogenadas); c) fabricação e manuseio de bifenis policlorados (PBC); d) fabricação e emprego de cloreto de vinil como monômetro na fabricação de policloreto de vinil (PVC) e outras resinas e como intermediário em produções químicas ou como solvente orgânico; e) fabricação de policloroprene; f) fabricação e emprego de clorofórmio (triclorometano) e de tetracloreto de carbono.",
+   "porFamilia": true,
+   "nota": "solvente organoclorado; não nominado (o código cita clorofórmio, tetracloreto de carbono e cloreto de vinil)"
+  },
+  {
+   "decreto": "Decreto nº 3.048/1999, Anexo IV",
+   "codigo": "1.0.9",
+   "titulo": "CLORO E SEUS COMPOSTOS TÓXICOS",
+   "trecho": "1.0.9 CLORO E SEUS COMPOSTOS TÓXICOS a) fabricação e emprego de defensivos organoclorados; b) fabricação e emprego de cloroetilaminas (mostardas nitrogenadas); c) fabricação e manuseio de bifenis policlorados (PCB); d) fabricação e emprego de cloreto de vinil como monômero na fabricação de policloreto de vinil (PVC) e outras resinas e como intermediário em produções químicas ou como solvente orgânico; e) fabricação de policloroprene; f) fabricação e emprego de clorofórmio (triclorometano) e de tetracloreto de carbono. 25 ANOS",
+   "porFamilia": true,
+   "nota": "solvente organoclorado; não nominado (o código cita clorofórmio, tetracloreto de carbono e cloreto de vinil)"
+  }
+ ]
+}

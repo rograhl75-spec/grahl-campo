@@ -45,8 +45,8 @@ describe('documentos (itens pendentes)', () => {
     await filho('t1m', 'medicao', 't1', { agente: 'Ruído', postoId: 't1p', dose: '60', tempoAmostragem: '480', jornada: '480', lavg: '81' });
     const t = await texto(await laudoPericial('t1'));
     expect(t).toContain('SÍNTESE DA CONCLUSÃO');
-    expect(t).toContain('Anexo 2 – Atividades e operações perigosas com inflamáveis');
-    expect(t).not.toContain('Anexo 5 – Atividades perigosas em motocicleta');
+    expect(t).toContain('Anexo II – Atividades e operações perigosas com inflamáveis');
+    expect(t).not.toContain('Anexo V – Atividades perigosas em motocicleta');
     expect(t).toContain('Requisitos do laudo pericial – art. 473 do CPC');
     expect(t).toContain('intimação do evento 52');
   });
@@ -97,5 +97,17 @@ describe('documentos (itens pendentes)', () => {
     expect(t).toContain('R$ 3.500,00 (três mil e quinhentos reais)');
     expect(t).toContain('20 dias corridos');
     expect(t).toContain('Escritório Teste');
+  });
+});
+
+describe('similaridade na Justiça Federal (Res. CJF 305/2014, art. 30-A)', () => {
+  it('o laudo previdenciário por similaridade cita a prova emprestada; sem similaridade, não', async () => {
+    await caso('t6', { papel: 'Perito do Juízo', justica: 'Justiça Federal', materia: 'Previdenciária', similaridade: 'Sim', empresaOriginal: 'Transportes Antigos Ltda.' });
+    let t = await texto(await laudoPrevidenciario('t6'));
+    expect(t).toContain('art. 30-A da Resolução CJF nº 305/2014');
+    expect(t).toContain('Transportes Antigos Ltda.');
+    await caso('t7', { papel: 'Perito do Juízo', justica: 'Justiça Federal', materia: 'Previdenciária', similaridade: 'Não' });
+    t = await texto(await laudoPrevidenciario('t7'));
+    expect(t).not.toContain('art. 30-A');
   });
 });

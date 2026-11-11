@@ -145,8 +145,8 @@ export function matrizIAC(r, dados) {
     penoso = nAdv >= 3;
     const adv = criterios.filter((c) => c.adverso).map((c) => c.titulo.replace(/^\d\. Análise d[oa]s? /, ''));
     conclusao = penoso
-      ? `Pela convergência cumulativa dos fatores de desgaste apurados (${adv.join(', ')}), nos parâmetros do IAC nº 5 do TRF4, a atividade foi exercida em condições excepcionalmente penosas, com exposição habitual e permanente a condições concretas de desgaste físico e mental à saúde.`
-      : `Os fatores apurados (${adv.join(', ') || 'nenhum adverso'}) não convergem de forma suficiente para caracterizar, nos parâmetros do IAC nº 5 do TRF4, trabalho excepcionalmente penoso.`;
+      ? `Pela convergência cumulativa dos fatores de desgaste apurados (${adv.join(', ')}), na matriz de fatores adotada nesta perícia, a atividade foi exercida em condições excepcionalmente penosas, com exposição habitual e permanente a condições concretas de desgaste físico e mental à saúde.`
+      : `Os fatores apurados (${adv.join(', ') || 'nenhum adverso'}) não convergem de forma suficiente para caracterizar, na matriz de fatores adotada nesta perícia, trabalho excepcionalmente penoso.`;
   }
   // conclusão calculada pelo app (contagem de fatores): é proposta, não juízo técnico – sai marcada para revisão
   if (sugerida) conclusao = `[[Proposta do app pela contagem de fatores – confirmar ou redigir no campo "Conclusão técnica da penosidade" do vínculo:]] ${conclusao}`;
@@ -159,16 +159,16 @@ export function secaoPenosidade(d, dados, { numero = '', nivel = 'h2', tipo = 'l
   const vs = vinculosMotorista(dados);
   const jur = comJurisprudencia(dados);
   const quem = tipo === 'parecer' ? 'este Assistente Técnico' : tipo === 'ltcat' ? 'este Engenheiro de Segurança do Trabalho' : 'este Perito';
-  d[nivel](numero, jur ? 'Condições especiais por penosidade (critério jurisprudencial – IAC nº 5 do TRF4)' : 'Condições especiais por penosidade (perícia individualizada)');
-  d.texto('Até 28/04/1995, a atividade de motorista de ônibus e de caminhão enquadra-se por categoria profissional (Decreto nº 53.831/1964, Quadro Anexo, cód. 2.4.4; Decreto nº 83.080/1979, Anexo II, cód. 2.4.2, para ocupação em caráter permanente). A partir de 29/04/1995 (Lei nº 9.032/1995), a penosidade não consta do Anexo IV do Regulamento da Previdência Social e só pode ser reconhecida em juízo, mediante perícia técnica individualizada que demonstre a exposição habitual e permanente a condições concretas de desgaste à saúde'
+  d[nivel](numero, jur ? 'Condições especiais por penosidade (critério jurisprudencial – STJ, Tema 1307; TRF4, IAC nº 5 e nº 12)' : 'Condições especiais por penosidade (perícia individualizada)');
+  d.texto('Até 28/04/1995, a atividade de motorista de ônibus e de caminhão enquadra-se por categoria profissional (Decreto nº 53.831/1964, Quadro Anexo, cód. 2.4.4; Decreto nº 83.080/1979, Anexo II, cód. 2.4.2, para ocupação em caráter permanente). A partir de 29/04/1995 (Lei nº 9.032/1995), exige-se a comprovação da exposição a agentes nocivos (art. 57, §§ 3º e 4º, da Lei nº 8.213/1991), e a penosidade não consta do Anexo IV dos Decretos 2.172/1997 e 3.048/1999; só pode ser reconhecida em juízo, mediante perícia técnica individualizada que demonstre a exposição habitual e permanente a condições concretas de desgaste à saúde'
     + (jur ? ' (STJ, Tema 1307).' : '.'));
-  d.texto(`A penosidade das categorias de transporte não se confunde com a insalubridade: não decorre de um agente que supere um limite de tolerância, mas da conjunção de estressores físicos e mentais que, somados e mantidos ao longo da jornada, impõem desgaste excepcional ao trabalhador. Por isso, ${quem} adota os parâmetros fixados pelo Tribunal Regional Federal da 4ª Região no Incidente de Assunção de Competência nº 5 (IAC 5033888-90.2018.4.04.0000) – análise do veículo efetivamente conduzido, dos trajetos e das jornadas –, acrescidos, no transporte rodoviário de cargas, da análise das cargas. Os limites quantitativos de ruído e de vibração são dispensados nesta análise: os valores medidos entram como um dos estressores, mesmo quando abaixo dos limites de tolerância.`);
+  d.texto(`A penosidade das categorias de transporte não se confunde com a insalubridade: não decorre de um agente que supere um limite de tolerância, mas da conjunção de estressores físicos e mentais que, somados e mantidos ao longo da jornada, impõem desgaste excepcional ao trabalhador. Por isso, ${quem} analisa o veículo efetivamente conduzido, os trajetos e as jornadas e, no transporte rodoviário de cargas, as cargas${jur ? ' – roteiro que acompanha o Incidente de Assunção de Competência nº 5 do Tribunal Regional Federal da 4ª Região (IAC 5033888-90.2018.4.04.0000), estendido ao motorista de caminhão pelo IAC nº 12 (5042327-85.2021.4.04.0000)' : ''}. Os limites quantitativos de ruído e de vibração são dispensados nesta análise: os valores medidos entram como um dos estressores, mesmo quando abaixo dos limites de tolerância.`);
   d.texto('As condições de cada critério foram apuradas na entrevista do autor, na vistoria do veículo e nas medições da diligência.');
   if (tipo === 'ltcat') d.texto('A penosidade não é agente nocivo do Anexo IV do RPS e não é informada no PPP nem altera o código GFIP: este item destina-se à prova em juízo.');
 
   d.quadro('Critérios da penosidade por período', [['Período', 'Critério'],
-    ['Até 28/04/1995', 'Categoria profissional: motorista de ônibus ou de caminhão de cargas, em caráter permanente (cód. 2.4.4 do Decreto 53.831/1964; cód. 2.4.2 do Anexo II do Decreto 83.080/1979). Basta a prova da função (CTPS, registro de empregado).'],
-    ['A partir de 29/04/1995', `Penosidade comprovada por perícia técnica individualizada, nos parâmetros do IAC nº 5 do TRF4 (veículo, trajetos, cargas e jornadas)${jur ? '; STJ, Tema 1307 (REsp 2.164.724)' : ''}; não basta o enquadramento presumido pela categoria.`]],
+    ['Até 28/04/1995', 'Categoria profissional: motoristas e cobradores de ônibus e motoristas e ajudantes de caminhão (cód. 2.4.4 do Decreto 53.831/1964); motorista de ônibus e de caminhões de cargas, ocupado em caráter permanente (cód. 2.4.2 do Anexo II do Decreto 83.080/1979). Basta a prova da função (CTPS, registro de empregado).'],
+    ['A partir de 29/04/1995', `Penosidade comprovada por perícia técnica individualizada, com análise do veículo, dos trajetos, das cargas e das jornadas${jur ? '; STJ, Tema 1307 (REsp 2.164.724); TRF4, IAC nº 5 e nº 12' : ''}; não basta o enquadramento presumido pela categoria.`]],
   { larguras: [0.22, 0.78], alinhar: 'left', fonte: 'Elaborado pelo autor.' });
 
   if (!vs.length) {
@@ -177,9 +177,9 @@ export function secaoPenosidade(d, dados, { numero = '', nivel = 'h2', tipo = 'l
   }
   const mats = vs.map((r) => ({ r, m: matrizIAC(r, dados) }));
   for (const { r, m } of mats) {
-    d.quadro(`Matriz de avaliação de penosidade (IAC nº 5 – TRF4) – ${nome(r, dados)} (${periodo(r)})`, [['Critério', 'Condição apurada', 'Fonte'],
+    d.quadro(`Matriz de avaliação de penosidade – ${nome(r, dados)} (${periodo(r)})`, [['Critério', 'Condição apurada', 'Fonte'],
       ...m.criterios.map((c) => [c.titulo, c.linhas.length ? c.linhas.join('\n') : `[[${c.oque}]]`, c.linhas.length ? c.fonte : 'Entrevista do autor']),
-      ['Conclusão técnica do vínculo', m.conclusao || '[[poucos fatores informados – complete os campos de penosidade do vínculo na etapa 2]]', 'Perícia individualizada (IAC nº 5 – TRF4)']],
+      ['Conclusão técnica do vínculo', m.conclusao || '[[poucos fatores informados – complete os campos de penosidade do vínculo na etapa 2]]', 'Perícia individualizada']],
     { larguras: [0.22, 0.56, 0.22], tam: 9, alinhar: 'left', fonte: 'Elaborado pelo autor com base na entrevista do autor, na vistoria do veículo e nas medições da diligência.' });
   }
   d.texto('**Conclusão metodológica da penosidade.** Os critérios acima não são avaliados isoladamente. A convergência cumulativa da condução de veículo com desconforto e agentes físicos, dos trajetos que exigem alerta constante, da responsabilidade e do manuseio da carga e de jornadas extenuantes, que impedem a recuperação física e mental, caracteriza o trabalho excepcionalmente penoso; a ausência de convergência afasta a caracterização.');
@@ -188,7 +188,7 @@ export function secaoPenosidade(d, dados, { numero = '', nivel = 'h2', tipo = 'l
       const ini = r.data.inicio || '';
       const ate95 = ini && ini <= '1995-04-28' ? 'Categoria profissional (cód. 2.4.4 / 2.4.2), comprovada a função de motorista' : '—';
       const fim = r.data.fim || '9999-12-31';
-      const pos = fim >= '1995-04-29' ? (m.penoso === true ? 'Penosidade caracterizada (IAC nº 5 – TRF4)' : m.penoso === false ? 'Penosidade não caracterizada' : '[[complete os fatores do vínculo]]') : '—';
+      const pos = fim >= '1995-04-29' ? (m.penoso === true ? 'Penosidade caracterizada' : m.penoso === false ? 'Penosidade não caracterizada' : '[[complete os fatores do vínculo]]') : '—';
       return [nome(r, dados), periodo(r), ate95, pos];
     })],
   { larguras: [0.26, 0.22, 0.26, 0.26], tam: 9, alinhar: 'left', fonte: 'Elaborado pelo autor.' });
@@ -207,5 +207,5 @@ export const CAMPOS_PENOSIDADE = [
   ['riscoAcidente', 'Risco de acidente e violência (carga perigosa, roubo, ocorrências)', 'text'],
   ['pressao', 'Pressão de prazos, metas, remuneração por produção (vazio: deduzido de jornada ≥ 12 h/dia)', 'text'],
   ['fisiologicas', 'Acesso a sanitários, alimentação e descanso durante a jornada', 'text'],
-  ['penosidadeConclusao', 'Conclusão técnica da penosidade (vazio: o app propõe uma conclusão pela contagem de fatores do IAC nº 5 – TRF4, marcada para conferir)', 'area'],
+  ['penosidadeConclusao', 'Conclusão técnica da penosidade (vazio: o app propõe uma conclusão pela contagem de fatores da matriz, marcada para conferir)', 'area'],
 ];

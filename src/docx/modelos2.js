@@ -99,7 +99,7 @@ const NRS = [
   { n: 'NR-10', t: 'Segurança em instalações e serviços em eletricidade', re: /el[ée]tric|choque|energiz|tens[ãa]o|painel|subesta/i, req: 'Medidas de controle do risco elétrico, desenergização, habilitação e autorização dos trabalhadores' },
   { n: 'NR-11', t: 'Transporte, movimentação, armazenagem e manuseio de materiais', re: /empilhadeira|ponte rolante|guindaste|talha|i[çc]amento|paleteira|movimenta[çc]/i, req: 'Operação por trabalhador habilitado, condições do equipamento e sinalização' },
   { n: 'NR-12', t: 'Segurança no trabalho em máquinas e equipamentos', re: /m[áa]quina|prensa|serra|torno|esteira|correia|engrenagem|cilindro|picador|moedor|misturador|trator|colhedora|implemento|equipamento/i, req: 'Proteções fixas e móveis, dispositivos de segurança e de parada de emergência, procedimentos, manual e capacitação do operador' },
-  { n: 'NR-13', t: 'Caldeiras, vasos de pressão, tubulações e tanques metálicos de armazenamento', re: /caldeira|vaso de press|autoclave/i, req: 'Dispositivos de segurança, inspeções periódicas e operador capacitado' },
+  { n: 'NR-13', t: 'Caldeiras, vasos de pressão e tubulações e tanques metálicos de armazenamento', re: /caldeira|vaso de press|autoclave/i, req: 'Dispositivos de segurança, inspeções periódicas e operador capacitado' },
   { n: 'NR-18', t: 'Segurança e saúde no trabalho na indústria da construção', re: /obra|constru[çc]|andaime|escava|canteiro|demoli/i, req: 'Proteções coletivas, organização do canteiro, escavações e capacitação' },
   { n: 'NR-20', t: 'Segurança e saúde no trabalho com inflamáveis e combustíveis', re: /inflam[áa]v|combust[íi]vel|tanque|abastec|g[áa]s/i, req: 'Controle de fontes de ignição, procedimentos e capacitação' },
   { n: 'NR-31', t: 'Segurança e saúde no trabalho na agricultura, pecuária, silvicultura, exploração florestal e aquicultura', re: /rural|agr[íi]col|lavoura|trator|colhedora|silo|fazenda|florest|motosserra/i, req: 'Máquinas e implementos com proteções, capacitação e organização do trabalho rural' },
@@ -261,7 +261,10 @@ export async function peticaoPeritoAvulsa(caseId) {
     if (motivo) d.texto(motivo); else d.redigir('motivo justificado (ex.: documentos requisitados ainda não apresentados pela empresa, necessidade de nova diligência, complexidade das avaliações).');
     sec('Do pedido');
     const dias = Number(String(c.prorrogacaoDias || '').replace(/\D/g, ''));
-    d.texto(`Diante do exposto, com fundamento no art. 476 do Código de Processo Civil, requer a prorrogação do prazo para a entrega do laudo ${dias ? `por ${dias} (${numeroPorExtenso(dias)}) dias` : 'pela metade do prazo originalmente fixado'}.`);
+    // art. 476: por uma vez, pela metade do prazo originalmente fixado
+    const original = Number(String(c.prazoLaudoDias || '').replace(/\D/g, ''));
+    const excede = dias && original && dias > original / 2;
+    d.texto(`Diante do exposto, com fundamento no art. 476 do Código de Processo Civil, requer a prorrogação do prazo para a entrega do laudo ${dias ? `por ${dias} (${numeroPorExtenso(dias)}) dias` : 'pela metade do prazo originalmente fixado'}.${excede ? ` [[VERIFICAR: o art. 476 admite a prorrogação, por uma vez, pela metade do prazo original (${original} dias → até ${Math.floor(original / 2)} dias)]]` : ''}`);
   } else if (tipo === PETICOES_PERITO[1]) {
     d.texto(introPerito(perfil, c, 'informar a impossibilidade de concluir a diligência pericial e requerer o que segue.'));
     sec('Da diligência');
@@ -269,9 +272,9 @@ export async function peticaoPeritoAvulsa(caseId) {
     d.texto(`Conforme designado nos autos, este perito compareceu ${quando ? `em ${quando}` : 'em [[data e horário]]'}${v(c.vistoriaLocal) ? ` na ${c.vistoriaLocal}` : ''}${v(c.vistoriaEndereco) ? `, ${String(c.vistoriaEndereco).replace(/\n/g, ' – ')}` : ''}.`);
     if (motivo) d.texto(motivo); else d.redigir('o que ocorreu (empresa fechada ou inativa, recusa de acesso, ausência de responsável, documentos não apresentados, máquina não disponível) e quem estava presente.');
     sec('Dos requerimentos');
-    d.texto('Diante do exposto, requer:\na) a intimação [[da parte / da empresa]] para que apresente os documentos necessários à perícia e franqueie o acesso ao local e aos equipamentos, no prazo que Vossa Excelência fixar (arts. 380 e 473, § 3º, do CPC);\nb) a designação de nova data para a diligência, a ser comunicada às partes e aos assistentes técnicos com antecedência (art. 474 do CPC);\nc) que o prazo para a entrega do laudo seja contado da nova diligência.');
+    d.texto('Diante do exposto, requer:\na) a intimação [[da parte / da empresa]] para que apresente os documentos necessários à perícia e franqueie o acesso ao local e aos equipamentos, no prazo que Vossa Excelência fixar (art. 473, § 3º, e, conforme o caso, art. 379, III – parte – ou art. 380 – terceiro –, do CPC);\nb) a designação de nova data para a diligência, a ser comunicada às partes e aos assistentes técnicos com antecedência (art. 474 do CPC);\nc) que o prazo para a entrega do laudo seja contado da nova diligência.');
   } else {
-    d.texto(introPerito(perfil, c, 'apresentar **escusa do encargo**, com fundamento no art. 157, § 1º, do Código de Processo Civil.'));
+    d.texto(introPerito(perfil, c, 'apresentar **escusa do encargo**, com fundamento no art. 157, caput e § 1º, do Código de Processo Civil.'));
     sec('Do motivo');
     if (motivo) d.texto(motivo); else d.redigir('motivo legítimo (art. 157) ou causa de impedimento ou suspeição (arts. 148, II, e 467 do CPC), sem expor fatos além do necessário.');
     sec('Do pedido');
@@ -349,7 +352,7 @@ export function conclusaoAT(d, posicao) {
   if (posicao === POSICOES_AT[1]) {
     d.texto('Diante do exposto, requer-se:\ni) a intimação do Sr. Perito para esclarecer os pontos impugnados;\nii) a retificação do laudo nos pontos [[indicar]];\niii) o acolhimento do laudo nos pontos não impugnados e o seu afastamento nos pontos aqui impugnados.');
   } else {
-    d.texto('Diante do exposto, requer-se:\ni) a intimação do Sr. Perito para responder aos quesitos de esclarecimento;\nii) [[retificação / complementação do laudo ou nova perícia (art. 480 do CPC)]];\niii) que o laudo não seja acolhido nos pontos aqui impugnados.');
+    d.texto('Diante do exposto, requer-se:\ni) a intimação do Sr. Perito para responder aos quesitos de esclarecimento;\nii) [[retificação / complementação do laudo (art. 477, § 2º, do CPC) ou nova perícia (art. 480 do CPC)]];\niii) que o laudo não seja acolhido nos pontos aqui impugnados.');
   }
 }
 
@@ -546,16 +549,18 @@ export async function propostaServicos(caseId) {
 // Periculosidade: roteiro por anexo da NR-16 (P6)
 // ======================================================================
 const ANEXOS_NR16 = [
-  { a: 'Anexo 1 – Atividades e operações perigosas com explosivos', re: /explosiv|detona|p[óo]lvora|pedreira|fogos/i,
+  { a: 'Anexo I – Atividades e operações perigosas com explosivos', re: /explosiv|detona|p[óo]lvora|pedreira|fogos/i,
     crit: 'Atividades do quadro do anexo (armazenamento, transporte, manuseio, carregamento e detonação) e áreas de risco correspondentes.' },
-  { a: 'Anexo 2 – Atividades e operações perigosas com inflamáveis', re: /inflam[áa]v|combust[íi]vel|abastec|frentista|tanque|gasolina|diesel|[áa]lcool|etanol|g[áa]s|glp|solvente/i,
+  { a: 'Anexo II – Atividades e operações perigosas com inflamáveis', re: /inflam[áa]v|combust[íi]vel|abastec|frentista|tanque|gasolina|diesel|[áa]lcool|etanol|g[áa]s|glp|solvente/i,
     crit: 'Atividades do item 1 e áreas de risco do quadro do item 3 (ex.: abastecimento, armazenamento de vasilhames, tanques, recintos com inflamáveis); verificar quantidades e as exceções do anexo.' },
-  { a: 'Anexo 3 – Exposição a roubos ou outras espécies de violência física (segurança pessoal ou patrimonial)', re: /vigilan|vigia|seguran[çc]a patrimonial|seguran[çc]a pessoal|escolta|transporte de valores/i,
+  { a: 'Anexo III – Atividades e operações perigosas com exposição a roubos ou outras espécies de violência física nas atividades profissionais de segurança pessoal ou patrimonial', re: /vigilan|vigia|seguran[çc]a patrimonial|seguran[çc]a pessoal|escolta|transporte de valores/i,
     crit: 'Atividades de segurança pessoal ou patrimonial descritas no anexo.' },
-  { a: 'Anexo 4 – Atividades e operações perigosas com energia elétrica', re: /el[ée]tric|energiz|subesta|alta tens|linha viva|eletricist|rede de distribui/i,
-    crit: 'Atividades em instalações ou equipamentos elétricos energizados em alta tensão, no sistema elétrico de potência ou em proximidade (zonas controlada e de risco da NR-10), nos termos do quadro do anexo.' },
-  { a: 'Anexo 5 – Atividades perigosas em motocicleta', re: /motocicl|motoboy|motoqueir|moto\b/i,
-    crit: 'Uso de motocicleta no deslocamento em vias públicas, observadas as exceções do anexo.' },
+  { a: 'Anexo IV – Atividades e operações perigosas com energia elétrica', re: /el[ée]tric|energiz|subesta|alta tens|linha viva|eletricist|rede de distribui/i,
+    crit: 'Atividades em instalações ou equipamentos energizados em alta tensão; trabalho em proximidade (NR-10); baixa tensão no sistema elétrico de consumo quando descumprido o item 10.2.8 da NR-10; e atividades e áreas de risco do SEP do Quadro I do anexo (item 1, alíneas a a d), ressalvadas as situações do item 2.' },
+  { a: 'Anexo V – Atividades perigosas em motocicleta', re: /motocicl|motoboy|motoqueir|moto\b/i,
+    crit: 'Uso de motocicleta no deslocamento do trabalhador em vias abertas à circulação pública (item 3.1), observadas as exceções do item 3.2; redação da Portaria MTE nº 2.021/2025, vigente a partir de 03/04/2026 (a redação da Portaria MTE nº 1.565/2014 foi anulada judicialmente).' },
+  { a: 'Anexo VI – Atividades perigosas dos agentes das autoridades de trânsito', re: /agente de tr[âa]nsito|autoridade de tr[âa]nsito|fiscaliza[çc][ãa]o de tr[âa]nsito|guarda municipal de tr[âa]nsito/i,
+    crit: 'Atividades dos agentes das autoridades de trânsito com exposição ao risco de colisões, atropelamentos ou outras espécies de acidentes ou violências (itens 3.1 e 3.2.1 do anexo; Portaria MTE nº 1.411/2025).' },
   { a: 'Radiações ionizantes ou substâncias radioativas (quadro da Portaria MTE nº 518/2003)', re: /radia[çc][ãa]o ionizante|raio[s]?[- ]x|radiol|radioativ|nuclear|gamagraf/i,
     crit: 'Atividades e áreas de risco do quadro de atividades e operações perigosas com radiações ionizantes.' },
 ];

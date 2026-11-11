@@ -39,7 +39,7 @@ export const CAMPOS_QUIMICO = {
     ['nr15Obs', 'NR-15 – observação (Anexo 12, 13 ou 13-A; atividade e grau)', 'area'],
     ['linach', 'LINACH (Portaria Interministerial nº 9/2014)', 'select', ['Grupo 1', 'Grupo 2A', 'Grupo 2B']],
     ['codDecretos', 'Códigos nos decretos previdenciários (53.831/64, 83.080/79, 2.172/97, 3.048/99)', 'area'],
-    ['nr7', 'NR-7 – indicador biológico (Quadro 1)', 'area'],
+    ['nr7', 'NR-7 – indicador biológico (Anexo I, Quadro 1 – IBE/EE, ou Quadro 2 – IBE/SC)', 'area'],
   ],
   'Referências internacionais': [
     ['acgihTwa', 'ACGIH – TLV-TWA', 'text'], ['acgihStel', 'ACGIH – TLV-STEL / C', 'text'], ['acgihNotacoes', 'ACGIH – notações (Skin, DSEN, A1…)', 'text'],
@@ -73,7 +73,7 @@ export function agenteParaDados(a) {
     pontoFulgor: s(f.pontoFulgor), lie: s(f.lie), lse: s(f.lse), autoignicao: s(f.autoignicao), limiarOdor: s(f.limiarOdor),
     rel: s(n.rel), idlh: s(n.idlh), oshaPel: s(n.oshaPel), vias: s(n.vias), orgaosAlvo: s(n.orgaosAlvo), sintomas: s(n.sintomas),
     metodos: s(n.metodos), nioshUrl: s(n.url),
-    nr15Obs: s(nr.observacao), linach: s(a.linach), iarc: s(a.iarc), codDecretos: s(a.codDecretos),
+    nr15Obs: s(nr.observacao), linach: s(a.linach), iarc: s(a.iarc), codDecretos: s(a.codDecretos), observacoes: s(a.observacoes),
     acgihTwa: s(ac.twa), acgihStel: s(ac.stel), acgihNotacoes: s(ac.notacoes), acgihBase: s(ac.baseTlv), acgihBei: s(ac.bei),
     acgihEdicao: s(ac.edicao) || (Object.values(ac).some((x) => s(x)) ? s(a.acgihEdicao) : ''),
     fontes: (a.fontes || []).map((x) => [s(x.referencia), s(x.campos) && `(${s(x.campos)})`, s(x.url), s(x.consultadoEm) && `consultado em ${s(x.consultadoEm)}`].filter(Boolean).join(' – ')).join('\n'),

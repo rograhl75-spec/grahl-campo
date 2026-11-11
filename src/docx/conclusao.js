@@ -85,10 +85,10 @@ export function avaliarPeriodos(dados) {
       if (isFinite(val.aren)) {
         dadosOk = true;
         const vdv = isFinite(val.vdv) ? `; VDVR ${fmt(val.vdv, 2)}` : '';
-        if (b <= '1997-03-05') itens.push({ t: `VCI: aren ${fmt(val.aren, 2)} m/s²${vdv} – cód. 1.1.5 restrito a perfuratrizes e marteletes`, cod: '1.1.5', sup: false });
+        if (b <= '1997-03-05') itens.push({ t: `VCI: aren ${fmt(val.aren, 2)} m/s²${vdv} – cód. 1.1.5 do Dec. 53.831/64 (perfuratrizes e marteletes pneumáticos, e outros; máquinas a ar comprimido acima de 120 golpes/min) e cód. 1.1.4 do Dec. 83.080/79 (perfuratrizes e marteletes pneumáticos)`, cod: '1.1.5', sup: false });
         else if (b <= '2014-08-13') {
-          const sup = val.aren > 0.9 || val.vdv > 17;
-          itens.push({ t: `VCI: aren ${fmt(val.aren, 2)} m/s²${vdv} – ${sup ? 'acima da' : 'até a'} fronteira superior da zona de cautela da ISO 2631-1 (0,9 m/s² ou VDV 17)`, cod: '2.0.2', sup });
+          const sup = val.aren > 0.86 || val.vdv > 17;
+          itens.push({ t: `VCI: aren ${fmt(val.aren, 2)} m/s²${vdv} – ${sup ? 'acima da' : 'até a'} fronteira superior da zona de cautela da ISO 2631-1 (0,86 m/s² – Nota Técnica ASPEJUDI 001/2013 – ou VDV 17) – referência técnica; o cód. 2.0.2 descreve trabalhos com perfuratrizes e marteletes pneumáticos`, cod: '2.0.2', sup });
           if (sup) algum = true;
         } else {
           const sup = val.aren > 1.1 || val.vdv > 21;
@@ -149,7 +149,7 @@ export function conclusaoPrevidenciaria(d, dados, { tituloQuadro = 'Conclusão p
       return `**${r.data.empresa || 'Vínculo'} (${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}):** ${f.join('. ')}.${m.conclusao ? ` **${m.conclusao}**` : ''}`;
     }).filter(Boolean);
     if (textos.length) {
-      d.texto(`Quanto à penosidade da atividade de motorista após 28/04/1995, a perícia avaliou cada vínculo pela matriz do IAC nº 5 do TRF4 (veículo, trajetos, cargas e jornadas)${jur ? ', em atenção ao Tema 1307 do STJ' : ''}, com base na entrevista do autor, na vistoria e nas medições. Em síntese:`);
+      d.texto(`Quanto à penosidade da atividade de motorista após 28/04/1995, a perícia avaliou cada vínculo por uma matriz de fatores (veículo, trajetos, cargas e jornadas)${jur ? ', em atenção ao Tema 1307 do STJ e aos IAC nº 5 e nº 12 do TRF4' : ''}, com base na entrevista do autor, na vistoria e nas medições. Em síntese:`);
       for (const t of textos) d.texto(`- ${t}`);
     }
   }

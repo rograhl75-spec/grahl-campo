@@ -297,7 +297,7 @@ function Maquinas() {
             </tbody>
           </table>
         </div>
-        <p class="dica">Previdenciário: VCI de 06/03/1997 a 13/08/2014 pela ISO 2631-1 (zona de cautela até 0,9 m/s² / VDV 17); antes de 06/03/1997, o cód. 1.1.5 do Dec. 53.831/64 restringe-se a perfuratrizes e marteletes.</p>
+        <p class="dica">Previdenciário: de 06/03/1997 a 13/08/2014, o cód. 2.0.2 descreve trabalhos com perfuratrizes e marteletes pneumáticos; para a VCI em outras atividades, a ISO 2631-1 é referência técnica (fronteira superior da zona de cautela para 8 h: 0,86 m/s², conforme a Nota Técnica ASPEJUDI 001/2013, / VDV 17). Antes de 06/03/1997, o cód. 1.1.5 do Dec. 53.831/64 abrange trepidações e vibrações industriais (perfuratrizes e marteletes pneumáticos, e outros; máquinas a ar comprimido acima de 120 golpes/min), e o cód. 1.1.4 do Dec. 83.080/79, perfuratrizes e marteletes pneumáticos.</p>
       </section>
     </div>
   );

@@ -1,5 +1,5 @@
 {
- "versao": "2026-11-13",
+ "versao": "2026-11-14",
  "descricao": "Base inicial de agentes químicos – fontes abertas; conferir antes de usar em laudo",
  "agentes": [
   {
@@ -68,8 +68,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Entradas relacionadas (não atribuídas ao agente): 'Óleos minerais (não tratados ou pouco tratados)' – Grupo 1"
     },
@@ -88,7 +88,8 @@
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.7 – CARVÃO MINERAL E SEUS DERIVADOS (por família – conferir a atividade listada no código); 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.7 – CARVÃO MINERAL E SEUS DERIVADOS (por família – conferir a atividade listada no código); 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.7 – CARVÃO MINERAL E SEUS DERIVADOS (por família – conferir a atividade listada no código); 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.7 – CARVÃO MINERAL E SEUS DERIVADOS (por família – conferir a atividade listada no código); 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)",
+   "observacoes": "LINACH: \"óleos minerais (não tratados ou pouco tratados)\" no Grupo 1; os óleos altamente refinados não constam."
   },
   {
    "id": "querosene",
@@ -156,8 +157,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -246,8 +247,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -266,7 +267,8 @@
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)",
+   "observacoes": "LINACH: a ocupação de pintor (\"exposição ocupacional como pintor\") está no Grupo 1."
   },
   {
    "id": "glifosato",
@@ -326,8 +328,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -413,8 +415,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Entradas relacionadas (não atribuídas ao agente): 'Herbicidas clorofenoxi' – Grupo 2B"
     },
@@ -500,8 +502,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -586,8 +588,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Entradas relacionadas (não atribuídas ao agente): 'Inseticidas não arsenicais (exposição ocupacional na pulverização e aplicação)' – Grupo 2A"
     },
@@ -606,7 +608,8 @@
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (por família – conferir a atividade listada no código)\nDec. 83.080/1979: 1.2.6 – FÓSFORO\nDec. 2.172/1997: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (por família – conferir a atividade listada no código)\nDec. 83.080/1979: 1.2.6 – FÓSFORO\nDec. 2.172/1997: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS",
+   "observacoes": "LINACH: \"inseticidas não arsenicais (exposição ocupacional na pulverização e aplicação)\" no Grupo 2A."
   },
   {
    "id": "mancozebe",
@@ -666,8 +669,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -752,8 +755,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -839,8 +842,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Entradas relacionadas (não atribuídas ao agente): 'Inseticidas não arsenicais (exposição ocupacional na pulverização e aplicação)' – Grupo 2A"
     },
@@ -859,7 +862,8 @@
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (por família – conferir a atividade listada no código)\nDec. 83.080/1979: 1.2.6 – FÓSFORO\nDec. 2.172/1997: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (por família – conferir a atividade listada no código)\nDec. 83.080/1979: 1.2.6 – FÓSFORO\nDec. 2.172/1997: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS",
+   "observacoes": "LINACH: \"inseticidas não arsenicais (exposição ocupacional na pulverização e aplicação)\" no Grupo 2A."
   },
   {
    "id": "carbofurano",
@@ -925,8 +929,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Entradas relacionadas (não atribuídas ao agente): 'Inseticidas não arsenicais (exposição ocupacional na pulverização e aplicação)' – Grupo 2A"
     },
@@ -945,7 +949,8 @@
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (por família – conferir a atividade listada no código)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO (pela classe química do código – conferir)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (por família – conferir a atividade listada no código)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO (pela classe química do código – conferir)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico",
+   "observacoes": "LINACH: \"inseticidas não arsenicais (exposição ocupacional na pulverização e aplicação)\" no Grupo 2A."
   },
   {
    "id": "cipermetrina",
@@ -1005,8 +1010,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Entradas relacionadas (não atribuídas ao agente): 'Inseticidas não arsenicais (exposição ocupacional na pulverização e aplicação)' – Grupo 2A"
     },
@@ -1025,7 +1030,8 @@
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO (por família – conferir a atividade listada no código)\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO (por família – conferir a atividade listada no código)\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)",
+   "observacoes": "LINACH: \"inseticidas não arsenicais (exposição ocupacional na pulverização e aplicação)\" no Grupo 2A."
   },
   {
    "id": "acefato",
@@ -1085,8 +1091,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Entradas relacionadas (não atribuídas ao agente): 'Inseticidas não arsenicais (exposição ocupacional na pulverização e aplicação)' – Grupo 2A"
     },
@@ -1105,7 +1111,8 @@
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (por família – conferir a atividade listada no código)\nDec. 83.080/1979: 1.2.6 – FÓSFORO\nDec. 2.172/1997: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (por família – conferir a atividade listada no código)\nDec. 83.080/1979: 1.2.6 – FÓSFORO\nDec. 2.172/1997: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS",
+   "observacoes": "LINACH: \"inseticidas não arsenicais (exposição ocupacional na pulverização e aplicação)\" no Grupo 2A."
   },
   {
    "id": "tolueno",
@@ -1179,8 +1186,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -1199,7 +1206,8 @@
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO; 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO; 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)",
+   "observacoes": "LINACH: a ocupação de pintor (\"exposição ocupacional como pintor\") está no Grupo 1."
   },
   {
    "id": "xilenos",
@@ -1275,8 +1283,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -1295,7 +1303,8 @@
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO; 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO; 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)",
+   "observacoes": "LINACH: a ocupação de pintor (\"exposição ocupacional como pintor\") está no Grupo 1."
   },
   {
    "id": "acetona",
@@ -1369,8 +1378,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -1389,7 +1398,8 @@
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico",
+   "observacoes": "LINACH: a ocupação de pintor (\"exposição ocupacional como pintor\") está no Grupo 1."
   },
   {
    "id": "metiletilcetona",
@@ -1464,8 +1474,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -1484,7 +1494,8 @@
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico",
+   "observacoes": "LINACH: a ocupação de pintor (\"exposição ocupacional como pintor\") está no Grupo 1."
   },
   {
    "id": "acetato-de-etila",
@@ -1557,8 +1568,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -1577,7 +1588,8 @@
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico",
+   "observacoes": "LINACH: a ocupação de pintor (\"exposição ocupacional como pintor\") está no Grupo 1."
   },
   {
    "id": "acetato-de-n-butila",
@@ -1644,8 +1656,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -1664,7 +1676,8 @@
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico",
+   "observacoes": "LINACH: a ocupação de pintor (\"exposição ocupacional como pintor\") está no Grupo 1."
   },
   {
    "id": "n-hexano",
@@ -1731,8 +1744,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -1819,8 +1832,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -1839,7 +1852,8 @@
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (por família – conferir a atividade listada no código)\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (por família – conferir a atividade listada no código)\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico",
+   "observacoes": "LINACH: a ocupação de pintor (\"exposição ocupacional como pintor\") está no Grupo 1."
   },
   {
    "id": "dioxido-de-titanio",
@@ -1906,8 +1920,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -1925,7 +1939,8 @@
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: 1.2.9 – OUTROS TÓXICOS INORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.9 – OUTROS TÓXICOS INORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico",
+   "observacoes": "LINACH: a ocupação de pintor (\"exposição ocupacional como pintor\") está no Grupo 1."
   },
   {
    "id": "tgic",
@@ -1986,8 +2001,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -2006,7 +2021,8 @@
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (por família – conferir a atividade listada no código)\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (por família – conferir a atividade listada no código)\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico",
+   "observacoes": "LINACH: a ocupação de pintor (\"exposição ocupacional como pintor\") está no Grupo 1."
   },
   {
    "id": "cromo-vi-compostos",
@@ -2071,8 +2087,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Entradas relacionadas (não atribuídas ao agente): 'Fumos de solda' – Grupo 2B"
     },
@@ -2164,8 +2180,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Entradas relacionadas (não atribuídas ao agente): 'Chumbo inorgânico, compostos de' – Grupo 2A"
     },
@@ -2184,7 +2200,8 @@
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: 1.2.4 – CHUMBO\nDec. 83.080/1979: 1.2.4 – CHUMBO\nDec. 2.172/1997: 1.0.8 – CHUMBO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.8 – CHUMBO E SEUS COMPOSTOS TÓXICOS"
+   "codDecretos": "Dec. 53.831/1964: 1.2.4 – CHUMBO\nDec. 83.080/1979: 1.2.4 – CHUMBO\nDec. 2.172/1997: 1.0.8 – CHUMBO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.8 – CHUMBO E SEUS COMPOSTOS TÓXICOS",
+   "observacoes": "LINACH: chumbo metálico no Grupo 2B; \"chumbo inorgânico, compostos de\" no Grupo 2A."
   },
   {
    "id": "manganes-fumos",
@@ -2251,8 +2268,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Entradas relacionadas (não atribuídas ao agente): 'Fumos de solda' – Grupo 2B"
     },
@@ -2271,7 +2288,8 @@
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: 1.2.7 – MANGANÊS\nDec. 83.080/1979: 1.2.7 – MANGANÊS; 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (pela classe química do código – conferir)\nDec. 2.172/1997: 1.0.14 – MANGANÊS E SEUS COMPOSTOS\nDec. 3.048/1999: 1.0.14 – MANGANÊS E SEUS COMPOSTOS"
+   "codDecretos": "Dec. 53.831/1964: 1.2.7 – MANGANÊS\nDec. 83.080/1979: 1.2.7 – MANGANÊS; 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (pela classe química do código – conferir)\nDec. 2.172/1997: 1.0.14 – MANGANÊS E SEUS COMPOSTOS\nDec. 3.048/1999: 1.0.14 – MANGANÊS E SEUS COMPOSTOS",
+   "observacoes": "LINACH: \"fumos de solda\" no Grupo 2B (lista de 2014)."
   },
   {
    "id": "oxido-de-ferro-fumos",
@@ -2338,8 +2356,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Entradas relacionadas (não atribuídas ao agente): 'Fumos de solda' – Grupo 2B"
     },
@@ -2358,7 +2376,8 @@
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: 1.2.9 – OUTROS TÓXICOS INORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (pela classe química do código – conferir)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.9 – OUTROS TÓXICOS INORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (pela classe química do código – conferir)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico",
+   "observacoes": "LINACH: \"fumos de solda\" no Grupo 2B (lista de 2014)."
   },
   {
    "id": "oxido-de-zinco-fumos",
@@ -2425,8 +2444,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Entradas relacionadas (não atribuídas ao agente): 'Fumos de solda' – Grupo 2B"
     },
@@ -2445,7 +2464,8 @@
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: 1.2.9 – OUTROS TÓXICOS INORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (pela classe química do código – conferir)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.9 – OUTROS TÓXICOS INORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (pela classe química do código – conferir)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico",
+   "observacoes": "LINACH: \"fumos de solda\" no Grupo 2B (lista de 2014)."
   },
   {
    "id": "niquel",
@@ -2512,8 +2532,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Entradas relacionadas (não atribuídas ao agente): 'Compostos de níquel' – Grupo 1; 'Fumos de solda' – Grupo 2B"
     },
@@ -2532,7 +2552,8 @@
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: 1.2.9 – OUTROS TÓXICOS INORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (pela classe química do código – conferir)\nDec. 2.172/1997: 1.0.16 – NÍQUEL E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.16 – NÍQUEL E SEUS COMPOSTOS TÓXICOS"
+   "codDecretos": "Dec. 53.831/1964: 1.2.9 – OUTROS TÓXICOS INORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (pela classe química do código – conferir)\nDec. 2.172/1997: 1.0.16 – NÍQUEL E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.16 – NÍQUEL E SEUS COMPOSTOS TÓXICOS",
+   "observacoes": "LINACH: níquel metálico e ligas no Grupo 2B; \"compostos de níquel\" no Grupo 1."
   },
   {
    "id": "monoxido-de-carbono",
@@ -2605,8 +2626,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -2698,8 +2719,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -2792,8 +2813,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -2880,8 +2901,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Entradas relacionadas (não atribuídas ao agente): 'Fumos de solda' – Grupo 2B"
     },
@@ -2969,8 +2990,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Entradas relacionadas (não atribuídas ao agente): 'Exaustão do motor diesel' – Grupo 1; 'Óleo diesel marítimo' – Grupo 2B"
     },
@@ -2989,7 +3010,8 @@
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)",
+   "observacoes": "LINACH: a \"exaustão do motor diesel\" está no Grupo 1 e o \"óleo diesel marítimo\" no Grupo 2B; o óleo diesel combustível não consta à parte."
   },
   {
    "id": "gasolina",
@@ -3056,8 +3078,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -3149,8 +3171,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Entradas relacionadas (não atribuídas ao agente): 'Etanol em bebidas alcoólicas' – Grupo 1"
     },
@@ -3169,7 +3191,8 @@
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico",
+   "observacoes": "LINACH: só \"etanol em bebidas alcoólicas\" (Grupo 1), que não se refere à exposição ocupacional."
   },
   {
    "id": "metanol",
@@ -3243,8 +3266,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -3330,8 +3353,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -3423,8 +3446,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -3443,7 +3466,8 @@
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: 1.2.8 – MERCÚRIO\nDec. 83.080/1979: 1.2.8 – MERCÚRIO\nDec. 2.172/1997: 1.0.15 – MERCÚRIO E SEUS COMPOSTOS\nDec. 3.048/1999: 1.0.15 – MERCÚRIO E SEUS COMPOSTOS"
+   "codDecretos": "Dec. 53.831/1964: 1.2.8 – MERCÚRIO\nDec. 83.080/1979: 1.2.8 – MERCÚRIO\nDec. 2.172/1997: 1.0.15 – MERCÚRIO E SEUS COMPOSTOS\nDec. 3.048/1999: 1.0.15 – MERCÚRIO E SEUS COMPOSTOS",
+   "observacoes": "LINACH: só \"compostos de metilmercúrio\" (Grupo 2B); o mercúrio elementar não consta."
   },
   {
    "id": "glutaraldeido",
@@ -3510,8 +3534,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -3604,8 +3628,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -3696,8 +3720,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -3784,8 +3808,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -3871,8 +3895,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -3952,8 +3976,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -4039,8 +4063,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -4127,8 +4151,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -4221,8 +4245,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -4306,8 +4330,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -4387,8 +4411,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -4470,8 +4494,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -4558,8 +4582,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -4639,8 +4663,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -4720,8 +4744,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -4808,8 +4832,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -4894,8 +4918,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11",
      "nota": "Agente não localizado na lista (busca pelo nome)."
     },
@@ -4988,8 +5012,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11"
     },
     {
@@ -5081,8 +5105,8 @@
     },
     {
      "campos": "linach",
-     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
-     "url": "https://www.conass.org.br/?p=3726",
+     "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH). Diário Oficial da União, 8 out. 2014 – cópia oficial fornecida pelo usuário.",
+     "url": "",
      "consultadoEm": "2026-11-11"
     },
     {

@@ -42,7 +42,7 @@ export const CATEGORIAS_MAQUINA = [
   { cod: 'CO-MOT', grupo: 'Construção e terraplenagem', nome: 'Motoniveladora', agentes: ['Ruído', 'VCI'], eixo: 'z', fatores: 'Patrolamento x deslocamento, estradas rurais.' },
   { cod: 'CO-TES', grupo: 'Construção e terraplenagem', nome: 'Trator de esteira (dozer)', agentes: ['Ruído', 'VCI'], eixo: 'x', fatores: 'Esteiras metálicas, escarificador, terreno pedregoso.' },
   { cod: 'CO-ROL', grupo: 'Construção e terraplenagem', nome: 'Rolo compactador', agentes: ['Ruído', 'VCI'], eixo: 'z', fatores: 'Vibração do cilindro ligada ou desligada.' },
-  { cod: 'CO-MRT', grupo: 'Construção e terraplenagem', nome: 'Martelete / rompedor / perfuratriz manual', agentes: ['Ruído', 'VMB'], eixo: '—', fatores: 'Pneumático ou elétrico; atividade expressamente prevista no cód. 1.1.5 / 2.0.2 dos decretos previdenciários.' },
+  { cod: 'CO-MRT', grupo: 'Construção e terraplenagem', nome: 'Martelete / rompedor / perfuratriz manual', agentes: ['Ruído', 'VMB'], eixo: '—', fatores: 'Pneumático ou elétrico; perfuratrizes e marteletes pneumáticos estão expressamente previstos no cód. 1.1.5 do Dec. 53.831/64, no 1.1.4 do Dec. 83.080/79 e no 2.0.2 dos Decs. 2.172/97 e 3.048/99 (o elétrico não).' },
   { cod: 'MC-EMP', grupo: 'Movimentação de carga', nome: 'Empilhadeira', agentes: ['Ruído', 'VCI'], eixo: 'z', fatores: 'Rodas maciças, piso com juntas e desníveis, combustão x elétrica.' },
   { cod: 'TR-CAM', grupo: 'Transporte', nome: 'Caminhão / ônibus (ver famílias F1–F8)', agentes: ['Ruído', 'VCI'], eixo: 'z', fatores: 'Use as famílias técnicas F1–F8 do banco de paradigmas.' },
   { cod: 'OUT', grupo: 'Outros', nome: 'Outra máquina ou equipamento', agentes: ['Ruído', 'VCI', 'VMB'], eixo: '', fatores: '' },

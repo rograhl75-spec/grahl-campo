@@ -24,10 +24,14 @@ const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 
 // perícia direta ou indireta por similaridade, a partir da aba Campo (local da vistoria), do campo
 // "similaridade" do caso e dos paradigmas vinculados
-function textoTipoPericia(dados) {
+function periciaIndireta(dados) {
   const { c } = dados;
   const local = `${c.vistoriaLocal || ''} ${c.vistoriaCondicoes || ''}`;
-  const indireta = /indiret|similar|paradigma|terceir/i.test(local) || c.similaridade === 'Sim' || usaParadigmas(dados);
+  return /indiret|similar|paradigma|terceir/i.test(local) || c.similaridade === 'Sim' || usaParadigmas(dados);
+}
+function textoTipoPericia(dados) {
+  const { c } = dados;
+  const indireta = periciaIndireta(dados);
   const veic = dados.postos.map((ps) => nomeCurto(ps.data.nome)).filter(Boolean);
   if (!indireta) return 'A perícia foi realizada de forma direta, no local de trabalho e nos postos ocupados pela parte autora, com avaliação das condições ambientais e das atividades nele desenvolvidas.';
   return `A perícia foi realizada de forma indireta, por similaridade, porque o ambiente e os veículos de origem não estão mais disponíveis nas condições da época. Foram avaliados${veic.length ? ` os seguintes postos e veículos, representativos dos utilizados pelo autor em cada vínculo: ${veic.join('; ')}` : ' postos e veículos representativos dos utilizados pelo autor em cada vínculo'}${usaParadigmas(dados) ? ', complementados por paradigmas de veículos similares (item 2.3)' : ''}. A semelhança de função, tipo de veículo e condições de operação está demonstrada no item 4, vínculo a vínculo.`;
@@ -96,7 +100,7 @@ function avaliacaoTrabalhista(d, dados, base) {
   }
   if (g['Calor (IBUTG)']) {
     sub('Calor (NR-15, Anexo 3)');
-    d.texto('Até 10/12/2019 aplica-se o Anexo 3 na redação original (IBUTG, quadros de regime de trabalho e de taxa metabólica; entre linhas do quadro, usa-se a linha imediatamente superior, sem interpolar). A partir de 11/12/2019, a redação da Portaria SEPRT nº 1.359/2019, com avaliação conforme a NHO-06 e IBUTG ajustado pela vestimenta; a exposição ao calor a céu aberto sem fonte artificial não caracteriza insalubridade nessa redação.');
+    d.texto('Até 10/12/2019 aplica-se o Anexo 3 na redação original (IBUTG, quadros de regime de trabalho e de taxa metabólica; entre linhas do quadro, usa-se a linha imediatamente superior, sem interpolar). A partir de 11/12/2019, a redação da Portaria SEPRT nº 1.359/2019, com avaliação conforme a NHO 06 (2ª ed., 2017) – o ajuste do IBUTG pela vestimenta consta do Quadro 4 do Anexo III da NR-9; a exposição ao calor a céu aberto sem fonte artificial não caracteriza insalubridade nessa redação.');
     quadroMedicoesGenerico(d, 'Resultados – Calor', g['Calor (IBUTG)'], nome, ctx);
     d.redigir('taxa metabólica, regime de trabalho e descanso, limite aplicável ao período e conclusão.');
   }
@@ -111,7 +115,7 @@ function avaliacaoTrabalhista(d, dados, base) {
     sub('Agentes químicos (NR-15, Anexos 11, 12, 13 e 13-A)');
     d.texto('No Anexo 11, a insalubridade se caracteriza quando a média aritmética das concentrações supera o limite de tolerância do Quadro 1 (itens 1 e 8) ou, para os agentes com valor teto, quando qualquer amostra o supera (item 9). Os limites valem para absorção pela via respiratória e para jornadas de até 48 horas semanais (itens 2 e 10). Os agentes dos Anexos 13 e 13-A são avaliados qualitativamente, pela atividade ou operação descrita no anexo.');
     quadroQuimicosAnexo11(d, g['Agente químico'], dados, nome);
-    if (g['Agente químico'].some((m) => !agenteDaMedicao(m, dados))) d.redigir('enquadramento dos agentes sem limite no banco (Anexo 11 ou 12, ou avaliação qualitativa pelo Anexo 13 / 13-A; álcali cáustico: referência pH 11,5).');
+    if (g['Agente químico'].some((m) => !agenteDaMedicao(m, dados))) d.redigir('enquadramento dos agentes sem limite no banco (Anexo 11 ou 12, ou avaliação qualitativa pelo Anexo 13 / 13-A; álcali cáustico: referência pH ≥ 11,5 (NBR 14725:2023, item 5.3.2.2.2.5: corrosivo à pele, Categoria 1, salvo se a reserva alcalina indicar o contrário)).');
     d.redigir('neutralização pelo EPI (respirador e filtro adequados ao agente; luvas quando há absorção pela pele – item 5 do Anexo 11).');
   }
   if (g['Outro']) {
@@ -162,7 +166,7 @@ function avaliacaoPrevidenciaria(d, dados, base, inicio = 0) {
       d.texto('Os valores de aren e VDVR normalizados para a jornada efetiva e a leitura pelo critério de cada período estão na memória de cálculo da vibração de corpo inteiro, adiante.');
       quadroConfrontoVci(d, dados);
     } else {
-      d.texto('Os valores de aren e VDVR do quadro acima referem-se à exposição diária do trabalhador, normalizados para a jornada conforme a NHO-09 da FUNDACENTRO. Cada vínculo é lido pelo critério vigente no período: até 05/03/1997, cód. 1.1.5 do Decreto 53.831/1964 (restrito a perfuratrizes e marteletes); de 06/03/1997 a 13/08/2014, fronteira superior da zona de cautela da ISO 2631-1 (aren de 0,9 m/s² ou VDV de 17 m/s^1,75); a partir de 14/08/2014, NR-15, Anexo 8 (aren de 1,1 m/s² ou VDVR de 21,0 m/s^1,75).');
+      d.texto('Os valores de aren e VDVR do quadro acima referem-se à exposição diária do trabalhador, normalizados para a jornada conforme a NHO-09 da FUNDACENTRO. Cada vínculo é lido pelo critério vigente no período: até 05/03/1997, cód. 1.1.5 do Decreto 53.831/1964 (trepidações e vibrações industriais: operadores de perfuratrizes e marteletes pneumáticos, e outros; máquinas acionadas a ar comprimido com velocidade acima de 120 golpes por minuto) e cód. 1.1.4 do Anexo I do Decreto 83.080/1979 (perfuratrizes e marteletes pneumáticos); de 06/03/1997 a 13/08/2014, fronteira superior da zona de cautela da ISO 2631-1 para 8 horas (aren de 0,86 m/s², conforme a Figura B.1 e a Nota Técnica ASPEJUDI nº 001/2013, ou VDV de 17 m/s^1,75) – referência técnica, pois a ISO 2631-1 não estabelece limite de exposição; a partir de 14/08/2014, NR-15, Anexo 8 (aren de 1,1 m/s² ou VDVR de 21,0 m/s^1,75).');
       quadroConfrontoVci(d, dados);
     }
   }
@@ -177,7 +181,7 @@ function avaliacaoPrevidenciaria(d, dados, base, inicio = 0) {
       if (ags.length) d.quadro('Agentes químicos – referências previdenciárias', [['Agente', 'LINACH', 'Códigos nos decretos'],
         ...ags.map((a) => [`${a.data.nome}${a.data.cas ? `\nCAS ${a.data.cas}` : ''}`, a.data.linach || '—', a.data.codDecretos || '[[código por decreto, conforme o período]]'])],
       { larguras: [0.3, 0.15, 0.55], tam: 9, alinhar: 'left', fonte: 'Banco de agentes químicos do signatário; códigos conferidos nos Decretos 53.831/1964, 83.080/1979, 2.172/1997 e 3.048/1999.' });
-      if (linach.length) d.texto(`${linach.join(', ')} ${linach.length > 1 ? 'constam' : 'consta'} do Grupo 1 da LINACH (Portaria Interministerial nº 9/2014). Para agentes reconhecidamente cancerígenos em humanos, a presença no ambiente de trabalho com possibilidade de exposição basta para a comprovação da efetiva exposição, e a avaliação é qualitativa (Decreto 3.048/1999, art. 68, § 4º).`);
+      if (linach.length) d.texto(`${linach.join(', ')} ${linach.length > 1 ? 'constam' : 'consta'} do Grupo 1 da LINACH (Portaria Interministerial nº 9/2014). Para agentes reconhecidamente cancerígenos em humanos, a avaliação é qualitativa (Decreto 3.048/1999, art. 68, §§ 2º a 4º). Na redação do Decreto nº 8.123/2013 (de 17/10/2013 a 30/06/2020), a presença no ambiente de trabalho com possibilidade de exposição bastava para a comprovação da efetiva exposição; na redação do Decreto nº 10.410/2020 (a partir de 01/07/2020), a efetiva exposição é descaracterizada quando adotadas as medidas de controle previstas na legislação trabalhista que eliminem a nocividade.`);
     }
   }
   if (v(dados.c.agentesAlegados) && n === inicio) {
@@ -286,7 +290,7 @@ export async function laudoPericial(caseId, { extra = false } = {}) {
   if (extra) {
     nq += 1;
     d.h1(String(nq), 'Recomendações');
-    d.texto('Recomendam-se as medidas abaixo, na ordem de prioridade da NR-1 (eliminação ou substituição, proteção coletiva, medidas administrativas e EPI). As recomendações não alteram a caracterização da situação avaliada.');
+    d.texto('Recomendam-se as medidas abaixo, na ordem de prioridade da NR-1, item 1.4.1, "g" (eliminação dos fatores de risco, proteção coletiva, medidas administrativas ou de organização do trabalho e proteção individual). As recomendações não alteram a caracterização da situação avaliada.');
     quadroRecomendacoes(d, dados);
     d.redigir('ajustar as medidas a cada setor e incluir prazos e responsáveis.');
   }
@@ -340,8 +344,10 @@ export async function laudoPrevidenciario(caseId) {
   d.h2('2.1', 'Determinação judicial (objeto da perícia)');
   if (textoDeterminacao(dados, true)) d.texto(textoDeterminacao(dados, true)); else d.redigir('transcrever ou resumir o despacho que determinou a perícia (evento / mov.) – cadastre a referência do despacho na etapa 1.');
   d.h2('2.2', 'Metodologia');
-  d.texto('Em atendimento ao art. 473, inciso III, do Código de Processo Civil, a metodologia consistiu em análise dos autos, inspeção *in loco* e avaliações ambientais, seguindo as NHO da FUNDACENTRO e os limites de tolerância do Anexo IV do Regulamento da Previdência Social ou, na sua falta, da NR-15, quando o decreto a ela remete (art. 288 da IN 128/2022).');
+  d.texto('Em atendimento ao art. 473, inciso III, do Código de Processo Civil, a metodologia consistiu em análise dos autos, inspeção *in loco* e avaliações ambientais, seguindo as NHO da FUNDACENTRO e os limites de tolerância do Anexo IV do Regulamento da Previdência Social ou, na sua ausência, da NR-15 (art. 288, I e II, da IN 128/2022); a NR-15 é aplicada quando o decreto do período a ela remete.');
   d.texto(textoTipoPericia(dados));
+  // Res. CJF 305/2014, art. 30-A (incluído pela Res. CJF 575/2019): perícia por similaridade como prova emprestada
+  if (periciaIndireta(dados) && fundamentoCJF(c)) d.texto(`Nos termos do art. 30-A da Resolução CJF nº 305/2014, incluído pela Resolução CJF nº 575/2019, a perícia indireta por similaridade realizada em empresa paradigma${v(c.empresaOriginal) ? ` da empresa encerrada (${c.empresaOriginal})` : ' da empresa encerrada'}, do mesmo ramo de atividade, pode ser utilizada como prova emprestada nos demais processos, ainda que não sejam da mesma vara da Subseção Judiciária ou Comarca.`);
   d.texto(`A conclusão fundamenta-se exclusivamente na legislação previdenciária e nas normas técnicas indicadas${comJurisprudencia(dados) ? '; entendimentos jurisprudenciais são apenas registrados, em item próprio, para apreciação do Juízo' : ''}.`);
   if (usaParadigmas(dados)) { d.h2('2.3', 'Avaliação por similaridade (paradigmas)'); quadrosParadigmasMetodologia(d, dados); }
 
@@ -363,7 +369,7 @@ export async function laudoPrevidenciario(caseId) {
   secaoPenosidade(d, dados, { numero: `5.${n5 + 1}`, tipo: 'laudo' });
 
   d.h1('6', 'Medidas de controle');
-  d.texto('Considera-se o EPC que elimina ou neutraliza a nocividade (art. 290 da IN 128/2022). O EPI só é considerado em demonstrações ambientais a partir de 03/12/1998, quando elimina ou neutraliza a nocividade, observa a NR-6, consta do PPP e atende, cumulativamente, aos requisitos do art. 291 da IN 128/2022.');
+  d.texto('Considera-se adotado o EPC que elimina ou neutraliza a nocividade, desde que asseguradas as condições de funcionamento ao longo do tempo, conforme especificação técnica do fabricante e plano de manutenção, devidamente registradas pela empresa (art. 290 da IN 128/2022). O EPI só é considerado em demonstrações ambientais a partir de 03/12/1998, quando elimina ou neutraliza a nocividade, observa a NR-6, consta do PPP e atende, cumulativamente, aos requisitos do art. 291 da IN 128/2022.');
   quadroEpis(d, dados.epis);
   quadroRequisitosEpi(d, dados);
   if (dados.epis.length) d.redigir('análise dos requisitos do art. 291 por período.');
@@ -407,7 +413,7 @@ export async function ltcatPpp(caseId) {
       ['Períodos avaliados', dados.periodos.map((r) => `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`).join('; ')],
       ['Responsável técnico', `${perfil.nome} – ${credencial(perfil)}`], ['Data da avaliação', dataBR(c.vistoriaData)]],
   });
-  // ABNT NBR 14724: lista de ilustrações (figuras) antes da lista de quadros
+  // ABNT NBR 14724:2024, 4.2.1.9: quadros e figuras são ilustrações; recomenda-se lista própria para cada tipo (a norma não fixa ordem entre elas)
   if (dados.fotos.some((f) => !f.deleted)) d.listaFiguras({ novaPagina: true });
   d.listaQuadros();
   d.sumario();
@@ -426,7 +432,7 @@ export async function ltcatPpp(caseId) {
   d.h2('2.1', 'Objeto e natureza');
   d.texto(`Este laudo avalia a exposição de ${seg} a agentes nocivos nas atividades exercidas na ${emp}, nos períodos do item 1.3, para fundamentar o PPP (Anexo A). [[Avaliação individual / extemporânea / por similaridade – ajustar.]]`);
   d.h2('2.2', 'Diligência');
-  d.texto('O laudo individual exige autorização escrita da empresa, identificação do acompanhante designado e registro da data e do local da avaliação (art. 277, IV, da IN 128/2022).');
+  d.texto('O laudo individual deve ser acompanhado de autorização escrita da empresa para efetuar o levantamento e do nome e identificação do acompanhante da empresa, quando o responsável técnico não for seu empregado, e da data e do local da realização da perícia (art. 277, IV, *a* a *c*, da IN 128/2022).');
   quadroDiligencia(d, c);
   d.h2('2.3', 'Declarações');
   d.redigir('autorização da diligência e declarações do responsável legal / ex-sócio, com assinaturas.');
@@ -455,7 +461,7 @@ export async function ltcatPpp(caseId) {
   d.h2('5.1', 'Critérios gerais');
   d.texto('As avaliações seguem as NHO da FUNDACENTRO e os limites de tolerância do Anexo IV do RPS ou, na falta destes, da NR-15 (art. 288 da IN 128/2022), com as normas vigentes na data da avaliação (art. 289). A caracterização considera a exposição acima dos limites de tolerância, por critério quantitativo ou qualitativo (art. 287). As atividades do Anexo IV do RPS são exaustivas, ressalvadas as relacionadas exclusivamente a agentes químicos, que são exemplificativas, observada a relação obrigatória com os agentes do Anexo IV (art. 287, § 4º).');
   d.h2('5.2', 'Medidas de controle');
-  d.texto('Considera-se adotado o EPC que elimina ou neutraliza a nocividade (art. 290 da IN 128/2022). O EPI só é considerado em demonstrações ambientais a partir de 03/12/1998, quando elimina ou neutraliza a nocividade, observa a NR-6, consta do PPP e atende, cumulativamente, aos requisitos do art. 291 da IN 128/2022.');
+  d.texto('Considera-se adotado o EPC que elimina ou neutraliza a nocividade, desde que asseguradas as condições de funcionamento ao longo do tempo, conforme especificação técnica do fabricante e plano de manutenção, devidamente registradas pela empresa (art. 290 da IN 128/2022). O EPI só é considerado em demonstrações ambientais a partir de 03/12/1998, quando elimina ou neutraliza a nocividade, observa a NR-6, consta do PPP e atende, cumulativamente, aos requisitos do art. 291 da IN 128/2022.');
   quadroEpis(d, dados.epis);
   quadroRequisitosEpi(d, dados);
   let ini5 = 2;
@@ -478,7 +484,7 @@ export async function ltcatPpp(caseId) {
     ['I – se individual ou coletivo', '2.1'], ['II – identificação da empresa', '1.1'], ['III – identificação do setor e da função', '1.3 e 4'],
     ['IV – descrição da atividade', '4'], ['V – agente prejudicial arrolado na legislação previdenciária', '5'], ['VI – localização das possíveis fontes geradoras', '4 (registro de cada posto)'],
     ['VII – via e periodicidade de exposição', '4 (registro de cada posto)'], ['VIII – metodologia e procedimentos de avaliação', '5.1'], ['IX – medidas de controle existentes', '5.2'],
-    ['X – conclusão', '6'], ['XI – assinatura e identificação do responsável técnico', 'Encerramento'], ['XII – data da avaliação ambiental', '2.2']],
+    ['X – conclusão', '6'], ['XI – assinatura e identificação do médico do trabalho ou engenheiro de segurança do trabalho', 'Encerramento'], ['XII – data da avaliação ambiental', '2.2']],
   { larguras: [0.65, 0.35], tam: 9, alinhar: 'left', fonte: 'Elaborado pelo autor com base em Brasil (2022, art. 276).' });
   if (!dados.postos.some((x) => v(x.data.fontes)) || !dados.postos.some((x) => v(x.data.viaPeriodicidade))) {
     d.texto('[[Preencher, em cada posto da etapa 4. Campo, as fontes geradoras e a via e periodicidade da exposição (art. 276, VI e VII).]]');
@@ -882,9 +888,10 @@ export async function peticaoMajoracao(caseId) {
   }
 
   sec('Do fundamento para a majoração');
-  const criterios = [fora && 'o local de realização fora do domicílio do perito', 'a complexidade do exame'].filter(Boolean);
+  const criterios = ['a especialização e a complexidade do trabalho, distinto da generalidade das perícias (inciso I)', fora && 'o deslocamento que justifica indenização (inciso III)'].filter(Boolean);
   if (cjf) {
-    d.texto(`O art. 28 da Resolução CJF nº 305/2014 autoriza o magistrado a fixar os honorários acima do limite máximo da tabela, em até 3 (três) vezes, considerando, entre outros critérios, a especialização do perito, a complexidade do exame e o local de sua realização. No caso, ${criterios.length > 1 ? `estão presentes ao mesmo tempo ${criterios.reverse().join(' e ')}, o que justifica a fixação ${mult === 3 ? 'no patamar máximo admitido pela norma' : 'acima do limite da tabela'}` : `verifica-se ${criterios[0]}`}.`);
+    d.texto(`O art. 28, § 1º, da Resolução CJF nº 305/2014 (incluído pela Resolução CJF nº 575/2019) autoriza o juiz, em situações excepcionais e mediante decisão fundamentada, a arbitrar os honorários até o limite de 3 (três) vezes o valor máximo previsto no anexo, observados os critérios ali enumerados. No caso, ${criterios.length > 1 ? `estão presentes ${criterios.join(' e ')}` : `está presente ${criterios[0]}`}, o que justifica a fixação ${mult === 3 ? 'no patamar máximo admitido pela norma' : 'acima do limite da tabela'}.`);
+    d.redigir('se houver, acrescentar os demais critérios do § 1º presentes no caso: ausência de outro profissional cadastrado (II), uso de instalações ou equipamentos próprios (IV), perícia em mais de uma localidade (VI) ou outra peculiaridade (VII).');
   } else {
     d.redigir('fundamento normativo da tabela do tribunal (ex.: Resolução TJPR) e critérios presentes.');
   }
@@ -892,7 +899,7 @@ export async function peticaoMajoracao(caseId) {
   sec('Do pedido');
   const pedido = isFinite(tabela) ? mult * tabela : NaN;
   if (isFinite(pedido) && isFinite(fixados) && pedido <= fixados) d.texto(`[[VERIFICAR: o valor pedido (${moeda(pedido)}) não supera o já fixado (${moeda(fixados)}); confira o multiplicador e a tabela.]]`);
-  d.texto(`Diante do exposto, requer-se a majoração dos honorários periciais para ${VEZES[mult] || mult} vezes o valor máximo da ${cjf ? tabCJF : 'tabela'}, ou seja, ${isFinite(pedido) ? `${moeda(pedido)} (${reaisPorExtenso(pedido)}) (${mult} × ${moeda(tabela)})` : '[[valor]]'}${cjf ? `, nos termos do art. 28 da Resolução CJF nº 305/2014 e da ${tabCJF} do seu Anexo Único, na redação da Resolução CJF nº 937/2025` : ''}.`);
+  d.texto(`Diante do exposto, requer-se a majoração dos honorários periciais para ${VEZES[mult] || mult} vezes o valor máximo da ${cjf ? tabCJF : 'tabela'}, ou seja, ${isFinite(pedido) ? `${moeda(pedido)} (${reaisPorExtenso(pedido)}) (${mult} × ${moeda(tabela)})` : '[[valor]]'}${cjf ? `, nos termos do art. 28, § 1º, da Resolução CJF nº 305/2014 e da ${tabCJF} do seu Anexo Único, na redação da Resolução CJF nº 937/2025` : ''}.`);
   if (!v(c.dataDiligencia)) d.texto(`A data e o horário da vistoria serão informados oportunamente${v(c.itensVistoria) ? `, para os fins ${/[e,]/.test(c.itensVistoria) ? 'dos itens' : 'do item'} ${c.itensVistoria} do despacho` : ''}.`);
   fecho(d, dados);
   return finalizar(d, { titulo: 'Petição – majoração de honorários', arquivo: 'Peticao_majoracao_honorarios', c });
@@ -933,7 +940,9 @@ export async function peticaoAceiteArbitrados(caseId, { conta } = {}) {
       : /Federal/i.test(c.justica || '') && !v(c.honorariosAdiantamento) ? FORMAS_PAGAMENTO[1] : FORMAS_PAGAMENTO[0]);
   const semAdiant = forma !== FORMAS_PAGAMENTO[0];
   let adiant = lerValor(c.honorariosAdiantamento);
-  if (!isFinite(adiant) && isFinite(fixados)) adiant = Math.round(fixados * 50) / 100;
+  // Justiça Federal (AJG): adiantamento de até 30% (Res. CJF 305/2014, art. 29, parágrafo único); nos demais casos, 50% (art. 465, § 4º, do CPC)
+  const jfAjg = fundamentoCJF(c);
+  if (!isFinite(adiant) && isFinite(fixados)) adiant = Math.round(fixados * (jfAjg ? 30 : 50)) / 100;
   const saldo = isFinite(fixados) && isFinite(adiant) ? Math.round((fixados - adiant) * 100) / 100 : NaN;
   const pct = isFinite(fixados) && fixados > 0 && isFinite(adiant) ? Math.round((adiant / fixados) * 100) : NaN;
   const depositante = pelo(c.honorariosDepositante);
@@ -957,8 +966,8 @@ export async function peticaoAceiteArbitrados(caseId, { conta } = {}) {
     termos.push(`os honorários serão pagos integralmente depois da entrega do laudo e do decurso do prazo para a manifestação das partes ou, havendo pedido de esclarecimentos, depois de prestados${/Federal/i.test(c.justica || '') ? ', na forma da Resolução CJF nº 305/2014' : ''}`);
   } else {
     termos.push(isFinite(adiant)
-      ? `receberá no início dos trabalhos o valor de ${valorExt(adiant)}${isFinite(pct) && pct < 100 ? `, correspondente a ${pct}% dos honorários` : ''}, a ser depositado${depositante ? ` ${depositante}` : ''} em conta judicial vinculada aos autos (art. 465, § 4º, do CPC)`
-      : 'receberá no início dos trabalhos [[valor do adiantamento]] (art. 465, § 4º, do CPC)');
+      ? `receberá no início dos trabalhos o valor de ${valorExt(adiant)}${isFinite(pct) && pct < 100 ? `, correspondente a ${pct}% dos honorários` : ''}, a ser depositado${depositante ? ` ${depositante}` : ''} em conta judicial vinculada aos autos (${jfAjg ? 'art. 29, parágrafo único, da Resolução CJF nº 305/2014' : 'art. 465, § 4º, do CPC'})${jfAjg && isFinite(pct) && pct > 30 ? ' [[VERIFICAR: na Justiça Federal o adiantamento é de até 30% e depende da comprovação da necessidade das despesas]]' : ''}`
+      : `receberá no início dos trabalhos [[valor do adiantamento]] (${jfAjg ? 'art. 29, parágrafo único, da Resolução CJF nº 305/2014' : 'art. 465, § 4º, do CPC'})`);
     if (isFinite(saldo) && saldo > 0) termos.push(`o saldo de ${valorExt(saldo)} será pago ao final, depois de entregue o laudo e prestados os esclarecimentos, por quem a sentença indicar`);
   }
   if (c.limiteTabelaPublico === 'Sim') termos.push('o pagamento eventualmente feito com recursos públicos observará o limite da tabela, com a majoração admitida');

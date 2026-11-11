@@ -73,7 +73,7 @@ export function agenteParaDados(a) {
     pontoFulgor: s(f.pontoFulgor), lie: s(f.lie), lse: s(f.lse), autoignicao: s(f.autoignicao), limiarOdor: s(f.limiarOdor),
     rel: s(n.rel), idlh: s(n.idlh), oshaPel: s(n.oshaPel), vias: s(n.vias), orgaosAlvo: s(n.orgaosAlvo), sintomas: s(n.sintomas),
     metodos: s(n.metodos), nioshUrl: s(n.url),
-    nr15Obs: s(nr.observacao), linach: s(a.linach), iarc: s(a.iarc), codDecretos: s(a.codDecretos),
+    nr15Obs: s(nr.observacao), linach: s(a.linach), iarc: s(a.iarc), codDecretos: s(a.codDecretos), observacoes: s(a.observacoes),
     acgihTwa: s(ac.twa), acgihStel: s(ac.stel), acgihNotacoes: s(ac.notacoes), acgihBase: s(ac.baseTlv), acgihBei: s(ac.bei),
     acgihEdicao: s(ac.edicao) || (Object.values(ac).some((x) => s(x)) ? s(a.acgihEdicao) : ''),
     fontes: (a.fontes || []).map((x) => [s(x.referencia), s(x.campos) && `(${s(x.campos)})`, s(x.url), s(x.consultadoEm) && `consultado em ${s(x.consultadoEm)}`].filter(Boolean).join(' – ')).join('\n'),

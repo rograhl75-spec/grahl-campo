@@ -413,7 +413,7 @@ export async function ltcatPpp(caseId) {
       ['Períodos avaliados', dados.periodos.map((r) => `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`).join('; ')],
       ['Responsável técnico', `${perfil.nome} – ${credencial(perfil)}`], ['Data da avaliação', dataBR(c.vistoriaData)]],
   });
-  // ABNT NBR 14724: lista de ilustrações (figuras) antes da lista de quadros
+  // ABNT NBR 14724:2024, 4.2.1.9: quadros e figuras são ilustrações; recomenda-se lista própria para cada tipo (a norma não fixa ordem entre elas)
   if (dados.fotos.some((f) => !f.deleted)) d.listaFiguras({ novaPagina: true });
   d.listaQuadros();
   d.sumario();

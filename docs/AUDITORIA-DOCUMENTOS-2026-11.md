@@ -294,8 +294,14 @@ Cada citação do app foi conferida contra o texto oficial: gov.br (NRs e portar
 
 ### Não conferido (fontes inacessíveis nesta sessão)
 - **IN PRES/INSS 128/2022:** todos os artigos citados (in.gov.br recusou a conexão). Também a data de corte de 01/01/2004, que depende dela, e o quadro "Forma de enquadramento".
-- **Portaria Interministerial 9/2014 (LINACH):** sem fonte oficial acessível.
-- **Normas pagas:** ISO 2631-1, NBR 14724 e NBR 14725.
+- **Normas pagas:** ISO 2631-1 (a cópia recebida é a prévia pública, sem o Anexo B da zona de cautela) e NBR 14725.
+
+### Conferido depois, com documentos enviados pelo usuário
+- **LINACH (Portaria Interministerial nº 9/2014, DOU de 08/10/2014):**
+  - os 12 grupos da base conferem pelo CAS ou pelo nome;
+  - foram acrescentadas observações nas fichas com as entradas relacionadas: óleos minerais não tratados ou pouco tratados (1), exaustão de motor diesel (1), pintor como ocupação (1), inseticidas não arsenicais na aplicação (2A), fumos de solda (2B), compostos de chumbo (2A) e de níquel (1);
+  - a fonte da LINACH nas fichas passou a ser a portaria (antes, cópia do CONASS).
+- **NBR 14724:2024, 4.2.1.9:** quadros são ilustrações, e recomenda-se lista própria para cada tipo. As listas de figuras e de quadros do LTCAT estão de acordo; só o comentário do código foi corrigido.
 - **TNU, PEDILEF 0506002-13.2018.4.05.8312:** o PDF não foi encontrado no CJF.
 - **Textos históricos:** a redação original de 1978 dos Anexos 3 e 8 da NR-15 e os anos das NHOs.
 - **Jurisprudência:** as situações a acompanhar foram registradas no próprio texto (embargos do Tema 1209 no STF; RE pendente no Tema 1291).

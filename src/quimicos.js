@@ -16,8 +16,13 @@ import { slug, registro, gravarImportado, tsDaBase } from './paradigmas.js';
 
 export const GRUPOS_QUIMICOS = [
   'Óleos e graxas', 'Defensivos agrícolas', 'Tintas e solventes', 'Fumos de soldagem', 'Combustíveis',
-  'Odontológicos', 'Espuma de poliuretano', 'Mecânica de veículos e máquinas', 'Outros',
+  'Odontológicos', 'Espuma de poliuretano', 'Mecânica de veículos e máquinas', 'Metais e compostos', 'Poeiras minerais',
+  'Halogênios e organoclorados', 'Gases e vapores', 'Borracha e plásticos', 'Cancerígenos e aminas aromáticas', 'Ácidos e álcalis',
+  'Medicamentos (Anexo IV, 1.0.19)', 'Outros',
 ];
+
+// Anexos da NR-15 usados no filtro e na ficha ('nenhum' = não consta dos Anexos 11, 12, 13 e 13-A)
+export const ANEXOS_NR15 = ['11', '12', '13', '13-A', 'nenhum'];
 
 const SN = ['Sim', 'Não'];
 export const CAMPOS_QUIMICO = {
@@ -33,6 +38,7 @@ export const CAMPOS_QUIMICO = {
     ['lse', 'LSE (limite superior de explosividade)', 'text'], ['autoignicao', 'Temperatura de autoignição', 'text'], ['limiarOdor', 'Limiar de odor', 'text'],
   ],
   'Legislação brasileira': [
+    ['nr15Anexos', 'NR-15 – anexos aplicáveis (11, 12, 13, 13-A)', 'text'],
     ['nr15Ppm', 'NR-15, Anexo 11 – LT (ppm)', 'text'], ['nr15Mgm3', 'NR-15, Anexo 11 – LT (mg/m³)', 'text'],
     ['nr15Grau', 'NR-15, Anexo 11 – grau de insalubridade', 'select', ['mínimo', 'médio', 'máximo']],
     ['nr15Pele', 'Absorção também pela pele', 'select', SN], ['nr15Teto', 'Valor teto', 'select', SN],
@@ -73,6 +79,7 @@ export function agenteParaDados(a) {
     pontoFulgor: s(f.pontoFulgor), lie: s(f.lie), lse: s(f.lse), autoignicao: s(f.autoignicao), limiarOdor: s(f.limiarOdor),
     rel: s(n.rel), idlh: s(n.idlh), oshaPel: s(n.oshaPel), vias: s(n.vias), orgaosAlvo: s(n.orgaosAlvo), sintomas: s(n.sintomas),
     metodos: s(n.metodos), nioshUrl: s(n.url),
+    nr15Anexos: Array.isArray(nr.anexos) ? (nr.anexos.length ? nr.anexos.map((x) => `Anexo ${s(x)}`).join('; ') : 'Nenhum (não consta dos Anexos 11, 12, 13 e 13-A)') : '',
     nr15Obs: s(nr.observacao), linach: s(a.linach), iarc: s(a.iarc), codDecretos: s(a.codDecretos), observacoes: s(a.observacoes),
     acgihTwa: s(ac.twa), acgihStel: s(ac.stel), acgihNotacoes: s(ac.notacoes), acgihBase: s(ac.baseTlv), acgihBei: s(ac.bei),
     acgihEdicao: s(ac.edicao) || (Object.values(ac).some((x) => s(x)) ? s(a.acgihEdicao) : ''),
@@ -161,9 +168,11 @@ Devolva SOMENTE um bloco JSON:
 {"agentes": [{"nome": "", "sinonimos": [], "cas": "", "tipo": "substância | mistura | grupo/fumos", "grupos": ["Óleos e graxas | Defensivos agrícolas | Tintas e solventes | Fumos de soldagem | Combustíveis | Odontológicos | Espuma de poliuretano | Mecânica de veículos e máquinas | Outros"], "formula": "", "massaMolar": "",
  "fisico": {"estado": "", "pontoEbulicao": "", "pontoFusao": "", "pressaoVapor": "", "densidadeRelativa": "", "densidadeVapor": "", "solubilidadeAgua": "", "pontoFulgor": "", "lie": "", "lse": "", "autoignicao": "", "limiarOdor": ""},
  "niosh": {"rel": "", "idlh": "", "oshaPel": "", "vias": "", "orgaosAlvo": "", "sintomas": "", "metodos": "", "url": ""},
- "nr15": {"anexo11": null, "observacao": ""}, "linach": "", "iarc": "",
+ "nr15": {"anexo11": null, "anexos": [], "observacao": ""}, "linach": "", "iarc": "", "codDecretos": "",
  "fontes": [{"campos": "", "referencia": "", "url": "", "consultadoEm": "AAAA-MM-DD"}]}]}
 Em "nr15.anexo11", só quando o agente constar do Quadro 1 do Anexo 11: {"ppm": "", "mgm3": "", "grau": "mínimo | médio | máximo", "pele": true, "teto": false}.
+Em "nr15.anexos", os anexos da NR-15 em que o agente consta: "11" (Quadro 1), "12" (asbesto, manganês, sílica), "13" (atividades) e "13-A" (benzeno); [] se não constar de nenhum. Em "nr15.observacao", a linha do Quadro 1 ou o item do Anexo 12, e as atividades e graus do Anexo 13.
+Em "codDecretos", uma linha por decreto: "Dec. 53.831/1964: código – título", idem para 83.080/1979, 2.172/1997 e 3.048/1999 ("sem código específico" quando não houver).
 Agente(s): `;
 
 // ---------------- cálculos ----------------
@@ -228,11 +237,23 @@ export function acharAgente(lista, texto) {
     || lista.find((r) => String(r.data.sinonimos || '').split(';').some((x) => slug(x) === t)) || null;
 }
 
-export function filtrarAgentes(lista, busca = '', grupo = '') {
+// Anexos da NR-15 de uma ficha, a partir do campo nr15Anexos ("Anexo 11; Anexo 13") ou do LT preenchido
+export function anexosDoAgente(d = {}) {
+  const t = String(d.nr15Anexos || '');
+  const out = [...t.matchAll(/Anexo\s*(13-A|1[1-3])/gi)].map((m) => m[1].toUpperCase());
+  if (!out.includes('11') && (d.nr15Ppm || d.nr15Mgm3)) out.unshift('11');
+  return out;
+}
+
+export function filtrarAgentes(lista, busca = '', grupo = '', anexo = '') {
   const t = slug(busca);
   return lista.filter((r) => {
     const d = r.data;
     if (grupo && !String(d.grupos || '').includes(grupo)) return false;
+    if (anexo) {
+      const ax = anexosDoAgente(d);
+      if (anexo === 'nenhum' ? (ax.length || !/^Nenhum/i.test(String(d.nr15Anexos || ''))) : !ax.includes(anexo)) return false;
+    }
     if (!t) return true;
     return [d.nome, d.sinonimos, d.cas, d.formula].some((x) => slug(x).includes(t));
   }).sort((a, b) => String(a.data.nome || '').localeCompare(String(b.data.nome || ''), 'pt-BR'));

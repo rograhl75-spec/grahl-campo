@@ -1,0 +1,587 @@
+{
+ "fonte": "LINACH (Portaria Interministerial MTE/MS/MPS n.º 9/2014), Grupo 1 – transcrição das planilhas do curso (Caracterizador Pericial)",
+ "agentes": [
+  {
+   "nome": "Acetaldeído associado com o consumo de bebidas alcoólicas",
+   "cas": [
+    "75-07-0"
+   ]
+  },
+  {
+   "nome": "Ácido Aristólico",
+   "cas": [
+    "313-67-7"
+   ]
+  },
+  {
+   "nome": "Ácido Aristólico (plantas que o contem)",
+   "cas": [
+    "313-67-7"
+   ]
+  },
+  {
+   "nome": "Ácidos Mistos, Inorgânicos Fortes",
+   "cas": []
+  },
+  {
+   "nome": "Aflatoxinas",
+   "cas": [
+    "1402-68-2"
+   ]
+  },
+  {
+   "nome": "Alcool Isopropilico, manufatura usando ácidos fortes",
+   "cas": []
+  },
+  {
+   "nome": "Alumínio, produção de",
+   "cas": []
+  },
+  {
+   "nome": "4-Aminobifenila",
+   "cas": [
+    "92-67-1"
+   ]
+  },
+  {
+   "nome": "Arsênio e compostos inorgânicos de arsênio",
+   "cas": [
+    "7440-38-2"
+   ]
+  },
+  {
+   "nome": "Asbestos ou amianto - todas as formas, inclusive actinolita, amosita, antofilita, crisotila, crocidolita, tremolita (nota: Substâncias minerais, a exemplo do talco ou vermiculita, que contenham amianto também devem ser considerados como cancerígeno para os seres humanos)",
+   "cas": [
+    "1332-21-4",
+    "13768-00-8",
+    "12172-73-5",
+    "17068-78-9",
+    "12001-29-5",
+    "12001-28-4",
+    "14567-73-8"
+   ]
+  },
+  {
+   "nome": "Auramina, produção de",
+   "cas": []
+  },
+  {
+   "nome": "Azatioprina",
+   "cas": [
+    "446-86-6"
+   ]
+  },
+  {
+   "nome": "Bebidas alcoólicas",
+   "cas": []
+  },
+  {
+   "nome": "Benzeno",
+   "cas": [
+    "71-43-2"
+   ]
+  },
+  {
+   "nome": "Benzidina",
+   "cas": [
+    "92-87-5"
+   ]
+  },
+  {
+   "nome": "Benzo[a]pireno",
+   "cas": [
+    "50-32-8"
+   ]
+  },
+  {
+   "nome": "Berílio e seus compostos",
+   "cas": [
+    "7440-41-7"
+   ]
+  },
+  {
+   "nome": "Bifenis policlorados",
+   "cas": [
+    "1336-36-3"
+   ]
+  },
+  {
+   "nome": "Bifenis policlorados, ‘dioxin-like’ (‘tipo dioxina’ ou ‘do grupo das dioxinas’), com Fator de Equivalência de Toxicidade de acordo com a OMS (PCBs 77, 81, 105, 114, 118, 123, de Equivalência de Toxicidade de acordo com a OMS (PCBs 77, 81, 105, 114, 118, 123,",
+   "cas": []
+  },
+  {
+   "nome": "Borracha, indústria de transformação da",
+   "cas": []
+  },
+  {
+   "nome": "Breu de alcatrão de hulha",
+   "cas": [
+    "65996-93-2"
+   ]
+  },
+  {
+   "nome": "Bussulfano",
+   "cas": [
+    "55-98-1"
+   ]
+  },
+  {
+   "nome": "1,3 Butadieno",
+   "cas": [
+    "106-99-0"
+   ]
+  },
+  {
+   "nome": "Cádmio e compostos de cádmio",
+   "cas": [
+    "7440-43-9"
+   ]
+  },
+  {
+   "nome": "Ciclofosfamida",
+   "cas": [
+    "50-18-0",
+    "6055-19-2"
+   ]
+  },
+  {
+   "nome": "Ciclosporina",
+   "cas": [
+    "59865-13-3",
+    "79217-60-0"
+   ]
+  },
+  {
+   "nome": "Clonorchis sinensis, Infecção com",
+   "cas": []
+  },
+  {
+   "nome": "Clorambucil",
+   "cas": [
+    "305-03-3"
+   ]
+  },
+  {
+   "nome": "Cloreto de vinila",
+   "cas": [
+    "75-01-4"
+   ]
+  },
+  {
+   "nome": "Clornafazina",
+   "cas": [
+    "494-03-1"
+   ]
+  },
+  {
+   "nome": "Compostos de cromo (VI)",
+   "cas": [
+    "18540-29-9"
+   ]
+  },
+  {
+   "nome": "Compostos de níquel",
+   "cas": []
+  },
+  {
+   "nome": "Coque, produção de",
+   "cas": []
+  },
+  {
+   "nome": "Corantes que liberam benzidina no metabolismo",
+   "cas": []
+  },
+  {
+   "nome": "Destilação do alcatrão de hulha",
+   "cas": [
+    "8007-45-2"
+   ]
+  },
+  {
+   "nome": "Dietilestilbestrol",
+   "cas": [
+    "56-53-1"
+   ]
+  },
+  {
+   "nome": "Emissões em ambiente fechado na combustão doméstica do carvão",
+   "cas": []
+  },
+  {
+   "nome": "Erionita",
+   "cas": [
+    "66733-21-9"
+   ]
+  },
+  {
+   "nome": "Estrogênio-progesterona associados como contraceptivo oral (nota: há também provas convincentes em seres humanos de que esses agentes conferem um efeito protetor contra o câncer em endométrio e ovário)",
+   "cas": []
+  },
+  {
+   "nome": "Estrogênio-progesterona associados em terapia menopausal combinada",
+   "cas": []
+  },
+  {
+   "nome": "Estrógeno, terapia pós-menopausal",
+   "cas": []
+  },
+  {
+   "nome": "Etanol em bebidas alcoólicas",
+   "cas": [
+    "64-17-5"
+   ]
+  },
+  {
+   "nome": "Éter bis (clorometílico); éter metílico de clorometila",
+   "cas": [
+    "542-88-1",
+    "107-30-2"
+   ]
+  },
+  {
+   "nome": "Etoposide",
+   "cas": [
+    "33419-42-0"
+   ]
+  },
+  {
+   "nome": "Etoposide em associação com cisplatina e bleomicina",
+   "cas": [
+    "33419-42-0",
+    "15663-27-1",
+    "11056-06-7"
+   ]
+  },
+  {
+   "nome": "Exaustão do motor diesel",
+   "cas": []
+  },
+  {
+   "nome": "Fenacetina",
+   "cas": [
+    "62-44-2"
+   ]
+  },
+  {
+   "nome": "Fenacetina (mistura de analgésicos contendo fenacetina)",
+   "cas": []
+  },
+  {
+   "nome": "Formaldeído",
+   "cas": [
+    "50-00-0"
+   ]
+  },
+  {
+   "nome": "Fósforo 32, como fosfato",
+   "cas": [
+    "14596-37-3"
+   ]
+  },
+  {
+   "nome": "Fuligem (como os encontrados na exposição ocupacional dos limpadores de chaminés)",
+   "cas": []
+  },
+  {
+   "nome": "Fundição de ferro e aço (exposição ocupacional em)",
+   "cas": []
+  },
+  {
+   "nome": "Gaseificação de carvão",
+   "cas": []
+  },
+  {
+   "nome": "Gás Mostarda",
+   "cas": [
+    "505-60-2"
+   ]
+  },
+  {
+   "nome": "Helicobacter pilori, Infecção com",
+   "cas": []
+  },
+  {
+   "nome": "Hematita, mineração subterrânea",
+   "cas": []
+  },
+  {
+   "nome": "Magenta, produção de",
+   "cas": []
+  },
+  {
+   "nome": "Material particulado na poluição do ar",
+   "cas": []
+  },
+  {
+   "nome": "Melfalano",
+   "cas": [
+    "148-82-3"
+   ]
+  },
+  {
+   "nome": "Metoxsalen associado com radiação ultravioleta A",
+   "cas": [
+    "298-81-7"
+   ]
+  },
+  {
+   "nome": "4,4’-Metileno bis (2-cloroanilina) (MOCA)",
+   "cas": [
+    "101-14-4"
+   ]
+  },
+  {
+   "nome": "MOPP e outros agentes quimioterápicos, inclusive agentes alquilantes",
+   "cas": []
+  },
+  {
+   "nome": "2-Naftilamina",
+   "cas": [
+    "91-59-8"
+   ]
+  },
+  {
+   "nome": "N'-nitrosonornicotina (NNN) e 4-. (metilnitrosamino)-1-(3-piridil)1-butanona (NNK)",
+   "cas": [
+    "16543-55-8",
+    "64091-91-4"
+   ]
+  },
+  {
+   "nome": "Noz de Areca",
+   "cas": []
+  },
+  {
+   "nome": "Noz de Betel, misturada com tabaco",
+   "cas": []
+  },
+  {
+   "nome": "Noz de Betel, não misturada com tabaco",
+   "cas": []
+  },
+  {
+   "nome": "Óleos de xisto",
+   "cas": [
+    "68308-34-9"
+   ]
+  },
+  {
+   "nome": "Óleos minerais (não tratados ou pouco tratados)",
+   "cas": []
+  },
+  {
+   "nome": "Opisthorchis viverrini, Infecção com",
+   "cas": []
+  },
+  {
+   "nome": "Óxido de Etileno",
+   "cas": [
+    "75-21-8"
+   ]
+  },
+  {
+   "nome": "Papilomavírus humano - HPV tipos 16, 18, 31, 33, 35, 39, 45, 51, 52, 56, 58, 59 (nota: os tipos de HPV classificados como cancerígenos para humanos podem diferir na magnitude do risco em relação ao câncer cervical)",
+   "cas": []
+  },
+  {
+   "nome": "Peixe estilo chinês, salgado",
+   "cas": []
+  },
+  {
+   "nome": "3, 4, 5, 3´, 4’ –Pentaclorobifenil (PCB – 126)",
+   "cas": [
+    "57465-28-8"
+   ]
+  },
+  {
+   "nome": "2,3,4,7,8-Pentaclorodibenzofurano",
+   "cas": [
+    "57117-31-4"
+   ]
+  },
+  {
+   "nome": "Pintor (exposição ocupacional como pintor)",
+   "cas": []
+  },
+  {
+   "nome": "Plutônio",
+   "cas": [
+    "7440-07-5"
+   ]
+  },
+  {
+   "nome": "Poeira de couro",
+   "cas": []
+  },
+  {
+   "nome": "Poeira de madeira",
+   "cas": []
+  },
+  {
+   "nome": "Poeira de sílica, cristalina, em forma de quartzo ou cristobalita",
+   "cas": [
+    "14808-60-7"
+   ]
+  },
+  {
+   "nome": "Poluição do Ar",
+   "cas": []
+  },
+  {
+   "nome": "Poluição do ar em partículas",
+   "cas": []
+  },
+  {
+   "nome": "Produtos de fissão, inclusive estrôncio-90",
+   "cas": []
+  },
+  {
+   "nome": "Radiação de Nêutrons",
+   "cas": []
+  },
+  {
+   "nome": "Radiação Ionizante (todos os tipos)",
+   "cas": []
+  },
+  {
+   "nome": "Radiação Solar",
+   "cas": []
+  },
+  {
+   "nome": "Radiação ultravioleta (100-400 nm, abrangendo UVA, UVB e UVC)",
+   "cas": []
+  },
+  {
+   "nome": "Radiação ultravioleta emitida por dispositivos de bronzeamento",
+   "cas": []
+  },
+  {
+   "nome": "Radiações X e gama",
+   "cas": []
+  },
+  {
+   "nome": "Rádio-224 e seus produtos de decaimento",
+   "cas": [
+    "13982-63-3"
+   ]
+  },
+  {
+   "nome": "Rádio-226 e seus produtos de decaimento",
+   "cas": [
+    "15262-20-1"
+   ]
+  },
+  {
+   "nome": "Rádio-228 e seus produtos de decaimento",
+   "cas": [
+    "10043-92-2"
+   ]
+  },
+  {
+   "nome": "Radioiodos, incluindo o iodo-131",
+   "cas": []
+  },
+  {
+   "nome": "Radionuclídeos, emissores de partículas alfa, internamente depositados",
+   "cas": []
+  },
+  {
+   "nome": "Radionuclídeos, emissores de partículas beta, internamente depositados",
+   "cas": []
+  },
+  {
+   "nome": "Radônio-222 e seus produtos de decaimento",
+   "cas": [
+    "13233-32-4"
+   ]
+  },
+  {
+   "nome": "Sarcoma de Kaposi associado com herpes vírus",
+   "cas": []
+  },
+  {
+   "nome": "Schistosoma haematobium, infecção com",
+   "cas": []
+  },
+  {
+   "nome": "Semustina [1-(2-cloroetil)-3-(4-metilciclohexil)-1-nitrosourea, Metil CCNU]",
+   "cas": [
+    "13909-09-6"
+   ]
+  },
+  {
+   "nome": "Tabaco em uso passivo",
+   "cas": []
+  },
+  {
+   "nome": "Tabaco sem fumaça",
+   "cas": []
+  },
+  {
+   "nome": "Tabagismo",
+   "cas": []
+  },
+  {
+   "nome": "Tamoxifeno (nota: há evidências também conclusivas para seu uso na redução do risco de câncer de mama contralateral em pacientes com câncer de mama)",
+   "cas": [
+    "10540-29-1"
+   ]
+  },
+  {
+   "nome": "2,3,7,8-Tetraclorodibenzo-para-dioxina",
+   "cas": [
+    "1746-01-6"
+   ]
+  },
+  {
+   "nome": "Tiotepa",
+   "cas": [
+    "52-24-4"
+   ]
+  },
+  {
+   "nome": "orto-Toluidina",
+   "cas": [
+    "95-53-4"
+   ]
+  },
+  {
+   "nome": "Treosulfano",
+   "cas": [
+    "299-75-2"
+   ]
+  },
+  {
+   "nome": "Tricloroetileno",
+   "cas": [
+    "79-01-6"
+   ]
+  },
+  {
+   "nome": "Tório-232 e seus produtos de decaimento",
+   "cas": [
+    "7440-29-1"
+   ]
+  },
+  {
+   "nome": "Vírus da Hepatite B, infecção crônica com",
+   "cas": []
+  },
+  {
+   "nome": "Vírus da Hepatite C, infecção crônica com",
+   "cas": []
+  },
+  {
+   "nome": "Vírus da Imunodeficiência tipo 1, Infecção com",
+   "cas": []
+  },
+  {
+   "nome": "Vírus Epstein-Barr",
+   "cas": []
+  },
+  {
+   "nome": "Vírus linfotrópico célula-T humana tipo I",
+   "cas": []
+  }
+ ]
+}

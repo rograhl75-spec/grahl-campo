@@ -3,7 +3,7 @@ import { useState } from 'preact/hooks';
 import { db, createRecord, softDelete } from '../db.js';
 import { avisarAlteracao } from '../sync.js';
 import {
-  CAMPOS_QUIMICO, GRUPOS_QUIMICOS, PROMPT_QUIMICOS, promptAcgih, carregarBaseQuimicos, importarBaseQuimicos, importarAgentesColados, filtrarAgentes,
+  CAMPOS_QUIMICO, GRUPOS_QUIMICOS, ANEXOS_NR15, anexosDoAgente, PROMPT_QUIMICOS, promptAcgih, carregarBaseQuimicos, importarBaseQuimicos, importarAgentesColados, filtrarAgentes,
   ppmParaMgm3, mgm3ParaPpm, fatorBriefScalaDiario, fatorBriefScalaSemanal, fatorDesvio, somaMistura, num,
 } from '../quimicos.js';
 import { fmt } from '../calc.js';
@@ -18,9 +18,10 @@ export function Quimicos() {
   const lista = useLive(async () => (await db.records.where('kind').equals('quimico').toArray()).filter((r) => !r.deleted), [], []);
   const [busca, setBusca] = useState('');
   const [grupo, setGrupo] = useState('');
+  const [anexo, setAnexo] = useState('');
   const [aberto, setAberto] = useState(null);
   const [msg, setMsg] = useState('');
-  const filtrados = filtrarAgentes(lista, busca, grupo);
+  const filtrados = filtrarAgentes(lista, busca, grupo, anexo);
 
   const carregarBase = async () => {
     setMsg('Carregando…');
@@ -35,7 +36,7 @@ export function Quimicos() {
   return (
     <div class="grade">
       <section class="bloco largo">
-        <p class="dica">Fichas com propriedades físico-químicas, toxicologia, limites da NR-15 (Anexo 11), LINACH e IARC. A base inicial vem de fontes abertas (PubChem, NIOSH Pocket Guide, NR-15, LINACH, IARC), com a fonte em cada ficha, e entra como <b>"A conferir"</b>: confira no original antes de usar em laudo e marque "Conferido". Os valores da ACGIH não vêm prontos: digite-os do seu livreto, com a edição.</p>
+        <p class="dica">Fichas com propriedades físico-químicas, toxicologia, NR-15 (Anexo 11 com LT, Anexo 12, Anexos 13 e 13-A), LINACH, IARC e códigos dos decretos previdenciários (inclui os agentes dos Decretos 53.831/64, 83.080/79, 2.172/97 e 3.048/99). A base inicial vem de fontes abertas (PubChem, NIOSH Pocket Guide, NR-15, LINACH, IARC), com a fonte em cada ficha, e entra como <b>"A conferir"</b>: confira no original antes de usar em laudo e marque "Conferido". Os valores da ACGIH não vêm prontos: digite-os do seu livreto, com a edição.</p>
         <div class="barra-casos">
           <input class="busca" type="search" placeholder="Buscar nome, sinônimo, CAS ou fórmula…" value={busca} onInput={(e) => setBusca(e.currentTarget.value)} />
           <button type="button" class="primario" onClick={novo}>＋ Novo agente</button>
@@ -43,6 +44,10 @@ export function Quimicos() {
         <div class="chips filtros mt">
           <button type="button" class={`chip ${!grupo ? 'on' : ''}`} onClick={() => setGrupo('')}>Todos ({lista.length})</button>
           {GRUPOS_QUIMICOS.map((g) => <button type="button" class={`chip ${grupo === g ? 'on' : ''}`} onClick={() => setGrupo(g)}>{g}</button>)}
+        </div>
+        <div class="chips filtros mt">
+          <button type="button" class={`chip ${!anexo ? 'on' : ''}`} onClick={() => setAnexo('')}>NR-15: todos</button>
+          {ANEXOS_NR15.map((a) => <button type="button" class={`chip ${anexo === a ? 'on' : ''}`} onClick={() => setAnexo(anexo === a ? '' : a)}>{a === 'nenhum' ? 'Fora dos anexos' : `Anexo ${a}`}</button>)}
         </div>
         <div class="linha-botoes">
           <button type="button" class="sec" onClick={carregarBase}><Icone nome="pasta" /> {lista.length ? 'Atualizar com a base de fontes abertas' : 'Carregar a base de fontes abertas'}</button>
@@ -60,6 +65,7 @@ export function Quimicos() {
                 <span class="item-titulo">
                   <b>{d.nome || '(sem nome)'}</b>{d.cas && <small class="suave"> · CAS {d.cas}</small>}{' '}
                   {d.linach && <span class="etq fase">LINACH {d.linach}</span>}{' '}
+                  {anexosDoAgente(d).map((a) => <><span class="etq">NR-15 A{a}</span>{' '}</>)}
                   {d.situacao !== 'Conferido' && <span class="etq">A conferir</span>}
                   <br /><small class="suave">{[d.acgihTwa && `ACGIH${d.acgihEdicao ? ` ${d.acgihEdicao}` : ''}: ${d.acgihTwa}`, lt && `NR-15: ${lt}${d.nr15Teto === 'Sim' ? ' (teto)' : ''}${d.nr15Grau ? ` – grau ${d.nr15Grau}` : ''}`, d.iarc && `IARC ${d.iarc}`, d.grupos].filter(Boolean).join(' · ')}</small>
                 </span>

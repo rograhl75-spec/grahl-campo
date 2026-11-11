@@ -24,10 +24,14 @@ const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 
 // perícia direta ou indireta por similaridade, a partir da aba Campo (local da vistoria), do campo
 // "similaridade" do caso e dos paradigmas vinculados
-function textoTipoPericia(dados) {
+function periciaIndireta(dados) {
   const { c } = dados;
   const local = `${c.vistoriaLocal || ''} ${c.vistoriaCondicoes || ''}`;
-  const indireta = /indiret|similar|paradigma|terceir/i.test(local) || c.similaridade === 'Sim' || usaParadigmas(dados);
+  return /indiret|similar|paradigma|terceir/i.test(local) || c.similaridade === 'Sim' || usaParadigmas(dados);
+}
+function textoTipoPericia(dados) {
+  const { c } = dados;
+  const indireta = periciaIndireta(dados);
   const veic = dados.postos.map((ps) => nomeCurto(ps.data.nome)).filter(Boolean);
   if (!indireta) return 'A perícia foi realizada de forma direta, no local de trabalho e nos postos ocupados pela parte autora, com avaliação das condições ambientais e das atividades nele desenvolvidas.';
   return `A perícia foi realizada de forma indireta, por similaridade, porque o ambiente e os veículos de origem não estão mais disponíveis nas condições da época. Foram avaliados${veic.length ? ` os seguintes postos e veículos, representativos dos utilizados pelo autor em cada vínculo: ${veic.join('; ')}` : ' postos e veículos representativos dos utilizados pelo autor em cada vínculo'}${usaParadigmas(dados) ? ', complementados por paradigmas de veículos similares (item 2.3)' : ''}. A semelhança de função, tipo de veículo e condições de operação está demonstrada no item 4, vínculo a vínculo.`;
@@ -342,6 +346,8 @@ export async function laudoPrevidenciario(caseId) {
   d.h2('2.2', 'Metodologia');
   d.texto('Em atendimento ao art. 473, inciso III, do Código de Processo Civil, a metodologia consistiu em análise dos autos, inspeção *in loco* e avaliações ambientais, seguindo as NHO da FUNDACENTRO e os limites de tolerância do Anexo IV do Regulamento da Previdência Social ou, na sua falta, da NR-15, quando o decreto a ela remete (art. 288 da IN 128/2022).');
   d.texto(textoTipoPericia(dados));
+  // Res. CJF 305/2014, art. 30-A (incluído pela Res. CJF 575/2019): perícia por similaridade como prova emprestada
+  if (periciaIndireta(dados) && fundamentoCJF(c)) d.texto(`Nos termos do art. 30-A da Resolução CJF nº 305/2014, incluído pela Resolução CJF nº 575/2019, a perícia indireta por similaridade realizada em empresa paradigma${v(c.empresaOriginal) ? ` da empresa encerrada (${c.empresaOriginal})` : ' da empresa encerrada'}, do mesmo ramo de atividade, pode ser utilizada como prova emprestada nos demais processos, ainda que não sejam da mesma vara da Subseção Judiciária ou Comarca.`);
   d.texto(`A conclusão fundamenta-se exclusivamente na legislação previdenciária e nas normas técnicas indicadas${comJurisprudencia(dados) ? '; entendimentos jurisprudenciais são apenas registrados, em item próprio, para apreciação do Juízo' : ''}.`);
   if (usaParadigmas(dados)) { d.h2('2.3', 'Avaliação por similaridade (paradigmas)'); quadrosParadigmasMetodologia(d, dados); }
 

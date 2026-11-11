@@ -99,3 +99,15 @@ describe('documentos (itens pendentes)', () => {
     expect(t).toContain('Escritório Teste');
   });
 });
+
+describe('similaridade na Justiça Federal (Res. CJF 305/2014, art. 30-A)', () => {
+  it('o laudo previdenciário por similaridade cita a prova emprestada; sem similaridade, não', async () => {
+    await caso('t6', { papel: 'Perito do Juízo', justica: 'Justiça Federal', materia: 'Previdenciária', similaridade: 'Sim', empresaOriginal: 'Transportes Antigos Ltda.' });
+    let t = await texto(await laudoPrevidenciario('t6'));
+    expect(t).toContain('art. 30-A da Resolução CJF nº 305/2014');
+    expect(t).toContain('Transportes Antigos Ltda.');
+    await caso('t7', { papel: 'Perito do Juízo', justica: 'Justiça Federal', materia: 'Previdenciária', similaridade: 'Não' });
+    t = await texto(await laudoPrevidenciario('t7'));
+    expect(t).not.toContain('art. 30-A');
+  });
+});

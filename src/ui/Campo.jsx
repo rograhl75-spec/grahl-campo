@@ -13,7 +13,7 @@ import { guardarAnexo, LIMITE_NUVEM } from '../paradigmas.js';
 import { obterAnexo } from '../sync.js';
 import { DESC_APENDICE, LETRAS, tituloSugerido } from '../apendices.js';
 import { lerAnotacao, promptAnotacoes } from '../notas.js';
-import { lerJsonIA, aplicarIA } from '../aiimport.js';
+import { lerJsonIA, aplicarIA, faseAvanca } from '../aiimport.js';
 import { BotoesFoto, Miniaturas } from './Fotos.jsx';
 
 function hojeIso() { const d = new Date(); return new Date(d - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); }
@@ -335,7 +335,7 @@ function AnotacoesDiligencia({ rec }) {
   const ler = () => { setErro(''); try { setPrevia(lerJsonIA(json)); } catch (err) { setPrevia(null); setErro(err.message); } };
   const aplicar = async () => {
     const r = await aplicarIA(rec.id, previa, { substituir: false, criarPeriodos: false });
-    if (previa.caso.fase && ['', undefined, 'A preparar', 'Diligência agendada', 'Diligência realizada'].includes(rec.data.fase)) await updateFields(rec.id, { fase: previa.caso.fase });
+    if (previa.caso.fase && faseAvanca(rec.data.fase, previa.caso.fase)) await updateFields(rec.id, { fase: previa.caso.fase });
     avisarAlteracao();
     setMsg(`Aplicado: ${r.campos} campo(s) da diligência, ${r.postos} posto(s), ${r.medicoes} medição(ões), ${r.respostas} resposta(s). Os vínculos foram só completados (nada que você já tinha escrito foi trocado). Confira os postos e as medições abaixo.`);
     setPrevia(null); setJson('');

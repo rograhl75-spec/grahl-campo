@@ -12,7 +12,7 @@ import {
   quadroCriteriosCalor, quadroCriteriosVibracao, documentosARequerer, quadrosParadigmasMetodologia, memoriasParadigmas, usaParadigmas,
   art, dadosDaConta, dataPorExtenso, horaPorExtenso, reaisPorExtenso, numeroPorExtenso, moeda, lerValor, nomeOrigemQuesito,
   quadroFormaEnquadramento, quadroRequisitosEpi, codigosEnquadramento, textoDeterminacao, nomeCurto,
-  apendicesDoCaso, textoIntegram, inserirApendices, tituloVinculo, descricaoVinculo, agentesCurtos, refDespachos, ehSimilaridade, empresaDoDespacho, empresaCurta,
+  apendicesDoCaso, textoIntegram, inserirApendices, tituloVinculo, descricaoVinculo, agentesCurtos, refDespachos, ehSimilaridade, empresaDoDespacho, empresaCurta, prefixoQuesito,
 } from './base.js';
 import { comJurisprudencia, registroJurisprudencia, secaoReferencias } from './fontes.js';
 import { secaoPenosidade } from './penosidade.js';
@@ -601,7 +601,7 @@ export async function peticaoIndicacaoAT(caseId) {
   d.h1('4.', 'Dos quesitos', { novaPagina: false });
   d.texto(`${art(lado).O} ${lado}, por seu assistente técnico, apresenta os seguintes quesitos, sem prejuízo de quesitos suplementares (art. 469 do CPC):`);
   const qs = dados.quesitos.filter((q) => q.data.origem === origemLado);
-  if (qs.length) qs.forEach((q, i) => d.texto(`${q.data.numero || i + 1}. ${q.data.texto}`, { recuo: false }));
+  if (qs.length) qs.forEach((q, i) => d.texto(`${q.data.numero ? prefixoQuesito(q, '. ') : `${i + 1}. `}${q.data.texto}`, { recuo: false }));
   else d.redigir(`quesitos (cadastre na aba Quesitos com origem "${origemLado}").`);
   d.h1('5.', 'Dos requerimentos finais', { novaPagina: false });
   d.texto(`Diante do exposto, requer:\na) o cadastramento do signatário como assistente técnico ${art(lado).do} ${lado}, com a sua intimação, pelos contatos indicados, da data, do horário e do local da diligência pericial;\nb) a intimação da parte para apresentar ao Sr. Perito os documentos relacionados no item 2;\nc) a realização da diligência na forma do item 3;\nd) o recebimento dos quesitos do item 4, sem prejuízo da apresentação de quesitos suplementares.`);
@@ -755,7 +755,7 @@ export async function peticaoMajoracao(caseId) {
   if (c.similaridade === 'Sim') {
     d.texto(`Trata-se${fora ? ', ainda,' : ''} de perícia por similaridade, em empresa paradigma que substitui a empregadora original${v(c.empresaOriginal) ? ` (${c.empresaOriginal})` : ''}${lista ? `, sobre ${per.length > 1 ? 'os períodos' : 'o período'} de ${lista}` : ''}. Isso exige reconstituir as condições de trabalho da época, verificar a equivalência entre ambientes e processos e analisar se as avaliações feitas no paradigma se aplicam ao caso.`);
   } else if (per.length) {
-    d.texto(`A perícia${v(c.vistoriaLocal) ? `, a ser realizada em ${c.vistoriaLocal},` : ''} abrange ${per.length > 1 ? `${per.length} períodos de trabalho que somam mais de ${anos} anos` : `período de trabalho de mais de ${anos} anos`} (${lista}). Esse intervalo torna o exame mais complexo do que uma perícia comum, pelos seguintes motivos:`);
+    d.texto(`A perícia${v(c.vistoriaLocal) ? `, a ser realizada em ${c.vistoriaLocal},` : ''} abrange ${per.length > 1 ? `${per.length} períodos de trabalho que somam ${anos >= 2 ? `mais de ${anos} anos` : anos === 1 ? 'mais de 1 ano' : 'menos de 1 ano'}` : `período de trabalho de ${anos >= 2 ? `mais de ${anos} anos` : anos === 1 ? 'mais de 1 ano' : 'menos de 1 ano'}`} (${lista}). Esse intervalo torna o exame mais complexo do que uma perícia comum, pelos seguintes motivos:`);
     const maisAntigo = per.map((r) => r.data.inicio).sort()[0];
     if (maisAntigo && new Date(maisAntigo) < new Date(Date.now() - 10 * 365.25 * 86400000)) {
       motivos.push(`é preciso reconstituir as condições de trabalho de ${anos >= 20 ? 'mais de duas décadas' : 'longo período'}, considerando as alterações de leiaute, equipamentos, processos e medidas de controle ao longo do tempo`);

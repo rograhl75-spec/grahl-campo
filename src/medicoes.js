@@ -1,4 +1,4 @@
-import { nenQ5, lavgDaDose, ibutg, fmt, num } from './calc.js';
+import { nenQ5, lavgDaDose, ibutg, fmt, num, minutos } from './calc.js';
 import { CONDICAO_CALOR } from './schema.js';
 
 // Campos de cada tipo de medição: [chave, rótulo, tipo, opções]
@@ -67,7 +67,11 @@ export function calculados(m, ctx = {}) {
     const nen = nenQ5(d.lavg, d.jornada);
     if (ctx.prev !== false && isFinite(nen)) out.push(['NEN (q=5) – previdenciário', `${fmt(nen)} dB(A)`, 'NEN = Lavg + 16,61 × log(TE/480)']);
     const dose = num(d.dose);
-    if (ctx.prev !== true && isFinite(dose)) out.push(['Situação – NR-15, Anexo 1 (trabalhista)', `dose de ${fmt(dose)}% – ${dose > 100 ? 'acima' : 'dentro'} do limite de tolerância`, 'limite: dose de 100% (85 dB(A) para 8 h, q = 5)']);
+    const ta = minutos(d.tempoAmostragem), te = minutos(d.jornada);
+    // a dose do dosímetro vale para o tempo amostrado; projeta-se para a jornada (mesma condição de exposição)
+    const doseJ = isFinite(dose) && isFinite(ta) && isFinite(te) && ta > 0 && Math.abs(te - ta) > 1 ? dose * (te / ta) : dose;
+    const proj = doseJ !== dose;
+    if (ctx.prev !== true && isFinite(doseJ)) out.push(['Situação – NR-15, Anexo 1 (trabalhista)', `dose ${proj ? `projetada para a jornada de ${fmt(doseJ)}% (medida: ${fmt(dose)}% no tempo amostrado)` : `de ${fmt(dose)}%`} – ${doseJ > 100 ? 'acima' : 'dentro'} do limite de tolerância`, 'limite: dose de 100% (85 dB(A) para 8 h, q = 5)' + (proj ? '; D(jornada) = D × TE / T amostrado' : '')]);
     const ld = lavgDaDose(d.dose, d.tempoAmostragem);
     if (isFinite(ld)) out.push(['Lavg calculado pela dose', `${fmt(ld)} dB(A)`, 'Conferência: 85 + 16,61 × log(D / (100 × T/480))']);
     const ci = num(d.calibInicial), cf = num(d.calibFinal);

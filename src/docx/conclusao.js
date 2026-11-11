@@ -1,7 +1,7 @@
 // Conclusão previdenciária calculada pelo app, por vínculo e por subperíodo de critério:
 // categoria (até 28/04/1995), ruído (Lavg até 18/11/2003; NEN depois) e vibração de corpo inteiro
 // (ISO 2631-1 de 06/03/1997 a 13/08/2014; NR-15, Anexo 8, a partir de 14/08/2014).
-import { dataBR, postosDoPeriodo, nomeCurto } from './base.js';
+import { dataBR, postosDoPeriodo, nomeCurto, hojeLocal, superaLimite } from './base.js';
 import { comJurisprudencia } from './fontes.js';
 import { avaliaPenosidade, vinculosMotorista, matrizIAC } from './penosidade.js';
 import { nenParaJornada, arenParaJornada, vdvrParaJornada } from '../paradigmas.js';
@@ -16,7 +16,7 @@ const RE_TRAT = /tratorist|operador de trator|operador de m[aá]quinas? agr[ií]
 const RE_COBR = /cobrador/i;
 
 function segmentos(r) {
-  const ini = r.data.inicio; const fim = r.data.fim || new Date().toISOString().slice(0, 10);
+  const ini = r.data.inicio; const fim = r.data.fim || hojeLocal();
   if (!ini) return [];
   const out = []; let a = ini;
   for (const c of CORTES) if (c >= a && c < fim) { out.push([a, c]); a = dia(c, 1); }
@@ -40,8 +40,11 @@ export function valores(r, dados) {
     out.fonteR = nomeCurto(dados.postos.find((p) => p.id === mr.data.postoId)?.data.nome);
   }
   if (pv) {
-    out.aren = isFinite(T) ? arenParaJornada(pv.data.arep || pv.data.arenLaudo, T) : NaN;
-    out.vdv = isFinite(T) ? vdvrParaJornada(pv.data.vdvrLaudo, T, pv.data.jornadaLaudo || 8) : NaN;
+    // arep = aceleração do período amostrado → A(T) = arep·√(T/8); sem arep, o aren do laudo já está
+    // normalizado para a jornada do laudo de origem: A(T) = aren·√(T/Tlaudo)
+    const tLaudoV = num(pv.data.jornadaVibracaoLaudo) || num(pv.data.jornadaLaudo) || 8;
+    out.aren = !isFinite(T) ? NaN : String(pv.data.arep || '').trim() ? arenParaJornada(pv.data.arep, T) : arenParaJornada(pv.data.arenLaudo, T * 8 / tLaudoV);
+    out.vdv = isFinite(T) ? vdvrParaJornada(pv.data.vdvrLaudo, T, num(pv.data.jornadaVibracaoLaudo) || num(pv.data.jornadaLaudo) || 8) : NaN;
     out.fonteV = `paradigma ${pv.data.codigo}`;
   } else if (mv) {
     out.aren = num(mv.data.aren); out.vdv = num(mv.data.vdv); // valores já normalizados para a exposição diária
@@ -70,8 +73,8 @@ export function avaliarPeriodos(dados) {
         const [crit, lim, cod] = b <= '1997-03-05' ? ['Lavg', 80, '1.1.6'] : b <= '2003-11-18' ? ['Lavg', 90, '2.0.1'] : ['NEN', 85, '2.0.1'];
         const x = crit === 'Lavg' ? val.lavg : val.nen;
         if (isFinite(x)) {
-          const sup = Math.round(x * 10) / 10 > lim;
-          itens.push({ t: `Ruído: ${crit} ${fmt(x, 2)} dB(A) ${sup ? '>' : '≤'} ${lim} dB(A) – ${sup ? 'supera' : 'não supera'}`, cod, sup, ruido: true });
+          const sup = superaLimite(x, lim);
+          itens.push({ t: `Ruído: ${crit} ${fmt(x, 1)} dB(A) ${sup ? '>' : '≤'} ${lim} dB(A) – ${sup ? 'supera' : 'não supera'}`, cod, sup, ruido: true });
           if (sup) algum = true;
         }
       }
@@ -110,6 +113,7 @@ export function conclusaoPrevidenciaria(d, dados, { tituloQuadro = 'Conclusão p
     const sim = segs.filter((s) => s.caracteriza === 'SIM');
     const nao = segs.filter((s) => s.caracteriza === 'NÃO');
     // subperíodos contíguos com o mesmo resultado viram um só intervalo no texto
+    const pl = (lst, um, varios) => (p(lst).includes(', ') ? varios : um);
     const p = (lst) => lst.reduce((acc, s) => {
       const u = acc[acc.length - 1];
       if (u && dia(u.fim, 1) === s.ini) u.fim = s.fim; else acc.push({ ini: s.ini, fim: s.fim });
@@ -120,15 +124,15 @@ export function conclusaoPrevidenciaria(d, dados, { tituloQuadro = 'Conclusão p
     const soCat = (s) => s.itens.filter((i) => i.sup).every((i) => i.categoria);
     const cat = sim.filter(soCat), agente = sim.filter((s) => !soCat(s));
     const cods = (l) => [...new Set(l.flatMap((s) => s.codigos.split('; ')))].join('; ');
-    if (cat.length) partes.push(`enquadra-se por categoria profissional, com presunção legal de exposição, no(s) período(s) de ${p(cat)} (cód. ${cods(cat)})`);
-    if (agente.length) partes.push(`caracteriza exposição habitual e permanente, não ocasional nem intermitente, a agentes nocivos no(s) período(s) de ${p(agente)} (cód. ${cods(agente)})`);
-    if (nao.length) partes.push(`não caracteriza no(s) período(s) de ${p(nao)}, em que os valores avaliados não superam os limites da época`);
+    if (cat.length) partes.push(`enquadra-se por categoria profissional, com presunção legal de exposição, ${pl(cat, 'no período', 'nos períodos')} de ${p(cat)} (cód. ${cods(cat)})`);
+    if (agente.length) partes.push(`caracteriza exposição habitual e permanente, não ocasional nem intermitente, a agentes nocivos ${pl(agente, 'no período', 'nos períodos')} de ${p(agente)} (cód. ${cods(agente)})`);
+    if (nao.length) partes.push(`não caracteriza ${pl(nao, 'no período', 'nos períodos')} de ${p(nao)}, em que os valores avaliados não superam os limites da época`);
     const base = [val.fonteR && `ruído pelo ${val.fonteR}`, val.fonteV && `vibração pelo ${val.fonteV}`, isFinite(val.T) && `condução de ${String(r.data.conducaoH).replace('.', ',')} h/dia`].filter(Boolean).join(', ');
     if (partes.length) d.texto(`**${r.data.empresa || 'Vínculo'} (${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}):** a avaliação pericial${base ? ` (${base})` : ''} ${partes.join('; e ')}.`);
     else d.redigir(`conclusão do vínculo ${r.data.empresa || ''} – sem valores avaliados vinculados a ele (vincule o veículo/posto ou o paradigma).`);
   }
   const ruidoSup = av.some(({ segs }) => segs.some((s) => s.itens.some((i) => i.ruido && i.sup)));
-  if (ruidoSup && !semEpi) d.texto('Quanto ao ruído, a eventual declaração de eficácia do EPI (protetor auricular) não descaracteriza o tempo especial (STF, Tema 555 – ARE 664.335).');
+  if (ruidoSup && !semEpi && comJurisprudencia(dados)) d.texto('Quanto ao ruído, a eventual declaração de eficácia do EPI (protetor auricular) não descaracteriza o tempo especial (STF, Tema 555 – ARE 664.335).');
   if (semEpi) d.texto('Não foram apresentados registros de fornecimento de EPI nem dos demais requisitos de responsabilidade do empregador (art. 291 da IN 128/2022); assim, não se considera neutralizada a exposição em nenhum dos períodos.');
 
   if (avaliaPenosidade(dados)) {

@@ -2,8 +2,12 @@
 
 export function num(v) {
   if (v === null || v === undefined) return NaN;
-  const s = String(v).trim().replace(/\s/g, '').replace(',', '.');
+  if (typeof v === 'number') return v;
+  let s = String(v).trim().replace(/\s/g, '');
   if (!s) return NaN;
+  // "1.234,5" → 1234.5; "1.234" (milhar) → 1234; "0,85" → 0.85
+  if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');
+  else if (/^-?\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '');
   return Number(s);
 }
 
@@ -18,8 +22,12 @@ export function minutos(v) {
   if (!s) return NaN;
   const m = s.match(/^(\d{1,2})\s*[:h]\s*(\d{1,2})/);
   if (m) return Number(m[1]) * 60 + Number(m[2]);
-  const h = num(s.replace('h', ''));
-  return isFinite(h) ? h * 60 : NaN;
+  const mi = s.match(/^(\d+(?:[.,]\d+)?)\s*(min|m)$/);
+  if (mi) return num(mi[1]);
+  const h = num(s.replace(/\s*h(oras?)?$/, ''));
+  if (!isFinite(h)) return NaN;
+  // número sem unidade acima de 24 só pode ser minutos (ex.: "480")
+  return h > 24 ? h : h * 60;
 }
 
 // NEN com q = 5 (NR-15): NEN = Lavg + 16,61 × log10(TE / 480)

@@ -84,8 +84,8 @@ describe('conclusão previdenciária calculada', () => {
       medicoes: [{ data: { agente: 'Ruído', lavg: '87,05', postoId: 'x1' } }, { data: { agente: 'Vibração de corpo inteiro (VCI)', aren: '1,26', vdv: '16,54', postoId: 'x1' } }] };
     const [a] = avaliarPeriodos(dados);
     expect(a.segs.map((s) => [s.ini, s.fim, s.caracteriza])).toEqual([['2003-09-01', '2003-11-18', 'SIM'], ['2003-11-19', '2008-04-15', 'SIM']]);
-    expect(a.segs[0].itens[0].t).toMatch(/Lavg 87,05 dB\(A\) ≤ 90/); // até 18/11/2003 o ruído não supera
-    expect(a.segs[1].itens[0].t).toMatch(/NEN 91,5\d dB\(A\) > 85/); // depois, NEN para 15 h supera
+    expect(a.segs[0].itens[0].t).toMatch(/Lavg 87,0 dB\(A\) ≤ 90/); // até 18/11/2003 o ruído não supera
+    expect(a.segs[1].itens[0].t).toMatch(/NEN 91,6 dB\(A\) > 85/); // depois, NEN para 15 h supera
     expect(a.segs[0].itens[1].t).toMatch(/acima da fronteira superior/);
   });
 });

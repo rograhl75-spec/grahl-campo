@@ -21,6 +21,8 @@ function contexto(dados) {
     biologico: tem(dados, /biol|lixo|esgoto|banheiro|sanit|hospital/i),
     epi: dados.epis.length > 0 || tem(dados, /ru[ií]do|qu[ií]m/i),
     paradigmas: dados.periodos.some((p) => p.data.paradigmaRuido || p.data.paradigmaVibracao) || dados.c.similaridade === 'Sim',
+    tratorista: /tratorist|operador de trator|operador de m[aá]quinas? agr[ií]col/i.test(`${dados.c.funcoes || ''} ${dados.periodos.map((p) => `${p.data.cargo || ''} ${p.data.atividades || ''}`).join(' ')}`)
+      && dados.periodos.some((p) => p.data.inicio && p.data.inicio <= '1995-04-28'),
     motorista: /motorista|caminh|carreteir|ônibus|onibus/i.test(`${dados.c.funcoes || ''} ${dados.periodos.map((p) => p.data.cargo || '').join(' ')}`),
     periculosidade: (dados.c.objeto || []).includes('Periculosidade'),
   };
@@ -32,6 +34,8 @@ const PREV = [
   { q: (x) => x.ruido, t: '**STJ, Tema 694:** entre 06/03/1997 e 18/11/2003 o limite do ruído é de 90 dB(A), sem aplicação retroativa do Decreto nº 4.882/2003.' },
   { q: (x) => x.ruido, t: '**STJ, Tema 1083 (REsp 1.886.795/RS, 18/11/2021):** com níveis variáveis, a especialidade por ruído se afere pelo NEN; ausente essa informação, adota-se o nível máximo (pico), desde que a perícia judicial comprove a habitualidade e a permanência da exposição.' },
   { q: (x) => x.ruido, t: '**TNU, Tema 317 (2025):** a simples menção a dose, dosímetro ou dosimetria no PPP não basta; o documento deve indicar a NHO-01 da FUNDACENTRO e/ou a NR-15 (em diálogo com o Tema 174 da TNU).' },
+  { q: (x) => x.ruido, t: '**TNU, Tema 174:** a partir de 19/11/2003, para a aferição do ruído contínuo ou intermitente, é obrigatória a utilização das metodologias da NHO-01 da FUNDACENTRO ou da NR-15, que reflitam a medição da exposição durante toda a jornada de trabalho, vedada a medição pontual, devendo constar do PPP a técnica utilizada e a respectiva norma.' },
+  { q: (x) => x.tratorista, t: '**TNU, Súmula 70:** a atividade de tratorista pode ser equiparada à de motorista de caminhão para fins de reconhecimento de atividade especial mediante enquadramento por categoria profissional (períodos até 28/04/1995).' },
   { q: (x) => x.calor, t: '**TNU, Tema 323 (2025):** calor – de 06/03/1997 a 18/11/2003, a taxa metabólica é dispensável no trabalho intermitente com descanso no próprio local e atividades da mesma categoria, e indispensável (média ponderada) nos demais casos; a partir de 01/01/2004 (facultativamente desde 19/11/2003), a NHO-06 é obrigatória, com a taxa metabólica no PPP ou no LTCAT.' },
   { q: (x) => x.calor, t: '**TNU, PEDILEF 0506002-13.2018.4.05.8312:** até a Portaria SEPRT nº 1.359/2019, admite-se o tempo especial por calor de fonte natural, se habitual e permanente e superados os limites do Anexo 3 da NR-15, com o IBUTG calculado para ambiente externo com carga solar.' },
   { q: () => true, t: '**TNU, Súmula 68:** o laudo pericial não contemporâneo ao período trabalhado é apto à comprovação da atividade especial do segurado.' },

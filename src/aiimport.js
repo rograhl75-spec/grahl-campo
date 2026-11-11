@@ -1,6 +1,37 @@
 import { db, createRecord, updateFields, caseChildren } from './db.js';
 import { ORIGEM_QUESITO, contextoLegal, ehSuplementar, FASE, CAMPOS_DILIGENCIA, CAMPOS_POSTO, AGENTES_MEDICAO } from './schema.js';
 import { resumoMedicao } from './medicoes.js';
+import { dataIso } from './migrate.js';
+
+// Origem do quesito por sinônimos (o Claude escreve "Reclamante", "Requerido", "Juiz"…); vazio = "Outro"
+export function origemQuesito(o) {
+  const t = String(o ?? '').trim().toLowerCase();
+  if (!t) return 'Outro';
+  if (/ju[ií]z|ju[ií]zo|magistrad/.test(t)) return 'Juízo';
+  if (/\binss\b|instituto nacional/.test(t)) return 'INSS';
+  if (/complementar|suplementar/.test(t)) return 'Complementares';
+  if (/autor|reclamante|requerente|segurad|exequente|embargante/.test(t)) return 'Autor / Reclamante';
+  if (/r[ée]u\b|r[ée]\b|reclamad|requerid|empresa|executad|embargad/.test(t)) return 'Réu / Reclamada';
+  return ORIGEM_QUESITO.find((x) => x.toLowerCase() === t) || 'Outro';
+}
+
+// Agente da medição por sinônimos
+export function agenteMedicao(a) {
+  const t = String(a ?? '').trim().toLowerCase();
+  if (/m[ãa]os|vmb|bra[cç]os/.test(t)) return 'Vibração de mãos e braços (VMB)';
+  if (/corpo|vci|vibra/.test(t)) return 'Vibração de corpo inteiro (VCI)';
+  if (/ru[ií]do|dosimetr|sonor/.test(t)) return 'Ruído';
+  if (/calor|ibutg|t[ée]rmic/.test(t)) return 'Calor (IBUTG)';
+  if (/qu[ií]mic|poeira|n[ée]voa|vapor|g[áa]s|fumo|s[íi]lica|benzeno|hidrocarbon|[óo]leo|graxa|agrot[óo]xic/.test(t)) return 'Agente químico';
+  return AGENTES_MEDICAO.find((x) => x.toLowerCase() === t) || 'Outro';
+}
+
+const CAMPOS_DATA_CASO = ['autorNascimento', 'dataAjuizamento', 'vistoriaData', 'dataDiligencia', 'laudoData', 'prazoLaudo', 'prazoManifestacao', 'prazoEsclarecimentos'];
+// a IA nunca faz o caso voltar de fase
+export function faseAvanca(atual, nova) {
+  const ia = FASE.indexOf(atual || 'A preparar'), in_ = FASE.indexOf(nova);
+  return in_ >= 0 && (ia < 0 || in_ > ia);
+}
 
 // ======================================================================
 // Biblioteca de instruções para o Claude, uma por situação.
@@ -182,7 +213,7 @@ export function lerJsonIA(texto) {
     const v = s((obj[grupo] || {})[k]);
     if (v) caso[k] = v;
   }
-  const origem = (o) => ORIGEM_QUESITO.find((x) => x.toLowerCase().startsWith(s(o).toLowerCase().slice(0, 4))) || 'Outro';
+  const origem = origemQuesito;
   const pegar = (o, ks) => Object.fromEntries(ks.map((k) => [k, s((o || {})[k])]).filter(([, v]) => v));
   const and = obj.andamento || {};
   for (const [k, v] of Object.entries(pegar(and, ['laudoRefPerito', 'laudoData', 'conclusaoLaudo', 'honorariosFixados', 'honorariosItem', 'dataDiligencia', 'horaDiligencia']))) caso[k] = v;
@@ -191,7 +222,7 @@ export function lerJsonIA(texto) {
   Object.assign(caso, pegar(obj.diligencia, [...CAMPOS_DILIGENCIA.map(([k]) => k).filter((k) => k !== 'vistoriaGps'), 'vistoriaCnpj']));
   if (caso.similaridade && !/^(sim|não|nao)$/i.test(caso.similaridade)) delete caso.similaridade;
   if (caso.similaridade) caso.similaridade = /^sim$/i.test(caso.similaridade) ? 'Sim' : 'Não';
-  const agenteOk = (a) => AGENTES_MEDICAO.find((x) => x.toLowerCase().slice(0, 12) === s(a).toLowerCase().slice(0, 12)) || 'Outro';
+  const agenteOk = agenteMedicao;
   const KS_MED = ['dataMedicao', 'horaInicio', 'horaFim', 'tempoAmostragem', 'jornada', 'dose', 'lavg', 'lmax', 'calibInicial', 'calibFinal', 'posicao',
     'tbn', 'tbs', 'tg', 'ibutgLido', 'atividade', 'regime', 'veiculo', 'aren', 'vdv', 'eixo', 'tempoExposicao', 'descricao', 'metodo', 'valor', 'unidade', 'limite'];
   const postos = lista(obj.postos).map((x) => ({
@@ -204,9 +235,10 @@ export function lerJsonIA(texto) {
       return r;
     }).filter((m) => Object.keys(m).length > 2),
   })).filter((p) => p.nome || p.medicoes.length);
+  for (const k of CAMPOS_DATA_CASO) if (caso[k]) { const iso = dataIso(caso[k]); if (iso) caso[k] = iso; else delete caso[k]; }
   return {
     caso,
-    periodos: lista(obj.periodos).map((x) => ({ empresa: s(x.empresa), cnpj: s(x.cnpj), inicio: s(x.inicio), fim: s(x.fim), cargo: s(x.cargo), setor: s(x.setor), atividades: s(x.atividades), agentes: s(x.agentes), fonte: s(x.fonte),
+    periodos: lista(obj.periodos).map((x) => ({ empresa: s(x.empresa), cnpj: s(x.cnpj), inicio: dataIso(s(x.inicio)) || s(x.inicio), fim: dataIso(s(x.fim)) || s(x.fim), cargo: s(x.cargo), setor: s(x.setor), atividades: s(x.atividades), agentes: s(x.agentes), fonte: s(x.fonte),
       ...Object.fromEntries(['tipoTransporte', 'jornadaSemanal', 'noturnoPernoite', 'cargaDescarga', 'vias', 'riscoAcidente', 'cabine', 'pausas', 'pressao', 'fisiologicas'].map((k) => [k, s(x[k])]).filter(([, val]) => val)) })),
     documentos: lista(obj.documentos).map((x) => ({ tipo: s(x.tipo), identificacao: s(x.identificacao), analise: s(x.analise) })),
     epis: lista(obj.epis).map((x) => ({ descricao: s(x.descricao), ca: s(x.ca), dataEntrega: s(x.dataEntrega), obs: s(x.obs) })),
@@ -466,7 +498,7 @@ export function lerJsonSuplementares(texto) {
     if ((para === 'laudoData' || para === 'prazoEsclarecimentos') && v && !/^\d{4}-\d{2}-\d{2}$/.test(v)) v = '';
     if (v) caso[para] = v;
   }
-  const origem = (o) => ORIGEM_QUESITO.find((x) => x.toLowerCase().startsWith(s(o).toLowerCase().slice(0, 4))) || 'Outro';
+  const origem = origemQuesito;
   const quesitos = (Array.isArray(obj.quesitos) ? obj.quesitos : []).filter((x) => x && typeof x === 'object')
     .map((x) => ({ origem: origem(x.origem), numero: s(x.numero), refPeticao: s(x.refPeticao), texto: s(x.texto), resposta: s(x.resposta) }))
     .filter((q) => q.texto);

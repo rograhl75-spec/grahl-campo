@@ -12,7 +12,9 @@ export function mergeRecords(a, b) {
   for (const k of keys) {
     const ta = (a.ts || {})[k] || 0;
     const tb = (b.ts || {})[k] || 0;
-    const src = tb > ta ? b : a;
+    // empate de relógio: desempate determinístico para que todos os aparelhos convirjam
+    const src = tb > ta ? b : ta > tb ? a
+      : (JSON.stringify((b.data || {})[k] ?? null) > JSON.stringify((a.data || {})[k] ?? null) ? b : a);
     const t = Math.max(ta, tb);
     if (k in (src.data || {})) data[k] = src.data[k];
     else if (k in (a.data || {})) data[k] = a.data[k];

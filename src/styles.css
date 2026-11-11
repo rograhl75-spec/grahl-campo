@@ -288,3 +288,5 @@ table.tabela small { color: var(--suave); }
 .faixa.nv-acao { background: #FDF0D5; color: #8A5A0B; }
 .faixa.nv-acima { background: #FBE0E0; color: #9B1C1C; }
 .legenda-niveis { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 10px 0 0; }
+.agenda-item.vencido { border-color: #E59A9A; background: #FDECEC; }
+.agenda-item.vencido .agenda-data { background: #7F1D1D; }

@@ -1,5 +1,6 @@
 import { db, mergeIncoming, createRecord, updateFields } from './db.js';
 import { normalize, mergeRecords, sameContent } from './merge.js';
+import { num as numBR } from './calc.js';
 
 // ======================================================================
 // Banco de paradigmas (veículos e máquinas medidos), similares e famílias.
@@ -139,8 +140,10 @@ export async function guardarAnexo(file, descricao = '', caseId = null) {
 
 // ---------- Busca por similaridade ----------
 export function tokensModelo(t) {
-  return norm(t).replace(/([a-z])(\d)/g, '$1 $2').replace(/(\d)([a-z])/g, '$1 $2').split(' ')
-    .filter((x) => x && !/^(19|20)\d\d$/.test(x) && !['serie', 'series', 'de', 'e'].includes(x));
+  // ano só quando vem entre parênteses ou depois de "/" ou "ano" (ex.: "(2008)", "2007/2008"); "Axor 2035" é modelo
+  const semAno = String(t || '').replace(/\(\s*(?:19|20)\d\d\s*(?:[+–-]\s*(?:(?:19|20)\d\d)?)?\s*\)|\b(?:19|20)\d\d\s*\+|\b(?:19|20)\d\d\s*\/\s*(?:19|20)\d\d\b|\bano\s*(?:19|20)\d\d\b/gi, ' ');
+  return norm(semAno).replace(/([a-z])(\d)/g, '$1 $2').replace(/(\d)([a-z])/g, '$1 $2').split(' ')
+    .filter((x) => x && !['serie', 'series', 'de', 'e'].includes(x));
 }
 export function melhorSimilar(sims, marca, modelo) {
   const mt = tokensModelo(modelo);
@@ -185,7 +188,7 @@ export async function sugerirParadigmas({ marca = '', modelo = '', tipo = '', fa
   if (resultado.familia) {
     const fam = ativos.filter((p) => p.data.familia === resultado.familia);
     const ordem = (p) => (/não usar/i.test(p.data.situacao) ? 3 : /^ok$/i.test(p.data.situacao) ? 0 : 1);
-    fam.sort((a, b) => ordem(a) - ordem(b) || String(b.data.dataMedicao).localeCompare(String(a.data.dataMedicao)));
+    fam.sort((a, b) => ordem(a) - ordem(b) || ((dataBRparaDate(b.data.dataMedicao) || 0) - (dataBRparaDate(a.data.dataMedicao) || 0)));
     for (const p of fam) {
       if (/não usar/i.test(p.data.situacao)) continue;
       if (p.data.lavg && !resultado.ruido.some((x) => x.p.id === p.id)) resultado.ruido.push({ p, papel: 'mesma família' });
@@ -229,7 +232,7 @@ export async function promoverMedicao(caso, medicao, equipamento) {
 }
 
 // ---------- Cálculos (Manual de Aposentadoria Especial do INSS; NHO-09) ----------
-export const num = (t) => { const x = Number(String(t ?? '').replace(',', '.').replace(/[^\d.-]/g, '')); return String(t ?? '').trim() === '' ? NaN : x; };
+export const num = (t) => numBR(String(t ?? '').replace(/[^\d.,-]/g, ''));
 export function nenParaJornada(lavg, T) { return num(lavg) + 16.61 * Math.log10(num(T) / 8); }
 export function arenParaJornada(arep, T) { return num(arep) * Math.sqrt(num(T) / 8); }
 export function vdvrParaJornada(vdvr, T, Tlaudo) { return num(vdvr) * Math.pow(num(T) / num(Tlaudo), 0.25); }

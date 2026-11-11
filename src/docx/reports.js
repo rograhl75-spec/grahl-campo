@@ -3,7 +3,7 @@ import { p, run } from './ooxml.js';
 import {
   Doc, carregar, finalizar, dataBR, menosCincoAnos, partes, credencial, papelAssinatura, equipamentosUsados, quadroEquipamentos,
   quadroDiligencia, quadroPeriodos, quadroEpis, quadroDocumentos, quadroCriteriosRuido, subperiodosRuido, quadroMedicoesRuido,
-  quadroMedicoesGenerico, medicoesPorAgente, nomePostoFn, profissiografia, figurasDoCaso, capaTecnica, blocoAssinatura,
+  quadroMedicoesGenerico, medicoesPorAgente, nomePostoFn, profissiografia, figurasDoCaso, capaTecnica, blocoAssinatura, prefixoQuesito, nomeOrigemQuesito,
 } from './base.js';
 import {
   laudoPericial, laudoPrevidenciario, ltcatPpp, parecerPrevidenciario, parecerAssistente, parecerPreventivo, peticaoIndicacaoAT, peticaoAgendamento, peticaoHonorarios, peticaoMajoracao, peticaoAceiteArbitrados, peticaoPagamento, respostaQuesitosSuplementares,
@@ -78,8 +78,8 @@ export async function gerarPreRelatorio(caseId) {
     const lista = dados.quesitos.filter((q) => !ehSuplementar(q) && (q.data.origem || 'Outro') === origem);
     if (!lista.length) continue;
     n += 1;
-    d.h2(`7.${n}`, `Quesitos – ${origem}`);
-    for (const q of lista) d.add(p([run(`${q.data.numero || '•'}) `, { b: true }), run(q.data.texto || '')], { after: 100 }));
+    d.h2(`7.${n}`, `Quesitos ${nomeOrigemQuesito(origem, c)}`);
+    for (const q of lista) d.add(p([run(prefixoQuesito(q) || (q.data.numero ? '' : '• '), { b: true }), run(q.data.texto || '')], { after: 100 }));
   }
   if (!n) d.texto(ehExtra(c) ? 'Não se aplica (perícia extrajudicial).' : '[[Quesitos não cadastrados.]]');
 
@@ -93,7 +93,7 @@ export async function gerarPreRelatorio(caseId) {
     d.h2('8.3', 'Estrutura prevista do LTCAT e campos do PPP');
     d.texto('O LTCAT seguirá os elementos do art. 276 da IN 128/2022, com sumário e formatação ABNT, e o PPP será emitido por subperíodo, com código GFIP 04 quando houver enquadramento.');
   }
-  if (c.observacoes) { d.h2('8.4', 'Observações'); d.texto(c.observacoes); }
+  if (c.observacoes) { d.h2(ehExtra(c) ? '8.4' : '8.3', 'Observações'); d.texto(c.observacoes); }
   void credencial; void papelAssinatura;
   return finalizar(d, { titulo: 'Pré-relatório', arquivo: 'Pre-relatorio', c });
 }
@@ -126,7 +126,7 @@ export async function gerarRegistroDiligencia(caseId) {
   if (resp.length) {
     d.h1('5', 'Anotações de campo sobre os quesitos', { novaPagina: false });
     for (const q of resp) {
-      d.add(p([run(`${q.data.origem || ''} – ${q.data.numero || ''}) `, { b: true }), run(q.data.texto || '', { i: true })], { after: 40 }));
+      d.add(p([run(`Quesitos ${nomeOrigemQuesito(q.data.origem, c)} – ${prefixoQuesito(q)}`, { b: true }), run(q.data.texto || '', { i: true })], { after: 40 }));
       d.add(p(q.data.resposta, { left: 709 }));
     }
   }

@@ -13,6 +13,28 @@ import { useLive } from './hooks.js';
 
 const ABAS = [['meus-dados', 'Meus dados'], ['nuvem', 'Nuvem'], ['backup', 'Backup'], ['antigo', 'App antigo'], ['equipamentos', 'Equipamentos'], ['lixeira', 'Lixeira'], ['aparelho', 'Este aparelho']];
 
+// Validade da calibração: a data informada em "Próxima calibração" ou, na falta dela, 12 meses (prática dos laboratórios RBC)
+export function situacaoCalibracao(d) {
+  if (!d.dataCalibracao && !d.proximaCalibracao) return '';
+  let lim = d.proximaCalibracao;
+  if (!lim) { const x = new Date(`${d.dataCalibracao}T12:00:00`); x.setMonth(x.getMonth() + 12); lim = `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`; }
+  const h = new Date(); const hoje = `${h.getFullYear()}-${String(h.getMonth() + 1).padStart(2, '0')}-${String(h.getDate()).padStart(2, '0')}`;
+  return lim < hoje ? `⚠ calibração vencida desde ${dataBR(lim)}` : '';
+}
+
+function AlertaCalibracao() {
+  const lista = useLive(async () => (await db.records.where('kind').equals('equip').toArray()).filter((r) => !r.deleted), [], []);
+  const venc = lista.map((r) => [r, situacaoCalibracao(r.data)]).filter(([, x]) => x);
+  if (!venc.length) return null;
+  return (
+    <div class="evidencias alerta" role="status">
+      <b>Calibração a conferir antes da próxima medição:</b>
+      {venc.map(([r, x]) => <span>{r.data.nome} {r.data.modelo} – {x.replace('⚠ ', '')}</span>)}
+      <small>Sem "Próxima calibração" preenchida, o app considera 12 meses a partir da data do certificado. Atualize o certificado ou informe a validade.</small>
+    </div>
+  );
+}
+
 export function Config({ aba }) {
   return (
     <div class="pagina">
@@ -23,8 +45,9 @@ export function Config({ aba }) {
       {aba === 'antigo' && <Antigo />}
       {aba === 'equipamentos' && (
         <div class="grade"><div class="largo">
+          <AlertaCalibracao />
           <RecordList kind="equip" caseId={null} campos={CAMPOS_EQUIP} titulo="Equipamentos e certificados" novo="Adicionar equipamento"
-            resumo={(r) => [r.data.nome, r.data.modelo, r.data.serie && `série ${r.data.serie}`, r.data.dataCalibracao && `cal. ${dataBR(r.data.dataCalibracao)}`].filter(Boolean).join(' · ')} />
+            resumo={(r) => [r.data.nome, r.data.modelo, r.data.serie && `série ${r.data.serie}`, r.data.dataCalibracao && `cal. ${dataBR(r.data.dataCalibracao)}`, situacaoCalibracao(r.data)].filter(Boolean).join(' · ')} />
         </div></div>
       )}
       {aba === 'lixeira' && <Lixeira />}

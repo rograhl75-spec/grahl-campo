@@ -1,5 +1,5 @@
 {
- "versao": "2026-11-12",
+ "versao": "2026-11-13",
  "descricao": "Base inicial de agentes químicos – fontes abertas; conferir antes de usar em laudo",
  "agentes": [
   {
@@ -82,13 +82,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.7 – CARVÃO MINERAL E SEUS DERIVADOS (por família – conferir a atividade listada no código); 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.7 – CARVÃO MINERAL E SEUS DERIVADOS (por família – conferir a atividade listada no código); 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.7 – CARVÃO MINERAL E SEUS DERIVADOS (por família – conferir a atividade listada no código); 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.7 – CARVÃO MINERAL E SEUS DERIVADOS (por família – conferir a atividade listada no código); 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "querosene",
@@ -170,13 +170,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "solvente-stoddard",
@@ -260,13 +260,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "glifosato",
@@ -340,13 +340,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (por família – conferir a atividade listada no código)\nDec. 83.080/1979: 1.2.6 – FÓSFORO (por família – conferir a atividade listada no código)\nDec. 2.172/1997: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "2-4-d",
@@ -427,13 +427,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "paraquat-dicloreto",
@@ -514,13 +514,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (por família – conferir a atividade listada no código)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "clorpirifos",
@@ -600,13 +600,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (por família – conferir a atividade listada no código)\nDec. 83.080/1979: 1.2.6 – FÓSFORO\nDec. 2.172/1997: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS"
   },
   {
    "id": "mancozebe",
@@ -680,13 +680,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.14 – MANGANÊS E SEUS COMPOSTOS\nDec. 3.048/1999: 1.0.14 – MANGANÊS E SEUS COMPOSTOS"
+   "codDecretos": "Dec. 53.831/1964: 1.2.7 – MANGANÊS (por família – conferir a atividade listada no código); 1.2.11 – TÓXICOS ORGÂNICOS (por família – conferir a atividade listada no código)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO (pela classe química do código – conferir); 1.2.7 – MANGANÊS (por família – conferir a atividade listada no código)\nDec. 2.172/1997: 1.0.14 – MANGANÊS E SEUS COMPOSTOS\nDec. 3.048/1999: 1.0.14 – MANGANÊS E SEUS COMPOSTOS"
   },
   {
    "id": "atrazina",
@@ -766,13 +766,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (por família – conferir a atividade listada no código)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "malationa",
@@ -853,13 +853,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (por família – conferir a atividade listada no código)\nDec. 83.080/1979: 1.2.6 – FÓSFORO\nDec. 2.172/1997: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS"
   },
   {
    "id": "carbofurano",
@@ -939,13 +939,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (por família – conferir a atividade listada no código)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO (pela classe química do código – conferir)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "cipermetrina",
@@ -1019,13 +1019,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO (por família – conferir a atividade listada no código)\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "acefato",
@@ -1099,13 +1099,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (por família – conferir a atividade listada no código)\nDec. 83.080/1979: 1.2.6 – FÓSFORO\nDec. 2.172/1997: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.12 – FÓSFORO E SEUS COMPOSTOS TÓXICOS"
   },
   {
    "id": "tolueno",
@@ -1193,13 +1193,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO; 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "xilenos",
@@ -1289,13 +1289,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO; 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "acetona",
@@ -1383,13 +1383,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "metiletilcetona",
@@ -1478,13 +1478,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "acetato-de-etila",
@@ -1571,13 +1571,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "acetato-de-n-butila",
@@ -1658,13 +1658,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "n-hexano",
@@ -1745,13 +1745,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS; 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS; 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS; 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS; 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "hdi",
@@ -1833,13 +1833,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (por família – conferir a atividade listada no código)\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "dioxido-de-titanio",
@@ -1919,13 +1919,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.9 – OUTROS TÓXICOS INORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "tgic",
@@ -2000,13 +2000,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (por família – conferir a atividade listada no código)\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "cromo-vi-compostos",
@@ -2085,13 +2085,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.10 – CROMO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.10 – CROMO E SEUS COMPOSTOS TÓXICOS"
+   "codDecretos": "Dec. 53.831/1964: 1.2.5 – CROMO\nDec. 83.080/1979: 1.2.5 – CROMO; 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (pela classe química do código – conferir)\nDec. 2.172/1997: 1.0.10 – CROMO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.10 – CROMO E SEUS COMPOSTOS TÓXICOS"
   },
   {
    "id": "chumbo",
@@ -2178,13 +2178,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.8 – CHUMBO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.8 – CHUMBO E SEUS COMPOSTOS TÓXICOS"
+   "codDecretos": "Dec. 53.831/1964: 1.2.4 – CHUMBO\nDec. 83.080/1979: 1.2.4 – CHUMBO\nDec. 2.172/1997: 1.0.8 – CHUMBO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.8 – CHUMBO E SEUS COMPOSTOS TÓXICOS"
   },
   {
    "id": "manganes-fumos",
@@ -2265,13 +2265,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.14 – MANGANÊS E SEUS COMPOSTOS\nDec. 3.048/1999: 1.0.14 – MANGANÊS E SEUS COMPOSTOS"
+   "codDecretos": "Dec. 53.831/1964: 1.2.7 – MANGANÊS\nDec. 83.080/1979: 1.2.7 – MANGANÊS; 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (pela classe química do código – conferir)\nDec. 2.172/1997: 1.0.14 – MANGANÊS E SEUS COMPOSTOS\nDec. 3.048/1999: 1.0.14 – MANGANÊS E SEUS COMPOSTOS"
   },
   {
    "id": "oxido-de-ferro-fumos",
@@ -2352,13 +2352,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.9 – OUTROS TÓXICOS INORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (pela classe química do código – conferir)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "oxido-de-zinco-fumos",
@@ -2439,13 +2439,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.9 – OUTROS TÓXICOS INORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (pela classe química do código – conferir)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "niquel",
@@ -2526,13 +2526,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.16 – NÍQUEL E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.16 – NÍQUEL E SEUS COMPOSTOS TÓXICOS"
+   "codDecretos": "Dec. 53.831/1964: 1.2.9 – OUTROS TÓXICOS INORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (pela classe química do código – conferir)\nDec. 2.172/1997: 1.0.16 – NÍQUEL E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.16 – NÍQUEL E SEUS COMPOSTOS TÓXICOS"
   },
   {
    "id": "monoxido-de-carbono",
@@ -2619,13 +2619,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: sem código específico\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "dioxido-de-nitrogenio",
@@ -2712,13 +2712,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: sem código específico\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "ozonio",
@@ -2806,13 +2806,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: sem código específico\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "cadmio",
@@ -2894,13 +2894,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.6 – CÁDMIO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.6 – CÁDMIO E SEUS COMPOSTOS TÓXICOS"
+   "codDecretos": "Dec. 53.831/1964: 1.2.3 – CÁDMIO\nDec. 83.080/1979: 1.2.3 – CÁDMIO\nDec. 2.172/1997: 1.0.6 – CÁDMIO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.6 – CÁDMIO E SEUS COMPOSTOS TÓXICOS"
   },
   {
    "id": "oleo-diesel",
@@ -2983,13 +2983,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "gasolina",
@@ -3069,13 +3069,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.3 – BENZENO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código); 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.3 – BENZENO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código); 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS\nDec. 83.080/1979: 1.2.4 – CHUMBO (por família – conferir a atividade listada no código)\nDec. 2.172/1997: 1.0.3 – BENZENO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código); 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.3 – BENZENO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código); 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "etanol",
@@ -3163,13 +3163,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "metanol",
@@ -3257,13 +3257,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "benzeno",
@@ -3343,13 +3343,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.3 – BENZENO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.3 – BENZENO E SEUS COMPOSTOS TÓXICOS"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO\nDec. 2.172/1997: 1.0.3 – BENZENO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.3 – BENZENO E SEUS COMPOSTOS TÓXICOS"
   },
   {
    "id": "mercurio",
@@ -3437,13 +3437,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.15 – MERCÚRIO E SEUS COMPOSTOS\nDec. 3.048/1999: 1.0.15 – MERCÚRIO E SEUS COMPOSTOS"
+   "codDecretos": "Dec. 53.831/1964: 1.2.8 – MERCÚRIO\nDec. 83.080/1979: 1.2.8 – MERCÚRIO\nDec. 2.172/1997: 1.0.15 – MERCÚRIO E SEUS COMPOSTOS\nDec. 3.048/1999: 1.0.15 – MERCÚRIO E SEUS COMPOSTOS"
   },
   {
    "id": "glutaraldeido",
@@ -3524,13 +3524,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "formaldeido",
@@ -3617,13 +3617,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "metacrilato-de-metila",
@@ -3710,13 +3710,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "oxido-nitroso",
@@ -3798,13 +3798,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: sem código específico\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "peroxido-de-hidrogenio",
@@ -3885,13 +3885,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: sem código específico\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "hipoclorito-de-sodio",
@@ -3966,13 +3966,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico (o título do código 1.0.9 (cloro) abrange os compostos, mas nenhuma atividade listada corresponde – avaliar o caso)\nDec. 3.048/1999: sem código específico (o título do código 1.0.9 (cloro) abrange os compostos, mas nenhuma atividade listada corresponde – avaliar o caso)"
+   "codDecretos": "Dec. 53.831/1964: 1.2.9 – OUTROS TÓXICOS INORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico (o título do código 1.0.9 (cloro) abrange os compostos, mas nenhuma atividade listada corresponde – avaliar o caso)\nDec. 3.048/1999: sem código específico (o título do código 1.0.9 (cloro) abrange os compostos, mas nenhuma atividade listada corresponde – avaliar o caso)"
   },
   {
    "id": "acido-fosforico",
@@ -4053,13 +4053,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico (o título do código 1.0.12 (fósforo) abrange os compostos, mas nenhuma atividade listada corresponde – avaliar o caso)\nDec. 3.048/1999: sem código específico (o título do código 1.0.12 (fósforo) abrange os compostos, mas nenhuma atividade listada corresponde – avaliar o caso)"
+   "codDecretos": "Dec. 53.831/1964: 1.2.9 – OUTROS TÓXICOS INORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico (o título do código 1.0.12 (fósforo) abrange os compostos, mas nenhuma atividade listada corresponde – avaliar o caso)\nDec. 3.048/1999: sem código específico (o título do código 1.0.12 (fósforo) abrange os compostos, mas nenhuma atividade listada corresponde – avaliar o caso)"
   },
   {
    "id": "mdi",
@@ -4141,13 +4141,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (por família – conferir a atividade listada no código)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "tdi",
@@ -4234,13 +4234,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (por família – conferir a atividade listada no código)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS"
   },
   {
    "id": "ciclopentano",
@@ -4320,13 +4320,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "hcfc-141b",
@@ -4401,13 +4401,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO (por família – conferir a atividade listada no código)\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "trietilenodiamina",
@@ -4484,13 +4484,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "etilenoglicol",
@@ -4572,13 +4572,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "dietilenoglicol",
@@ -4653,13 +4653,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "propilenoglicol",
@@ -4734,13 +4734,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "amianto",
@@ -4821,13 +4821,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.2 – ASBESTOS\nDec. 3.048/1999: 1.0.2 – ASBESTOS"
+   "codDecretos": "Dec. 53.831/1964: 1.2.10 – POEIRAS MINERAIS NOCIVAS\nDec. 83.080/1979: 1.2.12 – SÍLICA, SILICATOS, CARVÃO, CIMENTO E AMIANTO\nDec. 2.172/1997: 1.0.2 – ASBESTOS\nDec. 3.048/1999: 1.0.2 – ASBESTOS"
   },
   {
    "id": "acido-sulfurico",
@@ -4908,13 +4908,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
+   "codDecretos": "Dec. 53.831/1964: 1.2.9 – OUTROS TÓXICOS INORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico"
   },
   {
    "id": "tricloroetileno",
@@ -5001,13 +5001,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)"
   },
   {
    "id": "diclorometano",
@@ -5094,13 +5094,13 @@
     },
     {
      "campos": "códigos nos decretos previdenciários",
-     "referencia": "BRASIL. Decreto nº 2.172/1997, Anexo IV (publicação original, Senado Federal – legis.senado.leg.br/norma/395734) e Decreto nº 3.048/1999, Anexo IV (texto atualizado, Câmara dos Deputados – Legin). Decretos nº 53.831/1964 (quadro anexo) e 83.080/1979 (Anexo I) não conferidos: anexos indisponíveis na consulta.",
+     "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo (cópia digitalizada do DOU fornecida pelo usuário); Decreto nº 83.080/1979, Anexo I (reprodução do IEPREV); Decretos nº 2.172/1997 e 3.048/1999, Anexo IV (textos do Senado Federal e da Câmara dos Deputados).",
      "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html",
      "consultadoEm": "2026-11-11"
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: [[conferir no quadro anexo]]\nDec. 83.080/1979: [[conferir no Anexo I]]\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)"
+   "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO (por família – conferir a atividade listada no código)\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)"
   }
  ]
 }

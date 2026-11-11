@@ -754,7 +754,7 @@ export function quadroFormaEnquadramento(d) {
     ['29/04/1995 a 13/10/1996', 'Agente nocivo', 'Formulário; laudo para ruído', 'Exigida', 'Não considerados'],
     ['14/10/1996 a 02/12/1998', 'Agente nocivo', 'Formulário com base em LTCAT ou PPP', 'Exigida', 'EPC informado; EPI não considerado'],
     ['03/12/1998 a 31/12/2003', 'Agente nocivo', 'Formulário com base em LTCAT ou PPP', 'Exigida', 'EPC e EPI considerados (art. 291)'],
-    ['A partir de 01/01/2004', 'Agente nocivo', 'PPP com base em LTCAT', 'Exigida', 'EPC e EPI considerados; NHO obrigatórias (art. 289)']],
+    ['A partir de 01/01/2004', 'Agente nocivo', 'PPP com base em LTCAT', 'Exigida', 'EPC e EPI considerados; NHO exigidas nas avaliações realizadas a partir de 01/01/2004 (art. 289, parágrafo único)']],
   { larguras: [0.2, 0.18, 0.24, 0.14, 0.24], tam: 9, fonte: 'Elaborado pelo autor com base em Brasil (2022, arts. 274, 285, 286, 289 e 291).' });
 }
 

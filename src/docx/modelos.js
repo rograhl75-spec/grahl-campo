@@ -344,7 +344,7 @@ export async function laudoPrevidenciario(caseId) {
   d.h2('2.1', 'Determinação judicial (objeto da perícia)');
   if (textoDeterminacao(dados, true)) d.texto(textoDeterminacao(dados, true)); else d.redigir('transcrever ou resumir o despacho que determinou a perícia (evento / mov.) – cadastre a referência do despacho na etapa 1.');
   d.h2('2.2', 'Metodologia');
-  d.texto('Em atendimento ao art. 473, inciso III, do Código de Processo Civil, a metodologia consistiu em análise dos autos, inspeção *in loco* e avaliações ambientais, seguindo as NHO da FUNDACENTRO e os limites de tolerância do Anexo IV do Regulamento da Previdência Social ou, na sua falta, da NR-15, quando o decreto a ela remete (art. 288 da IN 128/2022).');
+  d.texto('Em atendimento ao art. 473, inciso III, do Código de Processo Civil, a metodologia consistiu em análise dos autos, inspeção *in loco* e avaliações ambientais, seguindo as NHO da FUNDACENTRO e os limites de tolerância do Anexo IV do Regulamento da Previdência Social ou, na sua ausência, da NR-15 (art. 288, I e II, da IN 128/2022); a NR-15 é aplicada quando o decreto do período a ela remete.');
   d.texto(textoTipoPericia(dados));
   // Res. CJF 305/2014, art. 30-A (incluído pela Res. CJF 575/2019): perícia por similaridade como prova emprestada
   if (periciaIndireta(dados) && fundamentoCJF(c)) d.texto(`Nos termos do art. 30-A da Resolução CJF nº 305/2014, incluído pela Resolução CJF nº 575/2019, a perícia indireta por similaridade realizada em empresa paradigma${v(c.empresaOriginal) ? ` da empresa encerrada (${c.empresaOriginal})` : ' da empresa encerrada'}, do mesmo ramo de atividade, pode ser utilizada como prova emprestada nos demais processos, ainda que não sejam da mesma vara da Subseção Judiciária ou Comarca.`);
@@ -369,7 +369,7 @@ export async function laudoPrevidenciario(caseId) {
   secaoPenosidade(d, dados, { numero: `5.${n5 + 1}`, tipo: 'laudo' });
 
   d.h1('6', 'Medidas de controle');
-  d.texto('Considera-se o EPC que elimina ou neutraliza a nocividade (art. 290 da IN 128/2022). O EPI só é considerado em demonstrações ambientais a partir de 03/12/1998, quando elimina ou neutraliza a nocividade, observa a NR-6, consta do PPP e atende, cumulativamente, aos requisitos do art. 291 da IN 128/2022.');
+  d.texto('Considera-se adotado o EPC que elimina ou neutraliza a nocividade, desde que asseguradas as condições de funcionamento ao longo do tempo, conforme especificação técnica do fabricante e plano de manutenção, devidamente registradas pela empresa (art. 290 da IN 128/2022). O EPI só é considerado em demonstrações ambientais a partir de 03/12/1998, quando elimina ou neutraliza a nocividade, observa a NR-6, consta do PPP e atende, cumulativamente, aos requisitos do art. 291 da IN 128/2022.');
   quadroEpis(d, dados.epis);
   quadroRequisitosEpi(d, dados);
   if (dados.epis.length) d.redigir('análise dos requisitos do art. 291 por período.');
@@ -432,7 +432,7 @@ export async function ltcatPpp(caseId) {
   d.h2('2.1', 'Objeto e natureza');
   d.texto(`Este laudo avalia a exposição de ${seg} a agentes nocivos nas atividades exercidas na ${emp}, nos períodos do item 1.3, para fundamentar o PPP (Anexo A). [[Avaliação individual / extemporânea / por similaridade – ajustar.]]`);
   d.h2('2.2', 'Diligência');
-  d.texto('O laudo individual exige autorização escrita da empresa, identificação do acompanhante designado e registro da data e do local da avaliação (art. 277, IV, da IN 128/2022).');
+  d.texto('O laudo individual deve ser acompanhado de autorização escrita da empresa para efetuar o levantamento e do nome e identificação do acompanhante da empresa, quando o responsável técnico não for seu empregado, e da data e do local da realização da perícia (art. 277, IV, *a* a *c*, da IN 128/2022).');
   quadroDiligencia(d, c);
   d.h2('2.3', 'Declarações');
   d.redigir('autorização da diligência e declarações do responsável legal / ex-sócio, com assinaturas.');
@@ -461,7 +461,7 @@ export async function ltcatPpp(caseId) {
   d.h2('5.1', 'Critérios gerais');
   d.texto('As avaliações seguem as NHO da FUNDACENTRO e os limites de tolerância do Anexo IV do RPS ou, na falta destes, da NR-15 (art. 288 da IN 128/2022), com as normas vigentes na data da avaliação (art. 289). A caracterização considera a exposição acima dos limites de tolerância, por critério quantitativo ou qualitativo (art. 287). As atividades do Anexo IV do RPS são exaustivas, ressalvadas as relacionadas exclusivamente a agentes químicos, que são exemplificativas, observada a relação obrigatória com os agentes do Anexo IV (art. 287, § 4º).');
   d.h2('5.2', 'Medidas de controle');
-  d.texto('Considera-se adotado o EPC que elimina ou neutraliza a nocividade (art. 290 da IN 128/2022). O EPI só é considerado em demonstrações ambientais a partir de 03/12/1998, quando elimina ou neutraliza a nocividade, observa a NR-6, consta do PPP e atende, cumulativamente, aos requisitos do art. 291 da IN 128/2022.');
+  d.texto('Considera-se adotado o EPC que elimina ou neutraliza a nocividade, desde que asseguradas as condições de funcionamento ao longo do tempo, conforme especificação técnica do fabricante e plano de manutenção, devidamente registradas pela empresa (art. 290 da IN 128/2022). O EPI só é considerado em demonstrações ambientais a partir de 03/12/1998, quando elimina ou neutraliza a nocividade, observa a NR-6, consta do PPP e atende, cumulativamente, aos requisitos do art. 291 da IN 128/2022.');
   quadroEpis(d, dados.epis);
   quadroRequisitosEpi(d, dados);
   let ini5 = 2;
@@ -484,7 +484,7 @@ export async function ltcatPpp(caseId) {
     ['I – se individual ou coletivo', '2.1'], ['II – identificação da empresa', '1.1'], ['III – identificação do setor e da função', '1.3 e 4'],
     ['IV – descrição da atividade', '4'], ['V – agente prejudicial arrolado na legislação previdenciária', '5'], ['VI – localização das possíveis fontes geradoras', '4 (registro de cada posto)'],
     ['VII – via e periodicidade de exposição', '4 (registro de cada posto)'], ['VIII – metodologia e procedimentos de avaliação', '5.1'], ['IX – medidas de controle existentes', '5.2'],
-    ['X – conclusão', '6'], ['XI – assinatura e identificação do responsável técnico', 'Encerramento'], ['XII – data da avaliação ambiental', '2.2']],
+    ['X – conclusão', '6'], ['XI – assinatura e identificação do médico do trabalho ou engenheiro de segurança do trabalho', 'Encerramento'], ['XII – data da avaliação ambiental', '2.2']],
   { larguras: [0.65, 0.35], tam: 9, alinhar: 'left', fonte: 'Elaborado pelo autor com base em Brasil (2022, art. 276).' });
   if (!dados.postos.some((x) => v(x.data.fontes)) || !dados.postos.some((x) => v(x.data.viaPeriodicidade))) {
     d.texto('[[Preencher, em cada posto da etapa 4. Campo, as fontes geradoras e a via e periodicidade da exposição (art. 276, VI e VII).]]');

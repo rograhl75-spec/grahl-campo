@@ -293,11 +293,19 @@ Cada citação do app foi conferida contra o texto oficial: gov.br (NRs e portar
 - **Novo:** art. 30-A da Res. CJF 305/2014 (prova emprestada) no laudo previdenciário por similaridade na Justiça Federal.
 
 ### Não conferido (fontes inacessíveis nesta sessão)
-- **IN PRES/INSS 128/2022:** todos os artigos citados (in.gov.br recusou a conexão). Também a data de corte de 01/01/2004, que depende dela, e o quadro "Forma de enquadramento".
 - **ISO 2631-1:** a cópia recebida é a prévia pública, sem o Anexo B. A zona de cautela passou a ser lida pela **Nota Técnica ASPEJUDI nº 001/2013** (Figura B.1 da ISO 2631-1:1997/Amd 1:2010): para 8 h, de 0,43 a 0,86 m/s². Por decisão do perito, a fronteira superior passou de 0,9 para **0,86 m/s²**, aplicada ao aren de todos os eixos (NHO-09), com a nota citada no laudo e nas referências. O VDV de 17 m/s^1,75 foi mantido e não foi conferido.
 - **NBR 14725:2023:** conferida. Pelo item 5.3.2.2.2.5, pH ≤ 2 ou ≥ 11,5 classifica a substância ou mistura como corrosiva à pele (Categoria 1), salvo se a reserva ácida ou alcalina indicar o contrário. A citação do app foi detalhada.
 
 ### Conferido depois, com documentos enviados pelo usuário
+- **IN PRES/INSS 128/2022 (texto original, DOU de 29/03/2022, fornecido pelo usuário):** os 28 trechos citados pelo app conferem quanto ao artigo citado; 6 foram ajustados:
+  - art. 277, IV: autorização da empresa e acompanhante da empresa, quando o responsável técnico não for seu empregado;
+  - art. 290: o EPC só é considerado com funcionamento assegurado ao longo do tempo, conforme especificação do fabricante e plano de manutenção registrados pela empresa;
+  - art. 289, parágrafo único: as NHO são exigidas nas **avaliações** realizadas a partir de 01/01/2004;
+  - art. 276, XI: assinatura do médico do trabalho ou do engenheiro de segurança do trabalho;
+  - art. 277, parágrafo único, III a V: "equipamento ou setor similar";
+  - art. 288, I e II: texto separado da ressalva do perito.
+  Também foi incluído na instrução do Claude que o art. 296, I, trata o cód. 1.1.5 como critério quantitativo (120 golpes/min). Não foram verificadas alterações posteriores da IN, porque a cópia recebida não é consolidada.
+- **ISO 2631-1, VDV:** a monografia de Lisi e Vasquez (USP, 2008) não traz valores de VDV para a zona de cautela; os 17 m/s^1,75 seguem não conferidos.
 - **LINACH (Portaria Interministerial nº 9/2014, DOU de 08/10/2014):**
   - os 12 grupos da base conferem pelo CAS ou pelo nome;
   - foram acrescentadas observações nas fichas com as entradas relacionadas: óleos minerais não tratados ou pouco tratados (1), exaustão de motor diesel (1), pintor como ocupação (1), inseticidas não arsenicais na aplicação (2A), fumos de solda (2B), compostos de chumbo (2A) e de níquel (1);

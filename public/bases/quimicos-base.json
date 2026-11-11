@@ -1,0 +1,4429 @@
+{
+ "versao": "2026-11-11",
+ "descricao": "Base inicial de agentes químicos – fontes abertas; conferir antes de usar em laudo",
+ "agentes": [
+  {
+   "id": "oleo-mineral-nevoa",
+   "nome": "Óleo mineral (névoa)",
+   "sinonimos": [
+    "Névoa de óleo mineral",
+    "Oil mist (mineral)",
+    "Óleo de corte"
+   ],
+   "cas": "8012-95-1",
+   "grupos": [
+    "Óleos e graxas"
+   ],
+   "tipo": "mistura",
+   "formula": "",
+   "massaMolar": "",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "confirmação do CAS",
+     "referencia": "PubChem Substance, SID 176259087 (CAS registrado como sinônimo; sem registro em PubChem Compound)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/substance/176259087",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entradas relacionadas (não atribuídas ao agente): 'Óleos minerais (não tratados ou pouco tratados)' – Grupo 1"
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista. Entradas relacionadas (não atribuídas ao agente): 'Mineral oils, untreated or mildly treated' – Grupo 1; 'Mineral oils, highly-refined' – Grupo 3"
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "querosene",
+   "nome": "Querosene",
+   "sinonimos": [
+    "Kerosene",
+    "Querosene de iluminação"
+   ],
+   "cas": "8008-20-6",
+   "grupos": [
+    "Óleos e graxas",
+    "Mecânica de veículos e máquinas"
+   ],
+   "tipo": "mistura",
+   "formula": "",
+   "massaMolar": "",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "confirmação do CAS",
+     "referencia": "PubChem Substance, SID 135356845 (CAS registrado como sinônimo; sem registro em PubChem Compound)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/substance/135356845",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "solvente-stoddard",
+   "nome": "Nafta / solvente Stoddard (aguarrás mineral)",
+   "sinonimos": [
+    "Aguarrás mineral",
+    "Stoddard solvent",
+    "White spirit",
+    "Nafta mineral"
+   ],
+   "cas": "8052-41-3",
+   "grupos": [
+    "Óleos e graxas",
+    "Mecânica de veículos e máquinas"
+   ],
+   "tipo": "mistura",
+   "formula": "",
+   "massaMolar": "",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "confirmação do CAS",
+     "referencia": "PubChem Substance, SID 373826743 (CAS registrado como sinônimo; sem registro em PubChem Compound)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/substance/373826743",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "glifosato",
+   "nome": "Glifosato",
+   "sinonimos": [
+    "Glyphosate"
+   ],
+   "cas": "1071-83-6",
+   "grupos": [
+    "Defensivos agrícolas"
+   ],
+   "tipo": "substância",
+   "formula": "C3H8NO5P",
+   "massaMolar": "169.07 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "Grupo 2A",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 3496 (Glyphosate)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/3496",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entrada usada: 'Glyphosate'."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "2-4-d",
+   "nome": "2,4-D",
+   "sinonimos": [
+    "Ácido 2,4-diclorofenoxiacético",
+    "2,4-Dichlorophenoxyacetic acid"
+   ],
+   "cas": "94-75-7",
+   "grupos": [
+    "Defensivos agrícolas"
+   ],
+   "tipo": "substância",
+   "formula": "C8H6Cl2O3",
+   "massaMolar": "221.03 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "Grupo 2B",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 1486 ((2,4-Dichlorophenoxy)Acetic Acid)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/1486",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entradas relacionadas (não atribuídas ao agente): 'Herbicidas clorofenoxi' – Grupo 2B"
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entrada usada: '2,4-D (2,4-dichlorophenoxyacetic acid) (See also Chlorophenoxy herbicides)'."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "paraquat-dicloreto",
+   "nome": "Paraquat (dicloreto)",
+   "sinonimos": [
+    "Dicloreto de paraquat",
+    "Paraquat dichloride"
+   ],
+   "cas": "1910-42-5",
+   "grupos": [
+    "Defensivos agrícolas"
+   ],
+   "tipo": "substância",
+   "formula": "C12H14Cl2N2",
+   "massaMolar": "257.16 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 15938 (Paraquat dichloride)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/15938",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "clorpirifos",
+   "nome": "Clorpirifós",
+   "sinonimos": [
+    "Chlorpyrifos"
+   ],
+   "cas": "2921-88-2",
+   "grupos": [
+    "Defensivos agrícolas"
+   ],
+   "tipo": "substância",
+   "formula": "C9H11Cl3NO3PS",
+   "massaMolar": "350.6 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 2730 (Chlorpyrifos)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/2730",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entradas relacionadas (não atribuídas ao agente): 'Inseticidas não arsenicais (exposição ocupacional na pulverização e aplicação)' – Grupo 2A"
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "mancozebe",
+   "nome": "Mancozebe",
+   "sinonimos": [
+    "Mancozeb"
+   ],
+   "cas": "8018-01-7",
+   "grupos": [
+    "Defensivos agrícolas"
+   ],
+   "tipo": "substância",
+   "formula": "C8H12MnN4S8Zn",
+   "massaMolar": "541.1 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 3034368 (Mancozeb)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/3034368",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "atrazina",
+   "nome": "Atrazina",
+   "sinonimos": [
+    "Atrazine"
+   ],
+   "cas": "1912-24-9",
+   "grupos": [
+    "Defensivos agrícolas"
+   ],
+   "tipo": "substância",
+   "formula": "C8H14ClN5",
+   "massaMolar": "215.68 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "Grupo 2A",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 2256 (Atrazine)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/2256",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entrada usada: 'Atrazine'."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "malationa",
+   "nome": "Malationa",
+   "sinonimos": [
+    "Malation",
+    "Malathion"
+   ],
+   "cas": "121-75-5",
+   "grupos": [
+    "Defensivos agrícolas"
+   ],
+   "tipo": "substância",
+   "formula": "C10H19O6PS2",
+   "massaMolar": "330.4 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "Grupo 2A",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 4004 (Malathion)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/4004",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entradas relacionadas (não atribuídas ao agente): 'Inseticidas não arsenicais (exposição ocupacional na pulverização e aplicação)' – Grupo 2A"
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entrada usada: 'Malathion'."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "carbofurano",
+   "nome": "Carbofurano",
+   "sinonimos": [
+    "Carbofuran"
+   ],
+   "cas": "1563-66-2",
+   "grupos": [
+    "Defensivos agrícolas"
+   ],
+   "tipo": "substância",
+   "formula": "C12H15NO3",
+   "massaMolar": "221.25 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 2566 (Carbofuran)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/2566",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entradas relacionadas (não atribuídas ao agente): 'Inseticidas não arsenicais (exposição ocupacional na pulverização e aplicação)' – Grupo 2A"
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "cipermetrina",
+   "nome": "Cipermetrina",
+   "sinonimos": [
+    "Cypermethrin"
+   ],
+   "cas": "52315-07-8",
+   "grupos": [
+    "Defensivos agrícolas"
+   ],
+   "tipo": "substância",
+   "formula": "C22H19Cl2NO3",
+   "massaMolar": "416.3 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 2912 (Cypermethrin)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/2912",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entradas relacionadas (não atribuídas ao agente): 'Inseticidas não arsenicais (exposição ocupacional na pulverização e aplicação)' – Grupo 2A"
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "acefato",
+   "nome": "Acefato",
+   "sinonimos": [
+    "Acephate"
+   ],
+   "cas": "30560-19-1",
+   "grupos": [
+    "Defensivos agrícolas"
+   ],
+   "tipo": "substância",
+   "formula": "C4H10NO3PS",
+   "massaMolar": "183.17 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 1982 (Acephate)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/1982",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entradas relacionadas (não atribuídas ao agente): 'Inseticidas não arsenicais (exposição ocupacional na pulverização e aplicação)' – Grupo 2A"
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "tolueno",
+   "nome": "Tolueno",
+   "sinonimos": [
+    "Toluol",
+    "Metilbenzeno",
+    "Toluene"
+   ],
+   "cas": "108-88-3",
+   "grupos": [
+    "Tintas e solventes"
+   ],
+   "tipo": "substância",
+   "formula": "C7H8",
+   "massaMolar": "92.14 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": {
+     "ppm": "78",
+     "mgm3": "290",
+     "grau": "médio",
+     "pele": true,
+     "teto": false
+    },
+    "observacao": "Linha do Quadro n.º 1: 'Tolueno (toluol)'."
+   },
+   "linach": "",
+   "iarc": "Grupo 3",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 1140 (Toluene)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/1140",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entrada usada: 'Toluene'."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "xilenos",
+   "nome": "Xilenos (mistura de isômeros)",
+   "sinonimos": [
+    "Xileno",
+    "Xilol",
+    "Xylenes",
+    "Dimetilbenzeno"
+   ],
+   "cas": "1330-20-7",
+   "grupos": [
+    "Tintas e solventes"
+   ],
+   "tipo": "mistura",
+   "formula": "",
+   "massaMolar": "",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": {
+     "ppm": "78",
+     "mgm3": "340",
+     "grau": "médio",
+     "pele": true,
+     "teto": false
+    },
+    "observacao": "Linha do Quadro n.º 1: 'Xileno (xilol)'."
+   },
+   "linach": "",
+   "iarc": "Grupo 3",
+   "fontes": [
+    {
+     "campos": "confirmação do CAS",
+     "referencia": "PubChem Substance, SID 17389685 (CAS registrado como sinônimo; sem registro em PubChem Compound)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/substance/17389685",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards",
+     "url": "https://www.cdc.gov/niosh/npg/npgdcas.html",
+     "consultadoEm": "2026-11-11",
+     "nota": "O NIOSH Pocket Guide não tem página para a mistura; há páginas separadas para o-xileno (npgd0668), m-xileno (npgd0669) e p-xileno (npgd0670)."
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entrada usada: 'Xylenes'."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "acetona",
+   "nome": "Acetona",
+   "sinonimos": [
+    "Propanona",
+    "Dimetilcetona",
+    "Acetone"
+   ],
+   "cas": "67-64-1",
+   "grupos": [
+    "Tintas e solventes"
+   ],
+   "tipo": "substância",
+   "formula": "C3H6O",
+   "massaMolar": "58.08 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": {
+     "ppm": "780",
+     "mgm3": "1870",
+     "grau": "mínimo",
+     "pele": false,
+     "teto": false
+    },
+    "observacao": "Linha do Quadro n.º 1: 'Acetona'."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 180 (Acetone)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/180",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "metiletilcetona",
+   "nome": "Metiletilcetona (MEK)",
+   "sinonimos": [
+    "Butanona",
+    "2-Butanona",
+    "MEK",
+    "Methyl ethyl ketone"
+   ],
+   "cas": "78-93-3",
+   "grupos": [
+    "Tintas e solventes"
+   ],
+   "tipo": "substância",
+   "formula": "C4H8O",
+   "massaMolar": "72.11 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": {
+     "ppm": "155",
+     "mgm3": "460",
+     "grau": "médio",
+     "pele": false,
+     "teto": false
+    },
+    "observacao": "Linha do Quadro n.º 1: 'metil etil cetona'."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 6569 (Methyl Ethyl Ketone)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/6569",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "acetato-de-etila",
+   "nome": "Acetato de etila",
+   "sinonimos": [
+    "Etanoato de etila",
+    "Ethyl acetate"
+   ],
+   "cas": "141-78-6",
+   "grupos": [
+    "Tintas e solventes"
+   ],
+   "tipo": "substância",
+   "formula": "C4H8O2",
+   "massaMolar": "88.11 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": {
+     "ppm": "310",
+     "mgm3": "1090",
+     "grau": "mínimo",
+     "pele": false,
+     "teto": false
+    },
+    "observacao": "Linha do Quadro n.º 1: 'Acetato de etila'."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 8857 (Ethyl Acetate)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/8857",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "acetato-de-n-butila",
+   "nome": "Acetato de n-butila",
+   "sinonimos": [
+    "Acetato de butila",
+    "n-Butyl acetate"
+   ],
+   "cas": "123-86-4",
+   "grupos": [
+    "Tintas e solventes"
+   ],
+   "tipo": "substância",
+   "formula": "C6H12O2",
+   "massaMolar": "116.16 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 31272 (Butyl Acetate)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/31272",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "n-hexano",
+   "nome": "n-Hexano",
+   "sinonimos": [
+    "Hexano",
+    "n-Hexane"
+   ],
+   "cas": "110-54-3",
+   "grupos": [
+    "Tintas e solventes"
+   ],
+   "tipo": "substância",
+   "formula": "C6H14",
+   "massaMolar": "86.18 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 8058 (Hexane)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/8058",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "hdi",
+   "nome": "HDI (hexametileno diisocianato)",
+   "sinonimos": [
+    "Diisocianato de hexametileno",
+    "1,6-Hexametileno diisocianato",
+    "Hexamethylene diisocyanate"
+   ],
+   "cas": "822-06-0",
+   "grupos": [
+    "Tintas e solventes"
+   ],
+   "tipo": "substância",
+   "formula": "C8H12N2O2",
+   "massaMolar": "168.19 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 13192 (Hexamethylene diisocyanate)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/13192",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "dioxido-de-titanio",
+   "nome": "Dióxido de titânio",
+   "sinonimos": [
+    "Titanium dioxide",
+    "TiO2"
+   ],
+   "cas": "13463-67-7",
+   "grupos": [
+    "Tintas e solventes"
+   ],
+   "tipo": "substância",
+   "formula": "O2Ti",
+   "massaMolar": "79.866 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "Grupo 2B",
+   "iarc": "Grupo 2B",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 26042 (Titanium dioxide)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/26042",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entrada usada: 'Titanium dioxide'."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "tgic",
+   "nome": "TGIC (isocianurato de triglicidila)",
+   "sinonimos": [
+    "Triglicidil isocianurato",
+    "Triglycidyl isocyanurate"
+   ],
+   "cas": "2451-62-9",
+   "grupos": [
+    "Tintas e solventes"
+   ],
+   "tipo": "substância",
+   "formula": "C12H15N3O6",
+   "massaMolar": "297.26 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 17142 (Triglycidyl isocyanurate)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/17142",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "cromo-vi-compostos",
+   "nome": "Cromo VI – compostos",
+   "sinonimos": [
+    "Cromo hexavalente",
+    "Cromato de zinco",
+    "Ácido crômico e cromatos",
+    "Chromium(VI) compounds"
+   ],
+   "cas": "",
+   "grupos": [
+    "Tintas e solventes",
+    "Fumos de soldagem"
+   ],
+   "tipo": "grupo/fumos",
+   "formula": "",
+   "massaMolar": "",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "O Quadro n.º 1 não tem entrada genérica para compostos de cromo VI; consta 'Ácido crômico (névoa)' (ver PDF)."
+   },
+   "linach": "Grupo 1",
+   "iarc": "Grupo 1",
+   "fontes": [
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entradas relacionadas (não atribuídas ao agente): 'Fumos de solda' – Grupo 2B"
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entrada usada: 'Chromium (VI) compounds'. Entradas relacionadas (não atribuídas ao agente): 'Welding fumes' – Grupo 1"
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "chumbo",
+   "nome": "Chumbo",
+   "sinonimos": [
+    "Lead",
+    "Pb"
+   ],
+   "cas": "7439-92-1",
+   "grupos": [
+    "Tintas e solventes"
+   ],
+   "tipo": "substância",
+   "formula": "Pb",
+   "massaMolar": "207 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": {
+     "ppm": "",
+     "mgm3": "0,1",
+     "grau": "máximo",
+     "pele": false,
+     "teto": false
+    },
+    "observacao": "Linha do Quadro n.º 1: 'Chumbo'."
+   },
+   "linach": "Grupo 2B",
+   "iarc": "Grupo 2B",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 5352425 (Lead)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/5352425",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entradas relacionadas (não atribuídas ao agente): 'Chumbo inorgânico, compostos de' – Grupo 2A"
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entrada usada: 'Lead'. Entradas relacionadas (não atribuídas ao agente): 'Lead compounds, inorganic' – Grupo 2A"
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "manganes-fumos",
+   "nome": "Manganês (fumos)",
+   "sinonimos": [
+    "Fumos de manganês",
+    "Manganese fume"
+   ],
+   "cas": "7439-96-5",
+   "grupos": [
+    "Fumos de soldagem"
+   ],
+   "tipo": "grupo/fumos",
+   "formula": "Mn",
+   "massaMolar": "54.93804 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 23930 (Manganese)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/23930",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entradas relacionadas (não atribuídas ao agente): 'Fumos de solda' – Grupo 2B"
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista. Entradas relacionadas (não atribuídas ao agente): 'Welding fumes' – Grupo 1"
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "oxido-de-ferro-fumos",
+   "nome": "Óxido de ferro (fumos)",
+   "sinonimos": [
+    "Fumos de óxido de ferro",
+    "Iron oxide fume"
+   ],
+   "cas": "1309-37-1",
+   "grupos": [
+    "Fumos de soldagem"
+   ],
+   "tipo": "grupo/fumos",
+   "formula": "Fe2O3",
+   "massaMolar": "159.69 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "Grupo 3",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 518696 (Iron oxide (Fe2O3))",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/518696",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entradas relacionadas (não atribuídas ao agente): 'Fumos de solda' – Grupo 2B"
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entrada usada: 'Ferric oxide'. Entradas relacionadas (não atribuídas ao agente): 'Welding fumes' – Grupo 1"
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "oxido-de-zinco-fumos",
+   "nome": "Óxido de zinco (fumos)",
+   "sinonimos": [
+    "Fumos de óxido de zinco",
+    "Zinc oxide fume"
+   ],
+   "cas": "1314-13-2",
+   "grupos": [
+    "Fumos de soldagem"
+   ],
+   "tipo": "grupo/fumos",
+   "formula": "OZn",
+   "massaMolar": "81.4 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 3007857 (Zinc Oxide)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/3007857",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entradas relacionadas (não atribuídas ao agente): 'Fumos de solda' – Grupo 2B"
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista. Entradas relacionadas (não atribuídas ao agente): 'Welding fumes' – Grupo 1"
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "niquel",
+   "nome": "Níquel (metal e compostos)",
+   "sinonimos": [
+    "Nickel",
+    "Ni"
+   ],
+   "cas": "7440-02-0",
+   "grupos": [
+    "Fumos de soldagem"
+   ],
+   "tipo": "substância",
+   "formula": "Ni",
+   "massaMolar": "58.693 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "Grupo 2B",
+   "iarc": "Grupo 2B",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 935 (Nickel)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/935",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entradas relacionadas (não atribuídas ao agente): 'Compostos de níquel' – Grupo 1; 'Fumos de solda' – Grupo 2B"
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entrada usada: 'Nickel, metallic'. Entradas relacionadas (não atribuídas ao agente): 'Nickel compounds' – Grupo 1; 'Welding fumes' – Grupo 1"
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "monoxido-de-carbono",
+   "nome": "Monóxido de carbono",
+   "sinonimos": [
+    "CO",
+    "Carbon monoxide"
+   ],
+   "cas": "630-08-0",
+   "grupos": [
+    "Fumos de soldagem"
+   ],
+   "tipo": "substância",
+   "formula": "CO",
+   "massaMolar": "28.010 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": {
+     "ppm": "39",
+     "mgm3": "43",
+     "grau": "máximo",
+     "pele": false,
+     "teto": false
+    },
+    "observacao": "Linha do Quadro n.º 1: 'Monóxido de carbono'."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 281 (Carbon Monoxide)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/281",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "dioxido-de-nitrogenio",
+   "nome": "Dióxido de nitrogênio",
+   "sinonimos": [
+    "NO2",
+    "Nitrogen dioxide"
+   ],
+   "cas": "10102-44-0",
+   "grupos": [
+    "Fumos de soldagem"
+   ],
+   "tipo": "substância",
+   "formula": "NO2",
+   "massaMolar": "46.006 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": {
+     "ppm": "4",
+     "mgm3": "7",
+     "grau": "máximo",
+     "pele": false,
+     "teto": true
+    },
+    "observacao": "Linha do Quadro n.º 1: 'Dióxido de nitrogênio'."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 3032552 (Nitrogen Dioxide)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/3032552",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "ozonio",
+   "nome": "Ozônio",
+   "sinonimos": [
+    "Ozona",
+    "O3",
+    "Ozone"
+   ],
+   "cas": "10028-15-6",
+   "grupos": [
+    "Fumos de soldagem"
+   ],
+   "tipo": "substância",
+   "formula": "O3",
+   "massaMolar": "47.998 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": {
+     "ppm": "0,08",
+     "mgm3": "0,16",
+     "grau": "máximo",
+     "pele": false,
+     "teto": false
+    },
+    "observacao": "Linha do Quadro n.º 1: 'Ozona'."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 24823 (Ozone)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/24823",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "cadmio",
+   "nome": "Cádmio",
+   "sinonimos": [
+    "Cadmium",
+    "Cd"
+   ],
+   "cas": "7440-43-9",
+   "grupos": [
+    "Fumos de soldagem"
+   ],
+   "tipo": "substância",
+   "formula": "Cd",
+   "massaMolar": "112.41 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "Grupo 1",
+   "iarc": "Grupo 1",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 23973 (Cadmium)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/23973",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards",
+     "url": "https://www.cdc.gov/niosh/npg/npgdcas.html",
+     "consultadoEm": "2026-11-11",
+     "nota": "Página usada: 'Cadmium dust (as Cd)'. O NIOSH tem página própria para 'Cadmium fume (as Cd)' (npgd0088, CAS 1306-19-0 CdO)."
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entradas relacionadas (não atribuídas ao agente): 'Fumos de solda' – Grupo 2B"
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entrada usada: 'Cadmium and cadmium compounds'. Entradas relacionadas (não atribuídas ao agente): 'Welding fumes' – Grupo 1"
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "oleo-diesel",
+   "nome": "Óleo diesel",
+   "sinonimos": [
+    "Diesel",
+    "Diesel fuel",
+    "Gasóleo"
+   ],
+   "cas": "68334-30-5",
+   "grupos": [
+    "Combustíveis"
+   ],
+   "tipo": "mistura",
+   "formula": "",
+   "massaMolar": "",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "confirmação do CAS",
+     "referencia": "PubChem Substance, SID 135359572 (CAS registrado como sinônimo; sem registro em PubChem Compound)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/substance/135359572",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "bloco niosh",
+     "referencia": "NIOSH Pocket Guide to Chemical Hazards",
+     "url": "https://www.cdc.gov/niosh/npg/npgdcas.html",
+     "consultadoEm": "2026-11-11",
+     "nota": "O NIOSH Pocket Guide não tem página para óleo diesel."
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entradas relacionadas (não atribuídas ao agente): 'Exaustão do motor diesel' – Grupo 1; 'Óleo diesel marítimo' – Grupo 2B"
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista. Entradas relacionadas (não atribuídas ao agente): 'Diesel fuels, distillate (light)' – Grupo 3; 'Diesel fuel, marine' – Grupo 2B; 'Engine exhaust, diesel' – Grupo 1"
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "gasolina",
+   "nome": "Gasolina",
+   "sinonimos": [
+    "Gasoline",
+    "Petrol"
+   ],
+   "cas": "8006-61-9",
+   "grupos": [
+    "Combustíveis"
+   ],
+   "tipo": "mistura",
+   "formula": "",
+   "massaMolar": "",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "Grupo 2B",
+   "iarc": "Grupo 1",
+   "fontes": [
+    {
+     "campos": "confirmação do CAS",
+     "referencia": "PubChem Substance, SID 423980 (CAS registrado como sinônimo; sem registro em PubChem Compound)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/substance/423980",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entrada usada: 'Automotive gasoline (see also Gasoline engine exhaust, and Aviation gasoline)'."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "etanol",
+   "nome": "Etanol",
+   "sinonimos": [
+    "Álcool etílico",
+    "Ethanol",
+    "Ethyl alcohol"
+   ],
+   "cas": "64-17-5",
+   "grupos": [
+    "Combustíveis"
+   ],
+   "tipo": "substância",
+   "formula": "C2H6O",
+   "massaMolar": "46.07 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": {
+     "ppm": "780",
+     "mgm3": "1480",
+     "grau": "mínimo",
+     "pele": false,
+     "teto": false
+    },
+    "observacao": "Linha do Quadro n.º 1: 'Álcool etílico'."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 702 (Ethanol)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/702",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entradas relacionadas (não atribuídas ao agente): 'Etanol em bebidas alcoólicas' – Grupo 1"
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista. Entradas relacionadas (não atribuídas ao agente): 'Ethanol in alcoholic beverages' – Grupo 1"
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "metanol",
+   "nome": "Metanol",
+   "sinonimos": [
+    "Álcool metílico",
+    "Methanol",
+    "Methyl alcohol"
+   ],
+   "cas": "67-56-1",
+   "grupos": [
+    "Combustíveis"
+   ],
+   "tipo": "substância",
+   "formula": "CH4O",
+   "massaMolar": "32.042 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": {
+     "ppm": "156",
+     "mgm3": "200",
+     "grau": "máximo",
+     "pele": true,
+     "teto": false
+    },
+    "observacao": "Linha do Quadro n.º 1: 'Álcool metílico'."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 887 (Methanol)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/887",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "benzeno",
+   "nome": "Benzeno",
+   "sinonimos": [
+    "Benzol",
+    "Benzene"
+   ],
+   "cas": "71-43-2",
+   "grupos": [
+    "Combustíveis"
+   ],
+   "tipo": "substância",
+   "formula": "C6H6",
+   "massaMolar": "78.11 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Quadro n.º 1: Benzeno (Excluído pela Portaria n.º 03, de 10 de março de 1994)"
+   },
+   "linach": "Grupo 1",
+   "iarc": "Grupo 1",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 241 (Benzene)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/241",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entrada usada: 'Benzene'."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "mercurio",
+   "nome": "Mercúrio (elementar)",
+   "sinonimos": [
+    "Mercúrio metálico",
+    "Mercury",
+    "Hg"
+   ],
+   "cas": "7439-97-6",
+   "grupos": [
+    "Odontológicos"
+   ],
+   "tipo": "substância",
+   "formula": "Hg",
+   "massaMolar": "200.59 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": {
+     "ppm": "",
+     "mgm3": "0,04",
+     "grau": "máximo",
+     "pele": false,
+     "teto": false
+    },
+    "observacao": "Linha do Quadro n.º 1: 'Mercúrio (todas as formas exceto orgânicas)'."
+   },
+   "linach": "",
+   "iarc": "Grupo 3",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 23931 (Mercury)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/23931",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entrada usada: 'Mercury and inorganic mercury compounds'."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "glutaraldeido",
+   "nome": "Glutaraldeído",
+   "sinonimos": [
+    "Glutaral",
+    "Glutaraldehyde"
+   ],
+   "cas": "111-30-8",
+   "grupos": [
+    "Odontológicos"
+   ],
+   "tipo": "substância",
+   "formula": "C5H8O2",
+   "massaMolar": "100.12 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 3485 (Glutaraldehyde)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/3485",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "formaldeido",
+   "nome": "Formaldeído",
+   "sinonimos": [
+    "Formol",
+    "Aldeído fórmico",
+    "Formaldehyde"
+   ],
+   "cas": "50-00-0",
+   "grupos": [
+    "Odontológicos"
+   ],
+   "tipo": "substância",
+   "formula": "CH2O",
+   "massaMolar": "30.026 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": {
+     "ppm": "1,6",
+     "mgm3": "2,3",
+     "grau": "máximo",
+     "pele": false,
+     "teto": true
+    },
+    "observacao": "Linha do Quadro n.º 1: 'Formaldeído (formol)'."
+   },
+   "linach": "Grupo 1",
+   "iarc": "Grupo 1",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 712 (Formaldehyde)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/712",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entrada usada: 'Formaldehyde'."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "metacrilato-de-metila",
+   "nome": "Metacrilato de metila",
+   "sinonimos": [
+    "MMA",
+    "Methyl methacrylate"
+   ],
+   "cas": "80-62-6",
+   "grupos": [
+    "Odontológicos"
+   ],
+   "tipo": "substância",
+   "formula": "C5H8O2",
+   "massaMolar": "100.12 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": {
+     "ppm": "78",
+     "mgm3": "320",
+     "grau": "mínimo",
+     "pele": false,
+     "teto": false
+    },
+    "observacao": "Linha do Quadro n.º 1: 'Metacrilato de metila'."
+   },
+   "linach": "",
+   "iarc": "Grupo 3",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 6658 (Methyl Methacrylate)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/6658",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entrada usada: 'Methyl methacrylate'."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "oxido-nitroso",
+   "nome": "Óxido nitroso",
+   "sinonimos": [
+    "N2O",
+    "Gás hilariante",
+    "Nitrous oxide"
+   ],
+   "cas": "10024-97-2",
+   "grupos": [
+    "Odontológicos"
+   ],
+   "tipo": "substância",
+   "formula": "N2O",
+   "massaMolar": "44.013 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Quadro n.º 1: 'Asfixiante simples' (item 3 do Anexo 11: concentração mínima de oxigênio de 18% em volume)."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 948 (Nitrous Oxide)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/948",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "peroxido-de-hidrogenio",
+   "nome": "Peróxido de hidrogênio",
+   "sinonimos": [
+    "Água oxigenada",
+    "Hydrogen peroxide"
+   ],
+   "cas": "7722-84-1",
+   "grupos": [
+    "Odontológicos"
+   ],
+   "tipo": "substância",
+   "formula": "H2O2",
+   "massaMolar": "34.015 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "Grupo 3",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 784 (Hydrogen Peroxide)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/784",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entrada usada: 'Hydrogen peroxide'."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "hipoclorito-de-sodio",
+   "nome": "Hipoclorito de sódio",
+   "sinonimos": [
+    "Água sanitária",
+    "Sodium hypochlorite"
+   ],
+   "cas": "7681-52-9",
+   "grupos": [
+    "Odontológicos"
+   ],
+   "tipo": "substância",
+   "formula": "ClNaO",
+   "massaMolar": "74.44 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "Grupo 3",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 23665760 (Sodium Hypochlorite)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/23665760",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entrada usada: 'Hypochlorite salts'."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "acido-fosforico",
+   "nome": "Ácido fosfórico",
+   "sinonimos": [
+    "Ácido ortofosfórico",
+    "Phosphoric acid"
+   ],
+   "cas": "7664-38-2",
+   "grupos": [
+    "Odontológicos"
+   ],
+   "tipo": "substância",
+   "formula": "H3O4P",
+   "massaMolar": "97.995 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 1004 (Phosphoric Acid)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/1004",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "mdi",
+   "nome": "MDI (difenilmetano diisocianato)",
+   "sinonimos": [
+    "4,4'-Difenilmetano diisocianato",
+    "Methylene bisphenyl isocyanate",
+    "Methylene diphenyl diisocyanate"
+   ],
+   "cas": "101-68-8",
+   "grupos": [
+    "Espuma de poliuretano"
+   ],
+   "tipo": "substância",
+   "formula": "C15H10N2O2",
+   "massaMolar": "250.25 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "Grupo 3",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 7570 (Diphenylmethane diisocyanate)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/7570",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entrada usada: '4,4'-Methylenediphenyl diisocyanate'."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "tdi",
+   "nome": "TDI (2,4-tolueno diisocianato)",
+   "sinonimos": [
+    "2,4-TDI",
+    "Diisocianato de tolueno",
+    "Toluene-2,4-diisocyanate"
+   ],
+   "cas": "584-84-9",
+   "grupos": [
+    "Espuma de poliuretano"
+   ],
+   "tipo": "substância",
+   "formula": "C9H6N2O2",
+   "massaMolar": "174.16 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": {
+     "ppm": "0,016",
+     "mgm3": "0,11",
+     "grau": "máximo",
+     "pele": false,
+     "teto": true
+    },
+    "observacao": "Linha do Quadro n.º 1: '2,4 Diisocianato de tolueno (TDI)'."
+   },
+   "linach": "Grupo 2B",
+   "iarc": "Grupo 2B",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 11443 (Toluene 2,4-Diisocyanate)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/11443",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entrada usada: 'Toluene diisocyanates'."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "ciclopentano",
+   "nome": "Ciclopentano",
+   "sinonimos": [
+    "Cyclopentane"
+   ],
+   "cas": "287-92-3",
+   "grupos": [
+    "Espuma de poliuretano"
+   ],
+   "tipo": "substância",
+   "formula": "C5H10",
+   "massaMolar": "70.13 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 9253 (Cyclopentane)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/9253",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "hcfc-141b",
+   "nome": "HCFC-141b (1,1-dicloro-1-fluoroetano)",
+   "sinonimos": [
+    "R-141b",
+    "1,1-Dichloro-1-fluoroethane"
+   ],
+   "cas": "1717-00-6",
+   "grupos": [
+    "Espuma de poliuretano"
+   ],
+   "tipo": "substância",
+   "formula": "C2H3Cl2F",
+   "massaMolar": "116.95 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 15586 (1,1-Dichloro-1-fluoroethane)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/15586",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "trietilenodiamina",
+   "nome": "Trietilenodiamina",
+   "sinonimos": [
+    "TEDA",
+    "DABCO",
+    "1,4-Diazabiciclo[2.2.2]octano",
+    "Triethylenediamine"
+   ],
+   "cas": "280-57-9",
+   "grupos": [
+    "Espuma de poliuretano"
+   ],
+   "tipo": "substância",
+   "formula": "C6H12N2",
+   "massaMolar": "112.17 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 9237 (Dabco)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/9237",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "etilenoglicol",
+   "nome": "Etilenoglicol",
+   "sinonimos": [
+    "Monoetilenoglicol",
+    "MEG",
+    "Ethylene glycol"
+   ],
+   "cas": "107-21-1",
+   "grupos": [
+    "Mecânica de veículos e máquinas"
+   ],
+   "tipo": "substância",
+   "formula": "C2H6O2",
+   "massaMolar": "62.07 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 174 (Ethylene Glycol)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/174",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "dietilenoglicol",
+   "nome": "Dietilenoglicol",
+   "sinonimos": [
+    "DEG",
+    "Diethylene glycol"
+   ],
+   "cas": "111-46-6",
+   "grupos": [
+    "Mecânica de veículos e máquinas"
+   ],
+   "tipo": "substância",
+   "formula": "C4H10O3",
+   "massaMolar": "106.12 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 8117 (Diethylene Glycol)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/8117",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "propilenoglicol",
+   "nome": "Propilenoglicol",
+   "sinonimos": [
+    "1,2-Propanodiol",
+    "Propylene glycol"
+   ],
+   "cas": "57-55-6",
+   "grupos": [
+    "Mecânica de veículos e máquinas"
+   ],
+   "tipo": "substância",
+   "formula": "C3H8O2",
+   "massaMolar": "76.09 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 1030 (Propylene Glycol)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/1030",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "amianto",
+   "nome": "Asbesto / amianto",
+   "sinonimos": [
+    "Amianto",
+    "Asbestos",
+    "Crisotila"
+   ],
+   "cas": "1332-21-4",
+   "grupos": [
+    "Mecânica de veículos e máquinas"
+   ],
+   "tipo": "grupo/fumos",
+   "formula": "",
+   "massaMolar": "",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "Grupo 1",
+   "iarc": "Grupo 1",
+   "fontes": [
+    {
+     "campos": "confirmação do CAS",
+     "referencia": "PubChem Substance, SID 47205738 (CAS registrado como sinônimo; sem registro em PubChem Compound)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/substance/47205738",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entrada usada: 'Asbestos (all forms, including actinolite, amosite, anthophyllite, chrysotile, crocidolite, tremolite)'."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "acido-sulfurico",
+   "nome": "Ácido sulfúrico",
+   "sinonimos": [
+    "Sulfuric acid",
+    "Óleo de vitríolo"
+   ],
+   "cas": "7664-93-9",
+   "grupos": [
+    "Mecânica de veículos e máquinas"
+   ],
+   "tipo": "substância",
+   "formula": "H2O4S",
+   "massaMolar": "98.08 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": null,
+    "observacao": "Não localizado no Quadro n.º 1 do Anexo 11 (busca pelo nome)."
+   },
+   "linach": "",
+   "iarc": "",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 1118 (Sulfuric Acid)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/1118",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista (busca pelo nome)."
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Agente não localizado na lista. Entradas relacionadas (não atribuídas ao agente): 'Acid mists, strong inorganic' – Grupo 1"
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "tricloroetileno",
+   "nome": "Tricloroetileno",
+   "sinonimos": [
+    "TCE",
+    "Tricloroeteno",
+    "Trichloroethylene"
+   ],
+   "cas": "79-01-6",
+   "grupos": [
+    "Mecânica de veículos e máquinas"
+   ],
+   "tipo": "substância",
+   "formula": "C2HCl3",
+   "massaMolar": "131.38 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": {
+     "ppm": "78",
+     "mgm3": "420",
+     "grau": "máximo",
+     "pele": false,
+     "teto": false
+    },
+    "observacao": "Linha do Quadro n.º 1: 'Tricloroetileno'."
+   },
+   "linach": "Grupo 1",
+   "iarc": "Grupo 1",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 6575 (Trichloroethylene)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/6575",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entrada usada: 'Trichloroethylene'."
+    }
+   ],
+   "situacao": "A conferir"
+  },
+  {
+   "id": "diclorometano",
+   "nome": "Diclorometano",
+   "sinonimos": [
+    "Cloreto de metileno",
+    "Methylene chloride",
+    "Dichloromethane"
+   ],
+   "cas": "75-09-2",
+   "grupos": [
+    "Mecânica de veículos e máquinas"
+   ],
+   "tipo": "substância",
+   "formula": "CH2Cl2",
+   "massaMolar": "84.93 g/mol",
+   "fisico": {
+    "estado": "",
+    "pontoEbulicao": "",
+    "pontoFusao": "",
+    "pressaoVapor": "",
+    "densidadeRelativa": "",
+    "densidadeVapor": "",
+    "solubilidadeAgua": "",
+    "pontoFulgor": "",
+    "lie": "",
+    "lse": "",
+    "autoignicao": "",
+    "limiarOdor": ""
+   },
+   "niosh": {
+    "rel": "",
+    "idlh": "",
+    "oshaPel": "",
+    "vias": "",
+    "orgaosAlvo": "",
+    "sintomas": "",
+    "metodos": "",
+    "url": ""
+   },
+   "nr15": {
+    "anexo11": {
+     "ppm": "156",
+     "mgm3": "560",
+     "grau": "máximo",
+     "pele": false,
+     "teto": false
+    },
+    "observacao": "Linha do Quadro n.º 1: 'Cloreto de metileno'."
+   },
+   "linach": "Grupo 2B",
+   "iarc": "Grupo 2A",
+   "fontes": [
+    {
+     "campos": "identificação (CAS), fórmula e massa molar",
+     "referencia": "PubChem, CID 6344 (Dichloromethane)",
+     "url": "https://pubchem.ncbi.nlm.nih.gov/compound/6344",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "nr15",
+     "referencia": "NR-15, Anexo n.º 11, Quadro n.º 1 (MTE)",
+     "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-15-anexo-11.pdf",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "linach",
+     "referencia": "Portaria Interministerial MTE/MS/MPS n.º 9, de 07/10/2014 (DOU 08/10/2014) – LINACH; texto reproduzido pelo CONASS",
+     "url": "https://www.conass.org.br/?p=3726",
+     "consultadoEm": "2026-11-11"
+    },
+    {
+     "campos": "iarc",
+     "referencia": "IARC Monographs – List of Classifications",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11",
+     "nota": "Entrada usada: 'Dichloromethane (Methylene chloride)'."
+    }
+   ],
+   "situacao": "A conferir"
+  }
+ ]
+}

@@ -5368,7 +5368,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0038.html"
    },
    "linach": "Grupo 1",
-   "iarc": "",
+   "iarc": "Grupo 1",
    "codDecretos": "Dec. 53.831/1964: 1.2.1 – ARSÊNICO\nDec. 83.080/1979: 1.2.1 – ARSÊNICO\nDec. 2.172/1997: 1.0.1 – ARSÊNIO E SEUS COMPOSTOS\nDec. 3.048/1999: 1.0.1 – ARSÊNIO E SEUS COMPOSTOS",
    "observacoes": "",
    "fontes": [
@@ -5390,7 +5390,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Arsenic and inorganic arsenic compounds'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -5455,7 +5455,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0054.html"
    },
    "linach": "Grupo 1",
-   "iarc": "",
+   "iarc": "Grupo 1",
    "codDecretos": "Dec. 53.831/1964: 1.2.2 – BERÍLIO\nDec. 83.080/1979: 1.2.2 – BERÍLIO OU GLICÍNIO\nDec. 2.172/1997: 1.0.4 – BERÍLIO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.4 – BERÍLIO E SEUS COMPOSTOS TÓXICOS",
    "observacoes": "",
    "fontes": [
@@ -5477,7 +5477,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Beryllium and beryllium compounds'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -5563,7 +5563,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Nenhuma entrada na lista para o CAS do agente."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -5657,7 +5657,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Nenhuma entrada na lista para o CAS do agente."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -5723,7 +5723,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0400.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 3",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO\nDec. 2.172/1997: 1.0.5 – BROMO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.5 – BROMO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)",
    "observacoes": "",
    "fontes": [
@@ -5745,7 +5745,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Methyl bromide'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -5815,7 +5815,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0066.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 3",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO\nDec. 2.172/1997: 1.0.5 – BROMO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.5 – BROMO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)",
    "observacoes": "",
    "fontes": [
@@ -5837,7 +5837,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Bromoform'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -5931,7 +5931,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Nenhuma entrada na lista para o CAS do agente."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -6004,7 +6004,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0332.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 3",
    "codDecretos": "Dec. 53.831/1964: 1.2.9 – OUTROS TÓXICOS INORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)",
    "observacoes": "",
    "fontes": [
@@ -6026,7 +6026,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Hydrochloric acid'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -6119,7 +6119,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Nenhuma entrada na lista para o CAS do agente."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -6204,7 +6204,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Nenhuma entrada na lista para o CAS do agente."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -6276,7 +6276,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0658.html"
    },
    "linach": "Grupo 1",
-   "iarc": "",
+   "iarc": "Grupo 1",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO (por família – conferir a atividade listada no código)\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS",
    "observacoes": "",
    "fontes": [
@@ -6298,7 +6298,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Vinyl chloride'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -6368,7 +6368,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0127.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 2B",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS",
    "observacoes": "",
    "fontes": [
@@ -6390,7 +6390,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Chloroform'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -6460,7 +6460,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0107.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 2B",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS",
    "observacoes": "",
    "fontes": [
@@ -6482,7 +6482,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Carbon tetrachloride'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -6552,7 +6552,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0403.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 3",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)",
    "observacoes": "",
    "fontes": [
@@ -6574,7 +6574,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Methyl chloride'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -6645,7 +6645,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0271.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 2B",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)",
    "observacoes": "",
    "fontes": [
@@ -6667,7 +6667,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: '1,2-Dichloroethane'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -6737,7 +6737,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0598.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 2B",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código)",
    "observacoes": "",
    "fontes": [
@@ -6759,7 +6759,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: '1,1,2,2-Tetrachloroethane'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -6831,7 +6831,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0125.html"
    },
    "linach": "Grupo 1",
-   "iarc": "",
+   "iarc": "Grupo 1",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO (por família – conferir a atividade listada no código)\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS",
    "observacoes": "",
    "fontes": [
@@ -6854,7 +6854,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Polychlorinated biphenyls'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -6917,7 +6917,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0133.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 2B",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO (por família – conferir a atividade listada no código)\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código); 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo I)\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS (por família – conferir a atividade listada no código); 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo I)",
    "observacoes": "",
    "fontes": [
@@ -6939,7 +6939,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Chloroprene'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -7010,7 +7010,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0254.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 2A",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II – grafado no decreto como '1-cloro-2… 3-poxipropano')\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II – grafado no decreto como '1-cloro-2… 3-poxipropano')",
    "observacoes": "",
    "fontes": [
@@ -7032,7 +7032,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Epichlorohydrin'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -7097,7 +7097,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0174.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 2A",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS",
    "observacoes": "",
    "fontes": [
@@ -7119,7 +7119,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'DDT (4,4'-dichlorodiphenyltrichloroethane)'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -7186,7 +7186,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0370.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 1",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO\nDec. 2.172/1997: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS\nDec. 3.048/1999: 1.0.9 – CLORO E SEUS COMPOSTOS TÓXICOS",
    "observacoes": "",
    "fontes": [
@@ -7208,7 +7208,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Lindane'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -7297,7 +7297,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Nenhuma entrada na lista para o CAS do agente."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -7390,7 +7390,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Nenhuma entrada na lista para o CAS do agente. Sem entrada para fósforo branco; a lista traz só 'Phosphorus-32, as phosphate' (Grupo 1)."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -7476,7 +7476,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Nenhuma entrada na lista para o CAS do agente."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -7559,7 +7559,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Nenhuma entrada na lista para o CAS do agente."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -7651,7 +7651,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Nenhuma entrada na lista para o CAS do agente."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -7739,7 +7739,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Nenhuma entrada na lista para o CAS do agente."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -7819,7 +7819,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Nenhuma entrada na lista para o CAS do agente."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -7898,7 +7898,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Nenhuma entrada na lista para o CAS do agente."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -7964,7 +7964,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0684.html"
    },
    "linach": "Grupo 1",
-   "iarc": "",
+   "iarc": "Grupo 1",
    "codDecretos": "Dec. 53.831/1964: 1.2.10 – POEIRAS MINERAIS NOCIVAS\nDec. 83.080/1979: 1.2.12 – SÍLICA, SILICATOS, CARVÃO, CIMENTO E AMIANTO\nDec. 2.172/1997: 1.0.18 – SÍLICA LIVRE\nDec. 3.048/1999: 1.0.18 – SÍLICA LIVRE",
    "observacoes": "",
    "fontes": [
@@ -7986,7 +7986,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Silica dust, crystalline, in the form of quartz or cristobalite'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -8050,7 +8050,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0584.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 2A",
    "codDecretos": "Dec. 53.831/1964: 1.2.10 – POEIRAS MINERAIS NOCIVAS\nDec. 83.080/1979: 1.2.12 – SÍLICA, SILICATOS, CARVÃO, CIMENTO E AMIANTO\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico",
    "observacoes": "Anexo IV: só se houver sílica livre (1.0.18) ou amianto (1.0.2) no talco – conferir laudo de composição. LINACH: talco com fibras de amianto é Grupo 1 (nota do item asbestos).",
    "fontes": [
@@ -8072,7 +8072,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Talc'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -8158,7 +8158,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Nenhuma entrada na lista para o CAS do agente."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -8247,7 +8247,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Nenhuma entrada na lista para o CAS do agente."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -8334,7 +8334,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Nenhuma entrada na lista para o CAS do agente."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -8400,7 +8400,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0145.html"
    },
    "linach": "Grupo 1",
-   "iarc": "",
+   "iarc": "Grupo 1",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO (por família – conferir a atividade listada no código)\nDec. 2.172/1997: 1.0.7 – CARVÃO MINERAL E SEUS DERIVADOS\nDec. 3.048/1999: 1.0.7 – CARVÃO MINERAL E SEUS DERIVADOS",
    "observacoes": "",
    "fontes": [
@@ -8422,7 +8422,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Coal-tar pitch'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -8487,7 +8487,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0102.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 2B",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.7 – CARVÃO MINERAL E SEUS DERIVADOS\nDec. 3.048/1999: 1.0.7 – CARVÃO MINERAL E SEUS DERIVADOS",
    "observacoes": "",
    "fontes": [
@@ -8509,7 +8509,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Carbon black'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -8602,7 +8602,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Nenhuma entrada na lista para o CAS do agente."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -8668,7 +8668,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0042.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 2B",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.7 – CARVÃO MINERAL E SEUS DERIVADOS; 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS\nDec. 3.048/1999: 1.0.7 – CARVÃO MINERAL E SEUS DERIVADOS; 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS",
    "observacoes": "",
    "fontes": [
@@ -8690,7 +8690,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Bitumens, occupational exposure to straight-run bitumens and their emissions during road paving'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -8722,7 +8722,7 @@
     "Creosoto de alcatrão de hulha",
     "Creosote"
    ],
-   "cas": "",
+   "cas": "8001-58-9",
    "grupos": [
     "Combustíveis"
    ],
@@ -8754,10 +8754,16 @@
     "url": ""
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 2A",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II, alínea g – preservação da madeira)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II, alínea g – preservação da madeira)",
-   "observacoes": "Sem página no NIOSH Pocket Guide; CAS não conferido nesta inclusão. CAS em branco: conferir.",
+   "observacoes": "Sem página no NIOSH Pocket Guide.",
    "fontes": [
+    {
+     "campos": "confirmação do CAS",
+     "referencia": "IARC Monographs – List of Classifications (CAS da entrada do agente)",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11"
+    },
     {
      "campos": "linach",
      "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH), Grupo 1 – tools/dados/linach-grupo1.json",
@@ -8770,7 +8776,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Creosotes'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -8833,7 +8839,7 @@
     "url": ""
    },
    "linach": "Grupo 1",
-   "iarc": "",
+   "iarc": "Grupo 1",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)",
    "observacoes": "Sem página no NIOSH Pocket Guide (componente dos voláteis de piche de hulha, npgd0145). O Manual de Aposentadoria Especial do INSS (2018) também o relaciona ao código 1.0.3.",
    "fontes": [
@@ -8849,7 +8855,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Benzo[a]pyrene'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -8915,7 +8921,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0571.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 2A",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO (por família – conferir a atividade listada no código)\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupos I e II)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupos I e II)",
    "observacoes": "",
    "fontes": [
@@ -8937,7 +8943,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Styrene'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -9008,7 +9014,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0067.html"
    },
    "linach": "Grupo 1",
-   "iarc": "",
+   "iarc": "Grupo 1",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO (por família – conferir a atividade listada no código)\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupos I e II)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupos I e II)",
    "observacoes": "",
    "fontes": [
@@ -9030,7 +9036,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: '1,3-Butadiene'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -9100,7 +9106,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0014.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 1",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO (por família – conferir a atividade listada no código)\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupos I e II)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupos I e II)",
    "observacoes": "",
    "fontes": [
@@ -9122,7 +9128,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Acrylonitrile'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -9216,7 +9222,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Nenhuma entrada na lista para o CAS do agente."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -9288,7 +9294,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0033.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 2A",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (aminas aromáticas)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (aminas aromáticas)",
    "observacoes": "",
    "fontes": [
@@ -9310,7 +9316,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Aniline'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -9382,7 +9388,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0622.html"
    },
    "linach": "Grupo 1",
-   "iarc": "",
+   "iarc": "Grupo 1",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)",
    "observacoes": "",
    "fontes": [
@@ -9404,7 +9410,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'ortho-Toluidine'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -9470,7 +9476,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0025.html"
    },
    "linach": "Grupo 1",
-   "iarc": "",
+   "iarc": "Grupo 1",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)",
    "observacoes": "",
    "fontes": [
@@ -9492,7 +9498,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: '4-Aminobiphenyl'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -9556,7 +9562,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0051.html"
    },
    "linach": "Grupo 1",
-   "iarc": "",
+   "iarc": "Grupo 1",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)",
    "observacoes": "O Manual de Aposentadoria Especial do INSS (2018) também a relaciona ao código 1.0.3.",
    "fontes": [
@@ -9578,7 +9584,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Benzidine'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -9642,7 +9648,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0442.html"
    },
    "linach": "Grupo 1",
-   "iarc": "",
+   "iarc": "Grupo 1",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)",
    "observacoes": "",
    "fontes": [
@@ -9664,7 +9670,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: '2-Naphthylamine'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -9728,7 +9734,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0451.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 3",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)",
    "observacoes": "",
    "fontes": [
@@ -9750,7 +9756,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: '4-Nitrobiphenyl'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -9815,7 +9821,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0128.html"
    },
    "linach": "Grupo 1",
-   "iarc": "",
+   "iarc": "Grupo 1",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)",
    "observacoes": "",
    "fontes": [
@@ -9837,7 +9843,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Bis(chloromethyl)ether; chloromethyl methyl ether (technical-grade)'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -9902,7 +9908,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0129.html"
    },
    "linach": "Grupo 1",
-   "iarc": "",
+   "iarc": "Grupo 1",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)",
    "observacoes": "",
    "fontes": [
@@ -9924,7 +9930,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Bis(chloromethyl)ether; chloromethyl methyl ether (technical-grade)'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -9988,7 +9994,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0275.html"
    },
    "linach": "Grupo 1",
-   "iarc": "",
+   "iarc": "Grupo 1",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II – inclui esterilização de materiais cirúrgicos)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II – inclui esterilização de materiais cirúrgicos)",
    "observacoes": "",
    "fontes": [
@@ -10010,7 +10016,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Ethylene oxide'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -10082,7 +10088,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0411.html"
    },
    "linach": "Grupo 1",
-   "iarc": "",
+   "iarc": "Grupo 1",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)",
    "observacoes": "",
    "fontes": [
@@ -10104,7 +10110,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: '4,4'-Methylenebis(2-chloroaniline) (MOCA)'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -10169,7 +10175,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0415.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 2B",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (por família – conferir a atividade listada no código)",
    "observacoes": "",
    "fontes": [
@@ -10191,7 +10197,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: '4,4'-Methylenedianiline'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -10255,7 +10261,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0229.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 2A",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)",
    "observacoes": "",
    "fontes": [
@@ -10277,7 +10283,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Dimethyl sulfate'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -10315,7 +10321,7 @@
     "Dietilsulfato",
     "Diethyl sulfate"
    ],
-   "cas": "",
+   "cas": "64-67-5",
    "grupos": [
     "Cancerígenos e aminas aromáticas"
    ],
@@ -10347,10 +10353,16 @@
     "url": ""
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 2A",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)",
-   "observacoes": "Sem página no NIOSH Pocket Guide; CAS não conferido nesta inclusão. CAS em branco: conferir.",
+   "observacoes": "Sem página no NIOSH Pocket Guide.",
    "fontes": [
+    {
+     "campos": "confirmação do CAS",
+     "referencia": "IARC Monographs – List of Classifications (CAS da entrada do agente)",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11"
+    },
     {
      "campos": "linach",
      "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH), Grupo 1 – tools/dados/linach-grupo1.json",
@@ -10363,7 +10375,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Diethyl sulfate'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -10425,7 +10437,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0420.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 3",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)",
    "observacoes": "",
    "fontes": [
@@ -10447,7 +10459,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Methyl iodide'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -10508,7 +10520,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0528.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 2B",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)",
    "observacoes": "",
    "fontes": [
@@ -10530,7 +10542,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'beta-Propiolactone'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -10596,7 +10608,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0461.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 2A",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)",
    "observacoes": "",
    "fontes": [
@@ -10618,7 +10630,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'N-Nitrosodimethylamine'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -10683,7 +10695,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0274.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 2B",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II – grafada 'etilenoamina')\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II – grafada 'etilenoamina')",
    "observacoes": "",
    "fontes": [
@@ -10705,7 +10717,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Aziridine'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -10776,7 +10788,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0276.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 3",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)",
    "observacoes": "",
    "fontes": [
@@ -10798,7 +10810,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Ethylenethiourea'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -10859,7 +10871,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0191.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 2B",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)",
    "observacoes": "",
    "fontes": [
@@ -10881,7 +10893,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: '3,3'-Dichlorobenzidine'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -10946,7 +10958,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0180.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 2B",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)",
    "observacoes": "",
    "fontes": [
@@ -10968,7 +10980,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: '3,3'-Dimethoxybenzidine (ortho-Dianisidine)'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -11029,7 +11041,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0220.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 2B",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)",
    "observacoes": "",
    "fontes": [
@@ -11051,7 +11063,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'para-Dimethylaminoazobenzene'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -11079,7 +11091,7 @@
    "sinonimos": [
     "Auramine"
    ],
-   "cas": "",
+   "cas": "492-80-8",
    "grupos": [
     "Cancerígenos e aminas aromáticas"
    ],
@@ -11111,10 +11123,16 @@
     "url": ""
    },
    "linach": "Grupo 1",
-   "iarc": "",
+   "iarc": "Grupo 2B",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)",
-   "observacoes": "Sem página no NIOSH Pocket Guide; CAS não conferido nesta inclusão. LINACH Grupo 1: o processo de produção. CAS em branco: conferir.",
+   "observacoes": "Sem página no NIOSH Pocket Guide. LINACH Grupo 1: o processo de produção.",
    "fontes": [
+    {
+     "campos": "confirmação do CAS",
+     "referencia": "IARC Monographs – List of Classifications (CAS da entrada do agente)",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11"
+    },
     {
      "campos": "linach",
      "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH), Grupo 1 – tools/dados/linach-grupo1.json",
@@ -11127,7 +11145,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Auramine'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -11156,7 +11174,7 @@
     "Propano sultona",
     "Propanosultona"
    ],
-   "cas": "",
+   "cas": "1120-71-4",
    "grupos": [
     "Cancerígenos e aminas aromáticas"
    ],
@@ -11188,10 +11206,16 @@
     "url": ""
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 2A",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II)",
-   "observacoes": "Sem página no NIOSH Pocket Guide; CAS não conferido nesta inclusão. CAS em branco: conferir.",
+   "observacoes": "Sem página no NIOSH Pocket Guide.",
    "fontes": [
+    {
+     "campos": "confirmação do CAS",
+     "referencia": "IARC Monographs – List of Classifications (CAS da entrada do agente)",
+     "url": "https://monographs.iarc.who.int/list-of-classifications/",
+     "consultadoEm": "2026-11-11"
+    },
     {
      "campos": "linach",
      "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH), Grupo 1 – tools/dados/linach-grupo1.json",
@@ -11204,7 +11228,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: '1,3-Propane sultone'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -11268,7 +11292,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0321.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 2B",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico",
    "observacoes": "",
    "fontes": [
@@ -11290,7 +11314,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Hexamethylphosphoramide'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -11355,7 +11379,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0224.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 2A",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico",
    "observacoes": "",
    "fontes": [
@@ -11377,7 +11401,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Dimethylcarbamoyl chloride'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -11441,7 +11465,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0659.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 2B",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico",
    "observacoes": "",
    "fontes": [
@@ -11463,7 +11487,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: '4-Vinylcyclohexene diepoxide'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -11550,7 +11574,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Nenhuma entrada na lista para o CAS do agente."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -11638,7 +11662,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Nenhuma entrada na lista para o CAS do agente."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -11703,7 +11727,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0450.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 2B",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO (por família – conferir a atividade listada no código)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico",
    "observacoes": "",
    "fontes": [
@@ -11725,7 +11749,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Nitrobenzene'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -11812,7 +11836,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Nenhuma entrada na lista para o CAS do agente."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -11883,7 +11907,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0439.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 2B",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.10 – HIDROCARBONETOS E OUTROS COMPOSTOS DE CARBONO (por família – conferir a atividade listada no código)\nDec. 2.172/1997: 1.0.7 – CARVÃO MINERAL E SEUS DERIVADOS (por família – conferir a atividade listada no código); 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)\nDec. 3.048/1999: 1.0.7 – CARVÃO MINERAL E SEUS DERIVADOS (por família – conferir a atividade listada no código); 1.0.17 – PETRÓLEO, XISTO BETUMINOSO, GÁS NATURAL E SEUS DERIVADOS (por família – conferir a atividade listada no código)",
    "observacoes": "",
    "fontes": [
@@ -11905,7 +11929,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Naphthalene'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -11971,7 +11995,7 @@
     "url": "https://www.cdc.gov/niosh/npg/npgd0493.html"
    },
    "linach": "",
-   "iarc": "",
+   "iarc": "Grupo 3",
    "codDecretos": "Dec. 53.831/1964: 1.2.11 – TÓXICOS ORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico",
    "observacoes": "",
    "fontes": [
@@ -11993,7 +12017,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Phenol'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -12087,7 +12111,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Nenhuma entrada na lista para o CAS do agente."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -12173,7 +12197,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Nenhuma entrada na lista para o CAS do agente."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -12258,7 +12282,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Nenhuma entrada na lista para o CAS do agente."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -12344,7 +12368,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Nenhuma entrada na lista para o CAS do agente."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -12407,7 +12431,7 @@
     "url": ""
    },
    "linach": "Grupo 1",
-   "iarc": "",
+   "iarc": "Grupo 1",
    "codDecretos": "Dec. 53.831/1964: sem código específico\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II – alínea f, produção de medicamentos)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II – alínea f, produção de medicamentos)",
    "observacoes": "Anexo IV, 1.0.19, Grupo II (alínea f: produção de medicamentos). Sem página no NIOSH Pocket Guide.",
    "fontes": [
@@ -12423,7 +12447,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Azathioprine'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -12483,7 +12507,7 @@
     "url": ""
    },
    "linach": "Grupo 1",
-   "iarc": "",
+   "iarc": "Grupo 1",
    "codDecretos": "Dec. 53.831/1964: sem código específico\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II – alínea f, produção de medicamentos)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II – alínea f, produção de medicamentos)",
    "observacoes": "Anexo IV, 1.0.19, Grupo II (alínea f: produção de medicamentos). Sem página no NIOSH Pocket Guide.",
    "fontes": [
@@ -12499,7 +12523,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Cyclophosphamide'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -12560,7 +12584,7 @@
     "url": ""
    },
    "linach": "Grupo 1",
-   "iarc": "",
+   "iarc": "Grupo 1",
    "codDecretos": "Dec. 53.831/1964: sem código específico\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II – alínea f, produção de medicamentos)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II – alínea f, produção de medicamentos)",
    "observacoes": "Anexo IV, 1.0.19, Grupo II (alínea f: produção de medicamentos). Sem página no NIOSH Pocket Guide.",
    "fontes": [
@@ -12576,7 +12600,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Chlorambucil'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -12637,7 +12661,7 @@
     "url": ""
    },
    "linach": "Grupo 1",
-   "iarc": "",
+   "iarc": "Grupo 1",
    "codDecretos": "Dec. 53.831/1964: sem código específico\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II – alínea f, produção de medicamentos)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II – alínea f, produção de medicamentos)",
    "observacoes": "Anexo IV, 1.0.19, Grupo II (alínea f: produção de medicamentos). Sem página no NIOSH Pocket Guide.",
    "fontes": [
@@ -12653,7 +12677,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Diethylstilbestrol'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -12715,7 +12739,7 @@
     "url": ""
    },
    "linach": "Grupo 1",
-   "iarc": "",
+   "iarc": "Grupo 1",
    "codDecretos": "Dec. 53.831/1964: sem código específico\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II – alínea f, produção de medicamentos)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II – alínea f, produção de medicamentos)",
    "observacoes": "Anexo IV, 1.0.19, Grupo II (alínea f: produção de medicamentos). Sem página no NIOSH Pocket Guide.",
    "fontes": [
@@ -12731,7 +12755,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Busulfan'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -12791,7 +12815,7 @@
     "url": ""
    },
    "linach": "Grupo 1",
-   "iarc": "",
+   "iarc": "Grupo 1",
    "codDecretos": "Dec. 53.831/1964: sem código específico\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II – alínea f, produção de medicamentos)\nDec. 3.048/1999: 1.0.19 – OUTRAS SUBSTÂNCIAS QUÍMICAS (Grupo II – alínea f, produção de medicamentos)",
    "observacoes": "Anexo IV, 1.0.19, Grupo II (alínea f: produção de medicamentos). Sem página no NIOSH Pocket Guide.",
    "fontes": [
@@ -12807,7 +12831,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Entrada usada: 'Phenacetin'."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -12884,7 +12908,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Nenhuma entrada na lista para o CAS do agente."
     },
     {
      "campos": "códigos nos decretos previdenciários",
@@ -12960,7 +12984,7 @@
      "referencia": "IARC Monographs – List of Classifications",
      "url": "https://monographs.iarc.who.int/list-of-classifications/",
      "consultadoEm": "2026-11-11",
-     "nota": "Não consultada nesta inclusão (preencher)."
+     "nota": "Nenhuma entrada na lista para o CAS do agente. A lista IARC traz 'Procarbazine hydrochloride' (CAS 366-70-1) no Grupo 2A; não atribuído ao agente base."
     },
     {
      "campos": "códigos nos decretos previdenciários",

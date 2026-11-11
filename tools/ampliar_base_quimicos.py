@@ -405,6 +405,41 @@ for i, nome, sin, linach in [
     N.append(dict(id=i, nome=nome, sinonimos=sin, cas="", tipo="substância", grupos=[MED], d53=[], d83=[], div=["1.0.19:Grupo II – alínea f, produção de medicamentos"],
                   linach=linach, casDaLinach=bool(linach), obs="Anexo IV, 1.0.19, Grupo II (alínea f: produção de medicamentos). Sem página no NIOSH Pocket Guide."))
 
+# IARC Monographs – List of Classifications (webapi.iarc.who.int/loc/loc.app.js), consultada em 2026-11-11 pelo CAS.
+# id → (grupo, entrada). Ausente = sem entrada na lista para o CAS do agente.
+IARC = {
+ "arsenio": ("1", "Arsenic and inorganic arsenic compounds"), "berilio": ("1", "Beryllium and beryllium compounds"),
+ "brometo-de-metila": ("3", "Methyl bromide"), "bromoformio": ("3", "Bromoform"), "acido-cloridrico": ("3", "Hydrochloric acid"),
+ "cloreto-de-vinila": ("1", "Vinyl chloride"), "cloroformio": ("2B", "Chloroform"), "tetracloreto-de-carbono": ("2B", "Carbon tetrachloride"),
+ "cloreto-de-metila": ("3", "Methyl chloride"), "1-2-dicloroetano": ("2B", "1,2-Dichloroethane"), "tetracloroetano": ("2B", "1,1,2,2-Tetrachloroethane"),
+ "pcb": ("1", "Polychlorinated biphenyls"), "cloropreno": ("2B", "Chloroprene"), "epicloridrina": ("2A", "Epichlorohydrin"),
+ "ddt": ("2A", "DDT (4,4'-dichlorodiphenyltrichloroethane)"), "lindano": ("1", "Lindane"),
+ "silica-livre": ("1", "Silica dust, crystalline, in the form of quartz or cristobalite"), "talco": ("2A", "Talc"),
+ "alcatrao-piche": ("1", "Coal-tar pitch"), "negro-de-fumo": ("2B", "Carbon black"),
+ "asfalto-fumos": ("2B", "Bitumens, occupational exposure to straight-run bitumens and their emissions during road paving"),
+ "creosoto": ("2A", "Creosotes"), "benzo-a-pireno": ("1", "Benzo[a]pyrene"), "estireno": ("2A", "Styrene"),
+ "1-3-butadieno": ("1", "1,3-Butadiene"), "acrilonitrila": ("1", "Acrylonitrile"), "anilina": ("2A", "Aniline"),
+ "o-toluidina": ("1", "ortho-Toluidine"), "4-aminodifenil": ("1", "4-Aminobiphenyl"), "benzidina": ("1", "Benzidine"),
+ "beta-naftilamina": ("1", "2-Naphthylamine"), "4-nitrodifenil": ("3", "4-Nitrobiphenyl"),
+ "bcme": ("1", "Bis(chloromethyl)ether; chloromethyl methyl ether (technical-grade)"), "cmme": ("1", "Bis(chloromethyl)ether; chloromethyl methyl ether (technical-grade)"),
+ "oxido-de-etileno": ("1", "Ethylene oxide"), "moca": ("1", "4,4'-Methylenebis(2-chloroaniline) (MOCA)"), "mda": ("2B", "4,4'-Methylenedianiline"),
+ "sulfato-de-dimetila": ("2A", "Dimethyl sulfate"), "sulfato-de-dietila": ("2A", "Diethyl sulfate"), "iodeto-de-metila": ("3", "Methyl iodide"),
+ "betapropiolactona": ("2B", "beta-Propiolactone"), "nitrosaminas": ("2A", "N-Nitrosodimethylamine"), "etilenoimina": ("2B", "Aziridine"),
+ "etilenotioureia": ("3", "Ethylenethiourea"), "diclorobenzidina": ("2B", "3,3'-Dichlorobenzidine"),
+ "o-dianisidina": ("2B", "3,3'-Dimethoxybenzidine (ortho-Dianisidine)"), "dimetilaminoazobenzeno": ("2B", "para-Dimethylaminoazobenzene"),
+ "auramina": ("2B", "Auramine"), "propanossultona": ("2A", "1,3-Propane sultone"), "hmpa": ("2B", "Hexamethylphosphoramide"),
+ "cloreto-de-dimetilcarbamila": ("2A", "Dimethylcarbamoyl chloride"), "dioxido-de-vinilciclohexeno": ("2B", "4-Vinylcyclohexene diepoxide"),
+ "nitrobenzeno": ("2B", "Nitrobenzene"), "naftaleno": ("2B", "Naphthalene"), "fenol": ("3", "Phenol"),
+ "azatioprina": ("1", "Azathioprine"), "ciclofosfamida": ("1", "Cyclophosphamide"), "clorambucil": ("1", "Chlorambucil"),
+ "dietilestilbestrol": ("1", "Diethylstilbestrol"), "bussulfano": ("1", "Busulfan"), "fenacetina": ("1", "Phenacetin"),
+}
+IARC_NOTA = {
+ "procarbazina": "A lista IARC traz 'Procarbazine hydrochloride' (CAS 366-70-1) no Grupo 2A; não atribuído ao agente base.",
+ "fosforo-branco": "Sem entrada para fósforo branco; a lista traz só 'Phosphorus-32, as phosphate' (Grupo 1).",
+}
+# CAS sem página NIOSH, confirmados na lista IARC (entrada com o mesmo agente)
+CAS_IARC = {"creosoto": "8001-58-9", "sulfato-de-dietila": "64-67-5", "auramina": "492-80-8", "propanossultona": "1120-71-4"}
+
 
 def f2c(s):
     def conv(m):
@@ -430,6 +465,10 @@ def novo(a):
     lg = linach_g1(a.get("linach"))
     if a.get("casDaLinach") and lg and lg["cas"]:
         cas = lg["cas"][0]
+    if not cas and a["id"] in CAS_IARC:
+        cas = CAS_IARC[a["id"]]
+        fontes.append({"campos": "confirmação do CAS", "referencia": "IARC Monographs – List of Classifications (CAS da entrada do agente)",
+                       "url": "https://monographs.iarc.who.int/list-of-classifications/", "consultadoEm": DATA})
     if ni and cas and cas not in ni["cas"] and not a.get("npgNota"):
         raise SystemExit(f"{a['id']}: CAS {cas} difere da página NIOSH ({ni['cas']})")
     ag = dict(id=a["id"], nome=a["nome"], sinonimos=a["sinonimos"], cas=cas, grupos=a["grupos"], tipo=a["tipo"], formula="", massaMolar="")
@@ -458,14 +497,17 @@ def novo(a):
     fontes.append({"campos": "linach", "referencia": "BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014 (LINACH), Grupo 1 – tools/dados/linach-grupo1.json",
                    "url": "", "consultadoEm": DATA,
                    "nota": (f"Entrada: '{lg['nome'][:120]}'." if lg else "Não consta do Grupo 1.") + " Grupos 2A e 2B não conferidos nesta inclusão."})
-    ag["iarc"] = ""
+    hit = IARC.get(a["id"])
+    ag["iarc"] = f"Grupo {hit[0]}" if hit else ""
+    nota = (f"Entrada usada: '{hit[1]}'." if hit else "Nenhuma entrada na lista para o CAS do agente.") + (" " + IARC_NOTA[a["id"]] if a["id"] in IARC_NOTA else "")
     fontes.append({"campos": "iarc", "referencia": "IARC Monographs – List of Classifications", "url": "https://monographs.iarc.who.int/list-of-classifications/",
-                   "consultadoEm": DATA, "nota": "Não consultada nesta inclusão (preencher)."})
+                   "consultadoEm": DATA, "nota": nota})
     ag["codDecretos"] = texto_decretos(a["d53"], a["d83"], a["div"])
     fontes.append({"campos": "códigos nos decretos previdenciários",
                    "referencia": "BRASIL. Decreto nº 53.831/1964, quadro anexo; Decreto nº 83.080/1979, Anexo I; Decretos nº 2.172/1997 e 3.048/1999, Anexo IV – tools/dados/decretos-quimicos.json",
                    "url": "https://www2.camara.leg.br/legin/fed/decret/1999/decreto-3048-6-maio-1999-368532-normaatualizada-pe.html", "consultadoEm": DATA})
     obs = [a["obs"]] if a.get("obs") else []
+    obs = [o.replace("; CAS não conferido nesta inclusão.", ".").replace(" CAS não conferido nesta inclusão.", "") if cas else o for o in obs]
     if not cas:
         obs.append("CAS em branco: conferir.")
     ag["observacoes"] = " ".join(obs)

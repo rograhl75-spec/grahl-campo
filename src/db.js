@@ -97,7 +97,8 @@ export async function mergeIncoming(remote, { markDirtyIfLocalNewer = true } = {
       for (const [k, t] of Object.entries(local.ts || {})) {
         if (t > ((remote.ts || {})[k] || 0)) { dirty = 1; break; }
       }
-      if (local.dirty && dirty) dirty = 1;
+      // alteração local ainda não enviada continua pendente (a linha antiga não tinha efeito)
+      if (local.dirty) dirty = 1;
     }
     merged.dirty = dirty;
     if (local && JSON.stringify(local.data) === JSON.stringify(merged.data) &&

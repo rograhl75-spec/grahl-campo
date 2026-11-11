@@ -116,3 +116,47 @@ describe('ruído com q = 3 (NHO-01)', async () => {
     expect(depois.caracteriza).toBe('SIM');
   });
 });
+
+describe('reimportação do app antigo', () => {
+  it('um quesito a mais no começo não desloca nem duplica os demais', async () => {
+    const { migrarDeZip } = await import('../src/migrate.js');
+    const { mapearLegado } = await import('../src/migrate.js');
+    await db.records.clear();
+    const zipDe = async (d) => { const z = new JSZip(); z.file('processos.json', JSON.stringify({ P1: d })); return z.generateAsync({ type: 'uint8array' }); };
+    const d1 = { reclamante_nome: 'Fulano', quesitos_juizo: '1) Descreva as atividades.\n2) Há insalubridade?', avaliacoes_ambientais: [{ agente: 'Vibração de mãos e braços', intensidade: '3,1' }] };
+    await migrarDeZip(await zipDe(d1));
+    const q1 = (await db.records.where('caseId').equals('leg-P1').toArray()).filter((r) => r.kind === 'quesito');
+    const resp = q1.find((r) => /insalubridade/.test(r.data.texto));
+    await (await import('../src/db.js')).updateFields(resp.id, { resposta: 'Sim, ruído.' });
+    const d2 = { ...d1, quesitos_juizo: '1) Qual o local?\n2) Descreva as atividades.\n3) Há insalubridade?' };
+    void mapearLegado;
+    await migrarDeZip(await zipDe(d2));
+    const todos = (await db.records.where('caseId').equals('leg-P1').toArray());
+    const q2 = todos.filter((r) => r.kind === 'quesito');
+    expect(q2.filter((r) => /insalubridade/.test(r.data.texto))).toHaveLength(1);
+    expect(q2).toHaveLength(3);
+    expect(q2.find((r) => r.id === resp.id).data.resposta).toBe('Sim, ruído.'); // a resposta continua no mesmo quesito
+    expect(q2.some((r) => /Qual o local/.test(r.data.texto))).toBe(true);
+    expect(todos.find((r) => r.kind === 'medicao').data.agente).toBe('Vibração de mãos e braços (VMB)');
+  });
+});
+
+describe('base de paradigmas corrigida', () => {
+  it('arquivo mais novo corrige o que veio da base, sem passar por cima do editado no app', async () => {
+    const { importarBaseJson, tsDaBase } = await import('../src/paradigmas.js');
+    const { updateFields } = await import('../src/db.js');
+    await db.records.clear();
+    const v = (lavg, leq) => ({ veiculos: [{ id: 'M01', identificacao: { marca: 'A', modelo: 'X' }, resultados: { lavg_q5: lavg, leq_q3: leq } }],
+      similares: [{ marca: 'A', modelo: 'Y', epoca: '1990–2000', paradigma_ruido: 'M01' }, { marca: 'A', modelo: 'Y', epoca: '2001–2010', paradigma_ruido: 'M01' }] });
+    await importarBaseJson(v(88, 90), { versao: tsDaBase(Date.parse('2026-01-01')) });
+    await updateFields('par-m01', { leq: '91,5' }); // editado no app
+    await importarBaseJson(v(86.5, 89), { versao: tsDaBase(Date.parse('2026-06-01')) });
+    const p = await db.records.get('par-m01');
+    expect(p.data.lavg).toBe('86,5'); // corrigido pela base nova
+    expect(p.data.leq).toBe('91,5'); // edição do app prevalece
+    await importarBaseJson(v(80, 80), { versao: tsDaBase(Date.parse('2025-01-01')) }); // base mais antiga não volta
+    expect((await db.records.get('par-m01')).data.lavg).toBe('86,5');
+    const sims = (await db.records.where('kind').equals('similar').toArray()).map((r) => r.data.epoca).sort();
+    expect(sims).toEqual(['1990–2000', '2001–2010']); // épocas diferentes não se sobrescrevem
+  });
+});

@@ -11,6 +11,8 @@ import { Quesitos } from './Quesitos.jsx';
 import { Campo } from './Campo.jsx';
 import { Fotos } from './Fotos.jsx';
 import { Documentos } from './Documentos.jsx';
+import { Icone } from './Icone.jsx';
+import { confirmar } from './dialogo.jsx';
 
 // Etapas do caso, na ordem do trabalho
 export const ETAPAS = [
@@ -75,7 +77,7 @@ export function Caso({ id, aba }) {
             <span class="num">{feitas[e.k] ? '✓' : e.n}</span>{e.rot}{n[e.k] ? <span class="contador">{n[e.k]}</span> : null}
           </a>
         ))}
-        {rec.data.legado && <a href={`#/caso/${id}/antigo`} class={`extra ${aba === 'antigo' ? 'ativo' : ''}`}>🗂 App antigo</a>}
+        {rec.data.legado && <a href={`#/caso/${id}/antigo`} class={`extra ${aba === 'antigo' ? 'ativo' : ''}`}><Icone nome="pasta" /> App antigo</a>}
       </nav>
       {proxima && proxima.k !== aba && (
         <a class="proximo-passo" href={`#/caso/${id}/${proxima.k}`}>➜ Próximo passo: <b>{proxima.n}. {proxima.rot}</b> – {proxima.o}</a>
@@ -93,7 +95,7 @@ export function Caso({ id, aba }) {
 
 function Resumo({ rec }) {
   const excluir = async () => {
-    if (!confirm('Mover este caso para a lixeira? Ele pode ser restaurado em Configurações → Lixeira.')) return;
+    if (!await confirmar('Mover este caso para a lixeira? Ele pode ser restaurado em Configurações → Lixeira.')) return;
     await softDelete(rec.id);
     avisarAlteracao();
     ir('/');

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'preact/hooks';
 import { db, createRecord, softDelete, updateFields } from '../db.js';
 import { avisarAlteracao, obterAnexo } from '../sync.js';
 import {
-  importarBaseJson, sugerirParadigmas, lerJsonVeiculos, adicionarParadigmas, guardarAnexo, PROMPT_LAUDO_ANTIGO,
+  importarBaseJson, tsDaBase, sugerirParadigmas, lerJsonVeiculos, adicionarParadigmas, guardarAnexo, PROMPT_LAUDO_ANTIGO,
   rotuloParadigma, certificadoVencido, REGRA_CERT_MESES_PADRAO, resolverCodigosDuplicados, referenciasARevisar,
 } from '../paradigmas.js';
 import {
@@ -13,6 +13,8 @@ import { fmt } from '../calc.js';
 import { useLive } from './hooks.js';
 import { Campos } from './fields.jsx';
 import { RecordList } from './RecordList.jsx';
+import { Icone } from './Icone.jsx';
+import { confirmar } from './dialogo.jsx';
 
 export const CAMPOS_PARADIGMA = {
   'Identificação': [
@@ -102,7 +104,7 @@ function Veiculos() {
           <input class="busca" type="search" placeholder="Buscar marca, modelo, processo…" value={busca} onInput={(e) => setBusca(e.currentTarget.value)} />
           <button type="button" class="primario" onClick={novo}>＋ Novo veículo medido</button>
         </div>
-        <div class="chips filtros" style="margin-top:10px">
+        <div class="chips filtros mt">
           <button type="button" class={`chip ${!fam ? 'on' : ''}`} onClick={() => setFam('')}>Todas</button>
           {fams.map((f) => <button type="button" class={`chip ${fam === f ? 'on' : ''}`} onClick={() => setFam(f)}>{f}</button>)}
         </div>
@@ -125,7 +127,7 @@ function Veiculos() {
                   {al.length > 0 && <><br /><small class="alerta-txt">⚠ {al.join('; ')}</small></>}
                 </span>
                 <span class="item-acoes" onClick={(e) => e.stopPropagation()}>
-                  <button type="button" class="mini perigo" onClick={async () => { if (confirm('Mover para a lixeira?')) { await softDelete(p.id); avisarAlteracao(); } }}>✕</button>
+                  <button type="button" class="mini perigo" onClick={async () => { if (await confirmar('Mover para a lixeira?')) { await softDelete(p.id); avisarAlteracao(); } }}>✕</button>
                 </span>
               </div>
               {aberto === p.id && (
@@ -262,7 +264,7 @@ function Maquinas() {
                   </small>
                 </span>
                 <span class="item-acoes" onClick={(e) => e.stopPropagation()}>
-                  <button type="button" class="mini perigo" aria-label="Mover para a lixeira" onClick={async () => { if (confirm('Mover para a lixeira?')) { await softDelete(p.id); avisarAlteracao(); } }}>✕</button>
+                  <button type="button" class="mini perigo" aria-label="Mover para a lixeira" onClick={async () => { if (await confirmar('Mover para a lixeira?')) { await softDelete(p.id); avisarAlteracao(); } }}>✕</button>
                 </span>
               </div>
               {aberto === p.id && (
@@ -327,7 +329,7 @@ function AbrirAnexo({ id }) {
   const abrir = async () => {
     try { const b = await obterAnexo(id); window.open(URL.createObjectURL(b), '_blank'); } catch (e) { setMsg(e.message); }
   };
-  return <p><button type="button" class="mini" onClick={abrir}>📄 Abrir laudo de origem</button> {msg && <span class="erro-msg">{msg}</span>}</p>;
+  return <p><button type="button" class="mini" onClick={abrir}><Icone nome="doc" /> Abrir laudo de origem</button> {msg && <span class="erro-msg">{msg}</span>}</p>;
 }
 
 function Similares() {
@@ -407,9 +409,10 @@ function Importar() {
   const importarBase = async (e) => {
     const f = e.currentTarget.files[0]; e.currentTarget.value = '';
     if (!f) return;
-    setMsgBase('⏳ Importando…');
+    setMsgBase('Importando…');
     try {
-      const r = await importarBaseJson(JSON.parse(await f.text()));
+      // a data do arquivo marca a versão da base: um arquivo corrigido atualiza o que veio da base anterior
+      const r = await importarBaseJson(JSON.parse(await f.text()), { versao: tsDaBase(f.lastModified || Date.now()) });
       avisarAlteracao();
       if (r.falhas.length) { setMsgBase(`Erro: ${r.falhas.length} item(ns) não gravados – ${r.falhas.slice(0, 3).join(' | ')}. Mande um print desta mensagem.`); return; }
       setMsgBase(r.veiculos + r.similares + r.familias
@@ -447,7 +450,7 @@ function Importar() {
           <li>Cole aqui a resposta (JSON), confira a prévia e inclua.</li>
         </ol>
         <div class="linha-botoes">
-          <label class="botao-arquivo">{nomeAnexo ? `📄 ${nomeAnexo}` : '1. Anexar PDF do laudo'}<input type="file" accept="application/pdf,.pdf" hidden onChange={anexar} /></label>
+          <label class="botao-arquivo">{nomeAnexo ? <><Icone nome="doc" /> {nomeAnexo}</> : '1. Anexar PDF do laudo'}<input type="file" accept="application/pdf,.pdf" hidden onChange={anexar} /></label>
           <button type="button" class="primario" onClick={copiar}>2. Copiar instrução</button>
         </div>
         <details><summary>Ver a instrução</summary><pre class="prompt">{PROMPT_LAUDO_ANTIGO}</pre></details>

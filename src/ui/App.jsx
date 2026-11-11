@@ -5,6 +5,7 @@ import { Casos } from './Casos.jsx';
 import { Caso } from './Caso.jsx';
 import { Config } from './Config.jsx';
 import { Paradigmas } from './Paradigmas.jsx';
+import { Icone } from './Icone.jsx';
 
 // altura real do cabeçalho (ele quebra em 2–3 linhas no tablet em retrato): as abas fixas ficam logo abaixo
 function useAlturaTopo() {
@@ -53,7 +54,7 @@ function ModoCampo() {
   const alterna = () => { const n = !on; setOn(n); try { localStorage.setItem('modoCampo', n ? '1' : '0'); } catch (e) { /* ignore */ } };
   return (
     <button type="button" class={`modo-btn ${on ? 'on' : ''}`} onClick={alterna} title="Letras e botões maiores, alto contraste">
-      {on ? '☀ Modo campo ligado' : '☀ Modo campo'}
+      <Icone nome="sol" tam={16} />{on ? 'Modo campo ligado' : 'Modo campo'}
     </button>
   );
 }
@@ -64,11 +65,12 @@ function SyncBadge() {
   if (!s) return null;
   let cls = 'ok', txt;
   const pend = s.pending + s.fotosPendentes;
-  if (!s.configured) { cls = 'neutro'; txt = 'Salvo neste aparelho (nuvem não configurada)'; }
+  if (!s.configured) { cls = 'neutro'; txt = s.desligada ? 'Salvo neste aparelho (nuvem desligada)' : 'Salvo neste aparelho (nuvem não configurada)'; }
   else if (!s.user) { cls = 'alerta'; txt = 'Salvo neste aparelho · entre para sincronizar'; }
   else if (!s.online) { cls = 'alerta'; txt = pend ? `Sem internet · ${pend} alteração(ões) guardadas no aparelho` : 'Sem internet · tudo guardado no aparelho'; }
   else if (s.error) { cls = 'erro'; txt = `Salvo no aparelho · nuvem com erro: ${s.error}`; }
   else if (pend) { cls = 'alerta'; txt = `Salvo no aparelho · enviando ${pend}…`; }
+  else if (s.fotosComFalha) { cls = 'alerta'; txt = `Sincronizado · ${s.fotosComFalha} arquivo(s) não subiram – toque para tentar de novo`; }
   else txt = `Sincronizado${s.lastSync ? ' às ' + new Date(s.lastSync).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : ''}`;
   return (
     <button type="button" class={`sync ${cls}`} title={txt} aria-live="polite"

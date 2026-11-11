@@ -15,6 +15,8 @@ import { DESC_APENDICE, LETRAS, tituloSugerido } from '../apendices.js';
 import { lerAnotacao, promptAnotacoes } from '../notas.js';
 import { lerJsonIA, aplicarIA, faseAvanca } from '../aiimport.js';
 import { BotoesFoto, Miniaturas } from './Fotos.jsx';
+import { Icone } from './Icone.jsx';
+import { confirmar, avisar } from './dialogo.jsx';
 
 function hojeIso() { const d = new Date(); return new Date(d - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); }
 function agoraHM() { return new Date().toTimeString().slice(0, 5); }
@@ -48,7 +50,7 @@ export function Campo({ rec }) {
     setAberto(r.id);
   };
   const removerPosto = async (p) => {
-    if (!confirm(`Mover o posto "${p.data.nome || 'sem nome'}" para a lixeira? Medições e fotos dele continuam no caso.`)) return;
+    if (!await confirmar(`Mover o posto "${p.data.nome || 'sem nome'}" para a lixeira? Medições e fotos dele continuam no caso.`)) return;
     await softDelete(p.id); avisarAlteracao();
   };
 
@@ -72,7 +74,7 @@ export function Campo({ rec }) {
         <TF rec={rec} k="vistoriaLocal" label="Local (empresa / unidade)" />
         <TF rec={rec} k="vistoriaEndereco" label="Endereço" />
         <div class="com-botao"><TF rec={rec} k="vistoriaGps" label="Coordenadas GPS" />
-          <button type="button" class="mini" onClick={pegarGps}>📍 GPS</button></div>
+          <button type="button" class="mini" onClick={pegarGps}><Icone nome="pin" /> GPS</button></div>
         {gpsMsg && <small class="dica">{gpsMsg}</small>}
         <HorariosPelasEvidencias rec={rec} />
         <TF rec={rec} k="vistoriaPresentes" label="Pessoas presentes (nome – função – quem representa)" area />
@@ -160,7 +162,7 @@ function Medicoes({ caseId, postoId, ctx = {}, caso }) {
     setAberta(r.id);
   };
   const remover = async (m) => {
-    if (!confirm('Mover esta medição para a lixeira?')) return;
+    if (!await confirmar('Mover esta medição para a lixeira?')) return;
     await softDelete(m.id); avisarAlteracao();
   };
 
@@ -172,7 +174,7 @@ function Medicoes({ caseId, postoId, ctx = {}, caso }) {
         return (
           <div class={`item med ${aberta === m.id ? 'aberto' : ''}`} key={m.id}>
             <div class="item-topo" onClick={() => setAberta(aberta === m.id ? null : m.id)}>
-              <span class="item-titulo">📏 {m.data.agente} {principal && `· ${principal}`} {calc[0] && `· ${calc[0][0]} ${calc[0][1]}`}</span>
+              <span class="item-titulo"><Icone nome="regua" /> {m.data.agente} {principal && `· ${principal}`} {calc[0] && `· ${calc[0][0]} ${calc[0][1]}`}</span>
               <span class="item-acoes" onClick={(e) => e.stopPropagation()}>
                 <button type="button" class="mini perigo" onClick={() => remover(m)}>✕</button>
               </span>
@@ -201,8 +203,8 @@ function Medicoes({ caseId, postoId, ctx = {}, caso }) {
                     : <button type="button" class="mini" onClick={async () => {
                       const r = await promoverMedicao(caso, m, equip.find((e) => e.id === m.data.equipamentoId));
                       avisarAlteracao();
-                      alert(`Incluída no banco de paradigmas como ${r.data.codigo} (situação "Revisar"). Complete marca, modelo, família e características em Paradigmas.`);
-                    }}>➕ Incluir no banco de paradigmas</button>
+                      avisar(`Incluída no banco de paradigmas como ${r.data.codigo} (situação "Revisar"). Complete marca, modelo, família e características em Paradigmas.`);
+                    }}><Icone nome="mais" /> Incluir no banco de paradigmas</button>
                 )}
               </div>
             )}
@@ -266,7 +268,7 @@ function RelatoriosMedicao({ rec }) {
     setMsg(arqs.some((f) => f.size > LIMITE_NUVEM) ? 'Arquivo com mais de 39 MB: fica só neste aparelho.' : `${arqs.length} relatório(s) anexado(s). Ajuste o título de cada apêndice.`);
   };
   const abrir = async (r) => { try { window.open(URL.createObjectURL(await obterAnexo(r.id)), '_blank'); } catch (err) { setMsg(err.message); } };
-  const remover = async (r) => { if (confirm(`Remover "${r.data.nome}"?`)) { await softDelete(r.id); avisarAlteracao(); } };
+  const remover = async (r) => { if (await confirmar(`Remover "${r.data.nome}"?`)) { await softDelete(r.id); avisarAlteracao(); } };
   const mover = async (i, dir) => {
     const nova = [...lista]; const j = i + dir;
     if (j < 0 || j >= nova.length) return;
@@ -279,9 +281,9 @@ function RelatoriosMedicao({ rec }) {
       <h3>Relatórios das medições (apêndices do laudo)</h3>
       <p class="dica">Anexe os relatórios exportados dos medidores (ruído, vibração, IBUTG) e os certificados de calibração, em PDF ou imagem. Cada arquivo sai no fim do laudo, do parecer ou do LTCAT como Apêndice A, B, C…, com todas as páginas.</p>
       {lista.map((r, i) => (
-        <div class="linha-arquivo" style="flex-wrap:wrap;gap:6px">
+        <div class="linha-arquivo quebra">
           <b>Apêndice {LETRAS[i]}</b>
-          <input type="text" style="flex:1;min-width:220px" value={r.data.titulo || r.data.nome}
+          <input type="text" class="cresce" value={r.data.titulo || r.data.nome}
             onChange={async (e) => { await updateFields(r.id, { titulo: e.currentTarget.value }); avisarAlteracao(); }} />
           <small>{r.data.nome}{r.data.soLocal ? ' · só neste aparelho' : ''}</small>
           <span>
@@ -362,7 +364,7 @@ function AnotacoesDiligencia({ rec }) {
       </ol>
       <label class="botao-arquivo">{lendo ? 'Lendo…' : '＋ Anexar anotações (Word, PDF, texto, Keep)'}<input type="file" multiple hidden accept=".docx,.doc,.pdf,.txt,.html,.htm,.json,.md,image/*,application/pdf" onChange={anexar} /></label>
       {textos.map((t, i) => (
-        <div class="linha-arquivo"><span>📝 {t.nome} <small>({t.texto ? `${t.texto.length.toLocaleString('pt-BR')} caracteres` : 'sem texto'}{t.aviso ? ` · ${t.aviso}` : ''})</small></span>
+        <div class="linha-arquivo"><span><Icone nome="nota" /> {t.nome} <small>({t.texto ? `${t.texto.length.toLocaleString('pt-BR')} caracteres` : 'sem texto'}{t.aviso ? ` · ${t.aviso}` : ''})</small></span>
           <button type="button" class="mini perigo" onClick={() => setTextos(textos.filter((_, k) => k !== i))}>✕</button></div>
       ))}
       {guardadas.length > 0 && <small class="dica">{guardadas.length} arquivo(s) de anotações guardado(s) no caso.</small>}

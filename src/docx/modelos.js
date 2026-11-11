@@ -504,7 +504,8 @@ export async function parecerAssistente(caseId) {
   const d = new Doc();
   d.enderecamento(enderecamentoTexto(c), linhasProcesso(c, [['Referência', c.refLaudo ? `Laudo pericial (${c.refLaudo})` : '[[ID do laudo pericial]]']]));
   d.texto(`${qualificacaoCurta(perfil)}, assistente técnico indicado ${art(lado).pelo} ${lado}${c.vistoriaData ? `, tendo acompanhado a diligência pericial realizada em ${dataBR(c.vistoriaData)}` : ''}, vem, respeitosamente, à presença de Vossa Excelência, apresentar **MANIFESTAÇÃO TÉCNICA SOBRE O LAUDO PERICIAL**${c.peritoJuizo ? ` elaborado por ${c.peritoJuizo}` : ''}, nos termos do art. 477, § 1º, do Código de Processo Civil, pelos fundamentos técnicos expostos a seguir.`);
-  d.sumario();
+  // manifestação nos autos (peça processual): sem sumário e com as seções em sequência, sem página nova a cada título
+  d.h1NovaPagina = false;
   d.h1('1', 'Síntese do laudo e dos pontos analisados');
   d.redigir('resumo da conclusão do laudo e da posição desta assistência (concorda / impugna) por agente.');
   const agentes = (c.objeto || []).filter((o) => ['Insalubridade', 'Periculosidade'].includes(o));
@@ -552,6 +553,7 @@ export async function parecerPreventivo(caseId) {
   });
   d.sumario();
   d.h1('1', 'Objetivo');
+  d.h1NovaPagina = false; // seções curtas em sequência (antes, cada título abria página nova)
   d.redigir('objetivo do parecer (avaliar o risco técnico do pedido e subsidiar a defesa e as medidas corretivas).');
   d.h1('2', 'Identificação do caso');
   d.identificacao([['Processo', c.numero], ['Juízo', c.juizo], [pt.autor, c.autorNome], ['Função / período', c.funcoes],

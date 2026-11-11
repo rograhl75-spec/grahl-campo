@@ -85,6 +85,42 @@
    - a primeira página (capa) sai sem número, mantendo o timbrado;
    - o LTCAT com fotos ganha a Lista de Figuras antes da Lista de Quadros (NBR 14724).
 
+## Resolvido na v2.27.0 (itens de prioridade média e baixa restantes)
+1. **Fila de fotos e anexos:**
+   - uma falha permanente num arquivo não trava mais os outros: depois de 5 tentativas, o arquivo fica pausado e o aviso aparece no topo; "Sincronizar agora" tenta de novo;
+   - arquivo sem registro não é mais tentado de 3 em 3 segundos;
+   - fotos que não baixaram (por exemplo, sem internet) são tentadas de novo a cada 5 minutos.
+2. **Campo em edição:** quando chega uma alteração de outro aparelho enquanto você edita o campo, aparece um aviso com o texto recebido e dois botões: "Usar a versão do outro aparelho" ou "Manter a minha". Antes, a alteração remota era sobrescrita sem aviso.
+3. **Base de paradigmas corrigida:** a data do arquivo JSON vira a versão da base. Uma base mais nova corrige os campos vindos da base anterior, sem passar por cima do que foi editado no app; uma base mais antiga não desfaz a correção.
+4. **Similares:** o mesmo modelo em épocas diferentes vira registros distintos (antes, o último sobrescrevia os outros).
+5. **Nuvem:** pode ser desligada e religada neste aparelho (Configurações → Nuvem).
+6. **Reimportação do app antigo:**
+   - itens identificados pelo conteúdo, não pela posição: um quesito a mais não desloca nem duplica os outros, e a resposta fica no quesito certo;
+   - só sobe para a nuvem o que mudou;
+   - vibração de mãos e braços é reconhecida.
+7. **Documentos Word:**
+   - sumário, lista de quadros e lista de figuras saem já preenchidos com os títulos (no Word, os números de página se completam ao abrir);
+   - a manifestação do assistente técnico sai sem sumário e sem página nova a cada título; no parecer preventivo, as seções seguem em sequência;
+   - listas com marcador de verdade (o Word continua a lista ao editar);
+   - fonte alternativa (Arial) declarada para quando a Abadi não estiver instalada;
+   - "1º de" nas datas por extenso;
+   - tabulação gravada como `<w:tab/>`.
+8. **Telas:**
+   - ícones em SVG no lugar de emojis;
+   - caixas de confirmação no visual do app;
+   - rótulos ligados aos campos, sem botões dentro deles;
+   - fotos com texto alternativo (a legenda);
+   - data de entrega do EPI em campo de data (valores antigos em DD/MM/AAAA aparecem convertidos);
+   - cores próprias para as fases "Aguardando depósito" e "Respondendo quesitos suplementares";
+   - sem estilos soltos no código;
+   - miniaturas liberam a memória.
+9. **Mesclagem:** uma alteração local ainda não enviada continua marcada para envio depois de receber dados da nuvem (corrigida uma linha sem efeito).
+
+## Mantido de propósito
+- `public/modelos/timbrado-paisagem.docx` não é usado hoje, mas foi mantido para documentos em paisagem no futuro.
+- A fonte Abadi não é embutida: é uma fonte licenciada e o arquivo não está no projeto.
+- O aviso de erro grave de gravação no aparelho continua no alerta do navegador, para bloquear a tela até ser lido.
+
 ## Observações
 - As regras do Firebase não foram testadas em emulador nesta sessão. Publique e confira o login no tablet e no PC.
 - Confira no original a tese e as datas da jurisprudência antes de usá-las em peça: as conferências desta sessão foram feitas em fontes secundárias.

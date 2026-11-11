@@ -2,7 +2,7 @@ import { db, caseChildren } from '../db.js';
 import { resumoMedicao, calculados } from '../medicoes.js';
 import { nen, num, fmt, fatorQ, doseJornada } from '../calc.js';
 import { ORIGEM_QUESITO, contextoLegal, ehSuplementar , reuEhInss, localVistoria } from '../schema.js';
-import { Doc, p, run, rich, montarDocx } from './ooxml.js';
+import { Doc, p, run, rich, montarDocx, ordinalDia1 } from './ooxml.js';
 import { nenParaJornada, arenParaJornada, vdvrParaJornada, certificadoVencido, rotuloParadigma, num as numP } from '../paradigmas.js';
 
 export const PERFIL_ID = 'perfil';
@@ -223,7 +223,7 @@ export function dataPorExtenso(iso, { semana = false } = {}) {
   const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (!m) return '';
   const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-  const txt = d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
+  const txt = ordinalDia1(d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }));
   return semana ? `${txt} (${DIAS_SEMANA[d.getDay()]})` : txt;
 }
 export function horaPorExtenso(hhmm) {

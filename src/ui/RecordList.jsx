@@ -3,6 +3,7 @@ import { db, createRecord, softDelete, updateFields } from '../db.js';
 import { avisarAlteracao } from '../sync.js';
 import { useLive } from './hooks.js';
 import { Campos } from './fields.jsx';
+import { confirmar } from './dialogo.jsx';
 
 // Lista editável de registros de um caso (períodos, documentos, EPIs...)
 export function RecordList({ kind, caseId, campos, titulo, novo = 'Adicionar', resumo, vazio = 'Nenhum item.', extra, inicial = {}, abrirNovo = true, filtro }) {
@@ -21,7 +22,7 @@ export function RecordList({ kind, caseId, campos, titulo, novo = 'Adicionar', r
     if (abrirNovo) setAberto(r.id);
   };
   const remover = async (r) => {
-    if (!confirm(`Mover "${resumo(r) || 'item'}" para a lixeira? (pode ser restaurado em Configurações → Lixeira)`)) return;
+    if (!await confirmar(`Mover "${resumo(r) || 'item'}" para a lixeira? (pode ser restaurado em Configurações → Lixeira)`)) return;
     await softDelete(r.id);
     avisarAlteracao();
   };

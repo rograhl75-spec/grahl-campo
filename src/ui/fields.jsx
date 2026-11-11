@@ -2,9 +2,11 @@ import { useEffect, useRef, useState, useLayoutEffect } from 'preact/hooks';
 import { updateField, fieldHistory } from '../db.js';
 import { avisarAlteracao } from '../sync.js';
 import { walGravar, walConfirmar } from '../wal.js';
+import { Icone } from './Icone.jsx';
 
 // Todos os campos com gravação pendente, para gravar ao sair/minimizar o app
 const pendentes = new Set();
+let contadorCampos = 0;
 export function gravarTudoAgora() {
   for (const f of [...pendentes]) f();
 }
@@ -24,7 +26,9 @@ async function salvar(id, k, v) {
 
 // Campo de texto com gravação automática (sem botão "Salvar")
 export function TF({ rec, k, label, type = 'text', area = false, rows = 3, placeholder = '', hint, historico = area, inputMode, className = '' }) {
-  const remoto = rec && rec.data[k] !== undefined && rec.data[k] !== null ? String(rec.data[k]) : '';
+  let remoto = rec && rec.data[k] !== undefined && rec.data[k] !== null ? String(rec.data[k]) : '';
+  // campo de data com valor antigo em texto ("01/03/2023"): mostra convertido em vez de aparecer vazio
+  if (type === 'date') { const m = remoto.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); if (m) remoto = `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`; }
   const [val, setVal] = useState(remoto);
   const valRef = useRef(remoto);
   const idRef = useRef(rec && rec.id);
@@ -32,6 +36,11 @@ export function TF({ rec, k, label, type = 'text', area = false, rows = 3, place
   const sujo = useRef(false);
   const foco = useRef(false);
   const taRef = useRef(null);
+  const idCampo = useRef(`c${++contadorCampos}`).current;
+  // valores gravados por este campo (o eco da própria gravação não é alteração de outro aparelho)
+  const proprios = useRef(new Set([remoto]));
+  // texto que chegou de outro aparelho enquanto este campo estava em edição
+  const [outro, setOutro] = useState(null);
 
   const flush = useRef(() => {});
   flush.current = () => {
@@ -39,6 +48,8 @@ export function TF({ rec, k, label, type = 'text', area = false, rows = 3, place
     if (!sujo.current) return;
     sujo.current = false;
     pendentes.delete(flushProxy.current);
+    proprios.current.add(valRef.current);
+    if (proprios.current.size > 50) proprios.current = new Set([...proprios.current].slice(-20));
     salvar(idRef.current, k, valRef.current);
   };
   const flushProxy = useRef(() => flush.current());
@@ -49,17 +60,27 @@ export function TF({ rec, k, label, type = 'text', area = false, rows = 3, place
       flush.current();
       idRef.current = rec.id;
       valRef.current = remoto;
+      proprios.current = new Set([remoto]);
+      setOutro(null);
       setVal(remoto);
     }
   }, [rec && rec.id]);
 
-  // valor mudou em outro aparelho: atualiza só se o campo não estiver em edição
+  // valor mudou em outro aparelho: fora de edição, atualiza na hora; em edição, avisa e deixa escolher
+  // (antes, a alteração remota sumia e era sobrescrita sem aviso ao continuar digitando)
   useEffect(() => {
-    if (!foco.current && !sujo.current && remoto !== valRef.current) {
-      valRef.current = remoto;
-      setVal(remoto);
-    }
+    // eco da própria gravação: nada muda (o aviso pendente continua até a escolha)
+    if (proprios.current.has(remoto)) return;
+    // o outro aparelho chegou ao mesmo texto: não há o que escolher
+    if (remoto === valRef.current) { setOutro(null); return; }
+    if (!foco.current && !sujo.current) { valRef.current = remoto; setVal(remoto); setOutro(null); return; }
+    setOutro(remoto);
   }, [remoto]);
+  const usarOutro = () => {
+    clearTimeout(timer.current); sujo.current = false; pendentes.delete(flushProxy.current);
+    valRef.current = outro; setVal(outro); proprios.current.add(outro); walConfirmar(idRef.current, k, outro); setOutro(null);
+  };
+  const manterMeu = () => { proprios.current.add(outro); setOutro(null); sujo.current = true; flush.current(); };
 
   useEffect(() => () => flush.current(), []);
 
@@ -87,16 +108,27 @@ export function TF({ rec, k, label, type = 'text', area = false, rows = 3, place
     onBlur: () => { foco.current = false; flush.current(); },
   };
   return (
-    <label class={`campo ${area ? 'campo-area' : ''} ${className}`}>
+    // div + label for: os botões (versões, aviso de conflito) não ficam dentro do <label>
+    <div class={`campo ${area ? 'campo-area' : ''} ${className}`}>
       <span class="rotulo">
-        {label}
+        <label for={idCampo}>{label}</label>
         {historico && rec && <BotaoHistorico rec={rec} k={k} aplicar={(v) => { valRef.current = v; setVal(v); sujo.current = true; flush.current(); }} />}
       </span>
       {area
-        ? <textarea ref={taRef} rows={rows} {...comum} />
-        : <input type={type === 'num' ? 'text' : type} inputMode={type === 'num' ? 'decimal' : inputMode} {...comum} />}
+        ? <textarea id={idCampo} ref={taRef} rows={rows} {...comum} />
+        : <input id={idCampo} type={type === 'num' ? 'text' : type} inputMode={type === 'num' ? 'decimal' : inputMode} {...comum} />}
+      {outro !== null && (
+        <span class="conflito" role="alert">
+          <b>Este campo foi alterado em outro aparelho enquanto você editava.</b>
+          <span class="conflito-txt">{outro || '(vazio)'}</span>
+          <span class="linha-botoes">
+            <button type="button" class="mini" onClick={usarOutro}>Usar a versão do outro aparelho</button>
+            <button type="button" class="mini sec" onClick={manterMeu}>Manter a minha</button>
+          </span>
+        </span>
+      )}
       {hint && <small class="dica">{hint}</small>}
-    </label>
+    </div>
   );
 }
 
@@ -167,7 +199,7 @@ function BotaoHistorico({ rec, k, aplicar }) {
   };
   return (
     <>
-      <button type="button" class="hist" title="Versões anteriores deste campo" onClick={abrir}>⟲ versões</button>
+      <button type="button" class="hist" title="Versões anteriores deste campo" onClick={abrir}><Icone nome="historico" tam={14} /> versões</button>
       {aberto && (
         <div class="modal" onClick={() => setAberto(false)}>
           <div class="modal-caixa" onClick={(e) => e.stopPropagation()}>

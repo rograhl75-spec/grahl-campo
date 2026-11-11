@@ -133,7 +133,7 @@ export const CAMPOS_ESCLARECIMENTOS = [
   ['laudoRefPerito', 'Laudo apresentado (ex.: "mov. 64.1" ou "evento 45")', 'text'],
   ['laudoData', 'Data da juntada do laudo', 'date'],
   ['esclDecisaoRef', 'Decisão que determinou a resposta (ex.: "decisão do mov. 71.1")', 'text'],
-  ['prazoEsclarecimentos', 'Prazo para responder', 'date'],
+  ['prazoEsclarecimentos', 'Prazo para responder (o mesmo prazo de esclarecimentos do Resumo)', 'date'],
   ['esclRetificacoes', 'Retificações de erro material no laudo (uma por linha, ex.: "Resposta ao quesito 1 do INSS: onde se lê 11h00 às 13h00, leia-se 09h00 às 10h30")', 'area'],
   ['esclRatifica', 'Os esclarecimentos mantêm as conclusões do laudo?', 'select', ['Sim', 'Não']],
   ['esclObservacoes', 'Esclarecimentos complementares, ex.: pontos levantados pelo Juízo (saem antes da conclusão; em branco = não sai)', 'area'],
@@ -204,7 +204,7 @@ export const CAMPOS_DOC = [
 export const CAMPOS_EPI = [
   ['descricao', 'EPI', 'text'],
   ['ca', 'CA', 'text'],
-  ['dataEntrega', 'Data de entrega', 'text'],
+  ['dataEntrega', 'Data de entrega', 'date'],
   ['obs', 'Observações (validade do CA, assinatura, troca)', 'text'],
 ];
 

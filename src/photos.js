@@ -101,5 +101,8 @@ export async function urlCompleta(id) {
 }
 
 export function esquecerMiniatura(id) {
+  // libera a memória da miniatura (antes a URL ficava presa até fechar o app)
+  const url = urlCache.get(id);
+  if (url) URL.revokeObjectURL(url);
   urlCache.delete(id);
 }

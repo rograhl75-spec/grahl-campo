@@ -73,7 +73,11 @@ async function gravarImportado(rec) {
 }
 
 // Importa o arquivo de base (JSON). Idempotente: o que você editou no app prevalece.
-export async function importarBaseJson(obj) {
+// Relógio da base = data do arquivo em SEGUNDOS (~1,7e9), sempre menor que o de uma edição no app
+// (milissegundos, ~1,7e12): uma base corrigida atualiza os campos vindos da base anterior, mas nunca
+// passa por cima do que foi editado no app.
+export const tsDaBase = (ms = Date.now()) => Math.floor(Number(ms) / 1000);
+export async function importarBaseJson(obj, { versao = 1 } = {}) {
   if (!obj || !Array.isArray(obj.veiculos)) throw new Error('Arquivo sem a lista "veiculos".');
   const familias = new Map();
   const falhas = [];
@@ -84,27 +88,33 @@ export async function importarBaseJson(obj) {
     const fam = (v.caracteristicas || {}).familia;
     if (fam && !familias.has(fam)) familias.set(fam, s((v.caracteristicas || {}).familia_descricao));
     try {
-      if (await gravarImportado(registro(`par-${slug(d.codigo)}`, 'paradigma', d))) nv++;
+      if (await gravarImportado(registro(`par-${slug(d.codigo)}`, 'paradigma', d, versao))) nv++;
     } catch (e) { falhas.push(`${d.codigo}: ${e.message || e}`); }
   }
+  const vistosSim = new Set();
   for (const x of obj.similares || []) {
     const d = {
       marca: s(x.marca), modelo: s(x.modelo), tipo: s(x.tipo), epoca: s(x.epoca), familia: s(x.familia),
       paradigmaRuido: s(x.paradigma_ruido), paradigmaRuidoAlt: s(x.paradigma_ruido_alt), paradigmaVibracao: s(x.paradigma_vibracao),
       status: s(x.status), obs: s(x.obs),
     };
-    const id = `sim-${slug(`${d.marca} ${d.modelo}`)}`;
+    // mesmo modelo em épocas diferentes (ex.: cabine antiga x nova) são registros distintos.
+    // Regra determinística (igual em todos os aparelhos): a 1ª ocorrência do modelo no arquivo mantém o id
+    // de sempre, sem a época; as seguintes recebem a época no id. Antes, a última sobrescrevia as outras.
+    const base = `sim-${slug(`${d.marca} ${d.modelo}`)}`;
+    const id = vistosSim.has(base) ? `sim-${slug(`${d.marca} ${d.modelo} ${d.epoca || vistosSim.size}`)}` : base;
+    vistosSim.add(base);
     try {
-      if (await gravarImportado(registro(id, 'similar', d))) ns++;
+      if (await gravarImportado(registro(id, 'similar', d, versao))) ns++;
     } catch (e) { falhas.push(`${d.marca} ${d.modelo}: ${e.message || e}`); }
   }
   for (const [cod, desc] of familias) {
     const id = `fam-${slug(cod)}`;
-    await gravarImportado(registro(id, 'familia', { codigo: cod, descricao: desc }));
+    await gravarImportado(registro(id, 'familia', { codigo: cod, descricao: desc }, versao));
   }
   if (obj.regra_alerta_certificado_meses) {
     const id = 'cfg-paradigmas';
-    await gravarImportado(registro(id, 'config', { regraCertMeses: String(obj.regra_alerta_certificado_meses) }));
+    await gravarImportado(registro(id, 'config', { regraCertMeses: String(obj.regra_alerta_certificado_meses) }, versao));
   }
   return { veiculos: nv, similares: ns, familias: familias.size, lidos: obj.veiculos.length, falhas };
 }

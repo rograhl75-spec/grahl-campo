@@ -14,6 +14,8 @@ import { ResultadoBusca } from './Paradigmas.jsx';
 import { updateFields, softDelete } from '../db.js';
 import { guardarAnexo, LIMITE_NUVEM } from '../paradigmas.js';
 import { obterAnexo } from '../sync.js';
+import { Icone } from './Icone.jsx';
+import { confirmar } from './dialogo.jsx';
 
 export function Preparacao({ rec }) {
   const sintese = CAMPOS_SINTESE.filter(([k]) => k !== 'roteiro' && k !== 'analiseEpi');
@@ -82,7 +84,7 @@ function ArquivoDoProcesso({ rec }) {
   const abrir = async (r) => {
     try { const b = await obterAnexo(r.id); window.open(URL.createObjectURL(b), '_blank'); } catch (err) { setMsg(err.message); }
   };
-  const remover = async (r) => { if (confirm(`Remover "${r.data.nome}" do caso?`)) { await softDelete(r.id); avisarAlteracao(); } };
+  const remover = async (r) => { if (await confirmar(`Remover "${r.data.nome}" do caso?`)) { await softDelete(r.id); avisarAlteracao(); } };
   const mb = (n) => `${(n / 1048576).toFixed(1).replace('.', ',')} MB`;
   return (
     <section class="bloco largo passo-etapa">
@@ -90,7 +92,7 @@ function ArquivoDoProcesso({ rec }) {
       <p class="dica">Guarde aqui o PDF completo dos autos (pode ser mais de um arquivo). Ele fica no caso, para abrir no tablet ou no PC e anexar no Claude.</p>
       {lista.map((r) => (
         <div class="linha-arquivo">
-          <span>📄 {r.data.nome} <small>({mb(r.data.tamanho || 0)}{r.data.soLocal ? ' · só neste aparelho' : ''})</small></span>
+          <span><Icone nome="doc" /> {r.data.nome} <small>({mb(r.data.tamanho || 0)}{r.data.soLocal ? ' · só neste aparelho' : ''})</small></span>
           <span><button type="button" class="mini" onClick={() => abrir(r)}>Abrir</button> <button type="button" class="mini perigo" onClick={() => remover(r)}>✕</button></span>
         </div>
       ))}
@@ -191,14 +193,14 @@ function VeiculoDoPeriodo({ r }) {
     await updateFields(r.id, tipo === 'ruido' ? { paradigmaRuido: p.data.codigo } : { paradigmaVibracao: p.data.codigo });
     avisarAlteracao();
   };
-  if (!aberto) return <button type="button" class="mini" onClick={() => setAberto(true)}>🚚 Veículo, paradigma e penosidade (motorista / operador)</button>;
+  if (!aberto) return <button type="button" class="mini" onClick={() => setAberto(true)}><Icone nome="caminhao" /> Veículo, paradigma e penosidade (motorista / operador)</button>;
   return (
-    <div class="bloco destaque" style="margin-top:8px">
+    <div class="bloco destaque mt-p">
       <h4>Veículo do requerente neste período</h4>
       <div class="linha2"><Campos rec={r} campos={CAMPOS_VEICULO_PERIODO} /></div>
       <button type="button" onClick={buscar}>Sugerir paradigmas pelo banco</button>
       {res && <ResultadoBusca res={res} onEscolher={escolher} />}
-      <details style="margin-top:10px" open={!!(r.data.jornadaSemanal || r.data.penosidadeConclusao)}>
+      <details class="mt" open={!!(r.data.jornadaSemanal || r.data.penosidadeConclusao)}>
         <summary><b>Penosidade (motorista / cobrador – a partir de 29/04/1995)</b></summary>
         <p class="dica">Fatores concretos de desgaste, vínculo a vínculo. Até 28/04/1995 basta a categoria profissional; depois, a penosidade depende de perícia técnica individualizada. Os dados saem no quadro de penosidade do laudo, do parecer e do LTCAT.</p>
         <div class="linha2"><Campos rec={r} campos={CAMPOS_PENOSIDADE} /></div>

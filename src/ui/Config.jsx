@@ -10,6 +10,7 @@ import { Campos } from './fields.jsx';
 import { dataBR } from '../docx/reports.js';
 import { RecordList } from './RecordList.jsx';
 import { useLive } from './hooks.js';
+import { confirmar } from './dialogo.jsx';
 
 const ABAS = [['meus-dados', 'Meus dados'], ['nuvem', 'Nuvem'], ['backup', 'Backup'], ['antigo', 'App antigo'], ['equipamentos', 'Equipamentos'], ['lixeira', 'Lixeira'], ['aparelho', 'Este aparelho']];
 
@@ -75,16 +76,23 @@ function Nuvem() {
     } catch (e) { setMsg('Erro: ' + e.message); }
   };
   const remover = async () => {
-    if (!confirm('Desligar a nuvem neste aparelho? Os dados continuam no aparelho e na nuvem.')) return;
+    if (!await confirmar('Desligar a nuvem neste aparelho? Os dados continuam no aparelho e na nuvem.')) return;
     await sair().catch(() => {});
-    await setMeta('firebaseConfig', null);
+    await setMeta('nuvemDesligada', true);
     location.reload();
   };
+  const religar = async () => { await setMeta('nuvemDesligada', false); location.reload(); };
   return (
     <div class="grade">
       <section class="bloco largo">
         <h3>Sincronização</h3>
-        {!s.configured && <p>A nuvem ainda não foi configurada neste aparelho. Tudo continua sendo gravado aqui.</p>}
+        {!s.configured && !s.desligada && <p>A nuvem ainda não foi configurada neste aparelho. Tudo continua sendo gravado aqui.</p>}
+        {s.desligada && (
+          <>
+            <p>A nuvem está <b>desligada neste aparelho</b>. Tudo continua sendo gravado aqui; nada é enviado nem recebido.</p>
+            <div class="linha-botoes"><button type="button" class="primario" onClick={religar}>Religar a nuvem</button></div>
+          </>
+        )}
         {s.configured && !s.user && (
           <div class="linha-botoes">
             <button type="button" class="primario" onClick={() => entrar().catch((e) => setMsg(e.message))}>Entrar com Google</button>
@@ -93,17 +101,18 @@ function Nuvem() {
         {s.user && (
           <>
             <p>Conectado como <b>{s.user.email}</b>.</p>
-            <p>Pendentes de envio: <b>{s.pending}</b> registro(s), <b>{s.fotosPendentes}</b> foto(s). {s.lastSync && <>Última sincronização: {new Date(s.lastSync).toLocaleString('pt-BR')}.</>}</p>
+            <p>Pendentes de envio: <b>{s.pending}</b> registro(s), <b>{s.fotosPendentes}</b> foto(s) ou anexo(s){s.fotosComFalha ? <>, <b class="erro-msg">{s.fotosComFalha} com falha</b></> : null}. {s.lastSync && <>Última sincronização: {new Date(s.lastSync).toLocaleString('pt-BR')}.</>}</p>
             {s.error && <p class="erro-msg">{s.error}</p>}
             <div class="linha-botoes">
               <button type="button" class="primario" onClick={sincronizarAgora}>Sincronizar agora</button>
               <button type="button" class="sec" onClick={() => sair()}>Sair</button>
+              <button type="button" class="sec" onClick={remover}>Desligar a nuvem neste aparelho</button>
             </div>
           </>
         )}
         {s.error && !s.user && <p class="erro-msg">{s.error}</p>}
       </section>
-      {!s.configured && (
+      {!s.configured && !s.desligada && (
         <section class="bloco largo">
           <h3>Configurar Firebase</h3>
           <p>Cole aqui o bloco <code>firebaseConfig</code> do Console do Firebase (Configurações do projeto → Seus apps → app da Web). O passo a passo está no arquivo LEIA-ME do projeto.</p>

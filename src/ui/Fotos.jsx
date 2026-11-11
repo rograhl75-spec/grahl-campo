@@ -5,6 +5,8 @@ import { adicionarFotos, urlMiniatura, urlCompleta } from '../photos.js';
 import { imagensDoDocx, imagensDoPdf, importarImagens } from '../fotosLaudo.js';
 import { TF, salvar } from './fields.jsx';
 import { useLive } from './hooks.js';
+import { Icone } from './Icone.jsx';
+import { confirmar } from './dialogo.jsx';
 
 function useFotos(caseId, postoId) {
   return useLive(async () => (await db.records.where('[caseId+kind]').equals([caseId, 'foto']).toArray())
@@ -33,20 +35,20 @@ export function BotoesFoto({ caseId, postoId = '' }) {
     <div class="botoes-foto">
       <input ref={cam} type="file" accept="image/*" capture="environment" hidden onChange={receber} />
       <input ref={gal} type="file" accept="image/*" multiple hidden onChange={receber} />
-      <button type="button" class="primario" onClick={() => cam.current.click()}>📷 Tirar foto</button>
-      <button type="button" onClick={() => gal.current.click()}>🖼 Da galeria</button>
+      <button type="button" class="primario" onClick={() => cam.current.click()}><Icone nome="camera" /> Tirar foto</button>
+      <button type="button" onClick={() => gal.current.click()}><Icone nome="imagem" /> Da galeria</button>
       {msg && <span class="dica">{msg}</span>}
     </div>
   );
 }
 
-function Mini({ id, onClick }) {
+function Mini({ id, onClick, legenda = '' }) {
   const [url, setUrl] = useState(null);
   const blob = useLive(() => db.blobs.get(id).then((b) => (b ? 1 : 0)), [id], 0);
   useEffect(() => { let vivo = true; urlMiniatura(id).then((u) => vivo && setUrl(u)); return () => { vivo = false; }; }, [id, blob]);
   return (
-    <button type="button" class="mini-foto" onClick={onClick}>
-      {url ? <img src={url} alt="" loading="lazy" /> : <span class="sem-foto">baixando…</span>}
+    <button type="button" class="mini-foto" onClick={onClick} aria-label={`Abrir foto${legenda ? `: ${legenda}` : ''}`}>
+      {url ? <img src={url} alt={legenda || 'Foto da diligência'} loading="lazy" /> : <span class="sem-foto">baixando…</span>}
     </button>
   );
 }
@@ -58,7 +60,7 @@ export function Miniaturas({ caseId, postoId }) {
   return (
     <>
       <div class="tira">
-        {fotos.map((f) => <div class="tira-item"><Mini id={f.id} onClick={() => setSel(f.id)} /><small>{f.data.legenda || ''}</small></div>)}
+        {fotos.map((f) => <div class="tira-item"><Mini id={f.id} legenda={f.data.legenda} onClick={() => setSel(f.id)} /><small>{f.data.legenda || ''}</small></div>)}
       </div>
       {sel && <EditorFoto caseId={caseId} id={sel} fechar={() => setSel(null)} />}
     </>
@@ -90,10 +92,10 @@ export function Fotos({ rec }) {
         <div class="galeria">
           {fotos.map((f, idx) => (
             <div class="galeria-item" key={f.id}>
-              <Mini id={f.id} onClick={() => setSel(f.id)} />
+              <Mini id={f.id} legenda={f.data.legenda} onClick={() => setSel(f.id)} />
               <div class="galeria-info">
                 <b>Foto {idx + 1}</b>{f.data.postoId && nomePosto[f.data.postoId] ? ` · ${nomePosto[f.data.postoId]}` : ''}
-                <br /><small class="suave">{f.data.tiradaEm ? new Date(f.data.tiradaEm).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : 'sem data na foto'}{f.data.gps ? ` · 📍 ${f.data.gps}` : ''}{f.data.origem ? ` · ${f.data.origem}` : ''}</small>
+                <br /><small class="suave">{f.data.tiradaEm ? new Date(f.data.tiradaEm).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : 'sem data na foto'}{f.data.gps ? ` · GPS ${f.data.gps}` : ''}{f.data.origem ? ` · ${f.data.origem}` : ''}</small>
                 <TF rec={f} k="legenda" label="Legenda" />
                 <div class="linha-botoes">
                   <button type="button" class="mini" onClick={() => mover(idx, -1)}>↑</button>
@@ -116,13 +118,13 @@ function EditorFoto({ caseId, id, fechar, postos: postosProp }) {
   useEffect(() => { let u; urlCompleta(id).then((x) => { u = x; setUrl(x); }); return () => u && URL.revokeObjectURL(u); }, [id]);
   if (!f) return null;
   const excluir = async () => {
-    if (!confirm('Mover esta foto para a lixeira? (pode ser restaurada em Configurações → Lixeira)')) return;
+    if (!await confirmar('Mover esta foto para a lixeira? (pode ser restaurada em Configurações → Lixeira)')) return;
     await softDelete(id); avisarAlteracao(); fechar();
   };
   return (
     <div class="modal" onClick={fechar}>
       <div class="modal-caixa foto-editor" onClick={(e) => e.stopPropagation()}>
-        {url ? <img src={url} alt="" /> : <p class="vazio">Foto ainda não disponível neste aparelho.</p>}
+        {url ? <img src={url} alt={f.data.legenda || 'Foto da diligência'} /> : <p class="vazio">Foto ainda não disponível neste aparelho.</p>}
         <TF rec={f} k="legenda" label="Legenda" area rows={2} historico={false} />
         <label class="campo"><span class="rotulo">Posto / atividade</span>
           <select value={f.data.postoId || ''} onChange={(e) => salvar(id, 'postoId', e.currentTarget.value)}>

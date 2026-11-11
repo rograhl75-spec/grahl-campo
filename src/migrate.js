@@ -147,7 +147,7 @@ export function mapearLegado(docId, d) {
   for (const a of Array.isArray(d.avaliacoes_ambientais) ? d.avaliacoes_ambientais : []) {
     if (!a || typeof a !== 'object') continue;
     const ag = txt(a.agente);
-    const agente = /ru[ií]do/i.test(ag) ? 'Ruído' : /calor|ibutg/i.test(ag) ? 'Calor (IBUTG)' : /vibra/i.test(ag) ? 'Vibração de corpo inteiro (VCI)' : txt(a.tipo) === 'Q' ? 'Agente químico' : 'Outro';
+    const agente = /ru[ií]do/i.test(ag) ? 'Ruído' : /calor|ibutg/i.test(ag) ? 'Calor (IBUTG)' : /vibra/i.test(ag) && /m[ãa]os|bra[çc]os|vmb/i.test(ag) ? 'Vibração de mãos e braços (VMB)' : /vibra/i.test(ag) ? 'Vibração de corpo inteiro (VCI)' : txt(a.tipo) === 'Q' ? 'Agente químico' : 'Outro';
     const obs = Object.entries(a).filter(([, v]) => txt(v)).map(([k, v]) => `${k}: ${txt(v)}`).join('; ');
     filhos.push({ kind: 'medicao', data: { agente, descricao: ag, valor: txt(a.intensidade), unidade: txt(a.unidade), metodo: txt(a.metodo), obs } });
   }
@@ -191,26 +191,57 @@ function registroLegado(id, kind, caseId, data) {
   return normalize({ id, kind, caseId, createdAt: Date.now(), data, ts });
 }
 
+// Identidade de cada item importado pelo CONTEÚDO, não pela posição na lista: com um item a mais no
+// app antigo, a reimportação não desloca nem mistura os dados (antes, o id era "-quesito-3" etc.).
+const CHAVES_FILHO = {
+  quesito: ['origem', 'texto'], // o número muda quando entra um quesito antes: não identifica periodo: ['empresa', 'inicio', 'cargo'], documento: ['tipo', 'identificacao'],
+  epi: ['descricao', 'ca', 'dataEntrega'], medicao: ['agente', 'descricao', 'valor', 'metodo'], posto: ['nome'], foto: ['tiradaEm', 'legenda', 'gps'],
+};
+export function chaveFilho(kind, data) {
+  return (CHAVES_FILHO[kind] || ['texto', 'nome', 'descricao']).map((k) => txt(data[k]).toLowerCase().replace(/\s+/g, ' ')
+    .replace(/^\(?(\d+|[a-z])\s*[).\-–]\s*/, '').slice(0, 160)).join('|');
+}
+function hashCurto(t) {
+  let h = 2166136261;
+  for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return (h >>> 0).toString(36);
+}
+// grava e só marca para envio se algo mudou (antes, toda reimportação subia tudo de novo)
+async function gravarLegado(rec) {
+  const { changed } = await mergeIncoming(rec);
+  if (changed) await db.records.update(rec.id, { dirty: 1 });
+  return changed;
+}
+
 async function gravarCaso(docId, d, carregarFoto, log) {
   const { caso, filhos, fotos } = mapearLegado(docId, d);
   const caseId = `leg-${docId}`;
-  await mergeIncoming(registroLegado(caseId, 'caso', null, caso));
-  await db.records.update(caseId, { dirty: 1 });
+  await gravarLegado(registroLegado(caseId, 'caso', null, caso));
+  // itens já importados deste caso, pela chave de conteúdo (inclui os de ids antigos por posição)
+  const existentes = new Map();
+  for (const r of await db.records.where('caseId').equals(caseId).toArray()) existentes.set(`${r.kind}|${chaveFilho(r.kind, r.data)}`, r.id);
+  const idDe = (kind, data, usados) => {
+    const ch = `${kind}|${chaveFilho(kind, data)}`;
+    let id = existentes.get(ch);
+    if (!id || usados.has(id)) {
+      id = `${caseId}-${kind}-h${hashCurto(ch)}`;
+      for (let k = 2; usados.has(id); k++) id = `${caseId}-${kind}-h${hashCurto(ch)}-${k}`; // itens idênticos repetidos
+    }
+    usados.add(id);
+    return id;
+  };
+  const usados = new Set();
   let i = 0;
   for (const f of filhos) {
     i += 1;
-    const id = `${caseId}-${f.kind}-${i}`;
-    await mergeIncoming(registroLegado(id, f.kind, caseId, { ordem: i, ...f.data }));
-    await db.records.update(id, { dirty: 1 });
+    await gravarLegado(registroLegado(idDe(f.kind, f.data, usados), f.kind, caseId, { ordem: i, ...f.data }));
   }
   let ok = 0, falhas = 0;
   for (let n = 0; n < fotos.length; n++) {
     const f = fotos[n];
-    const id = `${caseId}-foto-${n + 1}`;
-    await mergeIncoming(registroLegado(id, 'foto', caseId, {
-      legenda: txt(f.legenda), gps: txt(f.gps), ordem: n + 1, tiradaEm: txt(f.created_at), postoId: '',
-    }));
-    await db.records.update(id, { dirty: 1 });
+    const dados = { legenda: txt(f.legenda), gps: txt(f.gps), ordem: n + 1, tiradaEm: txt(f.created_at), postoId: '' };
+    const id = idDe('foto', dados, usados);
+    await gravarLegado(registroLegado(id, 'foto', caseId, dados));
     if (await db.blobs.get(id)) { ok++; continue; }
     try {
       const blob = await carregarFoto(f);

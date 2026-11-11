@@ -7,6 +7,7 @@ import { FORMAS_PAGAMENTO, localVistoria } from '../schema.js';
 import { db } from '../db.js';
 import { PERFIL_ID, contasDoPerfil, PERFIL_PADRAO, ehSimilaridade, empresaDoDespacho } from '../docx/base.js';
 import { useLive } from './hooks.js';
+import { Icone } from './Icone.jsx';
 
 const SUGESTAO_REDACAO = (c) => (c.papel === 'Perito do Juízo' ? 'laudo'
   : /Assistente/i.test(c.papel || '') ? 'parecerAT'
@@ -144,7 +145,7 @@ function DadosAgendamento({ rec }) {
         <TF rec={rec} k="vistoriaContato" label="Telefone / contato do proprietário" />
       </>}
       <div class="com-botao"><TF rec={rec} k="vistoriaCnpj" label="CNPJ (para buscar o endereço)" inputMode="numeric" />
-        <button type="button" class="mini" onClick={buscar}>🔎 Buscar</button></div>
+        <button type="button" class="mini" onClick={buscar}><Icone nome="busca" /> Buscar</button></div>
       <TF rec={rec} k="vistoriaEndereco" label="Endereço (rua, nº – bairro – cidade/UF – CEP)" area rows={2} />
       <div class="linha2">
         <TF rec={rec} k="dataDiligencia" label="Data da vistoria" type="date" />
@@ -166,7 +167,7 @@ function LinkAgenda({ c }) {
   const det = [`Vistoria pericial – processo ${c.numero || ''}`, c.autorNome && `Autor: ${c.autorNome}`, c.reuNome && `Réu: ${c.reuNome}`,
     c.similaridade === 'Sim' && 'Perícia por similaridade', 'Levar: dosímetro, medidor de vibração, IBUTG, calibrador, trena, câmera.'].filter(Boolean).join('\n');
   const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`Vistoria pericial – ${localVistoria(c) || c.autorNome || c.numero || ''}`)}&dates=${ini}/${fim}&ctz=America/Sao_Paulo&location=${encodeURIComponent(local)}&details=${encodeURIComponent(det)}`;
-  return <a class="botao sec" href={url} target="_blank" rel="noopener">📅 Agendar no Google Agenda</a>;
+  return <a class="botao sec" href={url} target="_blank" rel="noopener"><Icone nome="agenda" /> Agendar no Google Agenda</a>;
 }
 
 function LevarParaClaude({ rec }) {

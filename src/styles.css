@@ -102,6 +102,7 @@ button.grande { min-height: 54px; padding: 10px 26px; font-size: 1.02rem; border
 .fase { margin-left: auto; font-size: .76rem; font-weight: 700; border-radius: 999px; padding: 3px 10px; }
 .f-prep { background: #E7ECF3; color: #3D4F6B; } .f-agend { background: #FDF0D5; color: #8A5A0B; } .f-real { background: #D8F1EC; color: #155E52; }
 .f-laudo { background: #DCE8FA; color: #1E4C8F; } .f-aguard { background: #ECE3F8; color: #5A3A8C; } .f-ok { background: #DDF3E3; color: #166534; } .f-arq { background: #EEE; color: #666; }
+.f-dep { background: #FCE8D8; color: #9A3412; } .f-supl { background: #D5F0F5; color: #0E5E6F; }
 .cartao-autor { font-weight: 700; font-size: 1.12rem; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .cartao-reu { color: #34445E; font-size: .95rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .cartao-proc { font-family: ui-monospace, "Roboto Mono", monospace; font-size: .88rem; color: var(--azul-2); margin-top: 6px; }
@@ -303,3 +304,14 @@ button:focus-visible, a:focus-visible, .chip:focus-visible, .botao-arquivo:focus
 button.primario:hover { background: var(--azul-2); }
 .etq { display: inline-block; font-size: .74rem; font-weight: 700; border-radius: 999px; padding: 1px 9px; background: #E7ECF3; color: #3D4F6B; vertical-align: 1px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+.conflito { display: grid; gap: 6px; padding: 10px 12px; border-radius: 10px; background: #FFF6DD; border: 1px solid #E6CF8A; font-size: .9rem; }
+.conflito-txt { white-space: pre-wrap; max-height: 160px; overflow: auto; background: #fff; border: 1px solid var(--borda); border-radius: 8px; padding: 6px 8px; color: var(--texto); }
+.conflito .linha-botoes { margin: 0; }
+.icone { flex: none; vertical-align: -3px; }
+.modal-caixa.dialogo { max-width: 480px; }
+.modal-caixa.dialogo p { margin: 0 0 14px; font-size: 1.02rem; }
+button.perigo-forte { background: var(--erro); border-color: var(--erro); color: #fff; }
+.linha-arquivo.quebra { flex-wrap: wrap; gap: 6px; }
+input.cresce { flex: 1; min-width: min(220px, 100%); }
+.mt { margin-top: 10px; }
+.mt-p { margin-top: 8px; }

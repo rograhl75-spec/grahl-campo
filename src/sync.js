@@ -55,6 +55,8 @@ export const FIREBASE_PADRAO = {
 
 export async function iniciarSync() {
   await refreshPending();
+  // nuvem desligada neste aparelho: tudo continua só no IndexedDB (religar em Configurações → Nuvem)
+  if (await getMeta('nuvemDesligada')) { set({ configured: false, desligada: true }); return; }
   const cfg = (await getMeta('firebaseConfig')) || FIREBASE_PADRAO;
   if (!cfg) { set({ configured: false }); return; }
   try {
@@ -152,6 +154,7 @@ export function agendar(ms = 1500) {
 export function avisarAlteracao() { refreshPending(); agendar(2000); }
 
 let rodando = false;
+let ultimaBaixa = 0;
 async function rodar() {
   clearTimeout(timer);
   if (rodando) return;
@@ -160,8 +163,10 @@ async function rodar() {
   set({ busy: true });
   try {
     await enviarRegistros();
-    await enviarFotos();
-    set({ lastSync: Date.now(), error: '' });
+    const falhas = await enviarFotos();
+    set({ lastSync: Date.now(), error: falhas ? `${falhas} arquivo(s) não subiram depois de várias tentativas; os outros seguiram. Toque em "Sincronizar agora" para tentar de novo.` : '' });
+    // fotos que não baixaram (ex.: sem internet na hora) são tentadas de novo, no máximo a cada 5 min
+    if (Date.now() - ultimaBaixa > 5 * 60 * 1000) { ultimaBaixa = Date.now(); baixarFotosFaltantes(); }
   } catch (e) {
     console.error(e);
     set({ error: traduzErro(e) });
@@ -200,22 +205,35 @@ async function enviarRegistros() {
   if (sujos.length === 100) await enviarRegistros();
 }
 
+// Estados do arquivo em db.blobs.uploaded: 0 = a enviar; 1 = na nuvem; 2 = só no aparelho (grande demais
+// ou recusado pelas regras); 3 = sem registro (aguarda o registro chegar); 4 = falhou várias vezes (pausado)
+export const MAX_TENTATIVAS = 5;
+const ehErroDeRede = (e) => !navigator.onLine || /network|retry-limit|unavailable|timeout|canceled/i.test(String((e && (e.code || e.message)) || ''));
+
 async function enviarFotos() {
+  // arquivos sem registro que agora têm registro voltam para a fila
+  for (const b of await db.blobs.where('uploaded').equals(3).toArray()) if (await db.records.get(b.id)) await db.blobs.update(b.id, { uploaded: 0 });
   const pend = await db.blobs.where('uploaded').equals(0).toArray();
   for (const b of pend) {
     const rec = await db.records.get(b.id);
-    if (!rec) continue;
+    if (!rec) { await db.blobs.update(b.id, { uploaded: 3 }); continue; } // não fica sendo tentado a cada 3 s
+    if (rec.deleted) continue;
     const anexo = b.mime && b.mime !== 'image/jpeg';
     try {
       await uploadBytes(anexo ? anexoRef(b.id) : fotoRef(b.id), b.blob, { contentType: anexo ? b.mime : 'image/jpeg' });
     } catch (e) {
-      // arquivo grande demais para as regras: fica só no aparelho, sem travar a fila
+      // anexo recusado pelas regras (tamanho/tipo): fica só no aparelho e entra no backup
       if (anexo && /unauthorized|permission/i.test(String(e.code || e.message))) { await db.blobs.update(b.id, { uploaded: 2 }); continue; }
-      throw e;
+      if (ehErroDeRede(e)) throw e; // sem rede: para a fila e tenta tudo depois
+      // falha só deste arquivo: conta a tentativa e segue com os outros (não trava a fila)
+      const tentativas = (b.tentativas || 0) + 1;
+      await db.blobs.update(b.id, { tentativas, ultimoErro: String(e.code || e.message || e), uploaded: tentativas >= MAX_TENTATIVAS ? 4 : 0 });
+      continue;
     }
-    await db.blobs.update(b.id, { uploaded: 1 });
+    await db.blobs.update(b.id, { uploaded: 1, tentativas: 0, ultimoErro: '' });
     await refreshPending();
   }
+  return db.blobs.where('uploaded').equals(4).count();
 }
 
 let baixando = false;
@@ -241,10 +259,16 @@ async function baixarFotosFaltantes() {
 export async function refreshPending() {
   const pending = await db.records.where('dirty').equals(1).count();
   const fotosPendentes = await db.blobs.where('uploaded').equals(0).count();
-  set({ pending, fotosPendentes, online: navigator.onLine });
+  const fotosComFalha = await db.blobs.where('uploaded').equals(4).count();
+  set({ pending, fotosPendentes, fotosComFalha, online: navigator.onLine });
 }
 
-export function sincronizarAgora() { agendar(0); }
+// toque manual: os arquivos pausados por falha voltam para a fila
+export async function sincronizarAgora() {
+  for (const b of await db.blobs.where('uploaded').equals(4).toArray()) await db.blobs.update(b.id, { uploaded: 0, tentativas: 0 });
+  ultimaBaixa = 0;
+  agendar(0);
+}
 
 function limpar(obj) {
   // Firestore não aceita undefined

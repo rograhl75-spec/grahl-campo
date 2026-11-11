@@ -12,8 +12,8 @@ function hojeIso() { const d = new Date(); return new Date(d - d.getTimezoneOffs
 function diasAte(iso) { return Math.round((new Date(iso + 'T12:00:00') - new Date(hojeIso() + 'T12:00:00')) / 86400000); }
 
 export const FASE_COR = {
-  'A preparar': 'f-prep', 'Aguardando depósito dos honorários': 'f-aguard', 'Diligência agendada': 'f-agend', 'Diligência realizada': 'f-real', 'Laudo / parecer em elaboração': 'f-laudo',
-  'Aguardando manifestação / esclarecimentos': 'f-aguard', 'Respondendo quesitos suplementares': 'f-laudo', 'Concluído': 'f-ok', 'Arquivado': 'f-arq',
+  'A preparar': 'f-prep', 'Aguardando depósito dos honorários': 'f-dep', 'Diligência agendada': 'f-agend', 'Diligência realizada': 'f-real', 'Laudo / parecer em elaboração': 'f-laudo',
+  'Aguardando manifestação / esclarecimentos': 'f-aguard', 'Respondendo quesitos suplementares': 'f-supl', 'Concluído': 'f-ok', 'Arquivado': 'f-arq',
 };
 
 export function siglaTipo(d) {

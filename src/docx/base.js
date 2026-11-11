@@ -865,7 +865,11 @@ export function descricaoVinculo(d, r, dados, { refVistoria = '' } = {}) {
     if (m) { fonte = m[1].trim(); ativ = ativ.slice(0, m.index).trim(); }
     if (!fonte && v(x.fonte) && /PPP|descri/i.test(x.fonte)) fonte = v(x.fonte).split(/[;\n]/)[0];
     ativ = ativ.replace(/\.$/, '');
-    d.texto(`${fonte ? `Conforme a descrição ${/^PPP/i.test(fonte) ? 'do' : 'constante d'}${/^PPP/i.test(fonte) ? ` ${fonte}` : `e ${fonte}`}, as` : 'As'} atividades do autor ${/^(conduz|dirig|oper|realiz|exerc|trabalh|faz|execut|transport|carreg|descarreg)\w*(ia|va|ava|iam|avam)\b/i.test(ativ) ? '' : 'consistiam em '}${minuscula(ativ)}.`);
+    // atividade escrita com verbo conjugado ("conduzia caminhão") → "o autor conduzia…"; senão "as atividades consistiam em…"
+    const verbo = /^\S+(ia|va|iam|vam)\b/i.test(ativ);
+    const abre = fonte ? `Conforme a descrição ${/^PPP/i.test(fonte) ? `do ${fonte}` : `constante de ${fonte}`}, ` : '';
+    const corpo = verbo ? `o autor ${minuscula(ativ)}` : `as atividades do autor consistiam em ${minuscula(ativ)}`;
+    d.texto(`${abre}${abre ? corpo : corpo.replace(/^./, (k) => k.toUpperCase())}.`);
   } else d.redigir('atividades do vínculo (PPP, descrição do cargo ou entrevista).');
   const veic = [x.veiculoTipo, x.veiculoMarca, x.veiculoModelo, x.veiculoAno].filter(Boolean).join(' ');
   const comp = [veic && `veículo conduzido: ${veic}`, v(x.tipoTransporte) && `transporte: ${minuscula(v(x.tipoTransporte))}`,

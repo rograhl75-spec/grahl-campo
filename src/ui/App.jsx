@@ -6,7 +6,19 @@ import { Caso } from './Caso.jsx';
 import { Config } from './Config.jsx';
 import { Paradigmas } from './Paradigmas.jsx';
 
+// altura real do cabeçalho (ele quebra em 2–3 linhas no tablet em retrato): as abas fixas ficam logo abaixo
+function useAlturaTopo() {
+  useEffect(() => {
+    const el = document.querySelector('.topo');
+    if (!el || typeof ResizeObserver === 'undefined') return undefined;
+    const ro = new ResizeObserver(() => document.documentElement.style.setProperty('--topo-h', `${el.offsetHeight}px`));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+}
+
 export function App() {
+  useAlturaTopo();
   const hash = useHash();
   const partes = hash.replace(/^#\/?/, '').split('/');
   let tela;
@@ -59,7 +71,7 @@ function SyncBadge() {
   else if (pend) { cls = 'alerta'; txt = `Salvo no aparelho · enviando ${pend}…`; }
   else txt = `Sincronizado${s.lastSync ? ' às ' + new Date(s.lastSync).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : ''}`;
   return (
-    <button type="button" class={`sync ${cls}`} title={txt}
+    <button type="button" class={`sync ${cls}`} title={txt} aria-live="polite"
       onClick={() => (s.configured && s.user ? sincronizarAgora() : ir('/config/nuvem'))}>
       <span class="ponto" />{txt}
     </button>

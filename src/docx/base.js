@@ -315,6 +315,8 @@ export function quadroDiligencia(d, c, titulo = 'Registro da diligência') {
     ['Local', [localVistoria(c), c.vistoriaEndereco].filter(Boolean).join(' – ') || '[[local]]'],
     ...(c.vistoriaGps ? [['Coordenadas', c.vistoriaGps]] : []),
     ['Presentes', c.vistoriaPresentes || '[[pessoas presentes]]'],
+    ...(c.vistoriaIntimacao ? [['Comunicação às partes e aos assistentes (art. 474 do CPC)', c.vistoriaIntimacao]]
+      : c.papel === 'Perito do Juízo' ? [['Comunicação às partes e aos assistentes (art. 474 do CPC)', '[[mov. / data da intimação]]']] : []),
     ...(c.vistoriaCondicoes ? [['Condições operacionais no dia', c.vistoriaCondicoes]] : []),
   ], { larguras: [0.3, 0.7], alinhar: 'left' });
 }

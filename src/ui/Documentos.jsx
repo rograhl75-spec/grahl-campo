@@ -115,6 +115,14 @@ function CartaoDoc({ d, ocupado, gerar, contas = [], contaSel, recId, rec }) {
         <Sel rec={rec} k="peticaoAT" label="Petição" opcoes={PETICOES_AT} vazio={false} />
         {rec.data.peticaoAT === PETICOES_AT[2] && <Sel rec={rec} k="posicaoAT" label="Posição sobre o laudo e os esclarecimentos" opcoes={POSICOES_AT} />}
       </>}
+      {d.id === 'proposta' && rec && <>
+        <div class="linha2">
+          <TF rec={rec} k="propostaValor" label="Valor (R$)" inputMode="decimal" />
+          <TF rec={rec} k="propostaPrazo" label="Prazo de entrega (dias após a vistoria)" inputMode="numeric" />
+        </div>
+        <TF rec={rec} k="propostaPagamento" label="Forma de pagamento (ex.: 50% no aceite e 50% na entrega)" />
+        <TF rec={rec} k="propostaDeslocamento" label="Deslocamento (ex.: incluso no valor / cobrado à parte a R$ 1,20 por km)" />
+      </>}
       {d.id === 'parecerAT' && rec && <Sel rec={rec} k="posicaoAT" label="Posição sobre o laudo" opcoes={POSICOES_AT} />}
       <div class="linha-botoes">
         <button type="button" class="primario" disabled={!!ocupado} onClick={() => gerar(d)}>{ocupado === d.id ? 'Gerando…' : 'Gerar Word'}</button>

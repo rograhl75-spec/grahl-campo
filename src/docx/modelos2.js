@@ -2,15 +2,17 @@
 // laudo de acidente do trabalho (judicial ou extrajudicial), petições avulsas do perito
 // e do assistente técnico, quadro conclusivo trabalhista e confronto com o Anexo 11 da NR-15.
 import { ehSuplementar } from '../schema.js';
-import { doseJornada, fatorQ, fmt, ibutg } from '../calc.js';
+import { doseJornada, fatorQ, fmt, ibutg, nen } from '../calc.js';
 import { confrontoAnexo11, num as numQ } from '../quimicos.js';
 import {
   Doc, carregar, finalizar, dataBR, partes, art, enderecamentoTexto, linhasProcesso, qualificacaoCurta, credencial,
   equipamentosUsados, quadroEquipamentos, quadroDiligencia, quadroDocumentos, quadroEpis, profissiografia, figurasDoCaso,
   respostasQuesitos, capaTecnica, blocoAssinatura, textoDeterminacao, apendicesDoCaso, textoIntegram, inserirApendices,
-  nomePostoFn, prefixoQuesito, numeroPorExtenso,
+  nomePostoFn, prefixoQuesito, numeroPorExtenso, postosDoPeriodo, quadroPeriodos, documentosARequerer, lerValor, moeda, reaisPorExtenso,
 } from './base.js';
-import { introPerito, fecho, contratanteDe } from './modelos.js';
+import { introPerito, fecho, contratanteDe, avaliacaoAgentes } from './modelos.js';
+import { p, run } from './ooxml.js';
+import { localVistoria } from '../schema.js';
 
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 const GRAU = { 'mínimo': 'mínimo (10%)', 'médio': 'médio (20%)', 'máximo': 'máximo (40%)' };
@@ -47,7 +49,7 @@ export function quadroQuimicosAnexo11(d, ms, dados, nome) {
 }
 
 // ---------------- Quadro conclusivo trabalhista (por agente e posto) ----------------
-export function quadroConclusivoTrab(d, dados, { titulo = 'Quadro conclusivo por agente', fonte } = {}) {
+export function linhasConclusivoTrab(dados) {
   const nome = nomePostoFn(dados.postos);
   const rows = [];
   for (const m of dados.medicoes) {
@@ -78,6 +80,11 @@ export function quadroConclusivoTrab(d, dados, { titulo = 'Quadro conclusivo por
     }
   }
   if ((dados.c.objeto || []).includes('Periculosidade')) rows.push(['[[área / atividade]]', 'Periculosidade (NR-16, Anexo [[ ]])', '[[critério do anexo]]', '[[constatação]]', '[[conferir]]', '[[adicional de 30%]]']);
+  return rows;
+}
+
+export function quadroConclusivoTrab(d, dados, { titulo = 'Quadro conclusivo por agente', fonte } = {}) {
+  const rows = linhasConclusivoTrab(dados);
   if (!rows.length) return false;
   d.quadro(titulo, [['Posto', 'Agente', 'Limite / critério', 'Resultado', 'Confronto', 'Enquadramento'], ...rows],
     { larguras: [0.19, 0.17, 0.2, 0.15, 0.12, 0.17], tam: 9, alinhar: 'left',
@@ -213,6 +220,7 @@ export async function laudoAcidente(caseId) {
     : 'Nada mais havendo a relatar no âmbito da Engenharia de Segurança do Trabalho, este Perito dá por encerrados os trabalhos periciais, colocando-se à disposição do Juízo e das partes para os esclarecimentos que se fizerem necessários.');
   const { lista, faltando } = await figurasDoCaso(dados);
   const { apendices, falhasApendice } = await apendicesDoCaso(dados);
+  if (!extra) quadroRequisitos473(d, { objeto: '2.1', analise: '4 a 9', metodo: '2.2', quesitos: String(n - 1) });
   textoIntegram(d, { fotos: lista.length > 0, apendices });
   blocoAssinatura(d, dados, extra ? `Responsável técnico – ART nº ${v(c.art) || '[[nº]]'}` : 'Perito do Juízo');
   d.h1('', 'Referências');
@@ -345,3 +353,219 @@ export function conclusaoAT(d, posicao) {
   }
 }
 
+
+// ---------------- Síntese da conclusão logo após a identificação (item 2 da auditoria) ----------------
+export function sinteseTrab(d, dados, numero, itemConclusao) {
+  const rows = linhasConclusivoTrab(dados);
+  d.h2(numero, 'Síntese da conclusão');
+  if (!rows.length) { d.redigir(`síntese da conclusão (detalhada no item ${itemConclusao}).`); return; }
+  d.quadro('Síntese da conclusão por agente', [['Posto', 'Agente', 'Enquadramento'], ...rows.map((r) => [r[0], r[1], r[4] === 'Supera' ? r[5] : r[4] === 'Não supera' ? 'Não caracteriza' : r[5] || r[4]])],
+    { larguras: [0.3, 0.35, 0.35], tam: 9, alinhar: 'left', fonte: `Elaborado pelo autor. Fundamentação e neutralização pelo EPI nos itens 4 a ${itemConclusao}.` });
+}
+
+// ---------------- Requisitos do art. 473 do CPC (item 1 da auditoria) ----------------
+export function quadroRequisitos473(d, itens) {
+  d.quadro('Requisitos do laudo pericial – art. 473 do CPC', [['Requisito', 'Item deste laudo'],
+    ['I – exposição do objeto da perícia', itens.objeto], ['II – análise técnica ou científica realizada pelo perito', itens.analise],
+    ['III – indicação do método utilizado, esclarecendo-o e demonstrando ser predominantemente aceito pelos especialistas da área do conhecimento da qual se originou', itens.metodo],
+    ['IV – resposta conclusiva a todos os quesitos apresentados pelo juiz, pelas partes e pelo órgão do Ministério Público', itens.quesitos]],
+  { larguras: [0.7, 0.3], tam: 9, alinhar: 'left', fonte: 'Elaborado pelo autor com base em Brasil (2015, art. 473).' });
+}
+
+// ---------------- Recomendações a partir do nível de ação (item 9 da auditoria) ----------------
+// Níveis de ação da NR-9: ruído – dose de 50%; VMB – aren 2,5 m/s²; VCI – aren 0,5 m/s² ou VDVR 9,1 m/s^1,75;
+// agentes químicos – metade do limite de exposição.
+export function linhasRecomendacoes(dados) {
+  const nome = nomePostoFn(dados.postos);
+  const rows = [];
+  for (const m of dados.medicoes) {
+    const x = m.data;
+    const posto = nome(x.postoId);
+    if (x.agente === 'Ruído') {
+      const dj = doseJornada(x.dose, x.tempoAmostragem, x.jornada);
+      if (isFinite(dj) && dj >= 50) rows.push([posto, 'Ruído', `dose ${fmt(dj)}% (nível de ação: 50%)`, 'Enclausuramento ou isolamento da fonte, manutenção, redução do tempo de exposição; PCA com audiometrias (NR-7); protetor auricular adequado (NRRsf), com treinamento e troca']);
+    } else if (/corpo inteiro/.test(x.agente || '')) {
+      const a = numQ(x.aren), vd = numQ(x.vdv);
+      if ((isFinite(a) && a >= 0.5) || (isFinite(vd) && vd >= 9.1)) rows.push([posto, 'Vibração de corpo inteiro', `aren ${isFinite(a) ? f2(a) : '—'} m/s² (nível de ação: 0,5)`, 'Manutenção de suspensões e assento, conservação das vias, limitação de velocidade e do tempo de exposição, pausas']);
+    } else if (/mãos e braços/.test(x.agente || '')) {
+      const a = numQ(x.aren);
+      if (isFinite(a) && a >= 2.5) rows.push([posto, 'Vibração de mãos e braços', `aren ${f2(a)} m/s² (nível de ação: 2,5)`, 'Ferramentas com amortecimento, manutenção, rodízio e limitação do tempo de uso']);
+    } else if (x.agente === 'Agente químico') {
+      const ag = agenteDaMedicao(m, dados);
+      const cf = ag ? confrontoAnexo11(ag.data, x.valor, x.unidade, { maximo: x.maximo }) : null;
+      if (cf && cf.pct >= 50) rows.push([posto, x.descricao || ag.data.nome, `${fmt(cf.pct, 0)}% do LT (nível de ação: 50%)`, `Substituição do produto, ventilação local exaustora, enclausuramento; proteção respiratória adequada${cf.pele ? ' e luvas (absorção pela pele)' : ''}; monitoramento biológico quando houver indicador (NR-7)`]);
+    }
+  }
+  return rows;
+}
+export function quadroRecomendacoes(d, dados) {
+  const rows = linhasRecomendacoes(dados);
+  d.quadro('Recomendações por agente', [['Posto', 'Agente', 'Situação', 'Medidas recomendadas (ordem da NR-1)'],
+    ...(rows.length ? rows : [['[[posto]]', '[[agente]]', '[[situação]]', '[[medidas]]']])],
+  { larguras: [0.18, 0.17, 0.2, 0.45], tam: 9, alinhar: 'left', fonte: 'Elaborado pelo autor. Agentes no nível de ação ou acima (NR-9: ruído – dose de 50%; VCI – aren 0,5 m/s² ou VDVR 9,1 m/s^1,75; VMB – aren 2,5 m/s²; químicos – metade do limite de exposição).' });
+  return rows.length;
+}
+
+// ---------------- Dados para o PPP em papel, períodos anteriores ao eSocial (E2) ----------------
+const TECNICA = (m) => {
+  const a = m.data.agente || '';
+  if (a === 'Ruído') return fatorQ(m) === 3 ? 'NHO-01 (dosimetria, q = 3)' : 'NR-15, Anexo 1 (dosimetria, q = 5)';
+  if (/Calor/.test(a)) return 'NHO-06';
+  if (/corpo inteiro/.test(a)) return 'NHO-09';
+  if (/mãos e braços/.test(a)) return 'NHO-10';
+  return m.data.metodo || '[[técnica]]';
+};
+const INTENS = (m, dados) => {
+  const x = m.data;
+  if (x.agente === 'Ruído') { const n = nen(x.lavg, x.jornada, fatorQ(m)); return isFinite(n) ? `${fmt(n)} dB(A) (NEN)` : x.lavg ? `${x.lavg} dB(A)` : ''; }
+  if (/Calor/.test(x.agente || '')) { const ib = ibutg(x.tbn, x.tg, x.tbs, /solar direta/.test(x.condicao || '')); return isFinite(ib) ? `IBUTG ${fmt(ib)} °C` : ''; }
+  if (/Vibra/.test(x.agente || '')) return [x.aren && `aren ${x.aren} m/s²`, x.vdv && `VDVR ${x.vdv} m/s^1,75`].filter(Boolean).join('; ');
+  const ag = agenteDaMedicao(m, dados);
+  return [v(x.valor) && `${x.valor} ${x.unidade || ''}`.trim(), ag && ag.data.cas && `CAS ${ag.data.cas}`].filter(Boolean).join(' – ');
+};
+export function quadroDadosPPP(d, dados) {
+  const linhas = [];
+  for (const r of dados.periodos) {
+    const ps = postosDoPeriodo(r, dados).map((x) => x.id);
+    const ms = dados.medicoes.filter((m) => ps.includes(m.data.postoId) && m.data.agente !== 'Outro');
+    const per = `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`;
+    if (!ms.length) { linhas.push([per, '[[tipo]]', '[[fator de risco]]', '[[intensidade]]', '[[técnica]]', '[[S/N]]', '[[S/N – CA]]']); continue; }
+    for (const m of ms) {
+      const tipo = m.data.agente === 'Agente químico' ? 'Q' : 'F';
+      const fator = m.data.agente === 'Agente químico' ? (m.data.descricao || (agenteDaMedicao(m, dados) || { data: {} }).data.nome || 'Agente químico') : m.data.agente;
+      linhas.push([per, tipo, fator, INTENS(m, dados), TECNICA(m), '[[S/N]]', r.data.inicio && r.data.inicio < '1998-12-03' ? 'Não se aplica (antes de 03/12/1998)' : '[[S/N – CA]]']);
+    }
+  }
+  d.quadro('Dados para o PPP – exposição a fatores de risco', [['Período', 'Tipo', 'Fator de risco', 'Intensidade / concentração', 'Técnica utilizada', 'EPC eficaz', 'EPI eficaz (CA)'],
+    ...(linhas.length ? linhas : [['[[período]]', '', '', '', '', '', '']])],
+  { larguras: [0.15, 0.06, 0.17, 0.17, 0.17, 0.1, 0.18], tam: 8, alinhar: 'left',
+    fonte: 'Elaborado pelo autor a partir das avaliações deste laudo. Tipo: F – físico; Q – químico; B – biológico. Para o PPP em papel dos períodos anteriores ao eSocial (SST); código GFIP 04 nos períodos com enquadramento (item 6).' });
+}
+
+// ======================================================================
+// TERMO DE PRESENÇA DA DILIGÊNCIA (impresso antes da vistoria, item 15)
+// ======================================================================
+export async function termoPresenca(caseId) {
+  const dados = await carregar(caseId);
+  const { c } = dados;
+  const d = new Doc();
+  d.add(p([run('TERMO DE PRESENÇA – DILIGÊNCIA PERICIAL', { b: true, size: 14, color: '1B365D' })], { align: 'center', after: 60 }));
+  if (c.numero) d.add(p([run(`Processo nº ${c.numero}${c.juizo ? ` – ${c.juizo}` : ''}`)], { align: 'center', after: 0 }));
+  if (c.autorNome || c.reuNome) d.add(p([run([c.autorNome, c.reuNome].filter(Boolean).join(' × '))], { align: 'center', after: 240 }));
+  d.identificacao([['Data', dataBR(c.vistoriaData || c.dataDiligencia) || '____/____/________'], ['Horário de início', c.vistoriaInicio || c.horaDiligencia || '____:____'],
+    ['Horário de término', c.vistoriaFim || '____:____'], ['Local', [localVistoria(c), String(c.vistoriaEndereco || '').replace(/\n/g, ' – ')].filter(Boolean).join(' – ') || '']]);
+  const pre = String(c.vistoriaPresentes || '').split('\n').map((l) => l.trim()).filter(Boolean);
+  const linhas = [...pre.map((l) => [l, '', '', '']), ...Array.from({ length: Math.max(4, 12 - pre.length) }, () => ['', '', '', ''])];
+  d.quadro('Presentes', [['Nome', 'Função / quem representa', 'Documento', 'Assinatura'], ...linhas],
+    { larguras: [0.32, 0.26, 0.14, 0.28], tam: 10, alinhar: 'left', fonte: c.tipoAtuacao === 'Extrajudicial' ? 'Avaliação técnica extrajudicial.' : 'Diligência comunicada às partes e aos assistentes técnicos (art. 474 do CPC).' });
+  d.texto('Observações: ______________________________________________________________________________\n__________________________________________________________________________________________', { recuo: false });
+  blocoAssinatura(d, dados);
+  return finalizar(d, { titulo: 'Termo de presença', arquivo: 'Termo_presenca', c });
+}
+
+// ======================================================================
+// PARECER TÉCNICO TRABALHISTA DE VIABILIDADE (extrajudicial, para o trabalhador ou o advogado – E3)
+// ======================================================================
+export async function parecerTrabalhista(caseId) {
+  const dados = await carregar(caseId);
+  const { c, perfil } = dados;
+  const d = new Doc();
+  capaTecnica(d, {
+    titulo: 'PARECER TÉCNICO', subtitulo: 'Insalubridade e periculosidade – avaliação de viabilidade técnica', perfil,
+    pares: [['Requerente', contratanteDe(c)], ['Trabalhador', c.autorNome], ['Empresa', c.reuNome], ['Função / período', String(c.funcoes || '').split('\n')[0]],
+      ['Responsável técnico', `${perfil.nome} – ${credencial(perfil)}`]].filter(([, x]) => v(x)),
+  });
+  d.sumario();
+  d.h1NovaPagina = false;
+  d.h1('1', 'Natureza do documento');
+  d.texto(`Este parecer foi elaborado por ${perfil.nome}, ${perfil.titulos}, ${credencial(perfil)}, a pedido do requerente. É uma avaliação técnica prévia, de engenharia de segurança do trabalho, sobre a viabilidade de caracterização de insalubridade e/ou periculosidade; não substitui a perícia judicial (CLT, art. 195, § 2º).`);
+  d.h1('2', 'Objeto');
+  if (v(c.pedidos)) d.texto(c.pedidos); else d.redigir('o que se pretende demonstrar (agentes, períodos, adicional pretendido).');
+  d.h1('3', 'Identificação e períodos');
+  d.identificacao([['Trabalhador', c.autorNome], ['Empresa', c.reuNome], ['CNPJ', c.reuCnpj], ['Função / período', c.funcoes]]);
+  if (dados.periodos.length) quadroPeriodos(d, dados.periodos, 'Períodos avaliados');
+  d.h1('4', 'Fundamentação');
+  d.texto('A caracterização da insalubridade e da periculosidade observa os arts. 189 a 195 da CLT, a NR-15 e a NR-16, na redação vigente em cada período. A eliminação ou a neutralização da insalubridade pelo EPI exige equipamento adequado ao risco, com CA, fornecimento comprovado, treinamento e fiscalização do uso (NR-15, item 15.4.1, e NR-6).');
+  d.h1('5', 'Atividades e ambiente');
+  if (v(c.atividadesAlegadas)) d.texto(c.atividadesAlegadas);
+  profissiografia(d, dados.postos, dados, { base: '5' });
+  d.h1('6', 'Avaliação técnica');
+  avaliacaoAgentes(d, dados, '6', { previdenciario: false });
+  d.h1('7', 'Viabilidade técnica por pedido');
+  const conc = linhasConclusivoTrab(dados);
+  if (conc.length) quadroConclusivoTrab(d, dados, { titulo: 'Resultado das avaliações por agente', fonte: 'Elaborado pelo autor. Indica só o confronto com o limite; a viabilidade considera também a prova da neutralização pelo EPI.' });
+  d.quadro('Viabilidade por pedido', [['Pedido / agente', 'Viabilidade técnica', 'Fundamento', 'Prova a produzir'],
+    ['[[pedido]]', '[[favorável / desfavorável / depende de prova]]', '[[ ]]', '[[ ]]']], { larguras: [0.22, 0.22, 0.3, 0.26], tam: 9, alinhar: 'left' });
+  d.h1('8', 'Documentos e provas recomendados');
+  d.texto(documentosARequerer({ prev: false }).map((t) => `- ${t}`).join('\n'));
+  d.h1('9', 'Limitações');
+  d.redigir('limitações (informações do requerente, documentos não apresentados, ambiente alterado, avaliação sem acesso à empresa).');
+  d.h1('10', 'Encerramento');
+  d.texto('Nada mais havendo a acrescentar, encerra-se o presente parecer técnico, elaborado com imparcialidade e sob responsabilidade do signatário.');
+  blocoAssinatura(d, dados, 'Responsável técnico');
+  return finalizar(d, { titulo: 'Parecer técnico trabalhista', arquivo: 'Parecer_trabalhista', c });
+}
+
+// ======================================================================
+// PROPOSTA DE SERVIÇOS TÉCNICOS (extrajudicial – E5)
+// ======================================================================
+export async function propostaServicos(caseId) {
+  const dados = await carregar(caseId);
+  const { c, perfil } = dados;
+  const d = new Doc();
+  const obj = (c.objeto || []).filter((o) => o !== 'Outro');
+  const prev = obj.some((o) => /Aposentadoria|LTCAT|PPP/.test(o)) || (!obj.length);
+  const acid = obj.includes('Acidente / doença ocupacional');
+  const servico = acid ? 'laudo técnico de acidente do trabalho' : prev ? 'Laudo Técnico das Condições Ambientais do Trabalho (LTCAT), com os dados para o Perfil Profissiográfico Previdenciário (PPP)' : `laudo técnico de ${obj.filter((o) => /Insalub|Periculos/.test(o)).join(' e ').toLowerCase() || 'insalubridade e periculosidade'}`;
+  d.add(p([run('PROPOSTA DE SERVIÇOS TÉCNICOS', { b: true, size: 14, color: '1B365D' })], { align: 'center', after: 240 }));
+  d.identificacao([['Contratante', contratanteDe(c) || '[[contratante]]'], ['Empresa avaliada', c.reuNome], ['Trabalhador / segurado', c.autorNome], ['Data', dataBR(new Date().toISOString().slice(0, 10))]]);
+  let n = 0;
+  const sec = (t) => { n += 1; d.h1(`${n}.`, t, { novaPagina: false }); };
+  sec('Objeto');
+  d.texto(`Elaboração de ${servico}${v(c.pedidos) ? `, com a seguinte finalidade: ${c.pedidos}` : ''}.`);
+  sec('Escopo e etapas');
+  d.texto(['- análise dos documentos fornecidos pelo contratante;', '- vistoria técnica no local, com avaliações ambientais quantitativas quando cabíveis (instrumentos calibrados);',
+    acid ? '- reconstituição da dinâmica e análise das causas do acidente;' : '- avaliação dos agentes pela legislação aplicável a cada período;',
+    '- elaboração do laudo, com registro fotográfico e Anotação de Responsabilidade Técnica (ART).'].join('\n'));
+  sec('Documentos e condições a cargo do contratante');
+  d.texto([...documentosARequerer({ prev }).map((t) => `- ${t};`), '- autorização de acesso ao local e indicação de acompanhante designado pela empresa.'].join('\n'));
+  sec('Prazo');
+  d.texto(`O laudo será entregue em ${v(c.propostaPrazo) || '[[nº]]'} dias corridos após a vistoria e o recebimento dos documentos.`);
+  sec('Honorários e forma de pagamento');
+  const val = lerValor(c.propostaValor);
+  d.texto(`Valor: ${isFinite(val) ? `${moeda(val)} (${reaisPorExtenso(val)})` : '[[R$ valor]]'}. ${v(c.propostaPagamento) || '[[forma de pagamento, ex.: 50% no aceite e 50% na entrega]]'}. Despesas de deslocamento fora de ${perfil.cidade || '[[cidade]]'} ${v(c.propostaDeslocamento) || '[[inclusas / cobradas à parte]]'}.`);
+  sec('Responsabilidade técnica e validade');
+  d.texto(`O trabalho será executado pelo signatário, ${perfil.titulos}, ${credencial(perfil)}, com ART. O laudo retrata as condições verificadas e as informações prestadas; não há garantia de resultado em processo administrativo ou judicial. Esta proposta é válida por 30 (trinta) dias.`);
+  sec('Aceite');
+  d.texto('De acordo: ________________________________________   Data: ____/____/________', { recuo: false });
+  blocoAssinatura(d, dados, 'Responsável técnico');
+  return finalizar(d, { titulo: 'Proposta de serviços', arquivo: 'Proposta_servicos', c });
+}
+
+// ======================================================================
+// Periculosidade: roteiro por anexo da NR-16 (P6)
+// ======================================================================
+const ANEXOS_NR16 = [
+  { a: 'Anexo 1 – Atividades e operações perigosas com explosivos', re: /explosiv|detona|p[óo]lvora|pedreira|fogos/i,
+    crit: 'Atividades do quadro do anexo (armazenamento, transporte, manuseio, carregamento e detonação) e áreas de risco correspondentes.' },
+  { a: 'Anexo 2 – Atividades e operações perigosas com inflamáveis', re: /inflam[áa]v|combust[íi]vel|abastec|frentista|tanque|gasolina|diesel|[áa]lcool|etanol|g[áa]s|glp|solvente/i,
+    crit: 'Atividades do item 1 e áreas de risco do quadro do item 3 (ex.: abastecimento, armazenamento de vasilhames, tanques, recintos com inflamáveis); verificar quantidades e as exceções do anexo.' },
+  { a: 'Anexo 3 – Exposição a roubos ou outras espécies de violência física (segurança pessoal ou patrimonial)', re: /vigilan|vigia|seguran[çc]a patrimonial|seguran[çc]a pessoal|escolta|transporte de valores/i,
+    crit: 'Atividades de segurança pessoal ou patrimonial descritas no anexo.' },
+  { a: 'Anexo 4 – Atividades e operações perigosas com energia elétrica', re: /el[ée]tric|energiz|subesta|alta tens|linha viva|eletricist|rede de distribui/i,
+    crit: 'Atividades em instalações ou equipamentos elétricos energizados em alta tensão, no sistema elétrico de potência ou em proximidade (zonas controlada e de risco da NR-10), nos termos do quadro do anexo.' },
+  { a: 'Anexo 5 – Atividades perigosas em motocicleta', re: /motocicl|motoboy|motoqueir|moto\b/i,
+    crit: 'Uso de motocicleta no deslocamento em vias públicas, observadas as exceções do anexo.' },
+  { a: 'Radiações ionizantes ou substâncias radioativas (quadro da Portaria MTE nº 518/2003)', re: /radia[çc][ãa]o ionizante|raio[s]?[- ]x|radiol|radioativ|nuclear|gamagraf/i,
+    crit: 'Atividades e áreas de risco do quadro de atividades e operações perigosas com radiações ionizantes.' },
+];
+export function roteiroPericulosidade(d, dados) {
+  const c = dados.c;
+  const t = [c.agentesAlegados, c.atividadesAlegadas, c.funcoes, c.pedidos, ...dados.postos.map((x) => `${x.data.descricao || ''} ${x.data.agentes || ''}`)].map(v).join(' ');
+  const achados = ANEXOS_NR16.filter((x) => x.re.test(t));
+  const lista = achados.length ? achados : ANEXOS_NR16;
+  d.texto('A periculosidade caracteriza-se pelo enquadramento da atividade ou da área em um dos anexos da NR-16 (CLT, art. 193), na redação vigente no período, com contato permanente ou intermitente; o contato eventual ou por tempo extremamente reduzido não a caracteriza. O adicional é de 30% sobre o salário, sem os acréscimos de gratificações, prêmios ou participação nos lucros (CLT, art. 193, § 1º).');
+  d.quadro('Periculosidade – roteiro por anexo da NR-16', [['Anexo', 'Critério de caracterização', 'Constatação (atividade, área, frequência e tempo)', 'Caracteriza?'],
+    ...lista.map((x) => [x.a, x.crit, '[[constatação]]', '[[Sim / Não]]'])],
+  { larguras: [0.24, 0.34, 0.28, 0.14], tam: 9, alinhar: 'left', fonte: achados.length ? 'Elaborado pelo autor. Anexos selecionados pelas atividades e agentes descritos no caso.' : 'Elaborado pelo autor. Nenhum anexo identificado pelo texto do caso: exclua os que não se aplicam.' });
+}

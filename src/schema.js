@@ -159,6 +159,8 @@ export const CAMPOS_ESCLARECIMENTOS = [
   ['prazoEsclarecimentos', 'Prazo para responder (o mesmo prazo de esclarecimentos do Resumo)', 'date'],
   ['esclRetificacoes', 'Retificações de erro material no laudo (uma por linha, ex.: "Resposta ao quesito 1 do INSS: onde se lê 11h00 às 13h00, leia-se 09h00 às 10h30")', 'area'],
   ['esclRatifica', 'Os esclarecimentos mantêm as conclusões do laudo?', 'select', ['Sim', 'Não']],
+  ['esclParecerATRef', 'Parecer do assistente técnico a esclarecer (parte e mov.)', 'text'],
+  ['esclParecerAT', 'Pontos do parecer do assistente técnico (um por linha: "alegação do assistente :: esclarecimento do perito")', 'area'],
   ['esclObservacoes', 'Esclarecimentos complementares, ex.: pontos levantados pelo Juízo (saem antes da conclusão; em branco = não sai)', 'area'],
 ];
 
@@ -189,6 +191,7 @@ export const CAMPOS_DILIGENCIA = [
   ['vistoriaEndereco', 'Endereço', 'text'],
   ['vistoriaGps', 'Coordenadas GPS', 'text'],
   ['vistoriaPresentes', 'Pessoas presentes (nome – função – quem representa)', 'area'],
+  ['vistoriaIntimacao', 'Comunicação da data às partes e aos assistentes (ex.: "intimação do evento 52, de 10/10/2026")', 'text'],
   ['vistoriaCondicoes', 'Condições do dia (clima, produção normal?, paradas)', 'area'],
   ['vistoriaNotas', 'Anotações gerais da diligência', 'area'],
 ];

@@ -47,6 +47,14 @@ O indicador no topo da tela mostra sempre o estado: *Salvo neste aparelho*, *Sem
     - laudo de insalubridade e periculosidade, sem endereçamento ao Juízo e com ART (insalubridade, periculosidade);
     - laudo de acidente do trabalho (acidente);
     - parecer preventivo, quando a empresa contratou.
+  - **Também:**
+    - termo de presença para a vistoria;
+    - proposta de serviços e parecer trabalhista de viabilidade (extrajudicial);
+    - síntese da conclusão no início dos laudos e quadro do art. 473 no encerramento;
+    - recomendações pelo nível de ação no LTCAT e no laudo extrajudicial;
+    - dados para o PPP em papel no anexo do LTCAT;
+    - roteiro por anexo da NR-16;
+    - esclarecimentos sobre o parecer do assistente técnico na resposta aos suplementares.
   - **Exportação do caso em ZIP.**
 - **Paradigmas → Agentes químicos:** fichas com propriedades físico-químicas, toxicologia (NIOSH), limites do Anexo 11 da NR-15, LINACH e IARC. A base inicial vem de fontes abertas e entra como "A conferir". Valores da ACGIH: digite do seu livreto. Inclusão de novos agentes pelo Claude, a partir de FISPQs. Calculadora: ppm ↔ mg/m³, valor máximo (LT × fator de desvio), Brief & Scala e misturas. Na medição de agente químico (aba Campo), escolha o agente do banco: o app confronta a média com o limite e o valor máximo e indica os do Grupo 1 da LINACH.
 - **Paradigmas → Máquinas – ruído e vibração:** banco de tratores (sem cabine, cabine original, cabine adaptada, fruteiros), microtratores, colhedoras, pulverizadores, máquinas florestais e de construção, empilhadeiras e ferramentas portáteis (motosserra, roçadeira, derriçadora). Cada registro guarda a categoria, a origem do dado (medição própria, laudo de terceiro, literatura técnica, declaração do fabricante), a operação e o implemento, a rotação, a velocidade e a referência bibliográfica. O resumo por categoria mostra n, faixa e mediana de Lavg, Leq, aren, VDVR e VMB, com cor pelo nível de ação e pelo limite (NR-9, Anexo I; NR-15, Anexos 1 e 8). Para alimentar o banco a partir de artigos, manuais e laudos, use **Importar → Copiar instrução de máquinas**. O app não traz valores prontos: os números entram só com a fonte conferida.

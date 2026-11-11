@@ -18,7 +18,7 @@ import { comJurisprudencia, registroJurisprudencia, secaoReferencias } from './f
 import { secaoPenosidade } from './penosidade.js';
 import { conclusaoPrevidenciaria, avaliarPeriodos } from './conclusao.js';
 import { p, run, rich } from './ooxml.js';
-import { quadroQuimicosAnexo11, quadroConclusivoTrab, conclusaoAT, POSICOES_AT, agenteDaMedicao } from './modelos2.js';
+import { quadroQuimicosAnexo11, quadroConclusivoTrab, conclusaoAT, POSICOES_AT, agenteDaMedicao, sinteseTrab, quadroRequisitos473, quadroRecomendacoes, quadroDadosPPP, roteiroPericulosidade } from './modelos2.js';
 
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 
@@ -77,7 +77,7 @@ function eqMap(dados) { return new Map(dados.equipamentos.map((e) => [e.id, e]))
 // - trabalhista: NR-15 / NR-16 na redação vigente em cada período;
 // - previdenciária: Decretos 53.831/1964, 2.172/1997 e 3.048/1999 e IN 128/2022,
 //   com a NR-15 apenas como referência técnica dos limites, quando o decreto a ela remete.
-function avaliacaoAgentes(d, dados, base, { previdenciario, inicio = 0 }) {
+export function avaliacaoAgentes(d, dados, base, { previdenciario, inicio = 0 }) {
   return previdenciario ? avaliacaoPrevidenciaria(d, dados, base, inicio) : avaliacaoTrabalhista(d, dados, base);
 }
 
@@ -117,6 +117,10 @@ function avaliacaoTrabalhista(d, dados, base) {
   if (g['Outro']) {
     sub('Outros agentes avaliados');
     quadroMedicoesGenerico(d, 'Outros registros', g['Outro'], nome, ctx);
+  }
+  if ((dados.c.objeto || []).includes('Periculosidade')) {
+    sub('Periculosidade (NR-16)');
+    roteiroPericulosidade(d, dados);
   }
   if (v(dados.c.agentesAlegados)) {
     sub(n ? 'Demais agentes alegados' : 'Agentes alegados');
@@ -169,6 +173,10 @@ function avaliacaoPrevidenciaria(d, dados, base, inicio = 0) {
     d.redigir('enquadramento no Anexo IV do Decreto 3.048/1999 (até 05/03/1997, Decreto 53.831/1964); óleos minerais: somente cód. 1.0.17; avaliação qualitativa quando a nocividade decorre da simples exposição (art. 287 da IN 128/2022).');
     if (k === 'Agente químico') {
       const linach = [...new Set(g[k].map((m) => agenteDaMedicao(m, dados)).filter((a) => a && a.data.linach === 'Grupo 1').map((a) => a.data.nome))];
+      const ags = [...new Map(g[k].map((m) => agenteDaMedicao(m, dados)).filter(Boolean).map((a) => [a.id, a])).values()];
+      if (ags.length) d.quadro('Agentes químicos – referências previdenciárias', [['Agente', 'LINACH', 'Códigos nos decretos'],
+        ...ags.map((a) => [`${a.data.nome}${a.data.cas ? `\nCAS ${a.data.cas}` : ''}`, a.data.linach || '—', a.data.codDecretos || '[[código por decreto, conforme o período]]'])],
+      { larguras: [0.3, 0.15, 0.55], tam: 9, alinhar: 'left', fonte: 'Banco de agentes químicos do signatário; códigos conferidos nos Decretos 53.831/1964, 83.080/1979, 2.172/1997 e 3.048/1999.' });
       if (linach.length) d.texto(`${linach.join(', ')} ${linach.length > 1 ? 'constam' : 'consta'} do Grupo 1 da LINACH (Portaria Interministerial nº 9/2014). Para agentes reconhecidamente cancerígenos em humanos, a presença no ambiente de trabalho com possibilidade de exposição basta para a comprovação da efetiva exposição, e a avaliação é qualitativa (Decreto 3.048/1999, art. 68, § 4º).`);
     }
   }
@@ -221,6 +229,7 @@ export async function laudoPericial(caseId, { extra = false } = {}) {
   quadroDiligencia(d, c);
   d.h2('1.3', 'Instrumentos utilizados');
   quadroEquipamentos(d, equipamentosUsados(dados));
+  sinteseTrab(d, dados, '1.4', '6');
 
   d.h1('2', extra ? 'Objetivo e metodologia' : 'Objetivo e metodologia da avaliação pericial');
   if (extra) {
@@ -278,7 +287,8 @@ export async function laudoPericial(caseId, { extra = false } = {}) {
     nq += 1;
     d.h1(String(nq), 'Recomendações');
     d.texto('Recomendam-se as medidas abaixo, na ordem de prioridade da NR-1 (eliminação ou substituição, proteção coletiva, medidas administrativas e EPI). As recomendações não alteram a caracterização da situação avaliada.');
-    d.redigir('quadro de recomendações por agente e setor.');
+    quadroRecomendacoes(d, dados);
+    d.redigir('ajustar as medidas a cada setor e incluir prazos e responsáveis.');
   }
   nq += 1;
   d.h1(String(nq), 'Encerramento e anexos');
@@ -287,6 +297,7 @@ export async function laudoPericial(caseId, { extra = false } = {}) {
     : 'Nada mais havendo a relatar no âmbito da Engenharia de Segurança do Trabalho, este Perito dá por encerrados os trabalhos periciais, colocando-se à disposição do Juízo e das partes para os esclarecimentos que se fizerem necessários.');
   const { lista, faltando } = await figurasDoCaso(dados);
   const { apendices, falhasApendice } = await apendicesDoCaso(dados);
+  if (!extra) quadroRequisitos473(d, { objeto: '2.1 e 2.2', analise: '3 a 6', metodo: '2.3', quesitos: dados.quesitos.some((q) => !ehSuplementar(q)) ? String(nq - 1) : 'não houve quesitos' });
   textoIntegram(d, { fotos: lista.length > 0, apendices });
   blocoAssinatura(d, dados, extra ? `Responsável técnico – ART nº ${v(c.art) || '[[nº]]'}` : 'Perito do Juízo');
   secaoReferencias(d, dados, { prev: false, judicial: !extra });
@@ -320,6 +331,10 @@ export async function laudoPrevidenciario(caseId) {
   quadroDiligencia(d, c);
   d.h2('1.4', 'Instrumentos utilizados');
   quadroEquipamentos(d, equipamentosUsados(dados));
+  d.h2('1.5', 'Síntese da conclusão');
+  const sint = avaliarPeriodos(dados).flatMap(({ r, segs }) => segs.map((s) => [r.data.empresa || '', `${dataBR(s.ini)} a ${dataBR(s.fim)}`, s.caracteriza || '[[ ]]']));
+  if (sint.length) d.quadro('Síntese da conclusão por período', [['Vínculo', 'Período', 'Caracteriza tempo especial'], ...sint], { larguras: [0.45, 0.3, 0.25], tam: 9, alinhar: 'left', fonte: 'Elaborado pelo autor. Fundamentação e conclusão detalhadas nos itens 3 a 7.' });
+  else d.redigir('síntese da conclusão por período (detalhada no item 7).');
 
   d.h1('2', 'Objeto e metodologia');
   d.h2('2.1', 'Determinação judicial (objeto da perícia)');
@@ -365,6 +380,7 @@ export async function laudoPrevidenciario(caseId) {
   d.texto('Nada mais havendo a relatar no âmbito da Engenharia de Segurança do Trabalho, este Perito dá por encerrados os trabalhos periciais, colocando-se à disposição do Juízo e das partes para os esclarecimentos que se fizerem necessários.');
   const { lista, faltando } = await figurasDoCaso(dados);
   const { apendices, falhasApendice } = await apendicesDoCaso(dados);
+  quadroRequisitos473(d, { objeto: '2.1', analise: '3 a 7', metodo: '2.2', quesitos: '8' });
   textoIntegram(d, { fotos: lista.length > 0, apendices });
   blocoAssinatura(d, dados, 'Perito do Juízo');
   secaoReferencias(d, dados, { prev: true });
@@ -455,7 +471,7 @@ export async function ltcatPpp(caseId) {
   d.texto(`Nos períodos que caracterizam exposição habitual e permanente, não ocasional nem intermitente, a agentes nocivos, o PPP deve informar o código GFIP 04; nos demais, o código aplicável à ausência de exposição.`);
   d.h1('7', 'Recomendações');
   d.texto('Em atendimento ao art. 58, § 2º, da Lei nº 8.213/1991, recomendam-se as medidas abaixo, na ordem de prioridade da NR-1. As recomendações não alteram o enquadramento dos períodos avaliados.');
-  d.redigir('quadro de recomendações por agente.');
+  quadroRecomendacoes(d, dados);
   d.h1('8', 'Encerramento');
   d.texto('Este laudo foi elaborado com imparcialidade técnica, sob responsabilidade civil e criminal do signatário, e é assinado digitalmente. A validade dos dados pretéritos depende da veracidade das declarações do item 2.3.');
   d.quadro('Elementos do LTCAT – art. 276 da IN 128/2022', [['Elemento', 'Item deste laudo'],
@@ -470,9 +486,12 @@ export async function ltcatPpp(caseId) {
   blocoAssinatura(d, dados, `Responsável técnico – ART nº [[nº]]`);
   secaoReferencias(d, dados, { prev: true, judicial: true });
   d.h1('', 'Anexos');
-  d.texto('- Anexo A – Perfil Profissiográfico Previdenciário (PPP)\n- Anexo B – Calibração dos instrumentos\n- Anexo C – Anotação de Responsabilidade Técnica\n- Anexo D – Comprovante de inscrição no CNPJ\n- Anexo E – Fichas com dados de segurança dos produtos químicos\n- Anexo F – Anotações da CTPS');
+  d.texto('- Anexo A – Dados para o Perfil Profissiográfico Previdenciário (PPP)\n- Anexo B – Calibração dos instrumentos\n- Anexo C – Anotação de Responsabilidade Técnica\n- Anexo D – Comprovante de inscrição no CNPJ\n- Anexo E – Fichas com dados de segurança dos produtos químicos\n- Anexo F – Anotações da CTPS');
   const { apendices, falhasApendice } = await apendicesDoCaso(dados);
   if (apendices.length) d.texto(apendices.map((a) => `- Apêndice ${a.letra} – ${a.titulo}`).join('\n'));
+  d.h1('', 'Anexo A – Dados para o Perfil Profissiográfico Previdenciário (PPP)');
+  d.texto('Dados de exposição por período para o preenchimento do PPP em papel dos períodos anteriores ao eSocial (SST). O código GFIP 04 se aplica aos períodos com enquadramento (item 6).');
+  quadroDadosPPP(d, dados);
   inserirApendices(d, apendices);
   const r = await finalizar(d, { titulo: 'LTCAT', arquivo: 'LTCAT_PPP', c });
   return { ...r, faltando, falhasApendice };
@@ -1074,6 +1093,16 @@ export async function respostaQuesitosSuplementares(caseId) {
     d.h1(`${n}.`, 'Das retificações de erro material', { novaPagina: false });
     d.texto(`Ficam retificados os seguintes erros materiais do ${referenciaLaudo(c)}, sem alteração das avaliações técnicas:`);
     d.texto(linhas(c.esclRetificacoes).map((l) => (/^[-•▪]\s/.test(l) ? l : `- ${l}`)).join('\n'));
+  }
+  const pontosAT = linhas(c.esclParecerAT);
+  if (pontosAT.length || v(c.esclParecerATRef)) {
+    n += 1;
+    d.h1(`${n}.`, 'Dos esclarecimentos sobre o parecer do assistente técnico', { novaPagina: false });
+    d.texto(`Em atenção ao art. 477, § 2º, inciso II, do Código de Processo Civil, esclarecem-se os pontos divergentes apresentados no parecer do assistente técnico${v(c.esclParecerATRef) ? ` (${c.esclParecerATRef})` : ''}:`);
+    const pares = pontosAT.map((l) => l.split(/\s*::\s*/));
+    d.quadro('Pontos do parecer do assistente técnico', [['Alegação do assistente técnico', 'Esclarecimento do perito'],
+      ...(pares.length ? pares.map(([a, e]) => [a, e || '[[esclarecimento]]']) : [['[[alegação]]', '[[esclarecimento]]']])],
+    { larguras: [0.45, 0.55], tam: 9, alinhar: 'left' });
   }
   if (v(c.esclObservacoes)) {
     n += 1;

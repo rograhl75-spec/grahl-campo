@@ -38,11 +38,22 @@ Decisões tomadas por você:
 
 Banco de agentes químicos: está na seção 5 e em Paradigmas → Agentes químicos.
 
-Ficaram para depois:
-- E2 (dados para o PPP): sem eSocial; a versão em papel para períodos anteriores pode ser feita se você quiser.
-- E3 e E5 (parecer trabalhista de viabilidade; proposta de serviços).
-- P5 e P6 (esclarecimentos sobre o parecer do AT ponto a ponto; roteiro por anexo da NR-16).
-- Itens 1 a 3, 8, 9, 12 e 15.
+## Implementado na v2.29.0 (itens que ficaram para depois)
+
+| Item | O que mudou |
+|---|---|
+| 1 | **Quadro dos requisitos do art. 473 do CPC** no encerramento do laudo trabalhista, do previdenciário e do laudo de acidente judicial, indicando o item que atende a cada inciso. |
+| 2 | **Síntese da conclusão logo após a identificação**: por agente no laudo trabalhista e no extrajudicial; por período no previdenciário. |
+| 3 | **Comunicação às partes e aos assistentes (art. 474)** no quadro da diligência, com o novo campo "Comunicação da data às partes" no Campo. No laudo do perito sem esse dado, aparece a pendência para preencher. |
+| 8 | **Códigos do agente químico por decreto** e grupo da LINACH em quadro no laudo previdenciário. Os códigos vêm do campo "Códigos nos decretos previdenciários" de cada ficha do banco. |
+| 9 | **Recomendações geradas a partir do nível de ação da NR-9**, no LTCAT e no laudo extrajudicial: ruído com dose de 50%, VCI com aren de 0,5 m/s² ou VDVR de 9,1 m/s^1,75, VMB com aren de 2,5 m/s², químicos com metade do limite. As medidas seguem a ordem da NR-1. |
+| 12 | **Conferido:** a Res. CJF 305/2014 não foi revogada. Vale com a redação da Res. CJF 937, de 22/01/2025 (que trocou o Anexo Único), e os tribunais a aplicam em 2026. O app já cita essa redação. Há menção à Res. CJF 956/2025, cujo texto não foi conferido. A divergência sobre o dispositivo exato do teto de três vezes (art. 28, § 1º, ou parágrafo único) continua; conferir no texto consolidado no site do CJF. |
+| 15 | **Termo de presença** para imprimir antes da vistoria: já traz os nomes cadastrados e tem linhas para assinatura. |
+| E2 | **Dados para o PPP em papel** (períodos anteriores ao eSocial) no Anexo A do LTCAT: por período, tipo, fator de risco, intensidade (NEN, IBUTG, aren, concentração), técnica (NR-15, NHO-01, 06, 09 ou 10, ou o método do químico), EPC e EPI. EPI marcado "não se aplica" antes de 03/12/1998. |
+| E3 | **Parecer trabalhista de viabilidade** para o trabalhador ou o advogado, com quadro de viabilidade por pedido, provas a produzir e limitações. |
+| E5 | **Proposta de serviços** extrajudicial: objeto conforme o caso, etapas, documentos a fornecer, prazo, valor por extenso, pagamento, deslocamento, ART, validade de 30 dias e aceite. |
+| P5 | **Esclarecimentos sobre o parecer do assistente técnico** (art. 477, § 2º, II) na resposta aos quesitos suplementares, em quadro "alegação / esclarecimento". Os pontos entram na etapa 3, um por linha, no formato "alegação :: esclarecimento". |
+| P6 | **Roteiro da periculosidade por anexo da NR-16** (explosivos, inflamáveis, segurança, energia elétrica, motocicleta, radiações ionizantes). Os anexos são escolhidos pelo texto do caso; se nada for identificado, todos são listados para você excluir os que não se aplicam. |
 
 ---
 

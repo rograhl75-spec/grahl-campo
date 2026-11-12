@@ -798,7 +798,7 @@ export function quadroRequisitosEpi(d, dados) {
 // (antes de 06/03/1997: Decretos 53.831/64 e 83.080/79; depois: Anexo IV dos Decretos 2.172/97 e 3.048/99)
 const COD = [
   [/ru[ií]do/i, '1.1.6', '2.0.1'], [/calor|temperatura/i, '1.1.1', '2.0.4'], [/vibra|trepida/i, '1.1.5', '2.0.2'],
-  [/biol|microrganism|hospital/i, '1.3.2', '3.0.1'], [/esgoto|lixo/i, '', '3.0.1'], [/[óo]leo|graxa|hidrocarb|mineral/i, '1.2.11', '1.0.17'],
+  [/biol|microrganism|hospital/i, '1.3.2', '3.0.1'], [/esgoto|lixo/i, '', '3.0.1'], [/[óo]leo|graxa|hidrocarb|mineral/i, '1.2.11', '1.0.7 (óleos minerais) ou 1.0.17 (derivados de petróleo)'],
   [/s[ií]lica|poeira/i, '1.2.10', '1.0.18'], [/benzeno/i, '1.2.11', '1.0.3'], [/eletric/i, '1.1.8', ''],
 ];
 export function codigosEnquadramento(agentes, inicio, fim) {

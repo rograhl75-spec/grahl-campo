@@ -19,6 +19,7 @@ import { secaoPenosidade } from './penosidade.js';
 import { conclusaoPrevidenciaria, avaliarPeriodos } from './conclusao.js';
 import { p, run, rich } from './ooxml.js';
 import { quadroQuimicosAnexo11, quadroConclusivoTrab, conclusaoAT, POSICOES_AT, agenteDaMedicao, sinteseTrab, quadroRequisitos473, quadroRecomendacoes, quadroDadosPPP, roteiroPericulosidade } from './modelos2.js';
+import { formaAvaliacaoPrev } from '../quimicos.js';
 
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 
@@ -174,14 +175,21 @@ function avaliacaoPrevidenciaria(d, dados, base, inicio = 0) {
     if (!g[k]) continue;
     sub(k === 'Outro' ? 'Outros agentes avaliados' : 'Agentes químicos');
     quadroMedicoesGenerico(d, k === 'Outro' ? 'Outros registros' : 'Resultados – Agentes químicos', g[k], nome, ctx);
-    d.redigir('enquadramento no Anexo IV do Decreto 3.048/1999 (até 05/03/1997, Decreto 53.831/1964); óleos minerais: somente cód. 1.0.17; avaliação qualitativa quando a nocividade decorre da simples exposição (art. 287 da IN 128/2022).');
+    d.redigir('enquadramento de cada agente pelo decreto do período: até 05/03/1997, códigos 1.2.x dos Decretos 53.831/1964 e 83.080/1979, por presunção de exposição; a partir de 06/03/1997, Anexo IV do Decreto 2.172/1997 ou 3.048/1999, com avaliação conforme os Anexos 11, 12, 13 e 13-A da NR-15 (art. 297 da IN 128/2022); óleos minerais: cód. 1.0.7, b (extração, produção e utilização de óleos minerais e parafinas); derivados de petróleo: cód. 1.0.17.');
     if (k === 'Agente químico') {
       const linach = [...new Set(g[k].map((m) => agenteDaMedicao(m, dados)).filter((a) => a && a.data.linach === 'Grupo 1').map((a) => a.data.nome))];
       const ags = [...new Map(g[k].map((m) => agenteDaMedicao(m, dados)).filter(Boolean).map((a) => [a.id, a])).values()];
       if (ags.length) d.quadro('Agentes químicos – referências previdenciárias', [['Agente', 'LINACH', 'Códigos nos decretos'],
         ...ags.map((a) => [`${a.data.nome}${a.data.cas ? `\nCAS ${a.data.cas}` : ''}`, a.data.linach || '—', a.data.codDecretos || '[[código por decreto, conforme o período]]'])],
       { larguras: [0.3, 0.15, 0.55], tam: 9, alinhar: 'left', fonte: 'Banco de agentes químicos do signatário; códigos conferidos nos Decretos 53.831/1964, 83.080/1979, 2.172/1997 e 3.048/1999.' });
-      if (linach.length) d.texto(`${linach.join(', ')} ${linach.length > 1 ? 'constam' : 'consta'} do Grupo 1 da LINACH (Portaria Interministerial nº 9/2014). Para agentes reconhecidamente cancerígenos em humanos, a avaliação é qualitativa (Decreto 3.048/1999, art. 68, §§ 2º a 4º). Na redação do Decreto nº 8.123/2013 (de 17/10/2013 a 30/06/2020), a presença no ambiente de trabalho com possibilidade de exposição bastava para a comprovação da efetiva exposição; na redação do Decreto nº 10.410/2020 (a partir de 01/07/2020), a efetiva exposição é descaracterizada quando adotadas as medidas de controle previstas na legislação trabalhista que eliminem a nocividade.`);
+      if (ags.length) {
+        const vs = dados.periodos.map((r) => [r.data.inicio || '0000-00-00', r.data.fim || '9999-12-31']);
+        const cruza = (l) => !vs.length || vs.some(([a, b]) => a <= l.fim && b >= l.ini);
+        d.quadro('Agentes químicos – forma de avaliação previdenciária por período', [['Agente', 'Período', 'Código', 'Forma de avaliação'],
+          ...ags.flatMap((a) => formaAvaliacaoPrev(a.data).filter(cruza).map((l, i) => [i ? '' : a.data.nome, l.periodo, l.codigos, l.forma]))],
+        { larguras: [0.15, 0.14, 0.31, 0.4], tam: 8, alinhar: 'left', fonte: 'Elaborado pelo signatário com base em Brasil (2022, arts. 297 e 298) e nos códigos do banco de agentes químicos. Somente os períodos que alcançam os vínculos analisados.' });
+      }
+      if (linach.length) d.texto(`${linach.join(', ')} ${linach.length > 1 ? 'constam' : 'consta'} do Grupo 1 da LINACH (Portaria Interministerial nº 9/2014). Para agentes reconhecidamente cancerígenos em humanos, a avaliação é qualitativa (Decreto 3.048/1999, art. 68, §§ 2º a 4º), desde que o agente tenha registro no Chemical Abstracts Service (CAS) e conste do Anexo IV, para os períodos trabalhados a partir de 08/10/2014, data da publicação da Portaria Interministerial nº 9 (IN 128/2022, art. 298, I, II e § 1º). Na redação do Decreto nº 8.123/2013 (até 30/06/2020), a presença no ambiente de trabalho com possibilidade de exposição bastava para a comprovação da efetiva exposição; na redação do Decreto nº 10.410/2020 (a partir de 01/07/2020), a efetiva exposição é descaracterizada quando adotadas as medidas de controle previstas na legislação trabalhista que eliminem a nocividade (art. 298, III e § 2º).`);
     }
   }
   if (v(dados.c.agentesAlegados) && n === inicio) {

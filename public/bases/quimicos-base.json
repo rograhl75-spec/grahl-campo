@@ -1,5 +1,5 @@
 {
- "versao": "2026-11-16",
+ "versao": "2026-11-17",
  "descricao": "Base de agentes químicos – fontes abertas; todos os agentes do Quadro n.º 1 do Anexo 11 e dos Anexos 12, 13 e 13-A da NR-15 e dos decretos previdenciários (53.831/64, 83.080/79, 2.172/97 e 3.048/99); conferir antes de usar em laudo",
  "agentes": [
   {
@@ -2757,7 +2757,7 @@
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: sem código específico\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico",
+   "codDecretos": "Dec. 53.831/1964: 1.2.9 – OUTROS TÓXICOS INORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: 1.2.11 – OUTROS TÓXICOS, ASSOCIAÇÃO DE AGENTES (por família – conferir a atividade listada no código)\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico",
    "observacoes": ""
   },
   {
@@ -2856,7 +2856,7 @@
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: sem código específico\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico",
+   "codDecretos": "Dec. 53.831/1964: 1.2.9 – OUTROS TÓXICOS INORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico",
    "observacoes": ""
   },
   {
@@ -2956,7 +2956,7 @@
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: sem código específico\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico",
+   "codDecretos": "Dec. 53.831/1964: 1.2.9 – OUTROS TÓXICOS INORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico",
    "observacoes": ""
   },
   {
@@ -4097,7 +4097,7 @@
     }
    ],
    "situacao": "A conferir",
-   "codDecretos": "Dec. 53.831/1964: sem código específico\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico",
+   "codDecretos": "Dec. 53.831/1964: 1.2.9 – OUTROS TÓXICOS INORGÂNICOS (pela classe química do código – conferir)\nDec. 83.080/1979: sem código específico\nDec. 2.172/1997: sem código específico\nDec. 3.048/1999: sem código específico",
    "observacoes": ""
   },
   {

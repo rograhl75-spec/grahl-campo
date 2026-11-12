@@ -4,7 +4,7 @@ import { db, createRecord, softDelete } from '../db.js';
 import { avisarAlteracao } from '../sync.js';
 import {
   CAMPOS_QUIMICO, GRUPOS_QUIMICOS, ANEXOS_NR15, anexosDoAgente, PROMPT_QUIMICOS, promptAcgih, carregarBaseQuimicos, importarBaseQuimicos, importarAgentesColados, filtrarAgentes,
-  ppmParaMgm3, mgm3ParaPpm, fatorBriefScalaDiario, fatorBriefScalaSemanal, fatorDesvio, somaMistura, num,
+  formaAvaliacaoPrev, ppmParaMgm3, mgm3ParaPpm, fatorBriefScalaDiario, fatorBriefScalaSemanal, fatorDesvio, somaMistura, num,
 } from '../quimicos.js';
 import { fmt } from '../calc.js';
 import { useLive } from './hooks.js';
@@ -81,6 +81,7 @@ export function Quimicos() {
                       <div class="linha2"><Campos rec={r} campos={campos} /></div>
                     </details>
                   ))}
+                  <FormaPrev d={d} />
                   {d.nioshUrl && <a class="botao sec" href={d.nioshUrl} target="_blank" rel="noopener">Abrir no NIOSH Pocket Guide</a>}
                 </div>
               )}
@@ -186,5 +187,23 @@ function Calculadora({ agentes }) {
         <textarea rows={3} value={mist} onInput={(e) => setMist(e.currentTarget.value)} placeholder={'50;78\n20;100'} /></label>
       {mist.trim() && <p class="calculos">Σ C/LT = <b>{f(soma, 2)}</b> – {soma > 1 ? 'excede (> 1)' : 'não excede (≤ 1)'}.</p>}
     </section>
+  );
+}
+
+// Previdenciário: forma de avaliação do agente por período (IN 128/2022, arts. 297 e 298)
+export function FormaPrev({ d, aberto = false }) {
+  return (
+    <details open={aberto}>
+      <summary><b>Previdenciário – forma de avaliação por período</b></summary>
+      <div class="tabela-rolagem">
+        <table class="tabela">
+          <thead><tr><th>Período</th><th>Norma</th><th>Código</th><th>Forma de avaliação</th></tr></thead>
+          <tbody>
+            {formaAvaliacaoPrev(d).map((l) => <tr><td>{l.periodo}</td><td>{l.norma}</td><td>{l.codigos}</td><td>{l.forma.replace(/\[\[|\]\]/g, '')}</td></tr>)}
+          </tbody>
+        </table>
+      </div>
+      <small class="dica">EPC e EPI só contam a partir de 03/12/1998 (IN 128/2022, arts. 290 e 291). Códigos "por família" ou "pela classe química": conferir a atividade no decreto.</small>
+    </details>
   );
 }

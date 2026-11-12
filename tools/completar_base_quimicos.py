@@ -37,7 +37,7 @@ import gerar_base_quimicos as G  # noqa: E402
 import ampliar_base_quimicos as AMP  # noqa: E402
 
 DATA = "2026-11-11"
-VERSAO = "2026-11-16"
+VERSAO = "2026-11-17"
 RAIZ = os.path.dirname(AQUI)
 BASE = os.path.join(RAIZ, "public", "bases", "quimicos-base.json")
 DADOS = os.path.join(AQUI, "dados")

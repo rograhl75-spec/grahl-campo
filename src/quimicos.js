@@ -258,3 +258,66 @@ export function filtrarAgentes(lista, busca = '', grupo = '', anexo = '') {
     return [d.nome, d.sinonimos, d.cas, d.formula].some((x) => slug(x).includes(t));
   }).sort((a, b) => String(a.data.nome || '').localeCompare(String(b.data.nome || ''), 'pt-BR'));
 }
+
+// ---------------------------------------------------------------------------------------------
+// Previdenciário: forma de avaliação do agente químico por período (IN PRES/INSS 128/2022, arts. 297 e 298)
+// - até 05/03/1997: qualitativa, por presunção de exposição, com código no Dec. 53.831/1964 ou 83.080/1979 (art. 297, I);
+// - a partir de 06/03/1997: Anexo IV do Dec. 2.172/1997 (até 06/05/1999) ou 3.048/1999, com avaliação conforme os
+//   Anexos 11, 12, 13 e 13-A da NR-15 (art. 297, II); a partir de 01/01/2004, NHO-02, 03, 04 e 07 (art. 297, III);
+// - LINACH Grupo 1 com CAS e no Anexo IV: qualitativa a partir de 08/10/2014; a partir de 01/07/2020, medidas de
+//   controle que eliminem a nocividade descaracterizam a exposição (art. 298 e Dec. 3.048/1999, art. 68, §§ 2º a 4º).
+// Os códigos vêm do campo codDecretos ("Dec. 53.831/1964: 1.2.11 – …" por linha).
+export function codigosDoDecreto(d = {}, dec) {
+  const linha = String(d.codDecretos || '').split('\n').find((l) => l.includes(`${dec}/`));
+  if (!linha) return '';
+  const t = linha.replace(/^[^:]*:\s*/, '');
+  if (/^sem código/i.test(t)) return '';
+  return t.split(/;\s*/).map((p) => p.replace(/\s*\(.*$/, '').trim()).filter(Boolean).join('; ');
+}
+
+export function formaNr15(d = {}) {
+  const ax = anexosDoAgente(d);
+  const out = [];
+  if (ax.includes('11') && (d.nr15Ppm || d.nr15Mgm3)) {
+    const lt = [d.nr15Ppm && `${d.nr15Ppm} ppm`, d.nr15Mgm3 && `${d.nr15Mgm3} mg/m³`].filter(Boolean).join(' / ');
+    out.push(`quantitativa – LT do Anexo 11 da NR-15 (${lt}${d.nr15Teto === 'Sim' ? ', valor teto' : ''})`);
+  } else if (/asfixiante simples/i.test(d.nr15Obs || '')) out.push('Anexo 11 da NR-15: asfixiante simples (O₂ mínimo de 18%)');
+  if (ax.includes('12')) out.push('quantitativa – LT do Anexo 12 da NR-15');
+  if (ax.includes('13')) out.push('qualitativa – atividades do Anexo 13 da NR-15');
+  if (ax.includes('13-A')) out.push('qualitativa – Anexo 13-A da NR-15 (benzeno)');
+  return out.join('; ');
+}
+
+const PERIODOS_PREV = [
+  { periodo: 'Até 05/03/1997', ini: '0000-00-00', fim: '1997-03-05', decs: ['53.831', '83.080'], norma: 'Dec. 53.831/1964 e Dec. 83.080/1979' },
+  { periodo: '06/03/1997 a 06/05/1999', ini: '1997-03-06', fim: '1999-05-06', decs: ['2.172'], norma: 'Dec. 2.172/1997, Anexo IV' },
+  { periodo: '07/05/1999 a 31/12/2003', ini: '1999-05-07', fim: '2003-12-31', decs: ['3.048'], norma: 'Dec. 3.048/1999, Anexo IV' },
+  { periodo: 'A partir de 01/01/2004', ini: '2004-01-01', fim: '9999-12-31', decs: ['3.048'], norma: 'Dec. 3.048/1999, Anexo IV' },
+];
+
+export function formaAvaliacaoPrev(d = {}) {
+  const nr = formaNr15(d);
+  const linhas = PERIODOS_PREV.map(({ periodo, ini, fim, decs, norma }, i) => {
+    const cods = decs.map((x) => [x, codigosDoDecreto(d, x)]).filter(([, c]) => c);
+    const codigos = cods.map(([x, c]) => (decs.length > 1 ? `${c} (Dec. ${x})` : c)).join('; ');
+    let forma;
+    if (i === 0) forma = cods.length ? 'Qualitativa, por presunção de exposição, nas atividades do código (IN 128/2022, art. 297, I)' : 'Sem código nos dois decretos: não há enquadramento por este agente';
+    else if (!cods.length) forma = 'Fora do Anexo IV (o rol de agentes é exaustivo): não há enquadramento por este agente';
+    else {
+      forma = `${nr ? nr.charAt(0).toUpperCase() + nr.slice(1) : '[[sem critério nos Anexos 11, 12, 13 e 13-A da NR-15 – fundamentar a avaliação]]'} (IN 128/2022, art. 297, II)`;
+      if (i === 3) forma += '; metodologia das NHO-02, NHO-03, NHO-04 e NHO-07 da FUNDACENTRO (art. 297, III; facultativa desde 19/11/2003)';
+    }
+    return { periodo, ini, fim, norma, codigos: codigos || '—', forma };
+  });
+  if (d.linach === 'Grupo 1') {
+    const noAnexoIV = !!codigosDoDecreto(d, '3.048');
+    const cas = String(d.cas || '').trim();
+    if (cas && noAnexoIV) {
+      linhas.push({ periodo: '08/10/2014 a 30/06/2020', ini: '2014-10-08', fim: '2020-06-30', norma: 'LINACH, Grupo 1 (Portaria Interministerial nº 9/2014)', codigos: codigosDoDecreto(d, '3.048'), forma: 'Qualitativa: reconhecidamente cancerígeno em humanos (Dec. 3.048/1999, art. 68, §§ 2º a 4º; IN 128/2022, art. 298, I, II e § 1º)' });
+      linhas.push({ periodo: 'A partir de 01/07/2020', ini: '2020-07-01', fim: '9999-12-31', norma: 'LINACH, Grupo 1; Dec. 10.410/2020', codigos: codigosDoDecreto(d, '3.048'), forma: 'Qualitativa; a adoção de medidas de controle previstas na legislação trabalhista que eliminem a nocividade descaracteriza a efetiva exposição (art. 68, § 4º; IN 128/2022, art. 298, III e § 2º)' });
+    } else {
+      linhas.push({ periodo: 'A partir de 08/10/2014', ini: '2014-10-08', fim: '9999-12-31', norma: 'LINACH, Grupo 1 (Portaria Interministerial nº 9/2014)', codigos: '—', forma: `Não se aplica a avaliação qualitativa do art. 298 da IN 128/2022, que exige ${!cas && !noAnexoIV ? 'CAS e presença no Anexo IV' : !cas ? 'CAS (o agente não tem CAS único)' : 'presença no Anexo IV'}: segue a regra das linhas acima` });
+    }
+  }
+  return linhas;
+}

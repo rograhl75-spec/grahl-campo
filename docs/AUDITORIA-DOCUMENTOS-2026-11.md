@@ -362,3 +362,31 @@ Os documentos foram convertidos em PDF e revisados página por página: 300 pág
 ### Não alterado
 - **Números de página do sumário:** saem "–" na conversão pelo LibreOffice. O Word preenche ao abrir e confirmar a atualização dos campos.
 - **Achados dos dados fictícios:** horários, datas das fotos e valores de honorários vinham do próprio teste.
+
+## 9. Conformidade do banco químico com a NR-15 e com os decretos previdenciários (12/11/2026)
+
+### 9.1 Trabalhista (NR-15)
+
+| Verificação | Fonte | Resultado |
+|---|---|---|
+| Anexo 11, Quadro n.º 1: ppm, mg/m³, grau, absorção pela pele e valor teto dos 135 agentes com limite | PDF oficial do Anexo 11 (leitura por coordenadas das colunas) | 135/135 conferem; todas as 135 linhas com valor têm agente no banco |
+| Asfixiantes simples (item 3) | idem | 11 linhas (acetileno, argônio, etano, etileno, hélio, hidrogênio, metano, neônio, óxido nitroso, n-propano, propileno), todas no banco |
+| Anexo 12 (asbesto, manganês poeira/fumos, sílica) | texto oficial da NR-15 | LT, fórmulas e itens conferem; o texto não fixa grau para asbesto e sílica (registrado assim no banco) |
+| Anexo 13 (108 linhas da transcrição) | texto oficial da NR-15 | texto e grau conferem; as 4 substâncias de exposição proibida estão sem grau, como no texto; 10 atividades não têm agente específico (bronze fosforado, mechas fosforadas, destilação do petróleo, artigos de borracha, linóleos/tintas, metalização a pistola, telegrafia, raspagem de pinturas, salinas, convés – revogado) |
+
+### 9.2 Previdenciário (decretos e IN 128/2022)
+
+Texto oficial dos arts. 297 e 298 da IN PRES/INSS 128/2022 (Parte 2, p. 10):
+- art. 297, I: até 05/03/1997, análise qualitativa, por presunção de exposição, nos códigos 1.0.0 dos Decretos 53.831/1964 e 83.080/1979;
+- art. 297, II: a partir de 06/03/1997, Anexo IV do Dec. 2.172/1997 ou 3.048/1999, conforme o período, com avaliação pelos Anexos 11, 12, 13 e 13-A da NR-15;
+- art. 297, III: a partir de 01/01/2004, NHO-02, NHO-03, NHO-04 e NHO-07 (facultativas desde 19/11/2003);
+- art. 298: LINACH Grupo 1 com CAS e no Anexo IV – avaliação qualitativa para períodos a partir de 08/10/2014 (§ 1º); medidas de controle que eliminem a nocividade, a partir de 01/07/2020 (§ 2º).
+
+Implementado: `formaAvaliacaoPrev` (src/quimicos.js) monta, para cada agente, a forma de avaliação por período; aparece na ficha do agente, na aba Campo e no laudo previdenciário (só os períodos que alcançam os vínculos).
+
+Corrigido:
+- o texto da LINACH dava o marco de 17/10/2013 (Dec. 8.123/2013) e não exigia CAS nem presença no Anexo IV; agora segue o art. 298 da IN (08/10/2014);
+- "óleos minerais: somente cód. 1.0.17" contrariava o Anexo IV, que traz os óleos minerais no cód. 1.0.7, b ("extração, produção e utilização de óleos minerais e parafinas"); o 1.0.17 fica para os derivados de petróleo;
+- Dec. 53.831/1964: monóxido de carbono, dióxido de nitrogênio, ozônio e peróxido de hidrogênio passaram a 1.2.9 (outros tóxicos inorgânicos, pela classe química – conferir), como os demais gases e compostos inorgânicos do banco.
+
+Códigos citados: todos os códigos e títulos existem nos quatro decretos. Atribuições "por família" e "pela classe química" continuam marcadas para conferência.

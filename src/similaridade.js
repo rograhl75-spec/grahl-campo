@@ -89,8 +89,10 @@ export function pontuar(veic, p, { similar } = {}) {
   else if (classe(tv) && classe(tp)) { pontos -= 20; motivos.push(`tipo diferente (${d.tipo || d.configuracao})`); }
   const av = arDe(veic.cabine), ap = d.arCondicionado ? !/^n|sem/i.test(String(d.arCondicionado)) : arDe(d.cabine);
   if (av !== null && ap !== null && ap !== undefined) { if (av === ap) { pontos += 5; motivos.push(av ? 'ambos com ar' : 'ambos sem ar'); } else { pontos -= 5; motivos.push('climatização diferente'); } }
-  const a1 = anoDe(veic.ano), a2 = anoDe(d.ano);
-  if (isFinite(a1) && isFinite(a2)) { const dif = Math.abs(a1 - a2); if (dif <= 5) { pontos += 10; motivos.push(`época próxima (${a2})`); } else if (dif <= 10) { pontos += 4; motivos.push(`época ${a2}`); } }
+  // ano do paradigma; sem ele, o meio da época de fabricação ("1975–1987" → 1981)
+  const epoca = String(d.epocaFabricacao || '').match(/(19[5-9]\d|20[0-4]\d)\D+(19[5-9]\d|20[0-4]\d)/);
+  const a1 = anoDe(veic.ano), a2 = anoDe(d.ano) || (epoca ? Math.round((Number(epoca[1]) + Number(epoca[2])) / 2) : NaN);
+  if (isFinite(a1) && isFinite(a2)) { const dif = Math.abs(a1 - a2); if (dif <= 5) { pontos += 10; motivos.push(`época próxima (${anoDe(d.ano) ? a2 : d.epocaFabricacao})`); } else if (dif <= 10) { pontos += 4; motivos.push(`época ${anoDe(d.ano) ? a2 : d.epocaFabricacao}`); } }
   if (/^ok$/i.test(d.situacao || '')) pontos += 3; else if (d.situacao) motivos.push(`situação ${d.situacao}`);
   return { pontos, motivos };
 }

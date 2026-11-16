@@ -38,7 +38,7 @@ export function veiculoParaDados(v) {
     ...maquina,
     codigo: s(v.id),
     idsAnteriores: [s((v.ids_banco_anterior || {}).ruido), s((v.ids_banco_anterior || {}).vibracao)].filter(Boolean).join(' / '),
-    tipo: s(i.tipo), marca: s(i.marca), modelo: s(i.modelo), ano: s(i.ano),
+    tipo: s(i.tipo), marca: s(i.marca), modelo: s(i.modelo), ano: s(i.ano), anoFonte: s(i.ano_fonte), epocaFabricacao: s(i.epoca_fabricacao),
     familia: s(c.familia), posicaoMotor: s(c.posicao_motor), cabine: s(c.cabine), arCondicionado: s(c.ar_condicionado),
     suspensaoCabine: s(c.suspensao_cabine), suspensaoAssento: s(c.suspensao_assento), configuracao: s(c.configuracao), via: s(c.via_predominante),
     duracaoRuidoMin: n(r.duracao_ruido_min), lavg: n(r.lavg_q5), leq: n(r.leq_q3), jornadaLaudo: n(r.jornada_laudo_h), nenLaudo: n(r.nen_laudo),
@@ -51,6 +51,41 @@ export function veiculoParaDados(v) {
     calibEquip: s(ic.equipamento), calibSerie: s(ic.serie), calibCertData: s(ic.data_certificado),
     vibEquip: s(iv.equipamento), vibSerie: s(iv.serie), vibCert: s(iv.certificado), vibCertData: s(iv.data_certificado),
     situacao: s(v.situacao) || 'OK', servePara: s(v.serve_de_paradigma_para), observacoes: s(v.observacoes),
+  };
+}
+
+// ---------- Exportar a base (mesmo formato da importação) ----------
+// Só os paradigmas, similares e famílias (sem casos), com o nome do laudo de origem anexado a cada um.
+const nb = (t) => { const x = String(t ?? '').trim(); if (!x) return null; const k = Number(x.replace(',', '.')); return isFinite(k) && /^-?[\d.,]+$/.test(x) ? k : x; };
+const tx = (t) => (String(t ?? '').trim() || null);
+export function dadosParaVeiculo(d, { anexoNome = '' } = {}) {
+  return {
+    id: d.codigo, situacao: tx(d.situacao), serve_de_paradigma_para: tx(d.servePara), observacoes: tx(d.observacoes),
+    identificacao: { tipo: tx(d.tipo), marca: tx(d.marca), modelo: tx(d.modelo), ano: tx(d.ano), ano_fonte: tx(d.anoFonte), epoca_fabricacao: tx(d.epocaFabricacao) },
+    caracteristicas: { familia: tx(d.familia), posicao_motor: tx(d.posicaoMotor), cabine: tx(d.cabine), ar_condicionado: tx(d.arCondicionado),
+      suspensao_cabine: tx(d.suspensaoCabine), suspensao_assento: tx(d.suspensaoAssento), configuracao: tx(d.configuracao), via_predominante: tx(d.via) },
+    resultados: { duracao_ruido_min: nb(d.duracaoRuidoMin), lavg_q5: nb(d.lavg), leq_q3: nb(d.leq), jornada_laudo_h: nb(d.jornadaLaudo), nen_laudo: nb(d.nenLaudo),
+      tempo_vibracao: tx(d.tempoVibracao), arep: nb(d.arep), aren_laudo: nb(d.arenLaudo), vdvr_laudo: nb(d.vdvrLaudo), eixo_dominante: tx(d.eixoDominante), aren_vmb: nb(d.arenVmb), ibutg: nb(d.ibutg) },
+    fonte: { tipo: tx(d.fonteTipo), processo: tx(d.processo), vara: tx(d.vara), data: tx(d.dataMedicao), citacao: tx(d.citacao) },
+    instrumentacao: {
+      ruido: { equipamento: tx(d.ruidoEquip), serie: tx(d.ruidoSerie), certificado: tx(d.ruidoCert), data_certificado: tx(d.ruidoCertData) },
+      calibrador: { equipamento: tx(d.calibEquip), serie: tx(d.calibSerie), data_certificado: tx(d.calibCertData) },
+      vibracao: { equipamento: tx(d.vibEquip), serie: tx(d.vibSerie), certificado: tx(d.vibCert), data_certificado: tx(d.vibCertData) },
+    },
+    ...(d.categoriaMaquina ? { maquina: { categoria: tx(d.categoriaMaquina), origem: tx(d.origemDado), operacao: tx(d.operacao), implemento: tx(d.implemento), referencia: tx(d.referencia) } } : {}),
+    laudo_de_origem: anexoNome ? { anexo_id: d.anexoId, arquivo: anexoNome } : null,
+  };
+}
+export async function exportarBaseJson() {
+  const todos = (await db.records.where('kind').anyOf('paradigma', 'similar', 'familia', 'anexo').toArray()).filter((r) => !r.deleted);
+  const anexos = new Map(todos.filter((r) => r.kind === 'anexo').map((r) => [r.id, r.data.nome || r.id]));
+  const pars = todos.filter((r) => r.kind === 'paradigma').sort((a, b) => String(a.data.codigo).localeCompare(String(b.data.codigo), 'pt', { numeric: true }));
+  return {
+    formato: 'cadastro_veiculos_medidos', exportado_em: new Date().toISOString(),
+    veiculos: pars.map((p) => dadosParaVeiculo(p.data, { anexoNome: p.data.anexoId ? anexos.get(p.data.anexoId) || '' : '' })),
+    similares: todos.filter((r) => r.kind === 'similar').map((x) => ({ marca: tx(x.data.marca), modelo: tx(x.data.modelo), tipo: tx(x.data.tipo), epoca: tx(x.data.epoca), familia: tx(x.data.familia),
+      paradigma_ruido: tx(x.data.paradigmaRuido), paradigma_ruido_alt: tx(x.data.paradigmaRuidoAlt), paradigma_vibracao: tx(x.data.paradigmaVibracao), status: tx(x.data.status), obs: tx(x.data.obs) })),
+    familias: todos.filter((r) => r.kind === 'familia').map((f) => ({ codigo: tx(f.data.codigo), descricao: tx(f.data.descricao), criterios: tx(f.data.criterios) })),
   };
 }
 

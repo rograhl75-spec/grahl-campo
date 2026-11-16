@@ -334,3 +334,52 @@ input.cresce { flex: 1; min-width: min(220px, 100%); }
 .audio-vistoria .gravando em { color: var(--suave); font-weight: 400; }
 .audio-item { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0; }
 .audio-item audio { max-width: 100%; height: 36px; }
+
+/* ---------- Meus dados ---------- */
+.meus-dados { display: flex; flex-direction: column; gap: 16px; }
+.cartao-visita { position: relative; display: flex; gap: 22px; align-items: center; flex-wrap: wrap; padding: 24px 28px; border-radius: var(--raio);
+  background: linear-gradient(135deg, #1F3E6A 0%, var(--azul) 60%, #142a49 100%); color: #fff; box-shadow: var(--sombra); overflow: hidden; }
+.cartao-visita::after { content: ''; position: absolute; right: -60px; bottom: -60px; width: 220px; height: 220px; border: 2px solid rgba(196,154,58,.35); transform: rotate(45deg); }
+.cv-monograma { width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; font-size: 1.6rem; font-weight: 700; letter-spacing: .04em;
+  color: var(--azul); background: linear-gradient(145deg, #E9C979, var(--ouro)); flex: none; }
+.cv-texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; z-index: 1; }
+.cv-rotulo { font-size: .72rem; text-transform: uppercase; letter-spacing: .12em; color: #E9C979; }
+.cv-nome { font-size: 1.45rem; letter-spacing: .02em; }
+.cv-formacao, .cv-registro { color: rgba(255,255,255,.88); }
+.cv-contato { color: rgba(255,255,255,.7); font-size: .9rem; margin-top: 4px; }
+.cv-falta { flex-basis: 100%; color: #F6D8A0; z-index: 1; }
+.md-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr)); gap: 16px; align-items: start; }
+.md-titulo { display: flex; align-items: center; gap: 8px; }
+.md-titulo .icone { color: var(--ouro); }
+.md-cartao .dica { margin-top: -6px; }
+.md-contas { grid-column: 1 / -1; }
+.md-contas-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 14px; }
+.md-conta { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border: 1px solid var(--borda); border-radius: 12px; background: #FAFBFD; }
+.md-conta small { color: var(--suave); }
+
+/* ---------- Bases técnicas: seções ---------- */
+.secoes-base { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 10px; margin: 4px 0 12px; }
+.secao-base { display: flex; gap: 12px; align-items: center; padding: 14px 16px; border-radius: var(--raio); border: 1px solid var(--borda);
+  background: var(--cartao); color: var(--texto); text-decoration: none; box-shadow: var(--sombra); }
+.secao-base span { display: flex; flex-direction: column; }
+.secao-base small { color: var(--suave); font-size: .82rem; }
+.secao-base .icone { color: var(--ouro); flex: none; }
+.secao-base.ativa { background: var(--azul); border-color: var(--azul); color: #fff; }
+.secao-base.ativa small { color: rgba(255,255,255,.78); }
+.barra-gravacao { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 8px 16px;
+  background: #7F1D1D; color: #fff; font-weight: 600; }
+.barra-gravacao .ponto { width: 12px; height: 12px; border-radius: 50%; background: #F87171; animation: pisca 1.2s infinite; }
+.barra-gravacao a { color: #FDE68A; }
+.barra-gravacao button { margin-left: auto; background: #fff; color: #7F1D1D; border: 0; border-radius: 10px; padding: 6px 14px; font-weight: 700; min-height: 40px; }
+@keyframes pisca { 50% { opacity: .3; } }
+.transcricao-viva { white-space: pre-wrap; font: inherit; background: #FAFBFD; border: 1px solid var(--borda); border-radius: 10px; padding: 10px 12px; max-height: 240px; overflow: auto; margin: 0; }
+details.recolhido > summary { cursor: pointer; list-style: none; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; min-height: 32px; }
+details.recolhido > summary::before { content: '▸'; color: var(--ouro); font-weight: 700; }
+details.recolhido[open] > summary::before { content: '▾'; }
+details.recolhido[open] > summary { margin-bottom: 12px; }
+.acomp-item { border-top: 1px solid var(--borda); padding: 8px 0; }
+.acomp-item > summary { cursor: pointer; display: flex; gap: 10px; align-items: center; font-weight: 600; min-height: 36px; }
+.acomp-marca { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--borda); flex: none; }
+.acomp-marca.ok { background: var(--ok); border-color: var(--ok); }
+.quesito-mao { border-top: 1px solid var(--borda); padding-top: 10px; margin-top: 10px; }
+.quesito-mao p { margin: 0 0 6px; }

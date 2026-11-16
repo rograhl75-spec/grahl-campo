@@ -6,6 +6,9 @@ import { Caso } from './Caso.jsx';
 import { Config } from './Config.jsx';
 import { Paradigmas } from './Paradigmas.jsx';
 import { Icone } from './Icone.jsx';
+import { ouvir as ouvirGravador, pararGravacao, recuperarGravacao } from '../gravador.js';
+import { avisarAlteracao } from '../sync.js';
+import { avisar } from './dialogo.jsx';
 
 // altura real do cabeçalho (ele quebra em 2–3 linhas no tablet em retrato): as abas fixas ficam logo abaixo
 function useAlturaTopo() {
@@ -36,12 +39,13 @@ export function App() {
         </a>
         <nav>
           <a href="#/" class={partes[0] === '' || partes[0] === 'caso' ? 'ativo' : ''}>Casos</a>
-          <a href="#/paradigmas" class={partes[0] === 'paradigmas' ? 'ativo' : ''}>Paradigmas</a>
+          <a href="#/paradigmas" class={partes[0] === 'paradigmas' ? 'ativo' : ''}>Bases técnicas</a>
           <a href="#/config" class={partes[0] === 'config' ? 'ativo' : ''}>Configurações</a>
         </nav>
         <ModoCampo />
         <SyncBadge />
       </header>
+      <BarraGravacao />
       <main>{tela}</main>
     </div>
   );
@@ -77,5 +81,30 @@ function SyncBadge() {
       onClick={() => (s.configured && s.user ? sincronizarAgora() : ir('/config/nuvem'))}>
       <span class="ponto" />{txt}
     </button>
+  );
+}
+
+// Barra fixa enquanto grava: aparece em qualquer aba (a gravação não para ao trocar de tela)
+function BarraGravacao() {
+  const [g, setG] = useState({ gravando: false });
+  const [seg, setSeg] = useState(0);
+  useEffect(() => ouvirGravador(setG), []);
+  useEffect(() => {
+    // gravação interrompida (o sistema fechou a página): o que foi gravado volta como áudio da vistoria
+    recuperarGravacao().then((r) => { if (r) { avisarAlteracao(); avisar(`Uma gravação interrompida foi recuperada (${r.nome}). Está na Diligência, na vistoria correspondente.`); } }).catch(() => {});
+  }, []);
+  useEffect(() => {
+    if (!g.gravando) return undefined;
+    const t = setInterval(() => setSeg((Date.now() - g.inicio) / 1000), 1000);
+    return () => clearInterval(t);
+  }, [g.gravando, g.inicio]);
+  if (!g.gravando) return null;
+  const mm = `${String(Math.floor(seg / 60)).padStart(2, '0')}:${String(Math.floor(seg % 60)).padStart(2, '0')}`;
+  return (
+    <div class="barra-gravacao" role="status">
+      <span class="ponto" aria-hidden="true" /> Gravando a {g.n}ª vistoria · {mm}
+      <a href={`#/caso/${encodeURIComponent(g.caseId)}/campo`}>abrir</a>
+      <button type="button" onClick={async () => { await pararGravacao(); avisarAlteracao(); }}>■ Parar e salvar</button>
+    </div>
   );
 }

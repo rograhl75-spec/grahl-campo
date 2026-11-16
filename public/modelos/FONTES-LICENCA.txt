@@ -1,0 +1,7 @@
+Fontes embutidas nos documentos Word gerados pelo app (subconjunto latino):
+
+- Lato – Copyright (c) 2010-2014 by tyPoland Lukasz Dziedzic (http://www.typoland.com/) with Reserved Font Name "Lato".
+- Montserrat – Copyright 2011 The Montserrat Project Authors (https://github.com/JulietaUla/Montserrat).
+
+Ambas licenciadas sob a SIL Open Font License, versão 1.1 (https://openfontlicense.org).
+A licença permite embutir as fontes em documentos.

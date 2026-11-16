@@ -1,3 +1,4 @@
+import { horasDia, fmtHoras } from '../calc.js';
 import { useState } from 'preact/hooks';
 import { db } from '../db.js';
 import { CAMPOS_SINTESE, CAMPOS_PERIODO, CAMPOS_DOC, CAMPOS_EPI, CAMPOS_ENTREVISTA_MOTORISTA } from '../schema.js';
@@ -204,6 +205,9 @@ export function VeiculoDoPeriodo({ r, abertoInicial }) {
     <div class="bloco destaque mt-p">
       <h4>Veículo do requerente neste período</h4>
       <div class="linha2"><Campos rec={r} campos={CAMPOS_VEICULO_PERIODO} /></div>
+      {String(r.data.conducaoH || '').trim() && (isFinite(horasDia(r.data.conducaoH))
+        ? <small class="dica">Tempo de condução usado nos cálculos: <b>{fmtHoras(horasDia(r.data.conducaoH))}/dia</b>.</small>
+        : <small class="erro-msg">"{r.data.conducaoH}" não é um número de horas: os cálculos ficam pendentes. Escreva, por exemplo, 10, 8,5 ou 8h30.</small>)}
       <details class="mt" open={!!(r.data.grupoVeiculo || r.data.tipoCarga || r.data.carroceria)}>
         <summary><b>Entrevista do motorista (veículo, carga, trajetos e ocorrências)</b></summary>
         <p class="dica">Os itens da entrevista por vínculo. Trajetos, pernoite e jornada ficam nos fatores de penosidade abaixo; o tempo diário de condução, no campo acima.</p>
@@ -282,8 +286,8 @@ function FichaPesquisa({ r, familia }) {
     <div class="evidencias alerta">
       <b>Sem paradigma no banco para este veículo – pesquise nos seus laudos:</b>
       {fichaPesquisa(r, familia).map(([k, t]) => <span><b>{k}:</b> {t}</span>)}
-      <small>Achou? Inclua em Paradigmas → Importar (laudo antigo) e volte aqui para vincular. Se o veículo tiver um similar já medido, cadastre-o em Paradigmas → Similares.</small>
-      <span class="linha-botoes"><button type="button" class="mini" onClick={copiar}>Copiar ficha</button><a class="botao sec" href="#/paradigmas/importar">Ir para Paradigmas → Importar</a>{msg && <small>{msg}</small>}</span>
+      <small>Achou? Inclua em Bases técnicas → Veículos → Importar / exportar (laudo antigo) e volte aqui para vincular. Se o veículo tiver um similar já medido, cadastre-o em Bases técnicas → Veículos → Similares.</small>
+      <span class="linha-botoes"><button type="button" class="mini" onClick={copiar}>Copiar ficha</button><a class="botao sec" href="#/paradigmas/importar">Ir para Bases técnicas → Importar</a>{msg && <small>{msg}</small>}</span>
     </div>
   );
 }

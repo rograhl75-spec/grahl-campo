@@ -4,8 +4,8 @@
 import { dataBR, postosDoPeriodo, nomeCurto, hojeLocal, superaLimite } from './base.js';
 import { comJurisprudencia } from './fontes.js';
 import { avaliaPenosidade, vinculosMotorista, matrizIAC } from './penosidade.js';
-import { nenParaJornada, arenParaJornada, vdvrParaJornada } from '../paradigmas.js';
-import { num, fmt, nen, fatorQ } from '../calc.js';
+import { nenParaJornada, vibracaoDoParadigma } from '../paradigmas.js';
+import { num, fmt, nen, fatorQ, horasDia, fmtHoras, lavgDaDose } from '../calc.js';
 
 const CORTES = ['1995-04-28', '1997-03-05', '2003-11-18', '2014-08-13'];
 const dia = (iso, n) => { const d = new Date(`${iso}T12:00:00`); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
@@ -26,7 +26,7 @@ function segmentos(r) {
 
 // valores de ruído e VCI do vínculo: paradigma (normalizado para T) ou medição do posto que o representa
 export function valores(r, dados) {
-  const T = num(r.data.conducaoH);
+  const T = horasDia(r.data.conducaoH);
   const out = { T };
   const pr = r.data.paradigmaRuido && dados.paradigmas.get(r.data.paradigmaRuido);
   const pv = r.data.paradigmaVibracao && dados.paradigmas.get(r.data.paradigmaVibracao);
@@ -38,16 +38,18 @@ export function valores(r, dados) {
   if (pr) { out.lavg = num(pr.data.lavg); out.nen = isFinite(T) ? nenParaJornada(pr.data.lavg, T) : NaN; out.fonteR = `paradigma ${pr.data.codigo}`; }
   else if (mr) {
     out.q = fatorQ(mr);
-    out.lavg = num(mr.data.lavg);
-    out.nen = isFinite(T) ? nen(mr.data.lavg, `${T}h`, out.q) : nen(mr.data.lavg, mr.data.jornada, out.q);
+    // sem o Lavg digitado, usa o nível equivalente calculado pela dose e pelo tempo de amostragem
+    const lv = isFinite(num(mr.data.lavg)) ? num(mr.data.lavg) : lavgDaDose(mr.data.dose, mr.data.tempoAmostragem, out.q);
+    out.lavg = lv;
+    out.nen = isFinite(T) ? nen(lv, `${T}h`, out.q) : nen(lv, mr.data.jornada, out.q);
+    if (!isFinite(num(mr.data.lavg)) && isFinite(lv)) out.lavgPelaDose = true;
     out.fonteR = nomeCurto(dados.postos.find((p) => p.id === mr.data.postoId)?.data.nome);
   }
   if (pv) {
     // arep = aceleração do período amostrado → A(T) = arep·√(T/8); sem arep, o aren do laudo já está
     // normalizado para a jornada do laudo de origem: A(T) = aren·√(T/Tlaudo)
-    const tLaudoV = num(pv.data.jornadaVibracaoLaudo) || num(pv.data.jornadaLaudo) || 8;
-    out.aren = !isFinite(T) ? NaN : String(pv.data.arep || '').trim() ? arenParaJornada(pv.data.arep, T) : arenParaJornada(pv.data.arenLaudo, T * 8 / tLaudoV);
-    out.vdv = isFinite(T) ? vdvrParaJornada(pv.data.vdvrLaudo, T, num(pv.data.jornadaVibracaoLaudo) || num(pv.data.jornadaLaudo) || 8) : NaN;
+    const vb = vibracaoDoParadigma(pv, T);
+    out.aren = vb.aren; out.vdv = vb.vdv;
     out.fonteV = `paradigma ${pv.data.codigo}`;
   } else if (mv) {
     out.aren = num(mv.data.aren); out.vdv = num(mv.data.vdv); // valores já normalizados para a exposição diária
@@ -95,11 +97,11 @@ export function avaliarPeriodos(dados) {
         const vdv = isFinite(val.vdv) ? `; VDVR ${fmt(val.vdv, 2)}` : '';
         if (b <= '1997-03-05') itens.push({ t: `VCI: aren ${fmt(val.aren, 2)} m/s²${vdv} – cód. 1.1.5 (Dec. 53.831/64) e 1.1.4 (Dec. 83.080/79): perfuratrizes e marteletes pneumáticos`, cod: '1.1.5', sup: false });
         else if (b <= '2014-08-13') {
-          const sup = val.aren > 0.86 || val.vdv > 17;
+          const sup = superaLimite(val.aren, 0.86, 2) || superaLimite(val.vdv, 17, 2);
           itens.push({ t: `VCI: aren ${fmt(val.aren, 2)} m/s²${vdv} – ${sup ? 'acima da' : 'até a'} fronteira superior da zona de cautela da ISO 2631-1 (0,86 m/s² – Nota Técnica ASPEJUDI 001/2013 – ou VDV 17) – referência técnica; o cód. 2.0.2 descreve trabalhos com perfuratrizes e marteletes pneumáticos`, cod: '2.0.2', sup });
           if (sup) algum = true;
         } else {
-          const sup = val.aren > 1.1 || val.vdv > 21;
+          const sup = superaLimite(val.aren, 1.1, 2) || superaLimite(val.vdv, 21, 2);
           itens.push({ t: `VCI: aren ${fmt(val.aren, 2)} m/s²${vdv} – ${sup ? 'acima' : 'abaixo'} do limite da NR-15, Anexo 8 (1,1 m/s² ou VDVR 21,0)`, cod: '2.0.2', sup });
           if (sup) algum = true;
         }
@@ -155,7 +157,7 @@ export function conclusaoPrevidenciaria(d, dados, { tituloQuadro = 'Conclusão p
     if (cat.length) partes.push(`enquadra-se por categoria profissional, com presunção legal de exposição, ${pl(cat, 'no período', 'nos períodos')} de ${p(cat)} (cód. ${cods(cat)})`);
     if (agente.length) partes.push(`caracteriza exposição habitual e permanente, não ocasional nem intermitente, a agentes nocivos ${pl(agente, 'no período', 'nos períodos')} de ${p(agente)} (cód. ${cods(agente)})`);
     if (nao.length) partes.push(`não caracteriza ${pl(nao, 'no período', 'nos períodos')} de ${p(nao)}, em que os valores avaliados não superam os limites da época`);
-    const base = [val.fonteR && `ruído pelo ${val.fonteR}`, val.fonteV && `vibração pelo ${val.fonteV}`, isFinite(val.T) && `condução de ${String(r.data.conducaoH).replace('.', ',')} h/dia`].filter(Boolean).join(', ');
+    const base = [val.fonteR && `ruído pelo ${val.fonteR}`, val.fonteV && `vibração pelo ${val.fonteV}`, isFinite(val.T) && `condução de ${fmtHoras(val.T)}/dia`].filter(Boolean).join(', ');
     if (!partes.length && segs.some((sg) => sg.caracteriza === '[[pendente]]')) { pendentes.push(`${r.data.empresa || 'Vínculo'} (tempo diário de condução)`); continue; }
     if (partes.length) d.texto(`**${r.data.empresa || 'Vínculo'} (${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}):** a avaliação pericial${base ? ` (${base})` : ''} ${partes.join('; e ')}.`);
     else pendentes.push(r.data.empresa || 'Vínculo');

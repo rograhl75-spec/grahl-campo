@@ -270,7 +270,7 @@ export async function peticaoPeritoAvulsa(caseId) {
     sec('Da diligência');
     const va = vistoriaAtual(c);
     const quando = [dataBR(va?.data || c.dataDiligencia), va?.inicio || c.horaDiligencia].filter(Boolean).join(', às ');
-    d.texto(`Conforme designado nos autos, este perito compareceu ${quando ? `em ${quando}` : 'em [[data e horário]]'}${v(c.vistoriaLocal) ? ` na ${c.vistoriaLocal}` : ''}${v(c.vistoriaEndereco) ? `, ${String(c.vistoriaEndereco).replace(/\n/g, ' – ')}` : ''}.`);
+    d.texto(`Conforme designado nos autos, este perito compareceu ${quando ? `em ${quando}` : 'em [[data e horário]]'}${v(va?.local || c.vistoriaLocal) ? ` na ${va?.local || c.vistoriaLocal}` : ''}${v(va?.endereco || c.vistoriaEndereco) ? `, ${String(va?.endereco || c.vistoriaEndereco).replace(/\n/g, ' – ')}` : ''}.`);
     if (motivo) d.texto(motivo); else d.redigir('o que ocorreu (empresa fechada ou inativa, recusa de acesso, ausência de responsável, documentos não apresentados, máquina não disponível) e quem estava presente.');
     sec('Dos requerimentos');
     d.texto('Diante do exposto, requer:\na) a intimação [[da parte / da empresa]] para que apresente os documentos necessários à perícia e franqueie o acesso ao local e aos equipamentos, no prazo que Vossa Excelência fixar (art. 473, § 3º, e, conforme o caso, art. 379, III – parte – ou art. 380 – terceiro –, do CPC);\nb) a designação de nova data para a diligência, a ser comunicada às partes e aos assistentes técnicos com antecedência (art. 474 do CPC);\nc) que o prazo para a entrega do laudo seja contado da nova diligência.');

@@ -1,6 +1,8 @@
-import { ORIGEM_QUESITO, contextoLegal, ehSuplementar, localVistoria, ehAcidente, ehParecerTecnico, datasDasVistorias, variasVistorias } from '../schema.js';
+import { ORIGEM_QUESITO, contextoLegal, ehSuplementar, localVistoria, ehAcidente, ehParecerTecnico, datasDasVistorias, variasVistorias, vistoriasDoCaso } from '../schema.js';
 import { parecerPenosidade, roteiroEntrevista } from './parecerPenosidade.js';
 import { db } from '../db.js';
+import { ITENS_ACOMPANHAMENTO } from '../schema.js';
+const v = (t) => (t && String(t).trim() ? String(t).trim() : '');
 import { p, run } from './ooxml.js';
 import {
   Doc, carregar, finalizar, dataBR, menosCincoAnos, partes, credencial, papelAssinatura, equipamentosUsados, quadroEquipamentos,
@@ -167,14 +169,25 @@ export async function gerarRegistroDiligencia(caseId) {
     }
   }
   if (c.vistoriaNotas) { sec('Anotações gerais'); d.texto(c.vistoriaNotas); }
+  // o que cada vistoria fez e o registro falado (ditado), para conferir e aproveitar no laudo ou na manifestação
+  const vComTexto = vistoriasDoCaso(c).filter((vi) => vi.objetivo || vi.transcricao);
+  if (vComTexto.length) {
+    sec('Registro de cada vistoria');
+    for (const vi of vComTexto) {
+      d.h3(`${vi.rotulo}${vi.data ? ` – ${dataBR(vi.data)}` : ''}`);
+      if (vi.objetivo) d.texto(vi.objetivo);
+      if (vi.transcricao) { d.add(p([run('Transcrição do ditado (revisar antes de usar):', { b: true, size: 10 })], { after: 60 })); d.texto(vi.transcricao, { recuo: false, size: 10 }); }
+    }
+  }
   if (at) {
     // relatório para o cliente (advogado ou empresa): como o perito conduziu a diligência e o que esperar do laudo
     sec('Procedimentos do perito');
+    if (v(c.acompMedicoesPerito)) { d.h3('Medições feitas pelo perito'); d.texto(c.acompMedicoesPerito); }
+    // preenchido na aba Campo → Acompanhamento da perícia
     d.quadro('Verificação dos procedimentos adotados pelo perito', [['Item', 'Constatação', 'Observação para a manifestação'],
-      ...['Instrumentos utilizados e certificados de calibração apresentados', 'Calibração do dosímetro antes e depois da medição', 'Tempo de amostragem representativo da jornada',
-        'Postos e atividades avaliados (todos os do período discutido?)', 'Condições de operação no dia (normais ou atípicas)', 'Documentos solicitados e recebidos pelo perito',
-        'Informações colhidas e de quem', 'Pedidos e observações apresentados pela assistência'].map((t) => [t, '[[preencher]]', '[[preencher]]'])],
+      ...ITENS_ACOMPANHAMENTO.map((t, i) => [t, v(c[`acomp${i + 1}C`]) || '[[preencher]]', v(c[`acomp${i + 1}O`]) || '[[preencher]]'])],
     { larguras: [0.38, 0.31, 0.31], tam: 9, alinhar: 'left' });
+    if (v(c.acompDivergencias)) { d.h3('Divergências e pontos a impugnar ou reforçar'); d.texto(c.acompDivergencias); }
     const sa = sec('Avaliação da assistência técnica');
     d.h2(`${sa}.1`, `Pontos favoráveis ${art(ladoCurto(c)).o === 'a' ? 'à' : 'ao'} ${ladoCurto(c)}`); d.redigir('o que a diligência confirmou a favor da tese da parte.');
     d.h2(`${sa}.2`, 'Pontos de atenção'); d.redigir('o que pode pesar contra a parte e como tratar na manifestação.');

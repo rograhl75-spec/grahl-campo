@@ -16,6 +16,18 @@ export function fmt(v, casas = 1) {
   return v.toFixed(casas).replace('.', ',');
 }
 
+// Horas por dia de um campo livre: "10", "10h", "8,5", "8h30", "08:30", "510 min" → horas.
+// Faixa ("8 a 10", "8-10") não tem um valor só: devolve NaN para o documento pedir o número.
+export function horasDia(v) {
+  if (typeof v === 'number') return v;
+  const s = String(v ?? '').trim().toLowerCase().replace(/\s*(h\/dia|horas?\s*(por|ao|\/)\s*dia|por dia|\/dia|diárias?)\s*$/, 'h');
+  if (!s) return NaN;
+  if (/\d\s*(a|-|–|ou|\/|até)\s*\d/.test(s.replace(/^\d{1,2}\s*[:h]\s*\d{1,2}/, ''))) return NaN;
+  const m = minutos(s);
+  return isFinite(m) ? m / 60 : NaN;
+}
+export const fmtHoras = (h) => (isFinite(h) ? `${fmt(h, Number.isInteger(Math.round(h * 10) / 10) && Number.isInteger(h) ? 0 : 1)} h` : '');
+
 // Converte "8", "8,8", "08:48" ou "8h48" em minutos
 export function minutos(v) {
   const s = String(v ?? '').trim().toLowerCase();

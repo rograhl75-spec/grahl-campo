@@ -1,4 +1,8 @@
+import { horasDia } from '../calc.js';
 import { useState, useEffect, useRef } from 'preact/hooks';
+import { termoPresenca } from '../docx/modelos2.js';
+import { baixarArquivo } from '../backup.js';
+import { iniciarGravacao, pararGravacao as pararGravador, ouvir as ouvirGravador, estado as estadoGravador } from '../gravador.js';
 import { db, createRecord, softDelete, updateFields } from '../db.js';
 import { avisarAlteracao } from '../sync.js';
 import { CAMPOS_POSTO, AGENTES_MEDICAO, contextoLegal } from '../schema.js';
@@ -12,7 +16,7 @@ import { evidenciasDaDiligencia, aplicarEvidencias } from '../fotosLaudo.js';
 import { TF, Campos, salvar } from './fields.jsx';
 import { useLive } from './hooks.js';
 import { EquipamentosCaso, VeiculoDoPeriodo, ParadigmasDosVinculos } from './Preparacao.jsx';
-import { ehParecerTecnico, chaveVistoria, qtdVistorias, vistoriasDoCaso, CAMPOS_VISTORIA, DESC_AUDIO } from '../schema.js';
+import { ehParecerTecnico, chaveVistoria, qtdVistorias, vistoriasDoCaso, CAMPOS_VISTORIA, DESC_AUDIO, reuEhInss, ITENS_ACOMPANHAMENTO } from '../schema.js';
 import { dataBR } from '../docx/reports.js';
 import { guardarAnexo, LIMITE_NUVEM } from '../paradigmas.js';
 import { obterAnexo } from '../sync.js';
@@ -37,7 +41,8 @@ export function Campo({ rec }) {
     const k = (campo) => chaveVistoria(n, campo);
     if (!rec.data[k('Data')]) mud[k('Data')] = hojeIso();
     if (!rec.data[k('Inicio')]) mud[k('Inicio')] = agoraHM();
-    if (n === 1 && !rec.data.vistoriaLocal && rec.data.reuNome) mud.vistoriaLocal = rec.data.reuNome;
+    // o INSS não é local de vistoria: no previdenciário, a empresa vem do vínculo (escolha na Diligência)
+    if (n === 1 && !rec.data.vistoriaLocal && rec.data.reuNome && !reuEhInss(rec.data)) mud.vistoriaLocal = rec.data.reuNome;
     if (['A preparar', 'Diligência agendada', '', undefined].includes(rec.data.fase)) mud.fase = 'Diligência realizada';
     await updateFields(rec.id, mud);
     avisarAlteracao();
@@ -60,48 +65,70 @@ export function Campo({ rec }) {
     await softDelete(p.id); avisarAlteracao();
   };
 
+  const papel = rec.data.papel || '';
+  const at = /Assistente técnico/i.test(papel);
+  const entrevista = ehEntrevistaMotorista(rec.data);
+  // assistente técnico e parecer por entrevista: postos e medições ficam recolhidos (não são o centro do trabalho)
+  const secundario = at || entrevista;
+  const blocoPostos = (
+    <>
+      {!postos.length && <p class="vazio">Cadastre cada posto, setor ou função avaliada. Medições e fotos ficam vinculadas a ele.</p>}
+      {postos.map((p) => (
+        <div class={`item ${aberto === p.id ? 'aberto' : ''}`} key={p.id}>
+          <div class="item-topo" onClick={() => setAberto(aberto === p.id ? null : p.id)}>
+            <span class="item-titulo">{p.data.nome || <em>(posto sem nome – toque para preencher)</em>}</span>
+            <span class="item-acoes" onClick={(e) => e.stopPropagation()}>
+              <ContagemPosto caseId={rec.id} postoId={p.id} />
+              <button type="button" class="mini perigo" onClick={() => removerPosto(p)}>✕</button>
+            </span>
+          </div>
+          {aberto === p.id && (
+            <div class="item-corpo">
+              <Campos rec={p} campos={CAMPOS_POSTO} />
+              <VinculosDoPosto rec={p} caseId={rec.id} />
+              <Medicoes caseId={rec.id} postoId={p.id} ctx={contextoLegal(rec.data)} caso={rec} />
+              <div class="campo">
+                <span class="rotulo">Fotos deste posto</span>
+                <BotoesFoto caseId={rec.id} postoId={p.id} />
+                <Miniaturas caseId={rec.id} postoId={p.id} />
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
+      <button type="button" class="adicionar" onClick={novoPosto}>＋ Adicionar posto / atividade</button>
+    </>
+  );
+
   return (
     <div class="grade campo-tela">
-      <AnotacoesDiligencia rec={rec} />
-      {ehEntrevistaMotorista(rec.data) && <EntrevistaVinculos rec={rec} />}
+      {entrevista && <EntrevistaVinculos rec={rec} />}
 
       <Diligencia rec={rec} iniciar={iniciar} pegarGps={pegarGps} gpsMsg={gpsMsg} />
 
-      <section class="bloco largo">
-        <h3>Postos / atividades avaliados <span class="contador">{postos.length}</span></h3>
-        {!postos.length && <p class="vazio">Cadastre cada posto, setor ou função avaliada. Medições e fotos ficam vinculadas a ele.</p>}
-        {postos.map((p) => (
-          <div class={`item ${aberto === p.id ? 'aberto' : ''}`} key={p.id}>
-            <div class="item-topo" onClick={() => setAberto(aberto === p.id ? null : p.id)}>
-              <span class="item-titulo">{p.data.nome || <em>(posto sem nome – toque para preencher)</em>}</span>
-              <span class="item-acoes" onClick={(e) => e.stopPropagation()}>
-                <ContagemPosto caseId={rec.id} postoId={p.id} />
-                <button type="button" class="mini perigo" onClick={() => removerPosto(p)}>✕</button>
-              </span>
-            </div>
-            {aberto === p.id && (
-              <div class="item-corpo">
-                <Campos rec={p} campos={CAMPOS_POSTO} />
-                <VinculosDoPosto rec={p} caseId={rec.id} />
-                <Medicoes caseId={rec.id} postoId={p.id} ctx={contextoLegal(rec.data)} caso={rec} />
-                <div class="campo">
-                  <span class="rotulo">Fotos deste posto</span>
-                  <BotoesFoto caseId={rec.id} postoId={p.id} />
-                  <Miniaturas caseId={rec.id} postoId={p.id} />
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-        <button type="button" class="adicionar" onClick={novoPosto}>＋ Adicionar posto / atividade</button>
-      </section>
+      {at && <AcompanhamentoPerito rec={rec} />}
 
-      <section class="bloco largo">
-        <h3>Medições sem posto vinculado</h3>
-        <Medicoes caseId={rec.id} postoId="" ctx={contextoLegal(rec.data)} caso={rec} />
-      </section>
+      <QuesitosNaMao rec={rec} />
 
-      <RelatoriosMedicao rec={rec} />
+      {secundario ? (
+        <details class="bloco largo recolhido">
+          <summary><b>Postos e medições próprias</b> <span class="contador">{postos.length}</span> <small class="dica">{at ? 'se a assistência também medir' : 'se houver avaliação no local'}</small></summary>
+          {blocoPostos}
+          <h4 class="mt">Medições sem posto vinculado</h4>
+          <Medicoes caseId={rec.id} postoId="" ctx={contextoLegal(rec.data)} caso={rec} />
+        </details>
+      ) : (
+        <>
+          <section class="bloco largo">
+            <h3>Postos / atividades avaliados <span class="contador">{postos.length}</span></h3>
+            {blocoPostos}
+          </section>
+          <section class="bloco largo">
+            <h3>Medições sem posto vinculado</h3>
+            <Medicoes caseId={rec.id} postoId="" ctx={contextoLegal(rec.data)} caso={rec} />
+          </section>
+        </>
+      )}
 
       <section class="bloco largo">
         <h3>Fotos gerais</h3>
@@ -112,7 +139,57 @@ export function Campo({ rec }) {
       <section class="bloco largo">
         <TF rec={rec} k="vistoriaNotas" label="Anotações gerais da diligência" area rows={4} />
       </section>
+
+      <details class="bloco largo recolhido">
+        <summary><b>No escritório</b> <small class="dica">relatórios dos medidores (apêndices) e importação das anotações</small></summary>
+        <RelatoriosMedicao rec={rec} />
+        <AnotacoesDiligencia rec={rec} />
+      </details>
     </div>
+  );
+}
+
+// Assistente técnico: o que verificar no trabalho do perito, por item, com a constatação e a observação
+// para a manifestação. Sai preenchido no "Relatório de acompanhamento da diligência".
+
+function AcompanhamentoPerito({ rec }) {
+  const c = rec.data;
+  const feitos = ITENS_ACOMPANHAMENTO.filter((_, i) => String(c[`acomp${i + 1}C`] || '').trim()).length;
+  return (
+    <section class="bloco largo acompanhamento">
+      <h3>Acompanhamento da perícia <span class="contador">{feitos}/{ITENS_ACOMPANHAMENTO.length}</span></h3>
+      <p class="dica">O que o perito fez, item a item. Vai preenchido para o relatório de acompanhamento e para a manifestação sobre o laudo.</p>
+      <TF rec={rec} k="acompMedicoesPerito" label="Medições feitas pelo perito (agente, local, equipamento, o que o aparelho mostrou, tempo)" area rows={3} />
+      {ITENS_ACOMPANHAMENTO.map((t, i) => (
+        <details class="acomp-item" open={!!String(c[`acomp${i + 1}C`] || c[`acomp${i + 1}O`] || '').trim()}>
+          <summary><span class={`acomp-marca ${String(c[`acomp${i + 1}C`] || '').trim() ? 'ok' : ''}`} aria-hidden="true" />{t}</summary>
+          <div class="linha2">
+            <TF rec={rec} k={`acomp${i + 1}C`} label="Constatação" area rows={2} />
+            <TF rec={rec} k={`acomp${i + 1}O`} label="Observação para a manifestação" area rows={2} />
+          </div>
+        </details>
+      ))}
+      <TF rec={rec} k="acompDivergencias" label="Divergências e pontos a impugnar ou reforçar" area rows={3} />
+    </section>
+  );
+}
+
+// Quesitos à mão durante a diligência: texto e anotação de campo, sem sair da aba
+function QuesitosNaMao({ rec }) {
+  const qs = useLive(async () => (await db.records.where('[caseId+kind]').equals([rec.id, 'quesito']).toArray()).filter((r) => !r.deleted)
+    .sort((a, b) => String(a.data.origem || '').localeCompare(String(b.data.origem || '')) || (Number(a.data.numero) || 0) - (Number(b.data.numero) || 0) || a.createdAt - b.createdAt), [rec.id], []);
+  if (!qs.length) return null;
+  const respondidos = qs.filter((q) => String(q.data.resposta || '').trim()).length;
+  return (
+    <details class="bloco largo recolhido">
+      <summary><b>Quesitos à mão</b> <span class="contador">{respondidos}/{qs.length}</span> <small class="dica">ler e anotar sem sair do Campo</small></summary>
+      {qs.map((q) => (
+        <div class="quesito-mao" key={q.id}>
+          <p><b>{q.data.origem || 'Quesito'} {q.data.numero ? `– ${q.data.numero}` : ''}</b> {q.data.texto}</p>
+          <TF rec={q} k="resposta" label="Anotação de campo / resposta" area rows={2} />
+        </div>
+      ))}
+    </details>
   );
 }
 
@@ -169,7 +246,7 @@ function QuimicoDoBanco({ m }) {
           {agentes.map((a) => <option value={a.id}>{a.data.nome}{a.data.cas ? ` (CAS ${a.data.cas})` : ''}</option>)}
         </select>
       </label>
-      {!agentes.length && <small class="dica">O banco está vazio. Carregue a base em Paradigmas → Agentes químicos.</small>}
+      {!agentes.length && <small class="dica">O banco está vazio. Carregue a base em Bases técnicas → Agentes químicos.</small>}
       {ag && !ag.data.nr15Ppm && !ag.data.nr15Mgm3 && <div>Este agente não tem limite no Quadro 1 do Anexo 11 no banco. {ag.data.nr15Obs || 'Veja os Anexos 12, 13 e 13-A.'}</div>}
       {ag && ag.data.acgihTwa && <div><b>ACGIH{ag.data.acgihEdicao ? ` ${ag.data.acgihEdicao}` : ''}</b> (referência técnica, NR-9): TWA {ag.data.acgihTwa}{ag.data.acgihStel ? ` · ${ag.data.acgihStel}` : ''}{ag.data.acgihNotacoes ? ` · ${ag.data.acgihNotacoes}` : ''}</div>}
       {ag && ag.data.linach && <div><b>LINACH {ag.data.linach}</b>{ag.data.linach === 'Grupo 1' ? ' – previdenciário: avaliação qualitativa para períodos a partir de 08/10/2014, se o agente tiver CAS e constar do Anexo IV (IN 128/2022, art. 298); a partir de 01/07/2020 (Dec. 10.410/2020), medidas de controle que eliminem a nocividade descaracterizam a exposição.' : ''}</div>}
@@ -242,7 +319,7 @@ function Medicoes({ caseId, postoId, ctx = {}, caso }) {
                     : <button type="button" class="mini" onClick={async () => {
                       const r = await promoverMedicao(caso, m, equip.find((e) => e.id === m.data.equipamentoId));
                       avisarAlteracao();
-                      avisar(`Incluída no banco de paradigmas como ${r.data.codigo} (situação "Revisar"). Complete marca, modelo, família e características em Paradigmas.`);
+                      avisar(`Incluída no banco de paradigmas como ${r.data.codigo} (situação "Revisar"). Complete marca, modelo, família e características em Bases técnicas → Veículos.`);
                     }}><Icone nome="mais" /> Incluir no banco de paradigmas</button>
                 )}
               </div>
@@ -282,8 +359,15 @@ function Diligencia({ rec, iniciar, pegarGps, gpsMsg }) {
     const mud = { vistoriasQtd: String(qtd - 1) };
     for (const campo of CAMPOS_VISTORIA) mud[chaveVistoria(qtd, campo)] = '';
     await updateFields(rec.id, mud);
+    // os áudios dessa vistoria vão para a lixeira (não reaparecem numa próxima "nova vistoria")
+    const aud = (await db.records.where('[caseId+kind]').equals([rec.id, 'anexo']).toArray()).filter((r) => !r.deleted && r.data.descricao === DESC_AUDIO && String(r.data.vistoria) === String(qtd));
+    for (const a of aud) await softDelete(a.id);
     avisarAlteracao();
     setSel(qtd - 1);
+  };
+  // termo de presença da vistoria aberta (o gerador usa a vistoria mais recente com data)
+  const termo = async () => {
+    try { const r = await termoPresenca(rec.id); baixarArquivo(r.blob, r.nome); } catch (e) { avisar(`Não foi possível gerar o termo: ${e.message || e}`); }
   };
   const anterior = n > 1 ? String(c[chaveVistoria(n - 1, 'Presentes')] || '').trim() : '';
   const lista = vistoriasDoCaso(c);
@@ -324,6 +408,7 @@ function Diligencia({ rec, iniciar, pegarGps, gpsMsg }) {
       {gpsMsg && <small class="dica">{gpsMsg}</small>}
       {n === 1 && <HorariosPelasEvidencias rec={rec} />}
       <TF rec={rec} k={k('Presentes')} label="Pessoas presentes (nome – função – quem representa)" area />
+      {n === 1 && c.papel === 'Perito do Juízo' && <TF rec={rec} k="vistoriaIntimacao" label='Comunicação da data às partes e aos assistentes (art. 474 do CPC) – ex.: "intimação do evento 52, de 10/10/2026"' />}
       {n > 1 && anterior && !String(c[k('Presentes')] || '').trim() && (
         <div class="linha-botoes"><button type="button" class="mini" onClick={async () => { await salvar(rec.id, k('Presentes'), anterior); avisarAlteracao(); }}>
           Copiar os presentes da {n - 1}ª vistoria</button><small class="dica">depois, ajuste quem não veio ou quem chegou</small></div>
@@ -332,7 +417,10 @@ function Diligencia({ rec, iniciar, pegarGps, gpsMsg }) {
       <AudioVistoria rec={rec} n={n} key={`audio-${n}`} />
       {n === 1 && <EquipamentosCaso rec={rec} titulo="Equipamentos utilizados" />}
       {n > 1 && <p class="dica">Os equipamentos ficam na 1ª vistoria e valem para o caso todo. Medições e fotos ficam nos postos, com a data de cada uma.</p>}
-      {n > 1 && n === qtd && <div class="linha-botoes"><button type="button" class="mini perigo" onClick={excluirUltima}>Excluir a {n}ª vistoria</button></div>}
+      <div class="linha-botoes">
+        {!/Assistente técnico/i.test(c.papel || '') && <button type="button" class="mini" onClick={termo}><Icone nome="doc" /> Termo de presença da {n}ª vistoria</button>}
+        {n > 1 && n === qtd && <button type="button" class="mini perigo" onClick={excluirUltima}>Excluir a {n}ª vistoria</button>}
+      </div>
       </div>
       <p class="dica">Para ditar, use o microfone do teclado do tablet. Tudo é gravado automaticamente enquanto você digita.</p>
     </section>
@@ -348,63 +436,39 @@ function AudioVistoria({ rec, n }) {
   const audios = useLive(async () => (await db.records.where('[caseId+kind]').equals([rec.id, 'anexo']).toArray())
     .filter((r) => !r.deleted && r.data.descricao === DESC_AUDIO && String(r.data.vistoria || '1') === String(n))
     .sort((a, b) => a.createdAt - b.createdAt), [rec.id, n], []);
-  const [grav, setGrav] = useState(null); // { mr, stream, inicio, wake }
+  const [grav, setGrav] = useState(estadoGravador());
   const [seg, setSeg] = useState(0);
   const [dit, setDit] = useState(null); // reconhecedor de fala ativo
   const [parcial, setParcial] = useState('');
   const [msg, setMsg] = useState('');
   const [urls, setUrls] = useState({});
-
-  // contador de tempo e aviso ao sair da página durante a gravação
+  // a gravação vive fora da tela (src/gravador.js): continua se trocar de aba; aqui só se acompanha
+  useEffect(() => ouvirGravador(setGrav), []);
+  const gravandoAqui = grav.gravando && grav.caseId === rec.id && grav.n === n;
   useEffect(() => {
-    if (!grav) return undefined;
+    if (!gravandoAqui) return undefined;
     const t = setInterval(() => setSeg((Date.now() - grav.inicio) / 1000), 500);
     const sair = (e) => { e.preventDefault(); e.returnValue = ''; };
     window.addEventListener('beforeunload', sair);
     return () => { clearInterval(t); window.removeEventListener('beforeunload', sair); };
-  }, [grav]);
-  // ao trocar de aba ou sair da tela: encerra (e salva) a gravação e o ditado
+  }, [gravandoAqui, grav.inicio]);
+  // ao sair da tela, só o ditado é encerrado (a gravação continua)
   const vivo = useRef({});
-  vivo.current = { grav, dit };
-  useEffect(() => () => {
-    const { grav: g, dit: d } = vivo.current;
-    try { if (g && g.mr.state !== 'inactive') g.mr.stop(); } catch { /* já parado */ }
-    try { d?.parar(); } catch { /* idem */ }
-  }, []);
+  vivo.current = { dit };
+  useEffect(() => () => { try { vivo.current.dit?.parar(); } catch { /* já parado */ } }, []);
   useEffect(() => () => Object.values(urls).forEach((u) => URL.revokeObjectURL(u)), [urls]);
 
   const gravar = async () => {
     setMsg('');
-    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') { setMsg('Este navegador não grava áudio.'); return; }
+    if (grav.gravando) { setMsg('Já há uma gravação em andamento (veja a barra no topo).'); return; }
     if (!await confirmar('Antes de gravar, avise os presentes de que a diligência será gravada (e registre isso nas condições do dia). Começar a gravação?')) return;
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
-      const tipo = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm'].find((t) => MediaRecorder.isTypeSupported?.(t)) || '';
-      const mr = new MediaRecorder(stream, { ...(tipo ? { mimeType: tipo } : {}), audioBitsPerSecond: 32000 });
-      const partes = [];
-      const inicio = Date.now();
-      let wake = null;
-      try { wake = await navigator.wakeLock?.request('screen'); } catch { /* sem bloqueio de tela */ }
-      mr.ondataavailable = (e) => { if (e.data?.size) partes.push(e.data); };
-      mr.onstop = async () => {
-        stream.getTracks().forEach((t) => t.stop());
-        try { await wake?.release(); } catch { /* ok */ }
-        const mime = (mr.mimeType || tipo || 'audio/webm').split(';')[0];
-        const blob = new Blob(partes, { type: mime });
-        if (!blob.size) { setMsg('A gravação ficou vazia.'); return; }
-        const quando = new Date(inicio);
-        const nome = `Vistoria${n}_${quando.toISOString().slice(0, 10)}_${quando.toTimeString().slice(0, 5).replace(':', 'h')}.${mime.includes('mp4') ? 'm4a' : 'webm'}`;
-        const id = await guardarAnexo(new File([blob], nome, { type: mime }), DESC_AUDIO, rec.id);
-        await updateFields(id, { vistoria: String(n), duracaoSeg: Math.round((Date.now() - inicio) / 1000), inicioGravacao: quando.toTimeString().slice(0, 5) });
-        avisarAlteracao();
-        setMsg(`✓ Áudio salvo (${mmss((Date.now() - inicio) / 1000)}, ${String((blob.size / 1048576).toFixed(1)).replace('.', ',')} MB).`);
-      };
-      mr.start(10000); // entrega pedaços a cada 10 s
-      setSeg(0);
-      setGrav({ mr, stream, inicio });
-    } catch (err) { setMsg(`Não foi possível usar o microfone: ${err.message || err}`); }
+    try { await iniciarGravacao(rec.id, n); setSeg(0); } catch (err) { setMsg(`Não foi possível gravar: ${err.message || err}`); }
   };
-  const pararGravacao = () => { try { grav?.mr.stop(); } catch { /* já parado */ } setGrav(null); };
+  const pararGravacao = async () => {
+    const r = await pararGravador();
+    avisarAlteracao();
+    setMsg(r ? `✓ Áudio salvo (${mmss(r.seg)}, ${String(r.mb.toFixed(1)).replace('.', ',')} MB).` : 'A gravação ficou vazia.');
+  };
 
   const ditar = () => {
     setMsg('');
@@ -447,12 +511,12 @@ function AudioVistoria({ rec, n }) {
     <div class="campo audio-vistoria">
       <span class="rotulo">Áudio e transcrição da {n}ª vistoria</span>
       <div class="linha-botoes">
-        {!grav ? <button type="button" class="sec" onClick={gravar}>● Gravar áudio</button>
+        {!gravandoAqui ? <button type="button" class="sec" onClick={gravar}>● Gravar áudio</button>
           : <button type="button" class="perigo" onClick={pararGravacao}>■ Parar e salvar ({mmss(seg)})</button>}
         {!dit ? <button type="button" class="sec" onClick={ditar}>🎙 Ditar / transcrever ao vivo</button>
           : <button type="button" class="perigo" onClick={pararDitado}>■ Parar o ditado</button>}
       </div>
-      {grav && <small class="gravando">● Gravando… mantenha o app aberto e a tela ligada.</small>}
+      {gravandoAqui && <small class="gravando">● Gravando… pode trocar de aba; não feche o app.</small>}
       {dit && <small class="gravando">🎙 Ouvindo… {parcial && <em>{parcial}</em>}</small>}
       {msg && <small class="dica">{msg}</small>}
       {audios.map((a) => (
@@ -462,7 +526,9 @@ function AudioVistoria({ rec, n }) {
           <button type="button" class="mini perigo" onClick={() => remover(a)}>✕</button>
         </div>
       ))}
-      <TF rec={rec} k={kT} label="Transcrição / ditado (cada trecho com o horário; revise antes de usar)" area rows={4} />
+      {dit ? (
+        <div class="campo"><span class="rotulo">Transcrição / ditado (para editar, pare o ditado)</span><pre class="transcricao-viva">{c[kT] || '…'}</pre></div>
+      ) : <TF rec={rec} k={kT} label="Transcrição / ditado (cada trecho com o horário; revise antes de usar)" area rows={4} />}
     </div>
   );
 }
@@ -655,7 +721,7 @@ function EntrevistaVinculos({ rec }) {
     x.tipoCarga && `carga: ${x.tipoCarga}`, x.vias && `trajetos: ${x.vias}`, x.jornadaSemanal && `jornada: ${x.jornadaSemanal}`,
     x.noturnoPernoite && `pernoite: ${x.noturnoPernoite}`,
   ].filter(Boolean).join(' · ');
-  const faltando = (x) => [!x.grupoVeiculo && 'grupo do veículo', !x.tipoCarga && 'carga', !x.vias && 'trajetos', !x.jornadaSemanal && !x.conducaoH && 'jornada',
+  const faltando = (x) => [!x.grupoVeiculo && 'grupo do veículo', !x.tipoCarga && 'carga', !x.vias && 'trajetos', !x.jornadaSemanal && !x.conducaoH && 'jornada', !isFinite(horasDia(x.conducaoH)) && 'horas de condução por dia', (x.paradigmaRuido || x.paradigmaVibracao) && !x.paradigmaVibracao && 'paradigma de vibração',
     !x.noturnoPernoite && 'pernoite', !x.paradigmaRuido && !(x.fim && x.fim <= '1995-04-28') && 'paradigma'].filter(Boolean);
   return (
     <section class="bloco largo destaque">

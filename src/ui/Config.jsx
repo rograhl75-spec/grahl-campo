@@ -5,7 +5,8 @@ import { exportarBackup, importarBackup, baixarArquivo, carimbo } from '../backu
 import { migrarDoFirebase, migrarDeZip } from '../migrate.js';
 import { CAMPOS_EQUIP, CAMPOS_PERFIL, tituloCaso } from '../schema.js';
 import { listarSugestoes, aplicarSugestoes } from '../organizar.js';
-import { PERFIL_ID } from '../docx/base.js';
+import { PERFIL_ID, credencial } from '../docx/base.js';
+import { Icone } from './Icone.jsx';
 import { Campos } from './fields.jsx';
 import { dataBR } from '../docx/reports.js';
 import { RecordList } from './RecordList.jsx';
@@ -259,15 +260,69 @@ function Aparelho() {
   );
 }
 
+// Meus dados: cartão de visita (como sai nos documentos) e os dados em cartões por assunto
+const GRUPOS_PERFIL = [
+  { id: 'prof', icone: 'pessoa', titulo: 'Identificação profissional', dica: 'Sai na capa, na qualificação das petições e na assinatura.', campos: ['nome', 'titulos', 'crea', 'vistoCrea', 'curriculoUrl'] },
+  { id: 'contato', icone: 'contato', titulo: 'Contato e local da assinatura', dica: 'Endereço profissional, telefone e e-mail saem na qualificação completa.', campos: ['endereco', 'telefone', 'email', 'cidade'] },
+  { id: 'pessoal', icone: 'cadeado', titulo: 'Documentos pessoais', dica: 'Só na petição de indicação e no aceite do encargo. Ficam neste aparelho e na sua nuvem.', campos: ['cpf', 'rg'] },
+  { id: 'docs', icone: 'ajuste', titulo: 'Preferências dos documentos', dica: 'Padrão para os casos novos; cada caso pode mudar.', campos: ['jurisprudenciaPadrao'] },
+];
+const campoPerfil = (k) => CAMPOS_PERFIL.find(([x]) => x === k);
+
 function MeusDados() {
   const rec = useLive(() => db.records.get(PERFIL_ID), [], null);
+  const [verContas, setVerContas] = useState(false);
   if (!rec) return <p class="vazio">Carregando…</p>;
+  const p = rec.data || {};
+  const iniciais = String(p.nome || 'G').split(/\s+/).filter(Boolean).map((x) => x[0]).slice(0, 2).join('').toUpperCase();
+  const faltam = ['nome', 'titulos', 'crea', 'cidade'].filter((k) => !String(p[k] || '').trim()).map((k) => campoPerfil(k)[1].split(' (')[0]);
+  const resumoConta = (t) => String(t || '').split('\n').map((l) => l.trim()).filter(Boolean).slice(0, 2).join(' · ').replace(/\d(?=\d{3})/g, '•');
   return (
-    <div class="grade"><section class="bloco largo">
-      <h3>Meus dados (saem nos documentos)</h3>
-      <p class="dica">Usados na qualificação das petições, na capa e na assinatura dos laudos. CPF, RG e dados bancários ficam só no seu aparelho e na sua nuvem.</p>
-      <div class="linha2"><Campos rec={rec} campos={CAMPOS_PERFIL} /></div>
-    </section></div>
+    <div class="meus-dados">
+      <section class="cartao-visita">
+        <div class="cv-monograma" aria-hidden="true">{iniciais}</div>
+        <div class="cv-texto">
+          <span class="cv-rotulo">Como você aparece nos documentos</span>
+          <b class="cv-nome">{p.nome || 'Seu nome'}</b>
+          <span class="cv-formacao">{p.titulos || 'Formação'}</span>
+          <span class="cv-registro">{credencial(p) || 'Registro profissional'}</span>
+          <span class="cv-contato">{[p.cidade, p.telefone, p.email].filter(Boolean).join('  ·  ')}</span>
+        </div>
+        {faltam.length > 0 && <small class="cv-falta">Falta preencher: {faltam.join(', ')}.</small>}
+      </section>
+
+      <div class="md-grade">
+        {GRUPOS_PERFIL.map((g) => (
+          <section class={`bloco md-cartao md-${g.id}`} key={g.id}>
+            <h3 class="md-titulo"><Icone nome={g.icone} /> {g.titulo}</h3>
+            <p class="dica">{g.dica}</p>
+            <Campos rec={rec} campos={g.campos.map(campoPerfil)} />
+          </section>
+        ))}
+
+        <section class="bloco md-cartao md-contas">
+          <div class="linha-botoes entre">
+            <h3 class="md-titulo"><Icone nome="banco" /> Contas para honorários</h3>
+            <button type="button" class="mini" onClick={() => setVerContas(!verContas)}><Icone nome="olho" tam={15} /> {verContas ? 'Ocultar' : 'Mostrar e editar'}</button>
+          </div>
+          <p class="dica">Escolhidas a cada petição de honorários ou de levantamento. Ficam ocultas na tela.</p>
+          <div class="md-contas-grade">
+            {[1, 2].map((i) => (
+              <div class="md-conta" key={i}>
+                {verContas ? (
+                  <Campos rec={rec} campos={[campoPerfil(`conta${i}Rotulo`), campoPerfil(`conta${i}`)]} />
+                ) : (
+                  <>
+                    <b>{p[`conta${i}Rotulo`] || `Conta ${i}`}</b>
+                    <small>{p[`conta${i}`] ? resumoConta(p[`conta${i}`]) : 'não cadastrada'}</small>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+    </div>
   );
 }
 

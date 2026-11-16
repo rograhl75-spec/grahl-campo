@@ -7,7 +7,7 @@
 // ======================================================================
 import {
   carregar, finalizar, dataBR, credencial, capaTecnica, blocoAssinatura, quadroFormaEnquadramento, quadroCriteriosRuido,
-  quadroCriteriosVibracao, quadrosParadigmasMetodologia, memoriasParadigmas, figurasDoCaso, apendicesDoCaso,
+  quadroCriteriosVibracao, quadrosParadigmasMetodologia, memoriasParadigmas, figurasDoCaso, apendicesDoCaso, fluxoAvaliacao,
   textoIntegram, inserirApendices, quadroEquipamentos, equipamentosUsados, hojeLocal,
 } from './base.js';
 import { Doc } from './ooxml.js';
@@ -16,7 +16,7 @@ import { matrizIAC } from './penosidade.js';
 import { comJurisprudencia, registroJurisprudencia, secaoReferencias } from './fontes.js';
 import { contratanteDe } from './modelos.js';
 import { citacaoDe, rotuloParadigma, sugerirParaVinculo, fichaPesquisaTexto } from '../paradigmas.js';
-import { fmt } from '../calc.js';
+import { fmt, horasDia as horasCampo, fmtHoras } from '../calc.js';
 
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 const per = (r) => `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`;
@@ -43,7 +43,7 @@ function fontesDaProva(r, dados, val) {
   }
   if (!out.length && (val.fonteR || val.fonteV)) out.push([val.fonteR && `Ruído: medição no veículo/posto ${val.fonteR}`, val.fonteV && `Vibração: medição em ${val.fonteV}`].filter(Boolean).join('\n'));
   // sem paradigma no banco: ficha para o signatário pesquisar nos seus laudos e incluir o paradigma
-  if (!out.length) out.push(`[[PESQUISAR PARADIGMA – sem paradigma no banco para este vínculo. ${fichaPesquisaTexto(r, r._familia)}. Inclua em Paradigmas → Importar e vincule em 2. Autos.]]`);
+  if (!out.length) out.push(`[[PESQUISAR PARADIGMA – sem paradigma no banco para este vínculo. ${fichaPesquisaTexto(r, r._familia)}. Inclua em Bases técnicas → Veículos → Importar / exportar e vincule em 2. Autos.]]`);
   return out.join('\n');
 }
 
@@ -125,6 +125,7 @@ export async function parecerPenosidade(caseId) {
   // 1 Objetivo e metodologia
   d.h1('1', 'Objetivo e metodologia');
   d.texto(`Este parecer técnico de engenharia de segurança do trabalho avalia as condições de trabalho de ${c.autorNome || '[[segurado]]'} na função de ${atividade.toLowerCase().replace(/[.:;\s]+$/, '')}: a exposição a agentes nocivos (ruído e vibração) e os fatores de penosidade de cada vínculo, para ${v(c.finalidade) && c.finalidade !== 'Outra' ? c.finalidade.replace(/^./, (k) => k.toLowerCase()) : 'subsidiar o pedido de aposentadoria especial'}. O enquadramento jurídico dos períodos cabe ao INSS ou ao Poder Judiciário; o documento fornece os parâmetros técnicos para essa decisão.`);
+  fluxoAvaliacao(d, dados, 'penosidade');
   d.h2('1.1', 'Avaliação por similaridade');
   d.texto('Os veículos conduzidos nos vínculos antigos foram desativados, vendidos ou substituídos. Por isso, o ruído e a vibração são quantificados por similaridade: medições realizadas pelo signatário, em perícias judiciais e em avaliações extrajudiciais, em veículos com as mesmas características técnicas dos conduzidos pelo segurado, normalizadas para o tempo diário de condução informado. A fonte de cada valor (processo, vara e data, ou avaliação extrajudicial) consta do quadro de cada vínculo e da memória de cálculo.');
   d.texto(jur
@@ -145,7 +146,7 @@ export async function parecerPenosidade(caseId) {
   // 2 Marco legal
   d.h1('2', 'Marco legal por período (tempus regit actum)');
   d.texto('Aplica-se a legislação vigente em cada período de trabalho: até 28/04/1995, enquadramento por categoria profissional de motorista de ônibus ou de caminhão de cargas (cód. 2.4.4 do Decreto nº 53.831/1964 e cód. 2.4.2 do Anexo II do Decreto nº 83.080/1979); a partir de 29/04/1995, comprovação da efetiva exposição a agentes nocivos.');
-  quadroFormaEnquadramento(d);
+  quadroFormaEnquadramento(d, dados);
   quadroCriteriosRuido(d);
   quadroCriteriosVibracao(d);
   d.texto(jur
@@ -179,7 +180,7 @@ export async function parecerPenosidade(caseId) {
       ['Função e veículo', [limpo(x.cargo), veiculo(r)].filter(Boolean).join(' – ') || '[[função e veículo]]'],
       ['Grupo do veículo', v(x.grupoVeiculo) || '[[grupo do veículo]]'],
       ['Carga e trajetos', [x.carroceria && `Carroceria/reboque: ${limpo(x.carroceria)}`, x.tipoCarga && `Carga: ${limpo(x.tipoCarga)}`, x.vias && `Trajetos: ${limpo(x.vias)}`].filter(Boolean).join('\n') || '[[carga e trajetos]]'],
-      ['Jornada e pernoite', [x.conducaoH && `Condução: cerca de ${String(x.conducaoH).replace('.', ',')} h/dia${x.conducaoBase ? ` (${x.conducaoBase})` : ''}`, x.jornadaSemanal && `Jornada: ${x.jornadaSemanal}`, x.noturnoPernoite && `Pernoite: ${x.noturnoPernoite}`].filter(Boolean).join('\n') || '[[jornada]]'],
+      ['Jornada e pernoite', [x.conducaoH && (isFinite(horasCampo(x.conducaoH)) ? `Condução: cerca de ${fmtHoras(horasCampo(x.conducaoH))}/dia${x.conducaoBase ? ` (${x.conducaoBase})` : ''}` : `Condução: ${x.conducaoH} [[informe um número de horas por dia]]`), x.jornadaSemanal && `Jornada: ${x.jornadaSemanal}`, x.noturnoPernoite && `Pernoite: ${x.noturnoPernoite}`].filter(Boolean).join('\n') || '[[jornada]]'],
       ['Penosidade – fatores apurados', penosidadeDoVinculo(r, dados, m)],
       ['Ruído', ruido], ['Vibração de corpo inteiro', vib], ['Fonte da prova', fonte], ['Enquadramento técnico', enq]],
     // quadros em sequência: o quadro do vínculo pode continuar na página seguinte (não pula página inteira)
@@ -236,7 +237,7 @@ const PERGUNTAS_ENTREVISTA = [
   ['Trajetos (cidades e UFs, estradas ruins, áreas de risco)', (x) => x.vias],
   ['Pernoite (cabine, hotel, casa) e dias fora de casa', (x) => x.noturnoPernoite],
   ['Jornada (horário de saída e chegada, dias da semana)', (x) => x.jornadaSemanal],
-  ['Horas de direção por dia e pausas', (x) => [x.conducaoH && `${x.conducaoH} h`, x.pausas].map(v).filter(Boolean).join(' – ')],
+  ['Horas de direção por dia e pausas', (x) => [x.conducaoH && (isFinite(horasCampo(x.conducaoH)) ? fmtHoras(horasCampo(x.conducaoH)) : x.conducaoH), x.pausas].map(v).filter(Boolean).join(' – ')],
   ['Prazos e metas de entrega', (x) => x.pressao],
   ['Acesso a sanitários, alimentação e descanso', (x) => x.fisiologicas],
   ['Onde abastecia (posto/frentista, base própria)', (x) => x.abastecimento],

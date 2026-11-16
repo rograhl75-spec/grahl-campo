@@ -1,6 +1,6 @@
 import { db, mergeIncoming, createRecord, updateFields, newId } from './db.js';
 import { normalize, mergeRecords, sameContent } from './merge.js';
-import { num as numBR } from './calc.js';
+import { num as numBR, horasDia, fmtHoras } from './calc.js';
 import { familiaDoGrupo, tipoDoGrupo } from './schema.js';
 import { familiaProvavel, pontuar, MINIMO_SUGESTAO } from './similaridade.js';
 
@@ -89,7 +89,7 @@ export async function exportarBaseJson() {
   };
 }
 
-export const FAMILIAS_PADRAO_TEXTO = 'Cadastre as famílias técnicas em Paradigmas → Famílias.';
+export const FAMILIAS_PADRAO_TEXTO = 'Cadastre as famílias técnicas em Bases técnicas → Veículos → Famílias.';
 
 export function registro(id, kind, data, tsVal = 1) {
   const ts = {};
@@ -332,6 +332,18 @@ export const num = (t) => numBR(String(t ?? '').replace(/[^\d.,-]/g, ''));
 export function nenParaJornada(lavg, T) { return num(lavg) + 16.61 * Math.log10(num(T) / 8); }
 export function arenParaJornada(arep, T) { return num(arep) * Math.sqrt(num(T) / 8); }
 export function vdvrParaJornada(vdvr, T, Tlaudo) { return num(vdvr) * Math.pow(num(T) / num(Tlaudo), 0.25); }
+// Vibração do paradigma normalizada para T (h/dia), usada na conclusão e na memória de cálculo.
+// arep = aceleração do período amostrado → A(T) = arep·√(T/8); sem arep, o aren do laudo já está
+// normalizado para a jornada do laudo de origem: A(T) = aren·√(T/Tlaudo).
+export function vibracaoDoParadigma(pv, T) {
+  const d = pv?.data || pv || {};
+  const tLaudo = num(d.jornadaVibracaoLaudo) || num(d.jornadaLaudo) || 8;
+  const temArep = String(d.arep || '').trim() !== '';
+  const base = temArep ? num(d.arep) : num(d.arenLaudo);
+  if (!isFinite(T)) return { aren: NaN, vdv: NaN, base, temArep, tLaudo };
+  const aren = temArep ? arenParaJornada(d.arep, T) : arenParaJornada(d.arenLaudo, T * 8 / tLaudo);
+  return { aren, vdv: vdvrParaJornada(d.vdvrLaudo, T, tLaudo), base, temArep, tLaudo };
+}
 
 export function dataBRparaDate(br) {
   const m = String(br || '').match(/(\d{2})\/(\d{2})\/(\d{4})/);
@@ -440,7 +452,7 @@ export function fichaPesquisa(r, familiaSugerida = '') {
     ['Grupo', x.grupoVeiculo || 'não informado'],
     ['Família técnica sugerida', familiaSugerida || 'definir pelo modelo (motor dianteiro x cabine avançada)'],
     ['Cabine / conforto', x.cabine || ''], ['Carroceria / reboque', x.carroceria || ''], ['Carga', x.tipoCarga || ''],
-    ['Tempo diário de condução', x.conducaoH ? `${x.conducaoH} h` : 'informar'],
+    ['Tempo diário de condução', x.conducaoH ? (isFinite(horasDia(x.conducaoH)) ? fmtHoras(horasDia(x.conducaoH)) : `${x.conducaoH} (informe um número)`) : 'informar'],
   ].filter(([, t]) => String(t).trim());
 }
 export const fichaPesquisaTexto = (r, fam) => fichaPesquisa(r, fam).map(([k, t]) => `${k}: ${t}`).join('; ');

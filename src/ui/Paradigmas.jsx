@@ -58,16 +58,31 @@ export const CAMPOS_PARADIGMA = {
   ],
 };
 
-const ABAS = [['veiculos', 'Veículos medidos'], ['maquinas', 'Máquinas – ruído e vibração'], ['quimicos', 'Agentes químicos'], ['similares', 'Similares'], ['familias', 'Famílias'], ['buscar', 'Buscar paradigma'], ['importar', 'Importar']];
+// Bases técnicas em três seções: veículos (paradigmas de motorista, com similares, famílias e busca),
+// máquinas e equipamentos, e agentes químicos (limites e enquadramento – não são paradigmas).
+const SECOES = [
+  { id: 'veic', titulo: 'Veículos', sub: 'Paradigmas de motorista: medições, similares e famílias', icone: 'caminhao',
+    abas: [['veiculos', 'Veículos medidos'], ['similares', 'Similares'], ['familias', 'Famílias'], ['buscar', 'Buscar paradigma'], ['importar', 'Importar / exportar']] },
+  { id: 'maq', titulo: 'Máquinas', sub: 'Tratores, máquinas agrícolas e de construção, ferramentas', icone: 'regua', abas: [['maquinas', 'Máquinas – ruído e vibração']] },
+  { id: 'qui', titulo: 'Agentes químicos', sub: 'Limites (NR-15, Anexo 11), LINACH e códigos dos decretos', icone: 'nota', abas: [['quimicos', 'Agentes químicos']] },
+];
 
 export function Paradigmas({ aba = 'veiculos' }) {
+  const secao = SECOES.find((x) => x.abas.some(([k]) => k === aba)) || SECOES[0];
   return (
     <div class="pagina">
       <div class="caso-topo"><div class="caso-id">
-        <h1>Banco de paradigmas</h1>
-        <div class="caso-sub">Veículos, máquinas e ferramentas medidos em perícias, laudos e na literatura (paradigmas por similaridade) e o banco de agentes químicos.</div>
+        <h1>Bases técnicas</h1>
+        <div class="caso-sub">Paradigmas medidos (veículos e máquinas) para a prova por similaridade e o banco de agentes químicos.</div>
       </div></div>
-      <nav class="abas">{ABAS.map(([k, r]) => <a href={`#/paradigmas/${k}`} class={aba === k ? 'ativo' : ''}>{r}</a>)}</nav>
+      <nav class="secoes-base" aria-label="Seções">
+        {SECOES.map((x) => (
+          <a href={`#/paradigmas/${x.abas[0][0]}`} class={`secao-base ${x.id === secao.id ? 'ativa' : ''}`}>
+            <Icone nome={x.icone} tam={22} /><span><b>{x.titulo}</b><small>{x.sub}</small></span>
+          </a>
+        ))}
+      </nav>
+      {secao.abas.length > 1 && <nav class="abas">{secao.abas.map(([k, r]) => <a href={`#/paradigmas/${k}`} class={aba === k ? 'ativo' : ''}>{r}</a>)}</nav>}
       {aba === 'veiculos' && <Veiculos />}
       {aba === 'maquinas' && <Maquinas />}
       {aba === 'quimicos' && <Quimicos />}
@@ -373,7 +388,7 @@ function SaudeBanco({ lista }) {
           {propostas.slice(0, 20).map(({ p, f }) => <small>{rotuloParadigma(p)} → <b>{f.familia}</b> ({f.motivo})</small>)}
           <span class="linha-botoes"><button type="button" class="primario mini" onClick={aplicar}>Atribuir as {propostas.length} famílias prováveis</button></span>
         </>}
-        {faltamFam.length > 0 && <span class="linha-botoes"><small>Famílias {faltamFam.join(', ')} não estão em Paradigmas → Famílias.</small>
+        {faltamFam.length > 0 && <span class="linha-botoes"><small>Famílias {faltamFam.join(', ')} não estão em Bases técnicas → Veículos → Famílias.</small>
           <button type="button" class="mini" onClick={criarFamilias}>Cadastrar F1–F9 com a descrição</button></span>}
       </>}
       {msg && <p class="ok-msg">{msg}</p>}

@@ -7,7 +7,7 @@
 import { dataBR, postosDoPeriodo, nomeCurto } from './base.js';
 import { comJurisprudencia } from './fontes.js';
 import { num } from '../paradigmas.js';
-import { fmt } from '../calc.js';
+import { fmt, horasDia as horasCampo, fmtHoras } from '../calc.js';
 import { valores } from './conclusao.js';
 
 const RE_MOT = /motorista|caminh|carreteir|cobrador|ônibus|onibus|truck|carreta|bitrem|rodotrem|condutor/i;
@@ -99,7 +99,7 @@ export function horasDoHorario(t) {
 export function horasDia(r, dados) {
   const x = { ...r.data, ...coletado(r, dados) };
   const txt = `${x.jornadaSemanal || ''} ${x.pausas || ''}`;
-  const hs = [num(x.conducaoH), ...[...String(txt).matchAll(/(\d{1,2})\s*h(?:oras)?\s*(?:\/|por|ao|diárias)\s*(?:dia)?/gi)].map((m) => Number(m[1])), ...horasDoHorario(txt)]
+  const hs = [horasCampo(x.conducaoH), ...[...String(txt).matchAll(/(\d{1,2})\s*h(?:oras)?\s*(?:\/|por|ao|diárias)\s*(?:dia)?/gi)].map((m) => Number(m[1])), ...horasDoHorario(txt)]
     .filter((h) => isFinite(h) && h > 0 && h <= 24);
   return hs.length ? Math.max(...hs) : NaN;
 }
@@ -119,7 +119,7 @@ export function matrizIAC(r, dados) {
   const x = { ...r.data, ...coletado(r, dados) };
   const T = horasDia(r, dados);
   const hTxt = isFinite(T) ? String(T).replace('.', ',') : '';
-  const Tc = num(x.conducaoH);
+  const Tc = horasCampo(x.conducaoH);
   const cTxt = isFinite(Tc) ? String(Tc).replace('.', ',') : hTxt;
   const veic = [x.veiculoTipo, x.veiculoMarca, x.veiculoModelo, x.veiculoAno].filter(Boolean).join(' ') || x.veiculosAvaliados || '';
   const fis = agentesFisicos(r, dados);

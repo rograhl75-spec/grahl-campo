@@ -44,7 +44,7 @@ export const CATEGORIAS_MAQUINA = [
   { cod: 'CO-ROL', grupo: 'Construção e terraplenagem', nome: 'Rolo compactador', agentes: ['Ruído', 'VCI'], eixo: 'z', fatores: 'Vibração do cilindro ligada ou desligada.' },
   { cod: 'CO-MRT', grupo: 'Construção e terraplenagem', nome: 'Martelete / rompedor / perfuratriz manual', agentes: ['Ruído', 'VMB'], eixo: '—', fatores: 'Pneumático ou elétrico; perfuratrizes e marteletes pneumáticos estão expressamente previstos no cód. 1.1.5 do Dec. 53.831/64, no 1.1.4 do Dec. 83.080/79 e no 2.0.2 dos Decs. 2.172/97 e 3.048/99 (o elétrico não).' },
   { cod: 'MC-EMP', grupo: 'Movimentação de carga', nome: 'Empilhadeira', agentes: ['Ruído', 'VCI'], eixo: 'z', fatores: 'Rodas maciças, piso com juntas e desníveis, combustão x elétrica.' },
-  { cod: 'TR-CAM', grupo: 'Transporte', nome: 'Caminhão / ônibus (ver famílias F1–F8)', agentes: ['Ruído', 'VCI'], eixo: 'z', fatores: 'Use as famílias técnicas F1–F8 do banco de paradigmas.' },
+  { cod: 'TR-CAM', grupo: 'Transporte', nome: 'Caminhão / ônibus (ver famílias F1–F9)', agentes: ['Ruído', 'VCI'], eixo: 'z', fatores: 'Use as famílias técnicas F1–F9 do banco de paradigmas.' },
   { cod: 'OUT', grupo: 'Outros', nome: 'Outra máquina ou equipamento', agentes: ['Ruído', 'VCI', 'VMB'], eixo: '', fatores: '' },
 ];
 
@@ -55,7 +55,7 @@ export const OPCOES_CATEGORIA = CATEGORIAS_MAQUINA.map((c) => `${c.cod} – ${c.
 // aceita "AG-TSC" ou "AG-TSC – Trator…"
 export const codigoCategoria = (t) => String(t || '').split(' – ')[0].trim();
 
-// Famílias técnicas sugeridas para máquinas (complementam as F1–F8 de caminhões e ônibus)
+// Famílias técnicas sugeridas para máquinas (complementam as F1–F9 de caminhões e ônibus)
 export const FAMILIAS_MAQUINAS = [
   { codigo: 'A1', descricao: 'Tratores sem cabine (plataforma aberta), motor dianteiro, assento sem suspensão pneumática', criterios: 'Potência, ano/geração, presença de arco, tipo de assento, implemento predominante.' },
   { codigo: 'A2', descricao: 'Tratores com cabine original de fábrica, com isolamento acústico e ar-condicionado', criterios: 'Geração da cabine, suspensão do assento e da cabine, portas fechadas na medição.' },

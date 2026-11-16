@@ -374,7 +374,7 @@ function SaudeBanco({ lista }) {
           <span class="linha-botoes"><button type="button" class="primario mini" onClick={aplicar}>Atribuir as {propostas.length} famílias prováveis</button></span>
         </>}
         {faltamFam.length > 0 && <span class="linha-botoes"><small>Famílias {faltamFam.join(', ')} não estão em Paradigmas → Famílias.</small>
-          <button type="button" class="mini" onClick={criarFamilias}>Cadastrar F1–F8 com a descrição</button></span>}
+          <button type="button" class="mini" onClick={criarFamilias}>Cadastrar F1–F9 com a descrição</button></span>}
       </>}
       {msg && <p class="ok-msg">{msg}</p>}
     </section>

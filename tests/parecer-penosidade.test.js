@@ -125,6 +125,15 @@ describe('família provável do veículo e comparação por pontos', async () =>
     expect(f('Marca X', 'Y', '', 'Cavalo mecânico com cabine convencional / semiavançada, sem ar-condicionado (projeto antigo)')).toBe('F5');
     expect(f('', '', '', 'Caminhão leve 3/4 / VUC')).toBe('F3');
     expect(familiaProvavel({ marca: 'Chevrolet', modelo: 'D-60' }).motivo).toMatch(/provável/);
+    // ônibus: motor dianteiro (F2) x traseiro ou central (F9)
+    expect(f('Mercedes-Benz', 'OF 1318', '', 'Ônibus (transporte coletivo)')).toBe('F2');
+    expect(f('Volvo', 'B10M', '', 'Ônibus (transporte coletivo)')).toBe('F9');
+    expect(f('Volvo', 'B58')).toBe('F9');
+    expect(f('Scania', 'L94 UB')).toBe('F9');
+    expect(f('Scania', 'K 113', '', 'Ônibus')).toBe('F9');
+    expect(f('Marca X', 'Y', '', 'Ônibus com motor traseiro')).toBe('F9');
+    expect(f('Scania', 'L 111')).toBe('F5');
+    expect(f('Volvo', 'NL12 360')).toBe('F5');
   });
   it('a família pesa mais que a marca; família e tipo diferentes afastam o paradigma', () => {
     const veic = { familia: 'F1', marca: 'Chevrolet', modelo: 'D-60', tipo: 'Toco', grupo: 'Caminhão toco', cabine: 'sem ar', ano: '1993' };

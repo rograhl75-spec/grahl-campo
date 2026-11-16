@@ -367,7 +367,7 @@ REGRAS
 2. Um item por veículo/máquina medido. Se o laudo mediu ruído e vibração no mesmo veículo, é um item só.
 3. Laudo EXTRAJUDICIAL: NÃO inclua o nome do segurado nem o processo; em "fonte" use tipo "Extrajudicial" e apenas a data da medição.
 4. Laudo JUDICIAL: inclua o número do processo e a vara, sem nomes das partes.
-5. Família técnica (use a que melhor se aplica): F1 Rígidos com motor dianteiro (bicudo) – MB série L/LK; F2 Ônibus com motor dianteiro; F3 Leves / VUC / vans; F4 Rígidos médios e pesados com cabine avançada; F5 Cavalos com cabine convencional ou semiavançada, projeto antigo; F6 Cavalos com cabine avançada, 1990–2008; F7 Volvo NH / FH; F8 Cavalos modernos pós-2010. Se nenhuma servir, deixe null e explique em "observacoes".
+5. Família técnica (use a que melhor se aplica): F1 Rígidos com motor dianteiro (bicudo) – MB série L/LK; F2 Ônibus com motor dianteiro; F3 Leves / VUC / vans; F4 Rígidos médios e pesados com cabine avançada; F5 Cavalos com cabine convencional ou semiavançada, projeto antigo; F6 Cavalos com cabine avançada, 1990–2008; F7 Volvo NH / FH; F8 Cavalos modernos pós-2010; F9 Ônibus com motor traseiro ou central. Se nenhuma servir, deixe null e explique em "observacoes".
 6. Números com ponto decimal. Datas no formato DD/MM/AAAA.
 7. Responda SOMENTE com um bloco JSON válido, sem texto antes ou depois, neste formato:
 

@@ -2,11 +2,22 @@ import JSZip from 'jszip';
 
 // Gerador de WordprocessingML que insere o conteúdo no corpo do modelo
 // timbrado (cabeçalho, rodapé e moldura do modelo são preservados).
-// Padrão visual dos documentos da GRAHL: Abadi, 1,5, justificado, recuo de
-// primeira linha, títulos numerados em azul-marinho, quadros com título
-// acima e "Fonte" abaixo, figuras duas por linha.
+// Padrão visual dos documentos da GRAHL: Lato no texto e Montserrat nos títulos (a fonte do timbrado),
+// ambas embutidas no .docx (SIL Open Font License) para saírem iguais em qualquer computador;
+// 1,5, justificado, recuo de primeira linha, títulos numerados em azul-marinho, quadros com
+// título acima e "Fonte" abaixo, figuras duas por linha.
 
-export const FONTE = 'Abadi';
+export const FONTE = 'Lato';
+export const FONTE_TITULO = 'Montserrat';
+// fontes embutidas (arquivos .odttf em public/modelos, já ofuscados com a chave de cada um – ECMA-376, Parte 1, 17.8.1)
+export const FONTES_EMBUTIDAS = [
+  { familia: 'Lato', estilo: 'Regular', arquivo: 'Lato-Regular.odttf', chave: '{61352692-366E-5B84-A1CC-C1D60AAEEB23}' },
+  { familia: 'Lato', estilo: 'Bold', arquivo: 'Lato-Bold.odttf', chave: '{AD914837-1B5D-5F08-85B1-E54E5F5187ED}' },
+  { familia: 'Lato', estilo: 'Italic', arquivo: 'Lato-Italic.odttf', chave: '{395B4ED0-439A-55EE-8AF9-5A1F27FAC270}' },
+  { familia: 'Lato', estilo: 'BoldItalic', arquivo: 'Lato-BoldItalic.odttf', chave: '{6414058E-EC09-55B3-AA34-B16CEA605189}' },
+  { familia: 'Montserrat', estilo: 'Regular', arquivo: 'Montserrat-Regular.odttf', chave: '{F75AB47E-9CE7-569D-BB50-E881B5FFAE37}' },
+  { familia: 'Montserrat', estilo: 'Bold', arquivo: 'Montserrat-Bold.odttf', chave: '{E0DA1E0B-1002-5723-B6A6-653396CC155C}' },
+];
 export const AZUL = '1B365D';
 export const AZUL_CLARO = 'DCE6F2';
 const CINZA = '64748B';
@@ -20,8 +31,9 @@ export function esc(s) {
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g, '');
 }
 
-function rPr({ b, i, size = 12, color, caps, hl, sup } = {}) {
-  return `<w:rPr><w:rFonts w:ascii="${FONTE}" w:hAnsi="${FONTE}" w:cs="${FONTE}" w:eastAsia="${FONTE}"/>` +
+function rPr({ b, i, size = 12, color, caps, hl, sup, tit } = {}) {
+  const F = tit ? FONTE_TITULO : FONTE;
+  return `<w:rPr><w:rFonts w:ascii="${F}" w:hAnsi="${F}" w:cs="${F}" w:eastAsia="${F}"/>` +
     (b ? '<w:b/><w:bCs/>' : '') + (i ? '<w:i/><w:iCs/>' : '') + (caps ? '<w:caps/>' : '') +
     (color ? `<w:color w:val="${color}"/>` : '') + `<w:sz w:val="${Math.round(size * 2)}"/><w:szCs w:val="${Math.round(size * 2)}"/>` +
     (hl ? '<w:highlight w:val="yellow"/>' : '') + (sup ? '<w:vertAlign w:val="superscript"/>' : '') + '</w:rPr>';
@@ -128,20 +140,20 @@ export class Doc {
     const t1 = `${num ? num + ' ' : ''}${String(titulo).toUpperCase()}`;
     const [a1, z1] = this.marca('toc', t1, 1);
     return this.add(`<w:p>${pp}${a1}` +
-      `${run(t1, { b: true, size: 12, color: AZUL })}${z1}</w:p>`);
+      `${run(t1, { b: true, size: 12, color: AZUL, tit: true })}${z1}</w:p>`);
   }
   h2(num, titulo) {
     const t2 = `${num ? num + ' ' : ''}${String(titulo).toUpperCase()}`;
     const [a2, z2] = this.marca('toc', t2, 2);
     return this.add(`<w:p>${pPr({ style: 'Ttulo2', align: 'left', before: 360, after: 160, keepNext: true, outline: 1 })}${a2}` +
-      `${run(t2, { b: true, size: 12, color: AZUL })}${z2}</w:p>`);
+      `${run(t2, { b: true, size: 11, color: AZUL, tit: true })}${z2}</w:p>`);
   }
   // seção terciária (ABNT NBR 6024): número progressivo e título em negrito, sem caixa alta
   h3(num, titulo) {
     if (titulo === undefined) { titulo = num; num = ''; }
     const t3 = `${num ? `${num} ` : ''}${titulo}`;
     const [a3, z3] = this.marca('toc', t3, 3);
-    return this.add(p([a3, run(t3, { b: true, color: AZUL }), z3], { style: 'Ttulo3', align: 'left', before: 240, after: 120, keepNext: true, outline: 2 }));
+    return this.add(p([a3, run(t3, { b: true, size: 11, color: AZUL, tit: true }), z3], { style: 'Ttulo3', align: 'left', before: 240, after: 120, keepNext: true, outline: 2 }));
   }
   // Quadro numerado: título acima, tabela, fonte abaixo
   quadro(titulo, linhas, { larguras, header = true, fonte = 'Elaborado pelo signatário.', tam = 10, alinhar = 'both', juntar } = {}) {
@@ -150,7 +162,7 @@ export class Doc {
     const n = this.nQuad;
     const [aq, zq] = this.marca('Quadro', `Quadro ${n} – ${titulo}`);
     this.add(`<w:p>${pPr({ align: 'center', before: 240, after: 100, line: 276, keepNext: true })}${aq}` +
-      run('Quadro ', { b: true, size: 10 }) + campoSeq('Quadro', n, { b: true, size: 10 }) + run(` – ${titulo}`, { b: true, size: 10 }) + `${zq}</w:p>`);
+      run('Quadro ', { b: true, size: 9.5, color: AZUL, tit: true }) + campoSeq('Quadro', n, { b: true, size: 9.5, color: AZUL, tit: true }) + run(` – ${titulo}`, { b: true, size: 9.5, color: AZUL, tit: true }) + `${zq}</w:p>`);
     this.add(tabela(linhas, { larguras, header, tam, alinhar, juntar }));
     // ABNT/IBGE: "Fonte" alinhada à esquerda, logo abaixo do quadro
     this.add(p([run(fonte ? 'Fonte: ' : '', { size: 9, b: true, color: CINZA }), rich(fonte || '', { size: 9, color: CINZA })], { align: 'left', before: 60, after: 280, line: 240 }));
@@ -220,13 +232,70 @@ export class Doc {
     return this;
   }
   sumario(titulo = 'SUMÁRIO') {
-    return this.add(p([run(titulo, { b: true, color: AZUL })], { align: 'center', pageBreakBefore: true, after: 240 }), '<!--LISTA:toc-->');
+    return this.add(p([run(titulo, { b: true, color: AZUL, tit: true })], { align: 'center', pageBreakBefore: true, after: 240 }), '<!--LISTA:toc-->');
   }
   listaQuadros() {
-    return this.add(p([run('LISTA DE QUADROS', { b: true, color: AZUL })], { align: 'center', pageBreakBefore: true, after: 240 }), '<!--LISTA:Quadro-->');
+    return this.add(p([run('LISTA DE QUADROS', { b: true, color: AZUL, tit: true })], { align: 'center', pageBreakBefore: true, after: 240 }), '<!--LISTA:Quadro-->');
   }
   listaFiguras({ novaPagina = false } = {}) {
-    return this.add(p([run('LISTA DE FIGURAS', { b: true, color: AZUL })], { align: 'center', before: novaPagina ? 0 : 480, after: 240, pageBreakBefore: novaPagina }), '<!--LISTA:Figura-->');
+    return this.add(p([run('LISTA DE FIGURAS', { b: true, color: AZUL, tit: true })], { align: 'center', before: novaPagina ? 0 : 480, after: 240, pageBreakBefore: novaPagina }), '<!--LISTA:Figura-->');
+  }
+  // Fluxo (figura): etapas em caixas ligadas por setas, até 4 por linha. etapas: [{ t: 'título', d: 'descrição' }]
+  fluxo(titulo, etapas, { fonte = 'Elaborado pelo signatário.' } = {}) {
+    if (!etapas.length) return this;
+    this.nFig += 1;
+    const n = this.nFig;
+    const [af, zf] = this.marca('Figura', `Figura ${n} – ${titulo}`);
+    this.add(`<w:p>${pPr({ align: 'center', before: 240, after: 100, line: 276, keepNext: true })}${af}${zf}` +
+      run('Figura ', { b: true, size: 9.5, color: AZUL, tit: true }) + campoSeq('Figura', n, { b: true, size: 9.5, color: AZUL, tit: true }) + run(` – ${titulo}`, { b: true, size: 9.5, color: AZUL, tit: true }) + '</w:p>');
+    const porLinha = Math.min(4, etapas.length);
+    const seta = 420;
+    const wCaixa = Math.floor((LARGURA - seta * (porLinha - 1)) / porLinha);
+    const ws = []; for (let i = 0; i < porLinha; i++) { ws.push(wCaixa); if (i < porLinha - 1) ws.push(seta); }
+    const caixa = (e, k) => `<w:tc><w:tcPr><w:tcW w:w="${wCaixa}" w:type="dxa"/>${bordas('caixa')}<w:shd w:val="clear" w:color="auto" w:fill="F1F5FA"/><w:vAlign w:val="top"/></w:tcPr>`
+      + p([run(`${k}`, { b: true, size: 14, color: 'C49A3A', tit: true })], { align: 'left', after: 0, line: 240, keepNext: true })
+      + p([run(e.t, { b: true, size: 9, color: AZUL, tit: true })], { align: 'left', after: 40, line: 252, keepNext: true })
+      + (e.d ? p([rich(e.d, { size: 8.5, color: '475569' })], { align: 'left', after: 0, line: 252, keepNext: true }) : '') + '</w:tc>';
+    const vazia = (w) => `<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/>${bordas('nenhuma')}</w:tcPr><w:p/></w:tc>`;
+    const flecha = `<w:tc><w:tcPr><w:tcW w:w="${seta}" w:type="dxa"/>${bordas('nenhuma')}<w:vAlign w:val="center"/></w:tcPr>${p([run('→', { b: true, size: 14, color: 'C49A3A', tit: true })], { align: 'center', after: 0, line: 240, keepNext: true })}</w:tc>`;
+    let linhas = '';
+    for (let i = 0; i < etapas.length; i += porLinha) {
+      const grupo = etapas.slice(i, i + porLinha);
+      const cells = [];
+      for (let k = 0; k < porLinha; k++) {
+        const e = grupo[k];
+        cells.push(e ? caixa(e, i + k + 1) : vazia(wCaixa));
+        if (k < porLinha - 1) cells.push(e && grupo[k + 1] ? flecha : vazia(seta));
+      }
+      linhas += `<w:tr><w:trPr><w:cantSplit/></w:trPr>${cells.join('')}</w:tr>`;
+      if (i + porLinha < etapas.length) linhas += `<w:tr><w:trPr><w:trHeight w:val="160"/></w:trPr>${ws.map((w) => vazia(w)).join('')}</w:tr>`;
+    }
+    this.add(`<w:tbl><w:tblPr><w:tblW w:w="${LARGURA}" w:type="dxa"/><w:jc w:val="center"/><w:tblLayout w:type="fixed"/><w:tblCellMar><w:top w:w="90" w:type="dxa"/><w:left w:w="110" w:type="dxa"/><w:bottom w:w="110" w:type="dxa"/><w:right w:w="110" w:type="dxa"/></w:tblCellMar></w:tblPr>`
+      + `<w:tblGrid>${ws.map((w) => `<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>${linhas}</w:tbl>`);
+    this.add(p([run(fonte ? 'Fonte: ' : '', { size: 9, b: true, color: CINZA }), rich(fonte || '', { size: 9, color: CINZA })], { align: 'left', before: 60, after: 280, line: 240 }));
+    return this;
+  }
+  // Quadro com células destacadas (linha do tempo): célula { t, cor } pinta o fundo; texto simples também vale
+  quadroDestaque(titulo, linhas, { larguras, fonte = 'Elaborado pelo signatário.', tam = 8.5 } = {}) {
+    if (!linhas || linhas.length < 2) return this;
+    this.nQuad += 1;
+    const n = this.nQuad;
+    const [aq, zq] = this.marca('Quadro', `Quadro ${n} – ${titulo}`);
+    this.add(`<w:p>${pPr({ align: 'center', before: 240, after: 100, line: 276, keepNext: true })}${aq}` +
+      run('Quadro ', { b: true, size: 9.5, color: AZUL, tit: true }) + campoSeq('Quadro', n, { b: true, size: 9.5, color: AZUL, tit: true }) + run(` – ${titulo}`, { b: true, size: 9.5, color: AZUL, tit: true }) + `${zq}</w:p>`);
+    const ncol = Math.max(...linhas.map((l) => l.length));
+    const ws = larguras ? larguras.map((f) => Math.round(f * LARGURA)) : Array(ncol).fill(Math.round(LARGURA / ncol));
+    const rows = linhas.map((l, ri) => {
+      const isH = ri === 0;
+      const cells = l.map((c, ci) => {
+        const o = typeof c === 'object' && c ? c : { t: c };
+        return celula(o.t ?? '', ws[ci], { b: isH || o.b, tit: isH, color: isH ? 'FFFFFF' : o.corTexto, tam: isH ? Math.min(tam, 8) : tam, fill: isH ? AZUL : o.cor, align: ci === 0 && !isH ? 'left' : 'center', borda: 'all', keepNext: true });
+      }).join('');
+      return `<w:tr><w:trPr><w:cantSplit/>${isH ? '<w:tblHeader/>' : ''}</w:trPr>${cells}</w:tr>`;
+    }).join('');
+    this.add(`<w:tbl><w:tblPr><w:tblW w:w="${LARGURA}" w:type="dxa"/><w:jc w:val="center"/><w:tblLayout w:type="fixed"/>${MARGEM_CELULA}</w:tblPr><w:tblGrid>${ws.map((w) => `<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>${rows}</w:tbl>`);
+    this.add(p([run(fonte ? 'Fonte: ' : '', { size: 9, b: true, color: CINZA }), rich(fonte || '', { size: 9, color: CINZA })], { align: 'left', before: 60, after: 280, line: 240 }));
+    return this;
   }
   quebra() { return this.add('<w:p><w:r><w:br w:type="page"/></w:r></w:p>'); }
 }
@@ -270,6 +339,8 @@ function bordas(tipo) {
   if (tipo === 'bottom') return `<w:tcBorders><w:top w:val="nil"/><w:left w:val="nil"/>${b('bottom', 'C9D3E0')}<w:right w:val="nil"/></w:tcBorders>`;
   // quadros: linhas horizontais finas, sem verticais internas, moldura azul em cima e embaixo
   if (tipo === 'quadro') return `<w:tcBorders>${b('top', 'C9D3E0')}<w:left w:val="nil"/>${b('bottom', 'C9D3E0')}<w:right w:val="nil"/></w:tcBorders>`;
+  if (tipo === 'caixa') return `<w:tcBorders>${b('top', 'C49A3A', 18)}${b('left', AZUL, 6)}${b('bottom', AZUL, 6)}${b('right', AZUL, 6)}</w:tcBorders>`;
+  if (tipo === 'nenhuma') return '<w:tcBorders><w:top w:val="nil"/><w:left w:val="nil"/><w:bottom w:val="nil"/><w:right w:val="nil"/></w:tcBorders>';
   return `<w:tcBorders>${b('top')}${b('left')}${b('bottom')}${b('right')}</w:tcBorders>`;
 }
 const ZEBRA = 'F3F6FA';
@@ -280,15 +351,15 @@ function tamQueCabe(texto, w, tam, b) {
   const util = Math.max(w - 230, 200) / 20; // pt úteis (margens da célula)
   const maior = Math.max(0, ...String(texto ?? '').replace(/\[\[|\]\]|\*\*/g, '').split(/[\s/]+/).map((x) => x.length));
   let t = tam;
-  while (t > 7 && maior * t * (b ? 0.6 : 0.55) > util) t -= 0.5;
+  while (t > 7 && maior * t * (b ? 0.63 : 0.58) > util) t -= 0.5;
   return t;
 }
 
-function celula(texto, w, { b, color, tam = 10, fill, borda = 'all', align = 'both', keepNext = false } = {}) {
+function celula(texto, w, { b, color, tam = 10, fill, borda = 'all', align = 'both', keepNext = false, tit } = {}) {
   const shade = fill ? `<w:shd w:val="clear" w:color="auto" w:fill="${fill}"/>` : '';
   const linhas = String(texto ?? '').split(/\r?\n/);
   const t = tamQueCabe(texto, w, tam, b);
-  const paras = linhas.map((l, i) => p([rich(l, { size: t, b, color })], { align, after: i < linhas.length - 1 ? 60 : 0, line: 276, keepNext })).join('');
+  const paras = linhas.map((l, i) => p([rich(l, { size: t, b, color, tit })], { align, after: i < linhas.length - 1 ? 60 : 0, line: 276, keepNext })).join('');
   return `<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/>${bordas(borda)}${shade}<w:vAlign w:val="center"/></w:tcPr>${paras}</w:tc>`;
 }
 
@@ -317,7 +388,7 @@ export function tabela(linhas, { larguras, header = true, tam = 10, alinhar = 'a
     // cabeçalho azul-marinho com texto branco; linhas alternadas em cinza-azulado claro
     const zebra = !isH && (ri - (header ? 1 : 0)) % 2 === 1;
     const cells = l.map((c, ci) => celula(c, ws[ci], {
-      b: isH, color: isH ? 'FFFFFF' : undefined, tam: isH ? Math.min(tam, 9) : tam, fill: isH ? AZUL : zebra ? ZEBRA : undefined, align: isH ? 'center' : al[ci], borda: 'quadro', keepNext: juntar,
+      b: isH, tit: isH, color: isH ? 'FFFFFF' : undefined, tam: isH ? Math.min(tam, 8.5) : tam, fill: isH ? AZUL : zebra ? ZEBRA : undefined, align: isH ? 'center' : al[ci], borda: 'quadro', keepNext: juntar,
     })).join('');
     return `<w:tr><w:trPr><w:cantSplit/>${isH ? '<w:tblHeader/>' : ''}</w:trPr>${cells}</w:tr>`;
   }).join('');
@@ -348,7 +419,7 @@ export function dataExtenso(d = new Date()) {
 }
 
 // Monta o .docx a partir do modelo: substitui o corpo e acrescenta as imagens.
-export async function montarDocx(modeloBytes, corpoXml, { imagens = [], tituloDoc = '', comCampos = false } = {}) {
+export async function montarDocx(modeloBytes, corpoXml, { imagens = [], tituloDoc = '', comCampos = false, fontes = [] } = {}) {
   const zip = await JSZip.loadAsync(modeloBytes);
   const docPath = 'word/document.xml';
   let xml = await zip.file(docPath).async('string');
@@ -384,7 +455,7 @@ export async function montarDocx(modeloBytes, corpoXml, { imagens = [], tituloDo
     : `${a}${corpo}<w:pPr><w:spacing w:after="120" w:line="360" w:lineRule="auto"/><w:jc w:val="both"/></w:pPr><w:rPr>${fonteR}<w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr>${z}`));
   for (const id of ['Ttulo1', 'Ttulo2', 'Ttulo3']) {
     st = st.replace(new RegExp(`(<w:style w:type="paragraph" w:styleId="${id}">[\\s\\S]*?)<w:rPr>[\\s\\S]*?<\\/w:rPr>(\\s*<\\/w:style>)`),
-      `$1<w:rPr>${fonteR}<w:b/><w:bCs/><w:color w:val="${AZUL}"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr>$2`);
+      `$1<w:rPr><w:rFonts w:ascii="${FONTE_TITULO}" w:hAnsi="${FONTE_TITULO}" w:cs="${FONTE_TITULO}" w:eastAsia="${FONTE_TITULO}"/><w:b/><w:bCs/><w:color w:val="${AZUL}"/><w:sz w:val="${id === 'Ttulo1' ? 24 : 22}"/><w:szCs w:val="${id === 'Ttulo1' ? 24 : 22}"/></w:rPr>$2`);
   }
   zip.file(stPath, st);
   // lista com marcador: parte numbering.xml (o timbrado não tem); acrescenta a definição se faltar
@@ -416,14 +487,36 @@ export async function montarDocx(modeloBytes, corpoXml, { imagens = [], tituloDo
       zip.file('[Content_Types].xml', ct);
     }
   }
-  // Abadi não é embutida (fonte licenciada): sem ela no computador, o Word/LibreOffice usa uma sem serifa parecida
-  const ftPath = 'word/fontTable.xml';
-  if (zip.file(ftPath)) {
-    let ft = await zip.file(ftPath).async('string');
-    if (!ft.includes(`w:name="${FONTE}"`)) {
-      ft = ft.replace('</w:fonts>', `<w:font w:name="${FONTE}"><w:altName w:val="Arial"/><w:panose1 w:val="020B0604020104020204"/><w:charset w:val="00"/><w:family w:val="swiss"/><w:pitch w:val="variable"/></w:font></w:fonts>`);
-      zip.file(ftPath, ft);
+  // fontes embutidas (Lato e Montserrat, SIL OFL): saem iguais em qualquer computador, sem instalar nada
+  if (fontes.length) {
+    const ftPath = 'word/fontTable.xml';
+    let ft = zip.file(ftPath) ? await zip.file(ftPath).async('string')
+      : `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:fonts xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"></w:fonts>`;
+    if (!/xmlns:r=/.test(ft.slice(0, 600))) ft = ft.replace(/<w:fonts\b/, '<w:fonts xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"');
+    const relFt = 'word/_rels/fontTable.xml.rels';
+    let rf = zip.file(relFt) ? await zip.file(relFt).async('string')
+      : '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>';
+    const porFamilia = {};
+    fontes.forEach((f, i) => {
+      const rid = `rIdFonte${i + 1}`;
+      zip.file(`word/fonts/${f.arquivo}`, f.bytes);
+      rf = rf.replace('</Relationships>', `<Relationship Id="${rid}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/font" Target="fonts/${f.arquivo}"/></Relationships>`);
+      (porFamilia[f.familia] = porFamilia[f.familia] || []).push(`<w:embed${f.estilo} r:id="${rid}" w:fontKey="${f.chave}"/>`);
+    });
+    for (const [fam, embeds] of Object.entries(porFamilia)) {
+      ft = ft.replace(new RegExp(`<w:font w:name="${fam}">[\\s\\S]*?<\\/w:font>`), '');
+      const alt = fam === FONTE_TITULO ? 'Arial' : 'Calibri';
+      ft = ft.replace('</w:fonts>', `<w:font w:name="${fam}"><w:altName w:val="${alt}"/><w:charset w:val="00"/><w:family w:val="swiss"/><w:pitch w:val="variable"/>${embeds.join('')}</w:font></w:fonts>`);
     }
+    zip.file(ftPath, ft);
+    zip.file(relFt, rf);
+    let ct = await zip.file('[Content_Types].xml').async('string');
+    if (!/Extension="odttf"/.test(ct)) ct = ct.replace(/(<Types[^>]*>)/, '$1<Default Extension="odttf" ContentType="application/vnd.openxmlformats-officedocument.obfuscatedFont"/>');
+    if (!ct.includes('/word/fontTable.xml')) ct = ct.replace('</Types>', '<Override PartName="/word/fontTable.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.fontTable+xml"/></Types>');
+    zip.file('[Content_Types].xml', ct);
+    let st2 = await zip.file('word/settings.xml').async('string');
+    if (!st2.includes('w:embedTrueTypeFonts')) st2 = st2.replace(/(<w:settings[^>]*>)/, '$1<w:embedTrueTypeFonts/><w:saveSubsetFonts/>');
+    zip.file('word/settings.xml', st2);
   }
 
   // número da página no rodapé (o timbrado não traz o campo PAGE)

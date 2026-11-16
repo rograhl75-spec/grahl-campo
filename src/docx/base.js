@@ -1,8 +1,8 @@
 import { db, caseChildren } from '../db.js';
 import { resumoMedicao, calculados } from '../medicoes.js';
 import { nen, num, fmt, fatorQ, doseJornada } from '../calc.js';
-import { ORIGEM_QUESITO, contextoLegal, ehSuplementar , reuEhInss, localVistoria, vistoriasDoCaso } from '../schema.js';
-import { Doc, p, run, rich, montarDocx, ordinalDia1 } from './ooxml.js';
+import { ORIGEM_QUESITO, contextoLegal, ehSuplementar , reuEhInss, localVistoria, vistoriasDoCaso, datasDasVistorias, variasVistorias } from '../schema.js';
+import { Doc, p, run, rich, montarDocx, ordinalDia1, FONTES_EMBUTIDAS } from './ooxml.js';
 import { nenParaJornada, arenParaJornada, vdvrParaJornada, certificadoVencido, rotuloParadigma, citacaoDe, num as numP } from '../paradigmas.js';
 
 export const PERFIL_ID = 'perfil';
@@ -637,9 +637,19 @@ export async function modelo(nome = 'timbrado-vertical.docx') {
   return r.arrayBuffer();
 }
 
+// fontes do documento (Lato e Montserrat): carregadas uma vez; sem elas (offline sem cache), o Word usa Calibri/Arial
+let cacheFontes = null;
+export async function fontesEmbutidas() {
+  if (cacheFontes) return cacheFontes;
+  try {
+    cacheFontes = await Promise.all(FONTES_EMBUTIDAS.map(async (f) => ({ ...f, bytes: new Uint8Array(await modelo(f.arquivo)) })));
+  } catch { return []; }
+  return cacheFontes;
+}
+
 export async function finalizar(d, { titulo, arquivo, c }) {
   const nomeArq = `${arquivo}_${(c.numero || c.autorNome || 'caso').replace(/[^\w.-]+/g, '_').slice(0, 60)}.docx`;
-  const blob = await montarDocx(await modelo(), d.xml(), { imagens: d.imagens, tituloDoc: titulo, comCampos: true });
+  const blob = await montarDocx(await modelo(), d.xml(), { imagens: d.imagens, tituloDoc: titulo, comCampos: true, fontes: await fontesEmbutidas() });
   return { blob, nome: nomeArq };
 }
 
@@ -647,12 +657,12 @@ export async function finalizar(d, { titulo, arquivo, c }) {
 const filete = (cor = 'C9A44C', after = 240) => `<w:p><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="12" w:space="1" w:color="${cor}"/></w:pBdr><w:spacing w:before="0" w:after="${after}" w:line="240" w:lineRule="auto"/><w:ind w:left="2268" w:right="2268"/><w:jc w:val="center"/></w:pPr></w:p>`;
 
 export function capaTecnica(d, { titulo, subtitulo, linha2, pares, perfil, data = new Date(), orgao = '' }) {
-  d.add(p([run(perfil.nome, { b: true, color: '1B365D', size: 13 })], { align: 'center', after: 0 }));
+  d.add(p([run(perfil.nome, { b: true, color: '1B365D', size: 12, tit: true })], { align: 'center', after: 0 }));
   d.add(p([run(perfil.titulos, { size: 10, color: '475569' })], { align: 'center', after: 0 }));
   d.add(p([run(credencial(perfil), { size: 10, color: '475569' })], { align: 'center', after: orgao ? 600 : 1400 }));
   if (orgao) d.add(p([run(orgao.toUpperCase(), { b: true, size: 10, color: '475569' })], { align: 'center', after: 600, line: 276 }));
   d.add(filete('C9A44C', 360));
-  d.add(p([run(titulo, { b: true, size: 22, color: '1B365D' })], { align: 'center', after: 120, line: 276 }));
+  d.add(p([run(titulo, { b: true, size: 21, color: '1B365D', tit: true })], { align: 'center', after: 120, line: 276 }));
   if (subtitulo) d.add(p([run(subtitulo, { size: 12, color: '475569' })], { align: 'center', after: 60, line: 276 }));
   if (linha2) d.add(p([run(linha2, { b: true, size: 12, color: '1B365D' })], { align: 'center', after: 120, line: 276 }));
   d.add(filete('C9A44C', 360));
@@ -784,7 +794,50 @@ export function memoriasParadigmas(d, dados, { numero = '' } = {}) {
 
 
 // Forma de enquadramento, prova e medidas de controle por período (IN 128/2022)
-export function quadroFormaEnquadramento(d) {
+// Linha do tempo: cada vínculo dividido pelos marcos legais (o trecho de cada regime aparece destacado)
+const MARCOS_PREV = [
+  ['Até 28/04/1995', 'Categoria ou agente; ruído > 80 dB(A)', '1900-01-01', '1995-04-28'],
+  ['29/04/1995 a 05/03/1997', 'Exposição efetiva; ruído > 80 dB(A)', '1995-04-29', '1997-03-05'],
+  ['06/03/1997 a 18/11/2003', 'Dec. 2.172/1997; ruído > 90 dB(A)', '1997-03-06', '2003-11-18'],
+  ['19/11/2003 a 13/11/2019', 'Dec. 4.882/2003; NEN > 85 dB(A)', '2003-11-19', '2019-11-13'],
+  ['A partir de 14/11/2019', 'EC 103/2019: sem conversão', '2019-11-14', '2999-12-31'],
+];
+export function linhaDoTempo(d, periodos) {
+  const ps = (periodos || []).filter((r) => r.data.inicio);
+  if (!ps.length) return d;
+  const hoje = new Date().toISOString().slice(0, 10);
+  const lin = ps.map((r, i) => [`V${i + 1} – ${String(r.data.empresa || '').split(/\s+[–-]\s+|,|\(/)[0].trim().slice(0, 40) || 'vínculo'}`, ...MARCOS_PREV.map(([, , a, b]) => {
+    const ini = r.data.inicio > a ? r.data.inicio : a;
+    const fimV = r.data.fim || hoje;
+    const fim = fimV < b ? fimV : b;
+    if (ini > fim) return { t: '–', corTexto: 'A6B4C8' };
+    return { t: `${dataBR(ini)}\na\n${r.data.fim || fim < fimV ? dataBR(fim) : 'atual'}`, cor: 'DCE6F2', b: true, corTexto: '1B365D' };
+  })]);
+  return d.quadroDestaque('Linha do tempo dos vínculos e marcos legais', [['Vínculo', ...MARCOS_PREV.map(([t, x]) => `${t}\n${x}`)], ...lin],
+    { larguras: [0.2, 0.16, 0.16, 0.16, 0.16, 0.16], fonte: 'Elaborado pelo signatário. Vibração de corpo inteiro: ISO 2631 até 13/08/2014 e NR-15, Anexo 8, a partir de 14/08/2014.' });
+}
+
+// Fluxo da avaliação (figura), conforme o tipo de documento; usa as datas das vistorias quando houver
+export function fluxoAvaliacao(d, dados, tipo) {
+  const c = dados.c || {};
+  const vist = datasDasVistorias(c);
+  const dil = vist ? `Vistoria${variasVistorias(c) ? 's' : ''} em ${vist}` : 'Inspeção no local';
+  const F = {
+    trab: [{ t: 'Autos e quesitos', d: 'Despacho, inicial, defesa e documentos de SST' }, { t: 'Diligência', d: `${dil}; entrevistas com as partes` },
+      { t: 'Avaliações ambientais', d: 'NHO da FUNDACENTRO; equipamentos calibrados' }, { t: 'Confronto e conclusão', d: 'NR-15 e NR-16; EPI; respostas aos quesitos' }],
+    prev: [{ t: 'Autos e formulários', d: 'PPP, LTCAT, CTPS e vínculos' }, { t: dados.periodos?.some((r) => r.data.paradigmaRuido || r.data.paradigmaVibracao) ? 'Similaridade' : 'Diligência', d: dados.periodos?.some((r) => r.data.paradigmaRuido || r.data.paradigmaVibracao) ? 'Paradigmas medidos em veículos e máquinas equivalentes' : dil },
+      { t: 'Normalização', d: 'Jornada efetiva: NEN, aren e VDVR' }, { t: 'Enquadramento por período', d: 'Legislação vigente à época (tempus regit actum)' }],
+    penosidade: [{ t: 'Entrevista do segurado', d: 'Vínculos, veículos, cargas, trajetos e jornadas' }, { t: 'Veículo e família técnica', d: 'Cabine, motor, suspensão, época' },
+      { t: 'Paradigmas e normalização', d: 'Ruído e vibração medidos; jornada de condução' }, { t: 'Penosidade e enquadramento', d: 'IAC 5 do TRF4; marcos legais por período' }],
+    at: [{ t: 'Laudo pericial', d: 'Metodologia, medições e conclusões' }, { t: 'Acompanhamento', d: vist ? `Diligência${variasVistorias(c) ? 's' : ''} de ${vist}` : 'Registros da diligência' },
+      { t: 'Análise técnica', d: 'Confronto com normas, NHO e documentos' }, { t: 'Manifestação', d: 'Divergências, quesitos e conclusão' }],
+  }[tipo];
+  if (!F) return d;
+  return d.fluxo('Etapas da avaliação', F);
+}
+
+export function quadroFormaEnquadramento(d, dados) {
+  if (dados?.periodos?.length) linhaDoTempo(d, dados.periodos);
   return d.quadro('Forma de enquadramento, prova e medidas de controle', [['Período', 'Enquadramento', 'Documentos', 'Permanência', 'EPC / EPI'],
     ['Até 28/04/1995', 'Categoria profissional ou agente nocivo', 'CTPS para categoria; formulário e laudo para ruído', 'Não exigida (art. 286, § 2º)', 'Não considerados'],
     ['29/04/1995 a 13/10/1996', 'Agente nocivo', 'Formulário; laudo para ruído', 'Exigida', 'Não considerados'],

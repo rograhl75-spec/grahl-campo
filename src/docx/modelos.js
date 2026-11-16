@@ -9,7 +9,7 @@ import {
   qualificacaoCurta, qualificacaoCompleta, blocoAssinatura, credencial, equipamentosUsados, quadroEquipamentos, quadroDiligencia,
   quadroPeriodos, quadroEpis, quadroDocumentos, quadroCriteriosRuido, quadroConfrontoRuido, quadroMedicoesRuido,
   quadroMedicoesGenerico, medicoesPorAgente, nomePostoFn, profissiografia, figurasDoCaso, respostasQuesitos, capaTecnica,
-  quadroCriteriosCalor, quadroCriteriosVibracao, documentosARequerer, quadrosParadigmasMetodologia, memoriasParadigmas, usaParadigmas,
+  quadroCriteriosCalor, quadroCriteriosVibracao, documentosARequerer, quadrosParadigmasMetodologia, memoriasParadigmas, usaParadigmas, fluxoAvaliacao,
   art, dadosDaConta, dataPorExtenso, horaPorExtenso, reaisPorExtenso, numeroPorExtenso, moeda, lerValor, nomeOrigemQuesito,
   quadroFormaEnquadramento, quadroRequisitosEpi, codigosEnquadramento, textoDeterminacao, nomeCurto,
   ehCasoMotorista, apendicesDoCaso, textoIntegram, inserirApendices, tituloVinculo, descricaoVinculo, agentesCurtos, refDespachos, ehSimilaridade, empresaDoDespacho, empresaCurta, prefixoQuesito,
@@ -259,6 +259,7 @@ export async function laudoPericial(caseId, { extra = false } = {}) {
   const objTxt = (c.objeto || []).filter((o) => o !== 'Adicional (servidor público)').join(', ').toLowerCase() || '[[objeto]]';
   d.texto(`${extra ? 'O' : 'Em atendimento à determinação judicial, o'} presente laudo tem por objetivo apurar as reais condições do ambiente e das atividades laborais desenvolvidas ${extra ? (v(c.autorNome) ? `por ${c.autorNome}` : 'pelos trabalhadores dos setores avaliados') : `pela parte ${pt.autorCurto.toLowerCase()}`}, para a caracterização ou descaracterização de ${objTxt}, ${baseLegal}${pt.trab && c.dataAjuizamento ? ` do período imprescrito (a partir de ${menosCincoAnos(c.dataAjuizamento)})` : ''}.`);
   d.h2('2.3', 'Metodologia');
+  fluxoAvaliacao(d, dados, 'trab');
   d.texto(extra
     ? 'A metodologia consistiu em análise dos documentos de SST da empresa, inspeção *in loco*, entrevistas com os trabalhadores e a supervisão e avaliações ambientais, quando cabíveis, conforme a NR-15, a NR-16 e as Normas de Higiene Ocupacional da FUNDACENTRO.'
     : 'Em atendimento ao art. 473, inciso III, do Código de Processo Civil, a metodologia consistiu em análise dos autos, inspeção *in loco*, entrevista com as partes e avaliações ambientais, quando cabíveis, conforme a NR-15, a NR-16 e as Normas de Higiene Ocupacional da FUNDACENTRO.');
@@ -353,6 +354,7 @@ export async function laudoPrevidenciario(caseId) {
   d.h2('2.1', 'Determinação judicial (objeto da perícia)');
   if (textoDeterminacao(dados, true)) d.texto(textoDeterminacao(dados, true)); else d.redigir('transcrever ou resumir o despacho que determinou a perícia (evento / mov.) – cadastre a referência do despacho na etapa 1.');
   d.h2('2.2', 'Metodologia');
+  fluxoAvaliacao(d, dados, 'prev');
   d.texto('Em atendimento ao art. 473, inciso III, do Código de Processo Civil, a metodologia consistiu em análise dos autos, inspeção *in loco* e avaliações ambientais, seguindo as NHO da FUNDACENTRO e os limites de tolerância do Anexo IV do Regulamento da Previdência Social ou, na sua ausência, da NR-15 (art. 288, I e II, da IN 128/2022); a NR-15 é aplicada quando o decreto do período a ela remete.');
   d.texto(textoTipoPericia(dados));
   // Res. CJF 305/2014, art. 30-A (incluído pela Res. CJF 575/2019): perícia por similaridade como prova emprestada
@@ -362,7 +364,7 @@ export async function laudoPrevidenciario(caseId) {
 
   d.h1('3', 'Fundamentação por período');
   d.texto('O enquadramento observa a legislação vigente à época da prestação do serviço (*tempus regit actum*).');
-  quadroFormaEnquadramento(d);
+  quadroFormaEnquadramento(d, dados);
 
   d.h1('4', 'Ambiente de trabalho e profissiografia');
   d.texto(c.funcoes || '');
@@ -456,7 +458,7 @@ export async function ltcatPpp(caseId) {
   d.h1('3', 'Fundamentação');
   d.texto('O enquadramento observa a lei vigente à época da prestação do serviço (*tempus regit actum*). O critério de cada agente consta do item 5.');
   d.h2('3.1', 'Exigências por período');
-  quadroFormaEnquadramento(d);
+  quadroFormaEnquadramento(d, dados);
   d.h2('3.2', 'Categoria de segurado e Emenda Constitucional nº 103/2019');
   d.redigir(`categoria do segurado (empregado / contribuinte individual${comJurisprudencia(dados) ? ' – STJ, Tema 1291' : ''}) e efeitos da EC 103/2019 (vigente desde 13/11/2019) sobre os períodos posteriores.`);
   registroJurisprudencia(d, dados, { numero: '3.3', nivel: 'h2', prev: true, tipo: 'ltcat' });
@@ -540,9 +542,10 @@ export async function parecerPrevidenciario(caseId) {
   d.h2('4.1', 'Enquadramento por período (tempus regit actum)');
   d.texto('O enquadramento observa a legislação previdenciária vigente à época da prestação do serviço: por categoria profissional até 28/04/1995 e por exposição a agentes nocivos a partir de 29/04/1995. Os critérios de cada agente, por período, constam do item 7.');
   d.redigir('ajustes específicos do caso (categoria do segurado, EC 103/2019).');
-  quadroFormaEnquadramento(d);
+  quadroFormaEnquadramento(d, dados);
   registroJurisprudencia(d, dados, { numero: '4.2', nivel: 'h2', prev: true, tipo: 'parecer' });
   d.h1('5', 'Metodologia');
+  fluxoAvaliacao(d, dados, 'prev');
   d.redigir('etapas; avaliação por similaridade (quando aplicável); normalização pela jornada efetiva; instrumentação.');
   if (!quadrosParadigmasMetodologia(d, dados)) quadroEquipamentos(d, equipamentosUsados(dados));
   d.h1('6', 'Descrição das atividades por vínculo');
@@ -610,7 +613,7 @@ export async function parecerAssistente(caseId) {
     n += 1;
     d.h1(String(n), 'Critérios técnicos por período');
     d.texto('O enquadramento observa a legislação vigente à época da prestação do serviço (*tempus regit actum*).');
-    quadroFormaEnquadramento(d);
+    quadroFormaEnquadramento(d, dados);
     if (dados.medicoes.some((m) => m.data.agente === 'Ruído') || /ru[ií]do/i.test(`${c.agentesAlegados || ''} ${dados.periodos.map((r) => r.data.agentes || '').join(' ')}`)) quadroCriteriosRuido(d);
     n += 1;
     d.h1(String(n), 'Análise por período');

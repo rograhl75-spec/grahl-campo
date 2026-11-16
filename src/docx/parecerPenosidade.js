@@ -7,7 +7,7 @@
 // ======================================================================
 import {
   carregar, finalizar, dataBR, credencial, capaTecnica, blocoAssinatura, quadroFormaEnquadramento, quadroCriteriosRuido,
-  quadroCriteriosVibracao, quadrosParadigmasMetodologia, memoriasParadigmas, figurasDoCaso, apendicesDoCaso,
+  quadroCriteriosVibracao, quadrosParadigmasMetodologia, memoriasParadigmas, figurasDoCaso, apendicesDoCaso, fluxoAvaliacao,
   textoIntegram, inserirApendices, quadroEquipamentos, equipamentosUsados, hojeLocal,
 } from './base.js';
 import { Doc } from './ooxml.js';
@@ -125,6 +125,7 @@ export async function parecerPenosidade(caseId) {
   // 1 Objetivo e metodologia
   d.h1('1', 'Objetivo e metodologia');
   d.texto(`Este parecer técnico de engenharia de segurança do trabalho avalia as condições de trabalho de ${c.autorNome || '[[segurado]]'} na função de ${atividade.toLowerCase().replace(/[.:;\s]+$/, '')}: a exposição a agentes nocivos (ruído e vibração) e os fatores de penosidade de cada vínculo, para ${v(c.finalidade) && c.finalidade !== 'Outra' ? c.finalidade.replace(/^./, (k) => k.toLowerCase()) : 'subsidiar o pedido de aposentadoria especial'}. O enquadramento jurídico dos períodos cabe ao INSS ou ao Poder Judiciário; o documento fornece os parâmetros técnicos para essa decisão.`);
+  fluxoAvaliacao(d, dados, 'penosidade');
   d.h2('1.1', 'Avaliação por similaridade');
   d.texto('Os veículos conduzidos nos vínculos antigos foram desativados, vendidos ou substituídos. Por isso, o ruído e a vibração são quantificados por similaridade: medições realizadas pelo signatário, em perícias judiciais e em avaliações extrajudiciais, em veículos com as mesmas características técnicas dos conduzidos pelo segurado, normalizadas para o tempo diário de condução informado. A fonte de cada valor (processo, vara e data, ou avaliação extrajudicial) consta do quadro de cada vínculo e da memória de cálculo.');
   d.texto(jur
@@ -145,7 +146,7 @@ export async function parecerPenosidade(caseId) {
   // 2 Marco legal
   d.h1('2', 'Marco legal por período (tempus regit actum)');
   d.texto('Aplica-se a legislação vigente em cada período de trabalho: até 28/04/1995, enquadramento por categoria profissional de motorista de ônibus ou de caminhão de cargas (cód. 2.4.4 do Decreto nº 53.831/1964 e cód. 2.4.2 do Anexo II do Decreto nº 83.080/1979); a partir de 29/04/1995, comprovação da efetiva exposição a agentes nocivos.');
-  quadroFormaEnquadramento(d);
+  quadroFormaEnquadramento(d, dados);
   quadroCriteriosRuido(d);
   quadroCriteriosVibracao(d);
   d.texto(jur

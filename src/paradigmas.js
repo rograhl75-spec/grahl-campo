@@ -1,6 +1,7 @@
 import { db, mergeIncoming, createRecord, updateFields, newId } from './db.js';
 import { normalize, mergeRecords, sameContent } from './merge.js';
 import { num as numBR } from './calc.js';
+import { familiaDoGrupo, tipoDoGrupo } from './schema.js';
 
 // ======================================================================
 // Banco de paradigmas (veículos e máquinas medidos), similares e famílias.
@@ -345,3 +346,31 @@ export function lerJsonVeiculos(texto) {
   if (!Array.isArray(lista) || !lista.length) throw new Error('O JSON não traz a lista "veiculos".');
   return lista;
 }
+
+
+// ---------- Paradigma por vínculo (motorista) ----------
+// Busca automática para um vínculo: marca/modelo (tabela de similares), família (do vínculo ou do grupo do veículo)
+// e tipo. Devolve o melhor candidato de ruído e de vibração (fora os "NÃO USAR") e o critério usado.
+export async function sugerirParaVinculo(r) {
+  const x = r.data || r;
+  const familia = String(x.familiaVeiculo || '').trim() || familiaDoGrupo(x.grupoVeiculo);
+  const res = await sugerirParadigmas({ marca: x.veiculoMarca || '', modelo: x.veiculoModelo || '', tipo: x.veiculoTipo || tipoDoGrupo(x.grupoVeiculo), familia });
+  const ok = (l) => l.find(({ p }) => !/não usar/i.test(p.data.situacao || '')) || null;
+  return { ruido: ok(res.ruido), vibracao: ok(res.vibracao), criterio: res.criterio, familia: res.familia || familia, todos: res };
+}
+
+// Ficha para pesquisar o paradigma nos documentos do signatário quando o banco não tem
+const br = (iso) => String(iso || '').replace(/^(\d{4})-(\d{2})-(\d{2}).*$/, '$3/$2/$1');
+export function fichaPesquisa(r, familiaSugerida = '') {
+  const x = r.data || r;
+  const veic = [x.veiculoTipo, x.veiculoMarca, x.veiculoModelo, x.veiculoAno].map((t) => String(t || '').trim()).filter(Boolean).join(' ');
+  return [
+    ['Vínculo', `${x.empresa || ''} (${br(x.inicio) || '?'} a ${br(x.fim) || 'atual'})`],
+    ['Veículo', veic || 'não informado'],
+    ['Grupo', x.grupoVeiculo || 'não informado'],
+    ['Família técnica sugerida', familiaSugerida || 'definir pelo modelo (motor dianteiro x cabine avançada)'],
+    ['Cabine / conforto', x.cabine || ''], ['Carroceria / reboque', x.carroceria || ''], ['Carga', x.tipoCarga || ''],
+    ['Tempo diário de condução', x.conducaoH ? `${x.conducaoH} h` : 'informar'],
+  ].filter(([, t]) => String(t).trim());
+}
+export const fichaPesquisaTexto = (r, fam) => fichaPesquisa(r, fam).map(([k, t]) => `${k}: ${t}`).join('; ');

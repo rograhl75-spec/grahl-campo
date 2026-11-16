@@ -144,14 +144,14 @@ export class Doc {
     return this.add(p([a3, run(t3, { b: true, color: AZUL }), z3], { style: 'Ttulo3', align: 'left', before: 240, after: 120, keepNext: true, outline: 2 }));
   }
   // Quadro numerado: título acima, tabela, fonte abaixo
-  quadro(titulo, linhas, { larguras, header = true, fonte = 'Elaborado pelo signatário.', tam = 10, alinhar = 'both' } = {}) {
+  quadro(titulo, linhas, { larguras, header = true, fonte = 'Elaborado pelo signatário.', tam = 10, alinhar = 'both', juntar } = {}) {
     if (!linhas || linhas.length <= (header ? 1 : 0)) return this;
     this.nQuad += 1;
     const n = this.nQuad;
     const [aq, zq] = this.marca('Quadro', `Quadro ${n} – ${titulo}`);
     this.add(`<w:p>${pPr({ align: 'center', before: 240, after: 100, line: 276, keepNext: true })}${aq}` +
       run('Quadro ', { b: true, size: 10 }) + campoSeq('Quadro', n, { b: true, size: 10 }) + run(` – ${titulo}`, { b: true, size: 10 }) + `${zq}</w:p>`);
-    this.add(tabela(linhas, { larguras, header, tam, alinhar }));
+    this.add(tabela(linhas, { larguras, header, tam, alinhar, juntar }));
     // ABNT/IBGE: "Fonte" alinhada à esquerda, logo abaixo do quadro
     this.add(p([run(fonte ? 'Fonte: ' : '', { size: 9, b: true, color: CINZA }), rich(fonte || '', { size: 9, color: CINZA })], { align: 'left', before: 60, after: 280, line: 240 }));
     return this;

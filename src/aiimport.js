@@ -176,12 +176,34 @@ Em "preliminares", as pendências e documentos a pedir ao segurado antes da vist
   },  {
     id: 'extra-penosidade', titulo: 'Extrajudicial – parecer técnico de condições de trabalho e penosidade (motorista)',
     foco: `Vou elaborar um PARECER TÉCNICO EXTRAJUDICIAL de condições de trabalho e penosidade para um MOTORISTA (caminhão, carreta, ônibus), a pedido do segurado ou do advogado, para instruir requerimento ao INSS, revisão ou ação judicial de aposentadoria especial. Leia os documentos anexados: ENTREVISTA do segurado (Word, PDF ou anotação), CTPS, CNIS, PPP e laudos que houver.
-FOCO, por vínculo (um item em "periodos" para cada contrato; o mesmo empregador em dois contratos = dois itens):
-- empresa, CNPJ, início e fim EXATAMENTE como na CTPS/CNIS (vínculo em aberto: "fim" vazio), cargo/função;
-- veículo: tipo, marca, modelo e ano, e o "grupoVeiculo" (use exatamente um destes: Caminhão toco (chassi rígido, eixo simples) | Caminhão truck (chassi rígido, eixo duplo) | Cavalo mecânico com cabine convencional / semiavançada, sem ar-condicionado (projeto antigo) | Cavalo mecânico com cabine avançada (cara-chata) | Caminhão pesado moderno (câmbio automatizado, suspensão de cabine, ar-condicionado) | Ônibus (transporte coletivo) | Van / utilitário | Máquina agrícola ou de construção);
-- carroceria/reboque, tipo de carga, se carregava/descarregava, trajetos e rotas (em "vias", com cidades e UFs), pernoite (em "noturnoPernoite"), jornada (em "jornadaSemanal"; e as horas de direção por dia em "conducaoH", número), onde abastecia, acidente e assalto no vínculo (só "Não" quando a entrevista disser que não houve);
-- cabine e conforto (ar-condicionado, câmbio, motor junto da cabine) em "cabine"; esperas, enlonamento e amarração em "cargaDescarga"; prazos e metas em "pressao"; pausas e acesso a sanitários/alimentação em "pausas" e "fisiologicas" – SÓ se a entrevista disser; não deduza.
-Copie as palavras da entrevista; não amplie ("jornadas extenuantes", "desumanas" etc. só se o segurado disse). Em "preliminares", as divergências entre a entrevista e a CTPS/CNIS (datas, empresas) e o que falta perguntar ao segurado. Em "roteiro", os veículos sem paradigma no banco a pesquisar.
+
+VÍNCULOS ("periodos")
+1. Um item por CONTRATO, com empresa, CNPJ, início e fim EXATAMENTE como na CTPS/CNIS (vínculo em aberto: "fim" vazio). Se a entrevista juntar dois contratos da mesma empresa (ex.: "2013 a 2014 e 2020 a 2021"), crie um item para cada contrato, com as respostas da entrevista copiadas nos dois.
+2. Inclua só os vínculos de motorista (ou de função ligada à condução). Em "fonte", a origem de cada dado (ex.: "CTPS I fl. 14; CNIS seq. 3; entrevista item 1"); notas de leitura e divergências de data vão para "preliminares", não para "fonte".
+3. "Mesma empresa anterior", "mesmas atividades", "idem": copie TODAS as respostas do item citado para este vínculo e acrescente só o que a entrevista disser de diferente; em "conducaoBase", escreva "conforme o item N da entrevista".
+
+ENTREVISTA → CAMPOS DE CADA VÍNCULO (cada resposta no campo certo, mesmo que a entrevista a tenha anotado na linha errada)
+- Veículo: "veiculoTipo" (toco, truck, 3/4, carreta, ônibus…), "veiculoMarca" e "veiculoModelo" separados (ex.: "Volkswagen" + "8.150"; "Mercedes-Benz" + "1313"; "Chevrolet" + "D-60"), "veiculoAno". Sem aspas, sem a anotação crua da entrevista. Dois veículos no mesmo vínculo: os dois em "veiculoModelo", separados por " / ".
+- "grupoVeiculo": exatamente um destes: Caminhão leve 3/4 / VUC | Caminhão toco (chassi rígido, eixo simples) | Caminhão truck (chassi rígido, eixo duplo) | Cavalo mecânico com cabine convencional / semiavançada, sem ar-condicionado (projeto antigo) | Cavalo mecânico com cabine avançada (cara-chata) | Caminhão pesado moderno (câmbio automatizado, suspensão de cabine, ar-condicionado) | Ônibus (transporte coletivo) | Van / utilitário | Máquina agrícola ou de construção.
+- "cabine": climatização ("sem ar-condicionado" / "com ar-condicionado"), câmbio, direção, motor junto da cabine.
+- "carroceria": carroceria ou reboque (baú refrigerado, baú carga seca, graneleiro, carroceria aberta…). "tipoCarga": o que transportava.
+- "carregaDescarrega": "Não", "Carregava", "Descarregava" ou "Carregava e descarregava" ("sim" = "Carregava e descarregava"); o modo (catraca, manual, empilhadeira) e o tempo vão em "cargaDescarga".
+- "vias": trajetos com as cidades e as UFs (deduza a UF só de cidade inequívoca do mesmo estado do trajeto; senão, sem UF).
+- "noturnoPernoite": onde pernoitava (cabine, hotel/pousada, casa) e se virava a noite.
+- "jornadaSemanal": horário e rotina (ex.: "05h00 às 20h00; sai na segunda e volta na quinta").
+- "conducaoH": horas de direção por dia (número). Se só houver o horário, use a duração do horário menos os tempos de carga, descarga e paradas que a entrevista informar; em "conducaoBase", mostre a conta e acrescente "confirmar com o segurado". Sem informação, deixe vazio.
+- "abastecimento": onde abastecia. "acidenteVinculo" e "assaltoVinculo": "Não", ou a descrição. NÃO repita essas respostas em "riscoAcidente": ele é só para riscos relatados (rota perigosa, carga visada).
+- "pressao", "pausas", "fisiologicas": SÓ se a entrevista disser; não deduza.
+
+TEXTO
+- Copie o sentido das respostas sem ampliar ("jornadas extenuantes", "desumanas" etc. só se o segurado disse). Corrija acentos, maiúsculas e nomes de cidades (ex.: "bau" → "baú", "cambé" → "Cambé", "cornelio procopio" → "Cornélio Procópio") e troque reticências e vírgulas repetidas por vírgula; não mude o conteúdo.
+- "sintese.funcoes": só a função e a síntese dos períodos (ex.: "Motorista de caminhão – 10 vínculos de 1993 a 2026"). Números de CTPS, NIT e documentos vão para "partes.autorCpf" ou "fonte", nunca para "funcoes".
+- Não inclua agentes químicos ou inflamáveis pelo abastecimento em posto (operado pelo frentista, exposição eventual), salvo se a entrevista disser que o motorista operava a bomba ou manipulava combustível na rotina.
+
+PENDÊNCIAS
+- "preliminares": (a) divergências entre a entrevista, a CTPS e o CNIS (datas, empresas, vínculos sem entrevista); (b) as perguntas da entrevista que ficaram sem resposta, por vínculo (ex.: "Vandir: jornada e pernoite não informados"); (c) as notas de leitura (número ilegível, data deduzida).
+- "roteiro": os veículos sem paradigma conhecido a pesquisar, com marca, modelo, ano e grupo.
+
 Lembre: até 28/04/1995, categoria profissional (cód. 2.4.4 / 2.4.2); depois, penosidade só com perícia individualizada (IAC nº 5 do TRF4; STJ, Tema 1307); após 13/11/2019 não há conversão de tempo especial em comum (EC 103/2019, art. 25, § 2º).`,
   },
   {
@@ -265,9 +287,12 @@ export function lerJsonIA(texto) {
     }).filter((m) => Object.keys(m).length > 2),
   })).filter((p) => p.nome || p.medicoes.length);
   for (const k of CAMPOS_DATA_CASO) if (caso[k]) { const iso = dataIso(caso[k]); if (iso) caso[k] = iso; else delete caso[k]; }
+  // limpeza do texto vindo da entrevista: reticências repetidas, aspas soltas e espaços duplos
+  const limpar = (t) => String(t || '').replace(/\.{2,}/g, ', ').replace(/\s+,/g, ',').replace(/,\s*,+/g, ',').replace(/^['"‘“]+|['"’”]+$/g, '').replace(/\s{2,}/g, ' ').trim();
+  const limparPeriodo = (p) => Object.fromEntries(Object.entries(p).map(([k, val]) => [k, typeof val === 'string' && !['inicio', 'fim', 'cnpj'].includes(k) ? limpar(val) : val]));
   return {
     caso,
-    periodos: lista(obj.periodos).map((x) => ({ empresa: s(x.empresa), cnpj: s(x.cnpj), inicio: dataIso(s(x.inicio)) || s(x.inicio), fim: dataIso(s(x.fim)) || s(x.fim), cargo: s(x.cargo), setor: s(x.setor), atividades: s(x.atividades), agentes: s(x.agentes), fonte: s(x.fonte),
+    periodos: lista(obj.periodos).map((x) => limparPeriodo({ empresa: s(x.empresa), cnpj: s(x.cnpj), inicio: dataIso(s(x.inicio)) || s(x.inicio), fim: dataIso(s(x.fim)) || s(x.fim), cargo: s(x.cargo), setor: s(x.setor), atividades: s(x.atividades), agentes: s(x.agentes), fonte: s(x.fonte),
       ...Object.fromEntries(['tipoTransporte', 'jornadaSemanal', 'noturnoPernoite', 'cargaDescarga', 'vias', 'riscoAcidente', 'cabine', 'pausas', 'pressao', 'fisiologicas', 'grupoVeiculo', 'veiculoTipo', 'veiculoMarca', 'veiculoModelo', 'veiculoAno', 'conducaoH', 'conducaoBase', 'carroceria', 'tipoCarga', 'carregaDescarrega', 'abastecimento', 'acidenteVinculo', 'assaltoVinculo'].map((k) => [k, s(x[k])]).filter(([, val]) => val)) })),
     documentos: lista(obj.documentos).map((x) => ({ tipo: s(x.tipo), identificacao: s(x.identificacao), analise: s(x.analise) })),
     epis: lista(obj.epis).map((x) => ({ descricao: s(x.descricao), ca: s(x.ca), dataEntrega: s(x.dataEntrega), obs: s(x.obs) })),

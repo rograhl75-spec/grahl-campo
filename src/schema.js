@@ -39,6 +39,7 @@ export const FINALIDADE_PARECER = [
 
 // Grupos de veículo da entrevista do motorista (dinâmica de vibração e ruído); orientam a escolha do paradigma
 export const GRUPOS_VEICULO = [
+  'Caminhão leve 3/4 / VUC',
   'Caminhão toco (chassi rígido, eixo simples)',
   'Caminhão truck (chassi rígido, eixo duplo)',
   'Cavalo mecânico com cabine convencional / semiavançada, sem ar-condicionado (projeto antigo)',
@@ -49,11 +50,20 @@ export const GRUPOS_VEICULO = [
   'Máquina agrícola ou de construção',
 ];
 // tipo usado na busca do banco de paradigmas para cada grupo
-export const TIPO_DO_GRUPO = ['Toco', 'Truck', 'Cavalo', 'Cavalo', 'Cavalo', 'Ônibus', 'Van', 'Trator'];
+export const TIPO_DO_GRUPO = ['3/4', 'Toco', 'Truck', 'Cavalo', 'Cavalo', 'Cavalo', 'Ônibus', 'Van', 'Trator'];
+// família técnica (banco de paradigmas) que cada grupo indica; '' = depende do modelo (motor dianteiro x cabine avançada)
+export const FAMILIA_DO_GRUPO = ['F3', '', '', 'F5', 'F6', 'F8', 'F2', 'F3', ''];
+// campos que "Copiar do vínculo" leva de um vínculo para outro com as mesmas atividades
+export const CAMPOS_VEICULO_COPIAVEIS = ['veiculoTipo', 'veiculoMarca', 'veiculoModelo', 'veiculoAno', 'conducaoH', 'conducaoBase', 'grupoVeiculo', 'familiaVeiculo', 'carroceria', 'tipoCarga',
+  'carregaDescarrega', 'abastecimento', 'acidenteVinculo', 'assaltoVinculo', 'tipoTransporte', 'jornadaSemanal', 'pausas', 'noturnoPernoite', 'cargaDescarga', 'vias', 'cabine', 'riscoAcidente', 'pressao', 'fisiologicas',
+  'paradigmaRuido', 'paradigmaVibracao'];
+export const familiaDoGrupo = (g) => FAMILIA_DO_GRUPO[GRUPOS_VEICULO.indexOf(g)] || '';
+export const tipoDoGrupo = (g) => TIPO_DO_GRUPO[GRUPOS_VEICULO.indexOf(g)] || '';
 
 // Entrevista do motorista por vínculo (complementa os fatores de penosidade)
 export const CAMPOS_ENTREVISTA_MOTORISTA = [
   ['grupoVeiculo', 'Grupo do veículo', 'select', GRUPOS_VEICULO],
+  ['familiaVeiculo', 'Família técnica do paradigma (F1…F8; em branco = pelo grupo)', 'text'],
   ['carroceria', 'Carroceria / reboque (ex.: graneleiro, baú, porta-contêiner, caçamba)', 'text'],
   ['tipoCarga', 'Tipo de carga (ex.: grãos, frigorificada, perecíveis, passageiros)', 'text'],
   ['carregaDescarrega', 'Carregava / descarregava?', 'select', ['Não', 'Carregava', 'Descarregava', 'Carregava e descarregava']],

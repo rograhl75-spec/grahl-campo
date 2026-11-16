@@ -33,6 +33,8 @@ export function valores(r, dados) {
   const ids = new Set(postosDoPeriodo(r, dados).map((p) => p.id));
   const mr = dados.medicoes.find((m) => m.data.agente === 'Ruído' && ids.has(m.data.postoId));
   const mv = dados.medicoes.find((m) => /corpo inteiro/.test(m.data.agente || '') && ids.has(m.data.postoId));
+  // paradigma sem o tempo diário de condução: não há como normalizar (NEN, aren) – fica pendente, não "NÃO"
+  out.semT = !isFinite(T) && !!(pr || pv);
   if (pr) { out.lavg = num(pr.data.lavg); out.nen = isFinite(T) ? nenParaJornada(pr.data.lavg, T) : NaN; out.fonteR = `paradigma ${pr.data.codigo}`; }
   else if (mr) {
     out.q = fatorQ(mr);
@@ -76,11 +78,17 @@ export function avaliarPeriodos(dados) {
         // antes de 19/11/2003 a metodologia é a da NR-15 (q = 5): Leq com q = 3 não serve de Lavg
         if (crit === 'Lavg' && val.q === 3) {
           itens.push({ t: `Ruído: medição com q = 3 (NHO-01) – [[período anterior a 19/11/2003 exige o Lavg com q = 5 (NR-15); refaça a leitura do dosímetro com q = 5]]`, cod, sup: false, ruido: true, pendente: true });
+        } else if (!isFinite(x) && val.semT) {
+          itens.push({ t: 'Ruído: [[informe o tempo diário de condução do vínculo para calcular o NEN do paradigma]]', cod, sup: false, ruido: true, pendente: true });
         } else if (isFinite(x)) {
           const sup = superaLimite(x, lim);
           itens.push({ t: `Ruído: ${crit}${crit === 'NEN' && val.q === 3 ? ' (q = 3, NHO-01)' : ''} ${fmt(x, 1)} dB(A) ${sup ? '>' : '≤'} ${lim} dB(A) – ${sup ? 'supera' : 'não supera'}`, cod, sup, ruido: true });
           if (sup) algum = true;
         }
+      }
+      if (!isFinite(val.aren) && val.semT && r.data.paradigmaVibracao && b > '1997-03-05') {
+        dadosOk = true;
+        itens.push({ t: 'VCI: [[informe o tempo diário de condução do vínculo para normalizar a vibração do paradigma]]', cod: '2.0.2', sup: false, pendente: true });
       }
       if (isFinite(val.aren)) {
         dadosOk = true;
@@ -105,16 +113,30 @@ export function avaliarPeriodos(dados) {
 }
 
 // Quadro + texto da conclusão; penosidade descrita para auxiliar o Juízo
-export function conclusaoPrevidenciaria(d, dados, { tituloQuadro = 'Conclusão por período' } = {}) {
+// de onde vieram os fatores de penosidade (extrajudicial sem vistoria não fala em "autor", "vistoria" nem "medições")
+function fontesPenosidade(dados) {
+  const quem = dados.c.tipoAtuacao === 'Extrajudicial' ? 'do segurado' : 'do autor';
+  const vist = !!(dados.c.vistoriaData || dados.postos.length);
+  const med = dados.medicoes.some((m) => /Ru[ií]do|corpo inteiro/.test(m.data.agente || ''));
+  const par = dados.periodos.some((r) => r.data.paradigmaRuido || r.data.paradigmaVibracao);
+  return [`na entrevista ${quem}`, vist && 'na vistoria', med && 'nas medições', par && 'nos paradigmas de medição'].filter(Boolean).join(', ').replace(/, ([^,]*)$/, ' e $1');
+}
+
+// fim do subperíodo: vínculo em aberto termina "atual" (não na data de geração do documento)
+export const fimSeg = (r, s) => (!r.data.fim && s.fim === hojeLocal() ? 'atual' : dataBR(s.fim));
+
+// resumoPenosidade: false quando o documento já traz a penosidade vínculo a vínculo (parecer de penosidade)
+export function conclusaoPrevidenciaria(d, dados, { tituloQuadro = 'Conclusão por período', resumoPenosidade = true } = {}) {
   const av = avaliarPeriodos(dados);
   if (!av.length) { d.redigir('cadastre os vínculos na etapa 2. Autos.'); return; }
   d.quadro(tituloQuadro, [['Vínculo / período', 'Avaliação pericial', 'Código', 'Caracteriza'],
-    ...av.flatMap(({ r, segs }) => segs.map((s) => [`${r.data.empresa || ''}\n${dataBR(s.ini)} a ${dataBR(s.fim)}`,
+    ...av.flatMap(({ r, segs }) => segs.map((s) => [`${String(r.data.empresa || '').replace(/\s*\((CTPS|sucess)[^)]*\)/gi, '')}\n${dataBR(s.ini)} a ${fimSeg(r, s)}`,
       s.itens.length ? s.itens.map((i) => i.t).join('\n') : '[[sem avaliação quantitativa para o período]]', s.codigos, s.caracteriza]))],
   { larguras: [0.23, 0.45, 0.2, 0.12], tam: 9,
     fonte: `Elaborado pelo signatário. Ruído com o fator de duplicação de cada medição (q = 5, salvo indicação de q = 3); NEN e aren normalizados para o tempo diário de exposição${/motorista|caminh|ônibus|carreteir/i.test(`${dados.c.funcoes || ''} ${dados.periodos.map((r) => r.data.cargo || '').join(' ')}`) ? ' (condução)' : ''} de cada vínculo, quando informado.` });
 
   const semEpi = !dados.epis.length;
+  const pendentes = [];
   for (const { r, val, segs } of av) {
     const sim = segs.filter((s) => s.caracteriza === 'SIM');
     const nao = segs.filter((s) => s.caracteriza === 'NÃO');
@@ -124,7 +146,7 @@ export function conclusaoPrevidenciaria(d, dados, { tituloQuadro = 'Conclusão p
       const u = acc[acc.length - 1];
       if (u && dia(u.fim, 1) === s.ini) u.fim = s.fim; else acc.push({ ini: s.ini, fim: s.fim });
       return acc;
-    }, []).map((s) => `${dataBR(s.ini)} a ${dataBR(s.fim)}`).join(', ');
+    }, []).map((s) => `${dataBR(s.ini)} a ${fimSeg(r, s)}`).join(', ');
     const partes = [];
     // enquadramento só por categoria (até 28/04/1995) é presunção legal, não exposição avaliada
     const soCat = (s) => s.itens.filter((i) => i.sup).every((i) => i.categoria);
@@ -134,16 +156,20 @@ export function conclusaoPrevidenciaria(d, dados, { tituloQuadro = 'Conclusão p
     if (agente.length) partes.push(`caracteriza exposição habitual e permanente, não ocasional nem intermitente, a agentes nocivos ${pl(agente, 'no período', 'nos períodos')} de ${p(agente)} (cód. ${cods(agente)})`);
     if (nao.length) partes.push(`não caracteriza ${pl(nao, 'no período', 'nos períodos')} de ${p(nao)}, em que os valores avaliados não superam os limites da época`);
     const base = [val.fonteR && `ruído pelo ${val.fonteR}`, val.fonteV && `vibração pelo ${val.fonteV}`, isFinite(val.T) && `condução de ${String(r.data.conducaoH).replace('.', ',')} h/dia`].filter(Boolean).join(', ');
+    if (!partes.length && segs.some((sg) => sg.caracteriza === '[[pendente]]')) { pendentes.push(`${r.data.empresa || 'Vínculo'} (tempo diário de condução)`); continue; }
     if (partes.length) d.texto(`**${r.data.empresa || 'Vínculo'} (${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}):** a avaliação pericial${base ? ` (${base})` : ''} ${partes.join('; e ')}.`);
-    else d.redigir(`conclusão do vínculo ${r.data.empresa || ''} – sem valores avaliados vinculados a ele (vincule o veículo/posto ou o paradigma).`);
+    else pendentes.push(r.data.empresa || 'Vínculo');
   }
+  // um aviso só para todos os vínculos ainda sem valores (antes, um "Redigir" por vínculo)
+  if (pendentes.length) d.redigir(`conclusão ${pendentes.length === 1 ? 'do vínculo' : 'dos vínculos'} ${pendentes.join('; ')} – sem valores avaliados (vincule o paradigma ou a medição do veículo/posto e informe o tempo diário de condução).`);
   const ruidoSup = av.some(({ segs }) => segs.some((s) => s.itens.some((i) => i.ruido && i.sup)));
   if (ruidoSup && !semEpi && comJurisprudencia(dados)) d.texto('Quanto ao ruído, a eventual declaração de eficácia do EPI (protetor auricular) não descaracteriza o tempo especial (STF, Tema 555 – ARE 664.335).');
   if (semEpi) d.texto('Não foram apresentados registros de fornecimento de EPI nem dos demais requisitos de responsabilidade do empregador (art. 291 da IN 128/2022); assim, não se considera neutralizada a exposição em nenhum dos períodos.');
 
-  if (avaliaPenosidade(dados)) {
+  if (resumoPenosidade && avaliaPenosidade(dados)) {
     const jur = comJurisprudencia(dados);
-    const vs = vinculosMotorista(dados);
+    // até 28/04/1995 o enquadramento é por categoria: o vínculo encerrado até essa data não entra na síntese de penosidade
+    const vs = vinculosMotorista(dados).filter((r) => !r.data.fim || r.data.fim > '1995-04-28');
     const textos = vs.map((r) => {
       const m = matrizIAC(r, dados);
       const f = m.criterios.filter((c) => c.linhas.length).map((c) => `${c.titulo.replace(/^\d\. Análise d[oa]s? /, '').replace(/^./, (k) => k.toUpperCase())} – ${c.linhas.map((l) => l.replace(/^[^:]+: /, '')).join('; ')}`);
@@ -151,7 +177,7 @@ export function conclusaoPrevidenciaria(d, dados, { tituloQuadro = 'Conclusão p
       return `**${r.data.empresa || 'Vínculo'} (${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}):** ${f.join('. ')}.${m.conclusao ? ` **${m.conclusao}**` : ''}`;
     }).filter(Boolean);
     if (textos.length) {
-      d.texto(`Quanto à penosidade da atividade de motorista após 28/04/1995, a perícia avaliou cada vínculo por uma matriz de fatores (veículo, trajetos, cargas e jornadas)${jur ? ', em atenção ao Tema 1307 do STJ e aos IAC nº 5 e nº 12 do TRF4' : ''}, com base na entrevista do autor, na vistoria e nas medições. Em síntese:`);
+      d.texto(`Quanto à penosidade da atividade de motorista após 28/04/1995, a perícia avaliou cada vínculo por uma matriz de fatores (veículo, trajetos, cargas e jornadas)${jur ? ', em atenção ao Tema 1307 do STJ e aos IAC nº 5 e nº 12 do TRF4' : ''}, com base ${fontesPenosidade(dados)}. Em síntese:`);
       for (const t of textos) d.texto(`- ${t}`);
     }
   }

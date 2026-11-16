@@ -723,7 +723,7 @@ export function memoriasParadigmas(d, dados, { numero = '' } = {}) {
       const nen = sp.janela.crit === 'NEN' && isFinite(T) ? nenParaJornada(lavg, T) : NaN;
       const valor = sp.janela.crit === 'Lavg' ? lavg : nen;
       const supera = isFinite(valor) ? (superaLimite(valor, sp.janela.lim) ? 'SIM' : 'NÃO') : '[[?]]';
-      linhasR.push([`V${i + 1} – ${dataBR(sp.ini)} a ${dataBR(sp.fim)}`, p ? `${p.data.marca} ${p.data.modelo}`.trim() : `[[${r.data.paradigmaRuido}?]]`,
+      linhasR.push([`V${i + 1} – ${dataBR(sp.ini)} a ${!r.data.fim && sp.fim === hojeLocal() ? "atual" : dataBR(sp.fim)}`, p ? `${p.data.marca} ${p.data.modelo}`.trim() : `[[${r.data.paradigmaRuido}?]]`,
         f2(lavg), isFinite(T) ? `${String(r.data.conducaoH).replace('.', ',')} h` : '[[T]]', sp.janela.crit === 'NEN' ? f2(nen) : '—',
         `${sp.janela.crit} > ${sp.janela.lim}`, f2(valor), supera]);
     }
@@ -751,7 +751,7 @@ export function memoriasParadigmas(d, dados, { numero = '' } = {}) {
         crit = 'NR-15, Anexo 8';
         res = !isFinite(aren) ? 'Sem dados' : (aren > LIM_NR15_AREN || (isFinite(vdv) && vdv > LIM_NR15_VDV)) ? 'Acima do LE' : 'Abaixo do LE';
       }
-      linhasV.push([`V${i + 1} – ${dataBR(sp.ini)} a ${dataBR(sp.fim)}`, p ? `${p.data.marca} ${p.data.modelo}`.trim() : 'Sem dados', f2(arep),
+      linhasV.push([`V${i + 1} – ${dataBR(sp.ini)} a ${!r.data.fim && sp.fim === hojeLocal() ? "atual" : dataBR(sp.fim)}`, p ? `${p.data.marca} ${p.data.modelo}`.trim() : 'Sem dados', f2(arep),
         isFinite(T) ? `${String(r.data.conducaoH).replace('.', ',')} h` : '[[T]]', f2(aren), f2(vdv), crit, res]);
     }
   });

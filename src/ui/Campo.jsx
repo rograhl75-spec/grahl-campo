@@ -169,7 +169,7 @@ function QuimicoDoBanco({ m }) {
           {agentes.map((a) => <option value={a.id}>{a.data.nome}{a.data.cas ? ` (CAS ${a.data.cas})` : ''}</option>)}
         </select>
       </label>
-      {!agentes.length && <small class="dica">O banco está vazio. Carregue a base em Paradigmas → Agentes químicos.</small>}
+      {!agentes.length && <small class="dica">O banco está vazio. Carregue a base em Bases técnicas → Agentes químicos.</small>}
       {ag && !ag.data.nr15Ppm && !ag.data.nr15Mgm3 && <div>Este agente não tem limite no Quadro 1 do Anexo 11 no banco. {ag.data.nr15Obs || 'Veja os Anexos 12, 13 e 13-A.'}</div>}
       {ag && ag.data.acgihTwa && <div><b>ACGIH{ag.data.acgihEdicao ? ` ${ag.data.acgihEdicao}` : ''}</b> (referência técnica, NR-9): TWA {ag.data.acgihTwa}{ag.data.acgihStel ? ` · ${ag.data.acgihStel}` : ''}{ag.data.acgihNotacoes ? ` · ${ag.data.acgihNotacoes}` : ''}</div>}
       {ag && ag.data.linach && <div><b>LINACH {ag.data.linach}</b>{ag.data.linach === 'Grupo 1' ? ' – previdenciário: avaliação qualitativa para períodos a partir de 08/10/2014, se o agente tiver CAS e constar do Anexo IV (IN 128/2022, art. 298); a partir de 01/07/2020 (Dec. 10.410/2020), medidas de controle que eliminem a nocividade descaracterizam a exposição.' : ''}</div>}

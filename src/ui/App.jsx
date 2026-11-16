@@ -36,7 +36,7 @@ export function App() {
         </a>
         <nav>
           <a href="#/" class={partes[0] === '' || partes[0] === 'caso' ? 'ativo' : ''}>Casos</a>
-          <a href="#/paradigmas" class={partes[0] === 'paradigmas' ? 'ativo' : ''}>Paradigmas</a>
+          <a href="#/paradigmas" class={partes[0] === 'paradigmas' ? 'ativo' : ''}>Bases técnicas</a>
           <a href="#/config" class={partes[0] === 'config' ? 'ativo' : ''}>Configurações</a>
         </nav>
         <ModoCampo />

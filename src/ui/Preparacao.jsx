@@ -282,7 +282,7 @@ function FichaPesquisa({ r, familia }) {
     <div class="evidencias alerta">
       <b>Sem paradigma no banco para este veículo – pesquise nos seus laudos:</b>
       {fichaPesquisa(r, familia).map(([k, t]) => <span><b>{k}:</b> {t}</span>)}
-      <small>Achou? Inclua em Paradigmas → Importar (laudo antigo) e volte aqui para vincular. Se o veículo tiver um similar já medido, cadastre-o em Paradigmas → Similares.</small>
+      <small>Achou? Inclua em Bases técnicas → Veículos → Importar / exportar (laudo antigo) e volte aqui para vincular. Se o veículo tiver um similar já medido, cadastre-o em Paradigmas → Similares.</small>
       <span class="linha-botoes"><button type="button" class="mini" onClick={copiar}>Copiar ficha</button><a class="botao sec" href="#/paradigmas/importar">Ir para Paradigmas → Importar</a>{msg && <small>{msg}</small>}</span>
     </div>
   );

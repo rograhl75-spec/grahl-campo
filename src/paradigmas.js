@@ -89,7 +89,7 @@ export async function exportarBaseJson() {
   };
 }
 
-export const FAMILIAS_PADRAO_TEXTO = 'Cadastre as famílias técnicas em Paradigmas → Famílias.';
+export const FAMILIAS_PADRAO_TEXTO = 'Cadastre as famílias técnicas em Bases técnicas → Veículos → Famílias.';
 
 export function registro(id, kind, data, tsVal = 1) {
   const ts = {};

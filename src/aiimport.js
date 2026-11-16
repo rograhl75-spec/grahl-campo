@@ -1,5 +1,5 @@
 import { db, createRecord, updateFields, caseChildren } from './db.js';
-import { ORIGEM_QUESITO, contextoLegal, ehSuplementar, FASE, CAMPOS_DILIGENCIA, CAMPOS_POSTO, AGENTES_MEDICAO, ehAcidente, CAMPOS_ACIDENTE } from './schema.js';
+import { ORIGEM_QUESITO, contextoLegal, ehSuplementar, FASE, CAMPOS_DILIGENCIA, CAMPOS_POSTO, AGENTES_MEDICAO, ehAcidente, CAMPOS_ACIDENTE, chaveVistoria, qtdVistorias } from './schema.js';
 import { resumoMedicao } from './medicoes.js';
 import { dataIso } from './migrate.js';
 import { citacaoDe } from './paradigmas.js';
@@ -306,6 +306,17 @@ export function lerJsonIA(texto) {
 export async function aplicarIA(caseId, dados, { substituir = false, criarPeriodos = true } = {}) {
   const caso = await db.records.get(caseId);
   const mudancas = {};
+  // anotações de outra vistoria (2ª diligência, continuação): vão para a aba dela, sem mexer na 1ª
+  const dv = dados.caso.vistoriaData;
+  if (dv && caso.data.vistoriaData && dv !== caso.data.vistoriaData) {
+    const qtd = qtdVistorias(caso.data);
+    let n = Array.from({ length: qtd }, (_, i) => i + 1).find((i) => caso.data[chaveVistoria(i, 'Data')] === dv);
+    if (!n) { n = qtd + 1; mudancas.vistoriasQtd = String(n); }
+    const MAPA = { vistoriaData: 'Data', vistoriaInicio: 'Inicio', vistoriaFim: 'Fim', vistoriaLocal: 'Local', vistoriaEndereco: 'Endereco',
+      vistoriaPresentes: 'Presentes', vistoriaCondicoes: 'Condicoes', vistoriaNotas: 'Objetivo' };
+    dados = { ...dados, caso: { ...dados.caso } };
+    for (const [k, campo] of Object.entries(MAPA)) if (k in dados.caso) { dados.caso[chaveVistoria(n, campo)] = dados.caso[k]; delete dados.caso[k]; }
+  }
   for (const [k, v] of Object.entries(dados.caso)) {
     const atual = String(caso.data[k] || '').trim();
     if (substituir || !atual || (k === 'fase' && atual === 'A preparar')) mudancas[k] = v;

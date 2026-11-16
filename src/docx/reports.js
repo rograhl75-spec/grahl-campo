@@ -1,4 +1,4 @@
-import { ORIGEM_QUESITO, contextoLegal, ehSuplementar, localVistoria, ehAcidente, ehParecerTecnico } from '../schema.js';
+import { ORIGEM_QUESITO, contextoLegal, ehSuplementar, localVistoria, ehAcidente, ehParecerTecnico, datasDasVistorias, variasVistorias } from '../schema.js';
 import { parecerPenosidade, roteiroEntrevista } from './parecerPenosidade.js';
 import { db } from '../db.js';
 import { p, run } from './ooxml.js';
@@ -194,7 +194,7 @@ export async function gerarRelatorioFotografico(caseId) {
   d.add(p([run('RELATÓRIO FOTOGRÁFICO', { b: true, size: 14, color: '1B365D' })], { align: 'center', after: 60 }));
   if (c.numero) d.add(p([run(`Processo nº ${c.numero}`)], { align: 'center', after: 0 }));
   d.add(p([run([c.autorNome, c.reuNome].filter(Boolean).join(ehExtra(c) ? ' – ' : ' × '))], { align: 'center', after: 60 }));
-  d.add(p([run(`${ehExtra(c) ? 'Vistoria' : 'Diligência'}: ${dataBR(c.vistoriaData || c.dataDiligencia) || '[[data]]'}${localVistoria(c) ? ` – ${localVistoria(c)}` : ''}`)], { align: 'center', after: 240 }));
+  d.add(p([run(`${ehExtra(c) ? 'Vistoria' : 'Diligência'}${variasVistorias(c) ? 's' : ''}: ${(variasVistorias(c) ? datasDasVistorias(c) : dataBR(c.vistoriaData || c.dataDiligencia)) || '[[data]]'}${localVistoria(c) ? ` – ${localVistoria(c)}` : ''}`)], { align: 'center', after: 240 }));
   const { lista, faltando } = await figurasDoCaso(dados);
   if (lista.length) d.figuras(lista); else d.texto('Nenhuma foto registrada.');
   const r = await finalizar(d, { titulo: 'Relatório fotográfico', arquivo: 'Relatorio_fotografico', c });

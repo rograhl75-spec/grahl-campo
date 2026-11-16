@@ -1,7 +1,7 @@
 import { db, caseChildren } from '../db.js';
 import { resumoMedicao, calculados } from '../medicoes.js';
 import { nen, num, fmt, fatorQ, doseJornada } from '../calc.js';
-import { ORIGEM_QUESITO, contextoLegal, ehSuplementar , reuEhInss, localVistoria } from '../schema.js';
+import { ORIGEM_QUESITO, contextoLegal, ehSuplementar , reuEhInss, localVistoria, vistoriasDoCaso } from '../schema.js';
 import { Doc, p, run, rich, montarDocx, ordinalDia1 } from './ooxml.js';
 import { nenParaJornada, arenParaJornada, vdvrParaJornada, certificadoVencido, rotuloParadigma, citacaoDe, num as numP } from '../paradigmas.js';
 
@@ -325,6 +325,24 @@ export function quadroEquipamentos(d, lista, titulo = 'Instrumentos utilizados')
 }
 
 export function quadroDiligencia(d, c, titulo = 'Registro da diligência') {
+  const vs = vistoriasDoCaso(c).filter((v) => v.data);
+  if (vs.length > 1) {
+    // várias vistorias: um bloco de linhas por vistoria (data e horário, local quando muda, presentes, condições, o que foi feito)
+    const hora = (v) => [v.inicio, v.fim].filter(Boolean).join(' às ');
+    const linhas = [];
+    for (const v of vs) {
+      linhas.push([`${v.rotulo} – data e horário`, [dataBR(v.data), hora(v)].filter(Boolean).join(', ')]);
+      const local = [v.local, String(v.endereco || '').replace(/\n/g, ' – ')].filter(Boolean).join(' – ');
+      if (v.n === 1 || local !== [vs[0].local, String(vs[0].endereco || '').replace(/\n/g, ' – ')].filter(Boolean).join(' – ')) linhas.push([`${v.rotulo} – local`, local || '[[local]]']);
+      if (v.gps) linhas.push([`${v.rotulo} – coordenadas`, v.gps]);
+      if (v.objetivo) linhas.push([`${v.rotulo} – trabalhos realizados`, v.objetivo]);
+      linhas.push([`${v.rotulo} – presentes`, v.presentes || '[[pessoas presentes]]']);
+      if (v.condicoes) linhas.push([`${v.rotulo} – condições operacionais`, v.condicoes]);
+    }
+    if (c.vistoriaIntimacao) linhas.push(['Comunicação às partes e aos assistentes (art. 474 do CPC)', c.vistoriaIntimacao]);
+    else if (c.papel === 'Perito do Juízo') linhas.push(['Comunicação às partes e aos assistentes (art. 474 do CPC)', '[[mov. / data da intimação]]']);
+    return d.quadro(titulo, [['Campo', 'Informação'], ...linhas], { larguras: [0.3, 0.7], alinhar: 'left' });
+  }
   return d.quadro(titulo, [['Campo', 'Informação'],
     ['Data e horário', [dataBR(c.vistoriaData) || dataBR(c.dataDiligencia), [c.vistoriaInicio || c.horaDiligencia, c.vistoriaFim].filter(Boolean).join(' às ')].filter(Boolean).join(', ') || '[[data e horário]]'],
     ['Local', [localVistoria(c), c.vistoriaEndereco].filter(Boolean).join(' – ') || '[[local]]'],

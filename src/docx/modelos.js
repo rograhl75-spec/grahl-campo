@@ -3,7 +3,7 @@
 // impugnação / parecer de assistente técnico, parecer preventivo, petição de
 // indicação com quesitos. O que depende de análise técnica sai marcado em
 // amarelo ("[[Redigir: ...]]") para ser escrito por você.
-import { ORIGEM_QUESITO, ehSuplementar, FORMAS_PAGAMENTO, localVistoria, ehAcidente } from '../schema.js';
+import { ORIGEM_QUESITO, ehSuplementar, FORMAS_PAGAMENTO, localVistoria, ehAcidente, datasDasVistorias, variasVistorias } from '../schema.js';
 import {
   Doc, carregar, finalizar, dataBR, menosCincoAnos, ou, partes, papelAssinatura, enderecamentoTexto, linhasProcesso,
   qualificacaoCurta, qualificacaoCompleta, blocoAssinatura, credencial, equipamentosUsados, quadroEquipamentos, quadroDiligencia,
@@ -585,7 +585,7 @@ export async function parecerAssistente(caseId) {
   const lado = /réu/i.test(c.papel || '') ? pt.reuCurto : pt.autorCurto;
   const d = new Doc();
   d.enderecamento(enderecamentoTexto(c), linhasProcesso(c, [['Referência', c.refLaudo ? `Laudo pericial (${c.refLaudo})` : '[[ID do laudo pericial]]']]));
-  d.texto(`${qualificacaoCurta(perfil)}, assistente técnico indicado ${art(lado).pelo} ${lado}${c.vistoriaData ? `, tendo acompanhado a diligência pericial realizada em ${dataBR(c.vistoriaData)}` : ''}, vem, respeitosamente, à presença de Vossa Excelência, apresentar **MANIFESTAÇÃO TÉCNICA SOBRE O LAUDO PERICIAL**${c.peritoJuizo ? ` elaborado por ${c.peritoJuizo}` : ''}, nos termos do art. 477, § 1º, do Código de Processo Civil, pelos fundamentos técnicos expostos a seguir.`);
+  d.texto(`${qualificacaoCurta(perfil)}, assistente técnico indicado ${art(lado).pelo} ${lado}${c.vistoriaData ? `, tendo acompanhado ${variasVistorias(c) ? 'as diligências periciais realizadas em' : 'a diligência pericial realizada em'} ${datasDasVistorias(c)}` : ''}, vem, respeitosamente, à presença de Vossa Excelência, apresentar **MANIFESTAÇÃO TÉCNICA SOBRE O LAUDO PERICIAL**${c.peritoJuizo ? ` elaborado por ${c.peritoJuizo}` : ''}, nos termos do art. 477, § 1º, do Código de Processo Civil, pelos fundamentos técnicos expostos a seguir.`);
   // manifestação nos autos (peça processual): sem sumário e com as seções em sequência, sem página nova a cada título
   d.h1NovaPagina = false;
   const posicao = c.posicaoAT || '';
@@ -1058,7 +1058,7 @@ export async function peticaoPagamento(caseId, { conta } = {}) {
   d.h1('1.', 'Dos trabalhos periciais', { novaPagina: false });
   const juntada = [dataBR(c.laudoData) && `em ${dataBR(c.laudoData)}`, v(c.laudoRefPerito) && `(${c.laudoRefPerito})`].filter(Boolean).join(' ') || 'em [[data – evento / mov.]]';
   const supl = dados.quesitos.filter(ehSuplementar).length;
-  d.texto(`A vistoria pericial foi realizada em ${dataBR(c.vistoriaData) || '[[data]]'} e o laudo pericial foi juntado aos autos ${juntada}${supl ? ', tendo sido respondidos também os quesitos suplementares' : ''}, encerrando-se os trabalhos periciais.`);
+  d.texto(`${variasVistorias(c) ? `As vistorias periciais foram realizadas em ${datasDasVistorias(c)}` : `A vistoria pericial foi realizada em ${dataBR(c.vistoriaData) || '[[data]]'}`} e o laudo pericial foi juntado aos autos ${juntada}${supl ? ', tendo sido respondidos também os quesitos suplementares' : ''}, encerrando-se os trabalhos periciais.`);
   d.h1('2.', 'Do pedido', { novaPagina: false });
   const fixadosP = lerValor(c.honorariosFixados);
   // com adiantamento já levantado, pede-se só o saldo

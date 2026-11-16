@@ -6,7 +6,8 @@
 // Famílias do banco (definidas pelo signatário):
 //   F1 rígidos com motor dianteiro (bicudo); F2 ônibus com motor dianteiro; F3 leves / VUC / 3/4 / vans;
 //   F4 rígidos médios e pesados com cabine avançada; F5 cavalos de cabine convencional ou semiavançada, projeto antigo;
-//   F6 cavalos de cabine avançada, 1990–2008; F7 Volvo NH / FH; F8 cavalos modernos pós-2010.
+//   F6 cavalos de cabine avançada, 1990–2008; F7 Volvo NH / FH; F8 cavalos modernos pós-2010;
+//   F9 ônibus com motor traseiro ou central.
 // ======================================================================
 
 const norm = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9/]+/g, ' ').trim();
@@ -18,6 +19,7 @@ export const DESCRICAO_FAMILIAS = {
   F1: 'Rígidos com motor dianteiro (bicudo)', F2: 'Ônibus com motor dianteiro', F3: 'Leves / VUC / 3/4 / vans',
   F4: 'Rígidos médios e pesados com cabine avançada', F5: 'Cavalos com cabine convencional ou semiavançada, projeto antigo',
   F6: 'Cavalos com cabine avançada, 1990–2008', F7: 'Volvo NH / FH', F8: 'Cavalos modernos pós-2010',
+  F9: 'Ônibus com motor traseiro ou central',
 };
 
 // Família provável pelo veículo. Devolve { familia, motivo } ou { familia: '' } quando não dá para inferir.
@@ -28,7 +30,13 @@ export function familiaProvavel({ marca = '', modelo = '', ano = '', grupo = '',
   const nums = numerosDe(modelo).map(Number);
   const cavalo = /cavalo|carreta|bitrem|rodotrem|trator rodoviario/.test(g);
   const r = (familia, motivo) => ({ familia, motivo: `${motivo} – provável, confirmar` });
-  if (/onibus/.test(g)) return /traseir/.test(`${g} ${tudo}`) ? { familia: '', motivo: '' } : r('F2', 'ônibus (motor dianteiro, o mais comum nos urbanos antigos)');
+  // ônibus de motor traseiro ou central: Volvo B (B10M, B58, B7R, B12…), Scania K / L94 / UB, MB O-500, ou a entrevista diz "traseiro"
+  const onibusTraseiro = /traseir|motor central|piso baixo/.test(`${g} ${tudo}`)
+    || (/volvo/.test(ma) && /\bb ?(10m?|58|7r?|9r?|12m?|270|290|340|380|420|450)\b/.test(mo))
+    || (/scania/.test(ma) && /\bk ?\d{3}|\bl ?9\d\b|\b[ui]b\b/.test(mo))
+    || (/mercedes|\bmb\b|benz/.test(tudo) && /\bo ?500\b/.test(mo));
+  if (onibusTraseiro && (/onibus/.test(g) || /volvo|scania|mercedes|\bmb\b|benz/.test(tudo))) return r('F9', 'ônibus de motor traseiro ou central');
+  if (/onibus/.test(g)) return r('F2', 'ônibus (motor dianteiro, o mais comum nos urbanos antigos)');
   if (/volvo/.test(ma)) {
     if (/\bnh\b|\bfh\b|\bfm\b/.test(mo)) return r(a >= 2010 && /\bfh\b/.test(mo) ? 'F8' : 'F7', 'Volvo NH/FH/FM');
     if (/\bn ?1[02]\b|\bnl ?1[02]\b|\bn10\b|\bn12\b|\bnl10\b|\bnl12\b/.test(mo.replace(/\s/g, ' '))) return r('F5', 'Volvo N/NL (cabine convencional)');
@@ -91,7 +99,8 @@ export function pontuar(veic, p, { similar } = {}) {
   if (av !== null && ap !== null && ap !== undefined) { if (av === ap) { pontos += 5; motivos.push(av ? 'ambos com ar' : 'ambos sem ar'); } else { pontos -= 5; motivos.push('climatização diferente'); } }
   // ano do paradigma; sem ele, o meio da época de fabricação ("1975–1987" → 1981)
   const epoca = String(d.epocaFabricacao || '').match(/(19[5-9]\d|20[0-4]\d)\D+(19[5-9]\d|20[0-4]\d)/);
-  const a1 = anoDe(veic.ano), a2 = anoDe(d.ano) || (epoca ? Math.round((Number(epoca[1]) + Number(epoca[2])) / 2) : NaN);
+  const desde = String(d.epocaFabricacao || '').match(/(19[5-9]\d|20[0-4]\d)\s*\+|(?:a partir de|desde)\s*(19[5-9]\d|20[0-4]\d)/i);
+  const a1 = anoDe(veic.ano), a2 = anoDe(d.ano) || (epoca ? Math.round((Number(epoca[1]) + Number(epoca[2])) / 2) : desde ? Number(desde[1] || desde[2]) + 3 : NaN);
   if (isFinite(a1) && isFinite(a2)) { const dif = Math.abs(a1 - a2); if (dif <= 5) { pontos += 10; motivos.push(`época próxima (${anoDe(d.ano) ? a2 : d.epocaFabricacao})`); } else if (dif <= 10) { pontos += 4; motivos.push(`época ${anoDe(d.ano) ? a2 : d.epocaFabricacao}`); } }
   if (/^ok$/i.test(d.situacao || '')) pontos += 3; else if (d.situacao) motivos.push(`situação ${d.situacao}`);
   return { pontos, motivos };

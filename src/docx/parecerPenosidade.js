@@ -15,7 +15,7 @@ import { avaliarPeriodos, valores, conclusaoPrevidenciaria } from './conclusao.j
 import { matrizIAC } from './penosidade.js';
 import { comJurisprudencia, registroJurisprudencia, secaoReferencias } from './fontes.js';
 import { contratanteDe } from './modelos.js';
-import { rotuloParadigma, sugerirParaVinculo, fichaPesquisaTexto } from '../paradigmas.js';
+import { citacaoDe, rotuloParadigma, sugerirParaVinculo, fichaPesquisaTexto } from '../paradigmas.js';
 import { fmt } from '../calc.js';
 
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
@@ -39,7 +39,7 @@ function fontesDaProva(r, dados, val) {
     if (!p) { out.push(`${rot}: paradigma ${cod} [[não encontrado no banco]]`); continue; }
     const avisos = [auto && `paradigma sugerido automaticamente (${r._criterio || 'banco de paradigmas'}) – confirmar no vínculo`,
       !/^ok$/i.test(v(p.data.situacao) || 'OK') && `situação do paradigma no banco: ${p.data.situacao} – conferir`].filter(Boolean);
-    out.push(`${rot}: paradigma ${rotuloParadigma(p)} – ${v(p.data.citacao) || '[[citação do paradigma]]'}${avisos.length ? ` [[${avisos.join('; ')}]]` : ''}`);
+    out.push(`${rot}: paradigma ${rotuloParadigma(p)} – ${citacaoDe(p) || '[[citação do paradigma]]'}${avisos.length ? ` [[${avisos.join('; ')}]]` : ''}`);
   }
   if (!out.length && (val.fonteR || val.fonteV)) out.push([val.fonteR && `Ruído: medição no veículo/posto ${val.fonteR}`, val.fonteV && `Vibração: medição em ${val.fonteV}`].filter(Boolean).join('\n'));
   // sem paradigma no banco: ficha para o signatário pesquisar nos seus laudos e incluir o paradigma

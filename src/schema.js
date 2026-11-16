@@ -63,7 +63,7 @@ export const tipoDoGrupo = (g) => TIPO_DO_GRUPO[GRUPOS_VEICULO.indexOf(g)] || ''
 // Entrevista do motorista por vínculo (complementa os fatores de penosidade)
 export const CAMPOS_ENTREVISTA_MOTORISTA = [
   ['grupoVeiculo', 'Grupo do veículo', 'select', GRUPOS_VEICULO],
-  ['familiaVeiculo', 'Família técnica do paradigma (F1…F8; em branco = pelo grupo)', 'text'],
+  ['familiaVeiculo', 'Família técnica do paradigma (F1…F9; em branco = pelo grupo)', 'text'],
   ['carroceria', 'Carroceria / reboque (ex.: graneleiro, baú, porta-contêiner, caçamba)', 'text'],
   ['tipoCarga', 'Tipo de carga (ex.: grãos, frigorificada, perecíveis, passageiros)', 'text'],
   ['carregaDescarrega', 'Carregava / descarregava?', 'select', ['Não', 'Carregava', 'Descarregava', 'Carregava e descarregava']],

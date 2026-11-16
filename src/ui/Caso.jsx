@@ -1,8 +1,7 @@
 import { db, softDelete } from '../db.js';
 import { avisarAlteracao } from '../sync.js';
 import {
-  TIPO_ATUACAO, JUSTICA, MATERIA, PAPEL, OBJETO, FASE, CONTRATADO_POR, CAMPOS_ACIDENTE, ehAcidente, CAMPOS_PROCESSO, CAMPOS_PARTES, CAMPOS_PRAZOS, CAMPOS_HONORARIOS, tituloCaso, contextoLegal,
-} from '../schema.js';
+  TIPO_ATUACAO, JUSTICA, MATERIA, PAPEL, OBJETO, FASE, CONTRATADO_POR, CAMPOS_ACIDENTE, ehAcidente, CAMPOS_PROCESSO, CAMPOS_PARTES, CAMPOS_PRAZOS, CAMPOS_HONORARIOS, tituloCaso, contextoLegal, ehParecerTecnico, FINALIDADE_PARECER } from '../schema.js';
 import { useLive, ir } from './hooks.js';
 import { siglaTipo, FASE_COR } from './Casos.jsx';
 import { Campos, Chips, Opcoes, Sel, TF } from './fields.jsx';
@@ -116,7 +115,8 @@ function Resumo({ rec }) {
         {rec.data.tipoAtuacao === 'Extrajudicial' && <>
           <Sel rec={rec} k="contratadoPor" label="Quem contratou" opcoes={CONTRATADO_POR} />
           <TF rec={rec} k="art" label="Nº da ART" />
-          <p class="dica">Extrajudicial: o objeto define o documento. Aposentadoria especial, LTCAT ou PPP → LTCAT e parecer previdenciário; Insalubridade ou Periculosidade → laudo de insalubridade e periculosidade; Acidente → laudo de acidente.</p>
+          {(ehParecerTecnico(rec.data) || (rec.data.objeto || []).includes('Penosidade (motorista)')) && <Sel rec={rec} k="finalidade" label="Finalidade do parecer" opcoes={FINALIDADE_PARECER} />}
+          <p class="dica">Extrajudicial: o objeto define o documento. Aposentadoria especial, LTCAT ou PPP → LTCAT e parecer previdenciário; Insalubridade ou Periculosidade → laudo de insalubridade e periculosidade; Acidente → laudo de acidente. "Parecer técnico extrajudicial" com motorista ou o objeto "Penosidade (motorista)" → parecer técnico de condições de trabalho e penosidade.</p>
         </>}
         {rec.data.faseLegado && <p class="dica">Fase no app antigo: {rec.data.faseLegado}</p>}
       </section>

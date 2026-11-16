@@ -95,6 +95,8 @@ export function horasDia(r, dados) {
 // a frase conta como fator adverso só se não for negativa ("sem acidentes", "não fazia carga")
 const adv = (re, t) => String(t || '').split(/;\s*|\.\s+/).some((f) => re.test(f) && !/^\s*(sem|n[ãa]o|nunca|nenhum)/i.test(f));
 const UFS = /\b(AC|AL|AP|AM|BA|CE|DF|ES|GO|MA|MT|MS|MG|PA|PB|PR|PE|PI|RJ|RN|RS|RO|RR|SC|SP|SE|TO)\b/g;
+// resposta da entrevista que indica ocorrência ("Sim", "Carregava", descrição) e não "Não"
+const sim = (t) => !!v(t) && !/^\s*(n[ãa]o|nunca|nenhum|sem)\b/i.test(v(t));
 const interestadual = (t) => new Set(String(t || '').match(UFS) || []).size >= 2;
 
 // condições apuradas por critério + sinalização de desgaste (adverso) para a conclusão
@@ -115,18 +117,20 @@ export function matrizIAC(r, dados) {
   const criterios = [
     { id: 'veiculo', titulo: '1. Análise do veículo',
       oque: 'Idade e modelo da frota; câmbio, embreagem, direção, assento e climatização; esforço físico, desconforto térmico, movimentos repetitivos e desgaste osteomuscular; ruído, vibração e calor do motor.',
-      linhas: [L('Veículo', veic), L('Cabine e conforto', x.cabine), L('Agentes físicos medidos (mesmo abaixo dos limites)', fis)].filter(Boolean),
+      linhas: [L('Veículo', veic), L('Grupo do veículo', x.grupoVeiculo), L('Carroceria / reboque', x.carroceria), L('Cabine e conforto', x.cabine), L('Agentes físicos medidos (mesmo abaixo dos limites)', fis)].filter(Boolean),
       adverso: adv(RE_CAB, x.cabine) || !!fis,
       fonte: fis ? 'Entrevista do autor; vistoria e medições no veículo' : 'Entrevista do autor; vistoria' },
     { id: 'trajetos', titulo: '2. Análise dos trajetos',
       oque: 'Rotas urbanas de trânsito intenso ou rodovias e vias em más condições ou sem pavimentação; localidades de risco de assaltos e violência; estado de alerta e tensão constantes.',
-      linhas: [L('Vias e trajetos', x.vias), interestadual(x.vias) && 'Rotas interestaduais de longa distância, com exigência de alerta constante', L('Risco de acidentes e de violência', x.riscoAcidente)].filter(Boolean),
-      adverso: adv(RE_VIA, x.vias) || interestadual(x.vias) || adv(RE_RISCO, x.riscoAcidente),
+      linhas: [L('Vias e trajetos', x.vias), interestadual(x.vias) && 'Rotas interestaduais de longa distância, com exigência de alerta constante', L('Risco de acidentes e de violência', x.riscoAcidente),
+        sim(x.acidenteVinculo) && L('Acidente de trânsito no vínculo', x.acidenteVinculo), sim(x.assaltoVinculo) && L('Assalto / roubo de carga no vínculo', x.assaltoVinculo)].filter(Boolean),
+      adverso: adv(RE_VIA, x.vias) || interestadual(x.vias) || adv(RE_RISCO, x.riscoAcidente) || sim(x.acidenteVinculo) || sim(x.assaltoVinculo),
       fonte: 'Entrevista do autor' },
     { id: 'cargas', titulo: '3. Análise das cargas',
       oque: 'Responsabilidade pela carga de valor ou por vidas humanas; carga, descarga, amarração e enlonamento; metas logísticas; risco de acidente e de roubo de carga.',
-      linhas: [L('Tipo de transporte', x.tipoTransporte), L('Carga, descarga e esperas', x.cargaDescarga), L('Prazos e metas', pressao)].filter(Boolean),
-      adverso: adv(RE_CARGA, x.cargaDescarga) || adv(RE_RISCO, x.tipoTransporte) || !!pressao,
+      linhas: [L('Tipo de transporte', x.tipoTransporte), L('Tipo de carga', x.tipoCarga), sim(x.carregaDescarrega) && L('O motorista', x.carregaDescarrega.toLowerCase()),
+        L('Carga, descarga e esperas', x.cargaDescarga), L('Prazos e metas', pressao)].filter(Boolean),
+      adverso: adv(RE_CARGA, x.cargaDescarga) || adv(RE_RISCO, x.tipoTransporte) || /perec|frigor|refriger|valor/i.test(x.tipoCarga || '') || sim(x.carregaDescarrega) || !!pressao,
       fonte: pressaoSug ? 'Entrevista do autor; [[prazos e metas deduzidos da jornada – confirmar]]' : 'Entrevista do autor' },
     { id: 'jornadas', titulo: '4. Análise das jornadas',
       oque: 'Horários rígidos ou viagens extenuantes que impedem a recuperação; privação de sono; dificuldade de acesso a sanitários, alimentação e locais de descanso.',

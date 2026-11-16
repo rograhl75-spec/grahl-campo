@@ -46,7 +46,8 @@ O indicador no topo da tela mostra sempre o estado: *Salvo neste aparelho*, *Sem
     - LTCAT e parecer previdenciário (aposentadoria especial, LTCAT, PPP);
     - laudo de insalubridade e periculosidade, sem endereçamento ao Juízo e com ART (insalubridade, periculosidade);
     - laudo de acidente do trabalho (acidente);
-    - parecer preventivo, quando a empresa contratou.
+    - parecer preventivo, quando a empresa contratou;
+    - **parecer técnico de condições de trabalho e penosidade (motorista):** em "Minha atuação", escolha "Parecer técnico extrajudicial (segurado / advogado)" ou marque o objeto "Penosidade (motorista)". Preencha a finalidade e a ART (1. Cadastro) e, em cada vínculo (2. Autos), o veículo, a entrevista do motorista (grupo do veículo, carroceria, carga, carga/descarga, abastecimento, acidente e assalto) e os fatores de penosidade. O documento traz identificação, metodologia por similaridade, critérios de penosidade, marco legal por período, um quadro por vínculo com a fonte da prova vinda do banco de paradigmas, matriz sintética, conclusão (com a regra da EC 103/2019 após 13/11/2019) e encerramento com a ART. A instrução do Claude (2. Autos) lê a entrevista, a CTPS e o CNIS e preenche os vínculos.
   - **Também:**
     - termo de presença para a vistoria;
     - proposta de serviços e parecer trabalhista de viabilidade (extrajudicial);

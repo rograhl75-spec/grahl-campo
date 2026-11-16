@@ -1,6 +1,6 @@
 import { useState } from 'preact/hooks';
 import { db } from '../db.js';
-import { CAMPOS_SINTESE, CAMPOS_PERIODO, CAMPOS_DOC, CAMPOS_EPI } from '../schema.js';
+import { CAMPOS_SINTESE, CAMPOS_PERIODO, CAMPOS_DOC, CAMPOS_EPI, CAMPOS_ENTREVISTA_MOTORISTA, GRUPOS_VEICULO, TIPO_DO_GRUPO } from '../schema.js';
 import { SITUACOES, situacaoDoCaso, montarPrompt, lerJsonIA, aplicarIA, limparDuplicados } from '../aiimport.js';
 import { avisarAlteracao } from '../sync.js';
 import { dataBR } from '../docx/reports.js';
@@ -188,7 +188,9 @@ export const CAMPOS_VEICULO_PERIODO = [
 function VeiculoDoPeriodo({ r }) {
   const [aberto, setAberto] = useState(!!(r.data.veiculoModelo || r.data.paradigmaRuido));
   const [res, setRes] = useState(null);
-  const buscar = async () => setRes(await sugerirParadigmas({ marca: r.data.veiculoMarca, modelo: r.data.veiculoModelo, tipo: r.data.veiculoTipo }));
+  // o grupo do veículo da entrevista orienta a busca quando o tipo não foi digitado
+  const tipoBusca = () => r.data.veiculoTipo || TIPO_DO_GRUPO[GRUPOS_VEICULO.indexOf(r.data.grupoVeiculo)] || '';
+  const buscar = async () => setRes(await sugerirParadigmas({ marca: r.data.veiculoMarca, modelo: r.data.veiculoModelo, tipo: tipoBusca() }));
   const escolher = async (tipo, p) => {
     await updateFields(r.id, tipo === 'ruido' ? { paradigmaRuido: p.data.codigo } : { paradigmaVibracao: p.data.codigo });
     avisarAlteracao();
@@ -198,6 +200,11 @@ function VeiculoDoPeriodo({ r }) {
     <div class="bloco destaque mt-p">
       <h4>Veículo do requerente neste período</h4>
       <div class="linha2"><Campos rec={r} campos={CAMPOS_VEICULO_PERIODO} /></div>
+      <details class="mt" open={!!(r.data.grupoVeiculo || r.data.tipoCarga || r.data.carroceria)}>
+        <summary><b>Entrevista do motorista (veículo, carga, trajetos e ocorrências)</b></summary>
+        <p class="dica">Os itens da entrevista por vínculo. Trajetos, pernoite e jornada ficam nos fatores de penosidade abaixo; o tempo diário de condução, no campo acima.</p>
+        <div class="linha2"><Campos rec={r} campos={CAMPOS_ENTREVISTA_MOTORISTA} /></div>
+      </details>
       <button type="button" onClick={buscar}>Sugerir paradigmas pelo banco</button>
       {res && <ResultadoBusca res={res} onEscolher={escolher} />}
       <details class="mt" open={!!(r.data.jornadaSemanal || r.data.penosidadeConclusao)}>

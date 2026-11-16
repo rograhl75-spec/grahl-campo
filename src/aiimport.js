@@ -1,4 +1,5 @@
 import { db, createRecord, updateFields, caseChildren } from './db.js';
+import { CONVENCOES_CLAUDE } from './docx/claudeDoc.js';
 import { ORIGEM_QUESITO, contextoLegal, ehSuplementar, FASE, CAMPOS_DILIGENCIA, CAMPOS_POSTO, AGENTES_MEDICAO, ehAcidente, CAMPOS_ACIDENTE, chaveVistoria, qtdVistorias, vistoriasDoCaso } from './schema.js';
 import { resumoMedicao } from './medicoes.js';
 import { dataIso } from './migrate.js';
@@ -447,7 +448,9 @@ export async function exportarParaClaude(caseId, tipo) {
   }
   const instr = `${REDACAO[tipo] || REDACAO.laudo}
 
-Use os dados do caso abaixo (coletados por mim nos autos e na diligência) como base factual. Não invente dados: o que faltar, marque como [[pendência]] para eu completar. Formatação: documento técnico no meu papel timbrado, fonte Abadi, espaçamento 1,5, texto justificado, títulos numerados em azul, cada título principal em página nova, sumário, quadros numerados com título acima e fonte abaixo.
+Use os dados do caso abaixo (coletados por mim nos autos e na diligência) como base factual. Não invente dados: o que faltar, marque como [[pendência]] para eu completar.
+
+${CONVENCOES_CLAUDE}
 
 ${criteriosPara(c, tipo === 'ltcat' || tipo === 'parprev' || tipo === 'parPenosidade' ? 'extra-ltcat' : '', ((await db.records.get('perfil')) || {}).data || {})}
 

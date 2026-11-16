@@ -124,3 +124,46 @@
 ## Observações
 - As regras do Firebase não foram testadas em emulador nesta sessão. Publique e confira o login no tablet e no PC.
 - Confira no original a tese e as datas da jurisprudência antes de usá-las em peça: as conferências desta sessão foram feitas em fontes secundárias.
+
+## Auditoria geral e redesenho – v2.39.0
+### Documentos
+- Fontes **Lato** (texto) e **Montserrat** (títulos, cabeçalhos dos quadros e capa, a mesma família do timbrado), embutidas no .docx. São licenciadas pela SIL OFL, que permite embutir; a licença está em `public/modelos/FONTES-LICENCA.txt`. Assim, o documento sai igual em qualquer computador, sem instalar fonte.
+- Nova figura **"Etapas da avaliação"** (fluxo em caixas) na metodologia dos laudos, dos pareceres previdenciários e do parecer de penosidade, com as datas das vistorias.
+- Novo quadro **"Linha do tempo dos vínculos e marcos legais"**: cada vínculo dividido pelos regimes de 28/04/1995, 05/03/1997, 18/11/2003 e 13/11/2019.
+- **Texto do Claude → Word no timbrado** (Documentos → "Montar no timbrado o texto do Claude"):
+  - o prompt pede Markdown com convenções simples ("Quadro:", "Fonte:", "Fluxo:", títulos #);
+  - o app monta capa, listas, sumário, quadros e figuras numerados, fontes do padrão e assinatura, na moldura da GRAHL.
+### Correções da auditoria
+- **Tempo de condução:** um só leitor em todo o laudo (`horasDia`), que entende 10, 10h, 8,5, 8h30 e 08:30. Faixas ("8 a 10") ficam pendentes. Na tela, aparece o valor usado nos cálculos.
+- **Vibração:** a memória de cálculo usa a mesma normalização da conclusão (`vibracaoDoParadigma`). A comparação com o limite é feita na casa decimal exibida, na vibração e na dose.
+- **Ruído medido só com a dose:** o nível equivalente é calculado pela dose e pelo tempo de amostragem.
+- **"Quadro 1":** a determinação judicial só remete a ele no laudo previdenciário.
+- **Várias vistorias:**
+  - a capa, a "Data da avaliação" e a perícia indireta consideram todas as vistorias;
+  - o texto do caso enviado ao Claude traz cada vistoria, com o que foi feito e a transcrição;
+  - as transcrições entram no Registro da diligência e no "Importar anotações", que também informa ao Claude as vistorias já cadastradas.
+- **Diligência:**
+  - campo "Comunicação às partes" para o Perito do Juízo;
+  - "Iniciar diligência" não grava mais o INSS como local;
+  - excluir uma vistoria leva os áudios dela para a lixeira.
+- **Gravação:**
+  - continua ao trocar de aba, com barra fixa "Gravando";
+  - fica salva no aparelho a cada 10 s e é recuperada se o sistema fechar a página;
+  - o bloqueio de tela é pedido de novo ao voltar ao app;
+  - durante o ditado, a transcrição fica só para leitura.
+### Telas
+- **Campo**, organizado pelo papel no caso:
+  - Diligência no topo e quesitos à mão, sem trocar de aba;
+  - termo de presença na própria vistoria;
+  - para o assistente técnico, o bloco "Acompanhamento da perícia" (medições do perito, 8 itens de verificação, divergências), que sai preenchido no relatório de acompanhamento;
+  - no parecer por entrevista e na assistência, postos e medições ficam recolhidos;
+  - itens de escritório (relatórios dos medidores e importação de anotações) no fim.
+- **Bases técnicas** (antigo Paradigmas) em três seções: Veículos (medidos, similares, famílias, busca, importar/exportar), Máquinas e Agentes químicos.
+- **Meus dados:**
+  - cartão de visita com o que sai nos documentos;
+  - dados em cartões por assunto;
+  - contas bancárias ocultas na tela.
+### Pendente (próximas versões)
+- Vibração medida em campo normalizada pelo T do vínculo; hoje usa o aren digitado.
+- Importação de anotações com aviso, na prévia, de que vai criar uma nova vistoria.
+- Instrução de importação de máquinas na seção Máquinas.

@@ -2,6 +2,7 @@ import { useState } from 'preact/hooks';
 import { CATALOGO, HONORARIOS, situacaoHonorarios, PETICOES_PERITO, PETICOES_AT, POSICOES_AT } from '../docx/reports.js';
 import { exportarBackup, baixarArquivo, carimbo } from '../backup.js';
 import { exportarParaClaude } from '../aiimport.js';
+import { documentoDoClaude, temConteudo } from '../docx/claudeDoc.js';
 import { gravarTudoAgora, salvar, TF, Sel } from './fields.jsx';
 import { FORMAS_PAGAMENTO, localVistoria } from '../schema.js';
 import { db } from '../db.js';
@@ -72,6 +73,7 @@ export function Documentos({ rec }) {
           {verTodos && <div class="grade-docs">{outros.map((d) => <CartaoDoc d={d} ocupado={ocupado} gerar={gerar} contas={contas} contaSel={contaSel} recId={rec.id} rec={rec} />)}</div>}
         </section>
       )}
+      <MontarDoClaude rec={rec} />
       <RespostasClaude rec={rec} />
       <section class="grupo-docs">
         <h3>Cópia de segurança</h3>
@@ -203,7 +205,7 @@ function BotaoClaude({ rec, tipo, rotulo = 'Redigir com o Claude' }) {
     const texto = await exportarParaClaude(rec.id, tipo);
     try {
       await navigator.clipboard.writeText(texto);
-      setMsg(`✓ Caso copiado (${Math.round(texto.length / 1000)} mil caracteres). Cole no Claude e anexe os autos (e, se quiser, o Word gerado e as fotos).`);
+      setMsg(`✓ Caso copiado (${Math.round(texto.length / 1000)} mil caracteres). Cole no Claude e anexe os autos. Depois, cole a resposta em "Montar no timbrado", logo abaixo, para gerar o Word no seu padrão.`);
     } catch (e) {
       baixarArquivo(new Blob([texto], { type: 'text/markdown' }), `Caso_para_Claude_${carimbo()}.md`);
       setMsg('Não foi possível copiar; o texto foi baixado como arquivo .md para anexar no Claude.');
@@ -222,6 +224,37 @@ function RespostasClaude({ rec }) {
       <div class="bloco destaque">
         <p>Para o texto completo de um documento, use o botão "Redigir com o Claude" do próprio cartão. Este aqui pede ao Claude as respostas de todos os quesitos num JSON que volta para o app (etapa 2. Autos → B) e preenche só as respostas em branco.</p>
         <div class="linha-botoes"><BotaoClaude rec={rec} tipo="respostas" rotulo="Copiar caso para responder os quesitos" /></div>
+      </div>
+    </section>
+  );
+}
+
+// Texto redigido pelo Claude → Word no timbrado (capa, sumário, quadros, fluxos, fontes e assinatura do padrão)
+function MontarDoClaude({ rec }) {
+  const [md, setMd] = useState('');
+  const [msg, setMsg] = useState('');
+  const [ocupado, setOcupado] = useState(false);
+  const gerarWord = async () => {
+    setOcupado(true); setMsg('');
+    try {
+      const r = await documentoDoClaude(rec.id, md);
+      baixarArquivo(r.blob, r.nome);
+      setMsg(`✓ ${r.nome} gerado no timbrado. Confira as pendências em amarelo.`);
+    } catch (e) { setMsg(`Erro: ${e.message || e}`); } finally { setOcupado(false); }
+  };
+  return (
+    <section class="grupo-docs">
+      <h3>Montar no timbrado o texto do Claude</h3>
+      <div class="bloco destaque">
+        <p>Use "Redigir com o Claude" no cartão do documento, cole no Claude e, quando ele terminar, copie a resposta inteira e cole aqui. O app monta o Word com a moldura da GRAHL, capa, sumário, listas, quadros e fluxos numerados, fontes do padrão e assinatura.</p>
+        <label class="campo campo-area"><span class="rotulo">Resposta do Claude (texto completo)</span>
+          <textarea rows={8} value={md} onInput={(e) => setMd(e.currentTarget.value)} placeholder={'Título: LAUDO TÉCNICO PERICIAL\n\n# 1 Identificação\n...\n\nQuadro: Resultados\n| Agente | Resultado |\n|---|---|\n| Ruído | 88,4 dB(A) |\nFonte: Elaborado pelo signatário.'} />
+        </label>
+        <div class="linha-botoes">
+          <button type="button" class="primario" disabled={ocupado || !temConteudo(md)} onClick={gerarWord}>{ocupado ? 'Montando…' : 'Gerar Word no timbrado'}</button>
+          {md && <button type="button" class="sec" onClick={() => setMd('')}>Limpar</button>}
+        </div>
+        {msg && <p class="ok-msg">{msg}</p>}
       </div>
     </section>
   );

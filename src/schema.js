@@ -356,3 +356,39 @@ export function localVistoria(c) {
   const veic = String(c.vistoriaVeiculo || '').trim();
   return `${prop} (pessoa física${veic ? `, proprietário do veículo paradigma ${veic}` : ''})`;
 }
+
+// ---------- Várias vistorias no mesmo caso (2ª diligência, continuação, redesignação) ----------
+// A 1ª usa os campos de sempre (vistoriaData, vistoriaInicio…); a 2ª em diante, vistoria2Data, vistoria3Data…
+// (campos soltos no caso, para a mesclagem campo a campo entre aparelhos continuar valendo).
+export const CAMPOS_VISTORIA = ['Data', 'Inicio', 'Fim', 'Local', 'Endereco', 'Gps', 'Presentes', 'Condicoes', 'Objetivo', 'Transcricao'];
+// anexo de áudio gravado na vistoria (descrição fixa, para não aparecer nas listas de autos e de apêndices)
+export const DESC_AUDIO = 'audio-vistoria';
+export const chaveVistoria = (n, campo) => (n <= 1 ? `vistoria${campo}` : `vistoria${n}${campo}`);
+export const qtdVistorias = (c = {}) => Math.max(1, Number(c.vistoriasQtd) || 1);
+const isoBR = (iso) => (/^\d{4}-\d{2}-\d{2}/.test(String(iso || '')) ? String(iso).slice(0, 10).split('-').reverse().join('/') : String(iso || ''));
+// Lista das vistorias: { n, rotulo, data, inicio, fim, local, endereco, gps, presentes, condicoes, objetivo }.
+// Local e endereço em branco na 2ª em diante = os da 1ª. Vistorias extras totalmente vazias ficam de fora.
+export function vistoriasDoCaso(c = {}) {
+  const lista = [];
+  for (let n = 1; n <= qtdVistorias(c); n++) {
+    const g = (campo) => String(c[chaveVistoria(n, campo)] || '').trim();
+    const v = { n, rotulo: `${n}ª vistoria`, data: g('Data'), inicio: g('Inicio'), fim: g('Fim'), local: g('Local'), endereco: g('Endereco'),
+      gps: g('Gps'), presentes: g('Presentes'), condicoes: g('Condicoes'), objetivo: g('Objetivo') };
+    if (n > 1 && !Object.entries(v).some(([k, x]) => !['n', 'rotulo'].includes(k) && x)) continue;
+    if (n > 1) { v.local = v.local || lista[0].local; v.endereco = v.endereco || lista[0].endereco; }
+    lista.push(v);
+  }
+  if (lista[0]) lista[0].local = localVistoria(c) || lista[0].local;
+  return lista;
+}
+// a vistoria mais recente (a última com data; senão a 1ª): usada no termo de presença e nas petições do dia
+export function vistoriaAtual(c = {}) {
+  const l = vistoriasDoCaso(c);
+  return [...l].reverse().find((v) => v.data) || l[0];
+}
+// "01/09/2026" ou "01/09/2026 e 17/11/2026"
+export function datasDasVistorias(c = {}) {
+  const ds = vistoriasDoCaso(c).map((v) => isoBR(v.data)).filter(Boolean);
+  return ds.length <= 1 ? (ds[0] || '') : `${ds.slice(0, -1).join(', ')} e ${ds[ds.length - 1]}`;
+}
+export const variasVistorias = (c = {}) => vistoriasDoCaso(c).filter((v) => v.data).length > 1;

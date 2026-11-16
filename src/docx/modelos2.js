@@ -12,7 +12,7 @@ import {
 } from './base.js';
 import { introPerito, fecho, contratanteDe, avaliacaoAgentes } from './modelos.js';
 import { p, run } from './ooxml.js';
-import { localVistoria } from '../schema.js';
+import { localVistoria, vistoriaAtual, datasDasVistorias } from '../schema.js';
 
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 const GRAU = { 'mínimo': 'mínimo (10%)', 'médio': 'médio (20%)', 'máximo': 'máximo (40%)' };
@@ -134,7 +134,7 @@ export async function laudoAcidente(caseId) {
       titulo: 'LAUDO TÉCNICO PERICIAL', subtitulo: 'Acidente do trabalho – análise técnica das condições e das causas', perfil,
       orgao: c.justica ? `Poder Judiciário – ${c.justica}` : '',
       pares: [['Processo', c.numero], ['Juízo', [c.juizo, c.comarca].filter(Boolean).join(' – ')], [pt.autor, c.autorNome], [pt.reu, c.reuNome],
-        ['Data do acidente', dataBR(c.acidenteData)], ['Vistoria', dataBR(c.vistoriaData)], ['Perito do Juízo', resp]].filter(([, x]) => v(x)),
+        ['Data do acidente', dataBR(c.acidenteData)], ['Vistoria', datasDasVistorias(c) || dataBR(c.vistoriaData)], ['Perito do Juízo', resp]].filter(([, x]) => v(x)),
     });
     d.quebra();
     d.enderecamento(enderecamentoTexto(c), linhasProcesso(c));
@@ -256,7 +256,7 @@ export async function peticaoPeritoAvulsa(caseId) {
   if (tipo === PETICOES_PERITO[0]) {
     d.texto(introPerito(perfil, c, 'requerer a **prorrogação do prazo para a entrega do laudo pericial**, pelos fundamentos a seguir expostos.'));
     sec('Do prazo em curso');
-    d.texto(`O prazo para a entrega do laudo ${c.prazoLaudo ? `vence em ${dataBR(c.prazoLaudo)}` : 'vence em [[data]]'}${c.vistoriaData ? `, contado da vistoria realizada em ${dataBR(c.vistoriaData)}` : ''}.`);
+    d.texto(`O prazo para a entrega do laudo ${c.prazoLaudo ? `vence em ${dataBR(c.prazoLaudo)}` : 'vence em [[data]]'}${vistoriaAtual(c)?.data ? `, contado da vistoria realizada em ${dataBR(vistoriaAtual(c).data)}` : ''}.`);
     sec('Dos motivos');
     if (motivo) d.texto(motivo); else d.redigir('motivo justificado (ex.: documentos requisitados ainda não apresentados pela empresa, necessidade de nova diligência, complexidade das avaliações).');
     sec('Do pedido');
@@ -268,7 +268,8 @@ export async function peticaoPeritoAvulsa(caseId) {
   } else if (tipo === PETICOES_PERITO[1]) {
     d.texto(introPerito(perfil, c, 'informar a impossibilidade de concluir a diligência pericial e requerer o que segue.'));
     sec('Da diligência');
-    const quando = [dataBR(c.vistoriaData || c.dataDiligencia), c.vistoriaInicio || c.horaDiligencia].filter(Boolean).join(', às ');
+    const va = vistoriaAtual(c);
+    const quando = [dataBR(va?.data || c.dataDiligencia), va?.inicio || c.horaDiligencia].filter(Boolean).join(', às ');
     d.texto(`Conforme designado nos autos, este perito compareceu ${quando ? `em ${quando}` : 'em [[data e horário]]'}${v(c.vistoriaLocal) ? ` na ${c.vistoriaLocal}` : ''}${v(c.vistoriaEndereco) ? `, ${String(c.vistoriaEndereco).replace(/\n/g, ' – ')}` : ''}.`);
     if (motivo) d.texto(motivo); else d.redigir('o que ocorreu (empresa fechada ou inativa, recusa de acesso, ausência de responsável, documentos não apresentados, máquina não disponível) e quem estava presente.');
     sec('Dos requerimentos');
@@ -451,13 +452,15 @@ export function quadroDadosPPP(d, dados) {
 export async function termoPresenca(caseId) {
   const dados = await carregar(caseId);
   const { c } = dados;
+  // a vistoria mais recente (2ª diligência, continuação): data, horários, local e presentes dela
+  const va = vistoriaAtual(c) || {};
   const d = new Doc();
-  d.add(p([run('TERMO DE PRESENÇA – DILIGÊNCIA PERICIAL', { b: true, size: 14, color: '1B365D' })], { align: 'center', after: 60 }));
+  d.add(p([run(`TERMO DE PRESENÇA – ${va.n > 1 ? `${va.n}ª ` : ''}DILIGÊNCIA PERICIAL`, { b: true, size: 14, color: '1B365D' })], { align: 'center', after: 60 }));
   if (c.numero) d.add(p([run(`Processo nº ${c.numero}${c.juizo ? ` – ${c.juizo}` : ''}`)], { align: 'center', after: 0 }));
   if (c.autorNome || c.reuNome) d.add(p([run([c.autorNome, c.reuNome].filter(Boolean).join(c.tipoAtuacao === 'Extrajudicial' ? ' – ' : ' × '))], { align: 'center', after: 240 }));
-  d.identificacao([['Data', dataBR(c.vistoriaData || c.dataDiligencia) || '____/____/________'], ['Horário de início', c.vistoriaInicio || c.horaDiligencia || '____:____'],
-    ['Horário de término', c.vistoriaFim || '____:____'], ['Local', [localVistoria(c), String(c.vistoriaEndereco || '').replace(/\n/g, ' – ')].filter(Boolean).join(' – ') || '']]);
-  const pre = String(c.vistoriaPresentes || '').split('\n').map((l) => l.trim()).filter(Boolean);
+  d.identificacao([['Data', dataBR(va.data || c.dataDiligencia) || '____/____/________'], ['Horário de início', va.inicio || c.horaDiligencia || '____:____'],
+    ['Horário de término', va.fim || '____:____'], ['Local', [va.local || localVistoria(c), String(va.endereco || '').replace(/\n/g, ' – ')].filter(Boolean).join(' – ') || '']]);
+  const pre = String(va.presentes || '').split('\n').map((l) => l.trim()).filter(Boolean);
   const linhas = [...pre.map((l) => [l, '', '', '']), ...Array.from({ length: Math.max(4, 12 - pre.length) }, () => ['', '', '', ''])];
   d.quadro('Presentes', [['Nome', 'Função / quem representa', 'Doc. (RG/CPF)', 'Assinatura'], ...linhas.map(([n, ...r]) => {
     // "Nome – função – parte" do cadastro: nome na 1ª coluna, o resto na 2ª
@@ -466,7 +469,7 @@ export async function termoPresenca(caseId) {
   })],
     { larguras: [0.3, 0.27, 0.16, 0.27], tam: 10, alinhar: 'left', fonte: c.tipoAtuacao === 'Extrajudicial' ? 'Avaliação técnica extrajudicial.' : 'Diligência comunicada às partes e aos assistentes técnicos (art. 474 do CPC).' });
   d.texto('Observações: _______________________________________________________________\n__________________________________________________________________________', { recuo: false });
-  const dataTermo = dataPorExtenso(c.vistoriaData || c.dataDiligencia);
+  const dataTermo = dataPorExtenso(va.data || c.dataDiligencia);
   blocoAssinatura(d, dados, null, dataTermo ? { data: dataTermo } : {});
   return finalizar(d, { titulo: 'Termo de presença', arquivo: 'Termo_presenca', c });
 }

@@ -319,3 +319,18 @@ input.cresce { flex: 1; min-width: min(220px, 100%); }
 .saude-banco { display: grid; gap: 6px; }
 .saude-banco.alerta { background: #FFF6DD; border-color: #E6CF8A; }
 .saude-banco > span, .saude-banco > small { display: block; }
+
+/* ---------- abas das vistorias (1ª, 2ª…) na diligência ---------- */
+.abas-vistoria { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+.aba-vistoria { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 52px; padding: 8px 16px;
+  border: 1px solid var(--borda); border-radius: 12px; background: #fff; color: var(--texto); text-align: left; cursor: pointer; }
+.aba-vistoria small { color: var(--suave); font-size: .8rem; font-weight: 400; }
+.aba-vistoria.ativa { background: var(--azul); border-color: var(--azul); color: #fff; }
+.aba-vistoria.ativa small { color: rgba(255,255,255,.8); }
+.aba-vistoria.nova { border-style: dashed; color: var(--azul-2); font-weight: 600; }
+@media (max-width: 600px) { .aba-vistoria { flex: 1 1 140px; } }
+.audio-vistoria { border: 1px dashed var(--borda); border-radius: 12px; padding: 10px 12px; }
+.audio-vistoria .gravando { display: block; color: var(--erro); font-weight: 600; margin: 4px 0; }
+.audio-vistoria .gravando em { color: var(--suave); font-weight: 400; }
+.audio-item { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0; }
+.audio-item audio { max-width: 100%; height: 36px; }

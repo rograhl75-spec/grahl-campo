@@ -1,5 +1,7 @@
 import { horasDia } from '../calc.js';
 import { useState, useEffect, useRef } from 'preact/hooks';
+import { termoPresenca } from '../docx/modelos2.js';
+import { baixarArquivo } from '../backup.js';
 import { iniciarGravacao, pararGravacao as pararGravador, ouvir as ouvirGravador, estado as estadoGravador } from '../gravador.js';
 import { db, createRecord, softDelete, updateFields } from '../db.js';
 import { avisarAlteracao } from '../sync.js';
@@ -14,7 +16,7 @@ import { evidenciasDaDiligencia, aplicarEvidencias } from '../fotosLaudo.js';
 import { TF, Campos, salvar } from './fields.jsx';
 import { useLive } from './hooks.js';
 import { EquipamentosCaso, VeiculoDoPeriodo, ParadigmasDosVinculos } from './Preparacao.jsx';
-import { ehParecerTecnico, chaveVistoria, qtdVistorias, vistoriasDoCaso, CAMPOS_VISTORIA, DESC_AUDIO, reuEhInss } from '../schema.js';
+import { ehParecerTecnico, chaveVistoria, qtdVistorias, vistoriasDoCaso, CAMPOS_VISTORIA, DESC_AUDIO, reuEhInss, ITENS_ACOMPANHAMENTO } from '../schema.js';
 import { dataBR } from '../docx/reports.js';
 import { guardarAnexo, LIMITE_NUVEM } from '../paradigmas.js';
 import { obterAnexo } from '../sync.js';
@@ -63,48 +65,70 @@ export function Campo({ rec }) {
     await softDelete(p.id); avisarAlteracao();
   };
 
+  const papel = rec.data.papel || '';
+  const at = /Assistente técnico/i.test(papel);
+  const entrevista = ehEntrevistaMotorista(rec.data);
+  // assistente técnico e parecer por entrevista: postos e medições ficam recolhidos (não são o centro do trabalho)
+  const secundario = at || entrevista;
+  const blocoPostos = (
+    <>
+      {!postos.length && <p class="vazio">Cadastre cada posto, setor ou função avaliada. Medições e fotos ficam vinculadas a ele.</p>}
+      {postos.map((p) => (
+        <div class={`item ${aberto === p.id ? 'aberto' : ''}`} key={p.id}>
+          <div class="item-topo" onClick={() => setAberto(aberto === p.id ? null : p.id)}>
+            <span class="item-titulo">{p.data.nome || <em>(posto sem nome – toque para preencher)</em>}</span>
+            <span class="item-acoes" onClick={(e) => e.stopPropagation()}>
+              <ContagemPosto caseId={rec.id} postoId={p.id} />
+              <button type="button" class="mini perigo" onClick={() => removerPosto(p)}>✕</button>
+            </span>
+          </div>
+          {aberto === p.id && (
+            <div class="item-corpo">
+              <Campos rec={p} campos={CAMPOS_POSTO} />
+              <VinculosDoPosto rec={p} caseId={rec.id} />
+              <Medicoes caseId={rec.id} postoId={p.id} ctx={contextoLegal(rec.data)} caso={rec} />
+              <div class="campo">
+                <span class="rotulo">Fotos deste posto</span>
+                <BotoesFoto caseId={rec.id} postoId={p.id} />
+                <Miniaturas caseId={rec.id} postoId={p.id} />
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
+      <button type="button" class="adicionar" onClick={novoPosto}>＋ Adicionar posto / atividade</button>
+    </>
+  );
+
   return (
     <div class="grade campo-tela">
-      <AnotacoesDiligencia rec={rec} />
-      {ehEntrevistaMotorista(rec.data) && <EntrevistaVinculos rec={rec} />}
+      {entrevista && <EntrevistaVinculos rec={rec} />}
 
       <Diligencia rec={rec} iniciar={iniciar} pegarGps={pegarGps} gpsMsg={gpsMsg} />
 
-      <section class="bloco largo">
-        <h3>Postos / atividades avaliados <span class="contador">{postos.length}</span></h3>
-        {!postos.length && <p class="vazio">Cadastre cada posto, setor ou função avaliada. Medições e fotos ficam vinculadas a ele.</p>}
-        {postos.map((p) => (
-          <div class={`item ${aberto === p.id ? 'aberto' : ''}`} key={p.id}>
-            <div class="item-topo" onClick={() => setAberto(aberto === p.id ? null : p.id)}>
-              <span class="item-titulo">{p.data.nome || <em>(posto sem nome – toque para preencher)</em>}</span>
-              <span class="item-acoes" onClick={(e) => e.stopPropagation()}>
-                <ContagemPosto caseId={rec.id} postoId={p.id} />
-                <button type="button" class="mini perigo" onClick={() => removerPosto(p)}>✕</button>
-              </span>
-            </div>
-            {aberto === p.id && (
-              <div class="item-corpo">
-                <Campos rec={p} campos={CAMPOS_POSTO} />
-                <VinculosDoPosto rec={p} caseId={rec.id} />
-                <Medicoes caseId={rec.id} postoId={p.id} ctx={contextoLegal(rec.data)} caso={rec} />
-                <div class="campo">
-                  <span class="rotulo">Fotos deste posto</span>
-                  <BotoesFoto caseId={rec.id} postoId={p.id} />
-                  <Miniaturas caseId={rec.id} postoId={p.id} />
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-        <button type="button" class="adicionar" onClick={novoPosto}>＋ Adicionar posto / atividade</button>
-      </section>
+      {at && <AcompanhamentoPerito rec={rec} />}
 
-      <section class="bloco largo">
-        <h3>Medições sem posto vinculado</h3>
-        <Medicoes caseId={rec.id} postoId="" ctx={contextoLegal(rec.data)} caso={rec} />
-      </section>
+      <QuesitosNaMao rec={rec} />
 
-      <RelatoriosMedicao rec={rec} />
+      {secundario ? (
+        <details class="bloco largo recolhido">
+          <summary><b>Postos e medições próprias</b> <span class="contador">{postos.length}</span> <small class="dica">{at ? 'se a assistência também medir' : 'se houver avaliação no local'}</small></summary>
+          {blocoPostos}
+          <h4 class="mt">Medições sem posto vinculado</h4>
+          <Medicoes caseId={rec.id} postoId="" ctx={contextoLegal(rec.data)} caso={rec} />
+        </details>
+      ) : (
+        <>
+          <section class="bloco largo">
+            <h3>Postos / atividades avaliados <span class="contador">{postos.length}</span></h3>
+            {blocoPostos}
+          </section>
+          <section class="bloco largo">
+            <h3>Medições sem posto vinculado</h3>
+            <Medicoes caseId={rec.id} postoId="" ctx={contextoLegal(rec.data)} caso={rec} />
+          </section>
+        </>
+      )}
 
       <section class="bloco largo">
         <h3>Fotos gerais</h3>
@@ -115,7 +139,57 @@ export function Campo({ rec }) {
       <section class="bloco largo">
         <TF rec={rec} k="vistoriaNotas" label="Anotações gerais da diligência" area rows={4} />
       </section>
+
+      <details class="bloco largo recolhido">
+        <summary><b>No escritório</b> <small class="dica">relatórios dos medidores (apêndices) e importação das anotações</small></summary>
+        <RelatoriosMedicao rec={rec} />
+        <AnotacoesDiligencia rec={rec} />
+      </details>
     </div>
+  );
+}
+
+// Assistente técnico: o que verificar no trabalho do perito, por item, com a constatação e a observação
+// para a manifestação. Sai preenchido no "Relatório de acompanhamento da diligência".
+
+function AcompanhamentoPerito({ rec }) {
+  const c = rec.data;
+  const feitos = ITENS_ACOMPANHAMENTO.filter((_, i) => String(c[`acomp${i + 1}C`] || '').trim()).length;
+  return (
+    <section class="bloco largo acompanhamento">
+      <h3>Acompanhamento da perícia <span class="contador">{feitos}/{ITENS_ACOMPANHAMENTO.length}</span></h3>
+      <p class="dica">O que o perito fez, item a item. Vai preenchido para o relatório de acompanhamento e para a manifestação sobre o laudo.</p>
+      <TF rec={rec} k="acompMedicoesPerito" label="Medições feitas pelo perito (agente, local, equipamento, o que o aparelho mostrou, tempo)" area rows={3} />
+      {ITENS_ACOMPANHAMENTO.map((t, i) => (
+        <details class="acomp-item" open={!!String(c[`acomp${i + 1}C`] || c[`acomp${i + 1}O`] || '').trim()}>
+          <summary><span class={`acomp-marca ${String(c[`acomp${i + 1}C`] || '').trim() ? 'ok' : ''}`} aria-hidden="true" />{t}</summary>
+          <div class="linha2">
+            <TF rec={rec} k={`acomp${i + 1}C`} label="Constatação" area rows={2} />
+            <TF rec={rec} k={`acomp${i + 1}O`} label="Observação para a manifestação" area rows={2} />
+          </div>
+        </details>
+      ))}
+      <TF rec={rec} k="acompDivergencias" label="Divergências e pontos a impugnar ou reforçar" area rows={3} />
+    </section>
+  );
+}
+
+// Quesitos à mão durante a diligência: texto e anotação de campo, sem sair da aba
+function QuesitosNaMao({ rec }) {
+  const qs = useLive(async () => (await db.records.where('[caseId+kind]').equals([rec.id, 'quesito']).toArray()).filter((r) => !r.deleted)
+    .sort((a, b) => String(a.data.origem || '').localeCompare(String(b.data.origem || '')) || (Number(a.data.numero) || 0) - (Number(b.data.numero) || 0) || a.createdAt - b.createdAt), [rec.id], []);
+  if (!qs.length) return null;
+  const respondidos = qs.filter((q) => String(q.data.resposta || '').trim()).length;
+  return (
+    <details class="bloco largo recolhido">
+      <summary><b>Quesitos à mão</b> <span class="contador">{respondidos}/{qs.length}</span> <small class="dica">ler e anotar sem sair do Campo</small></summary>
+      {qs.map((q) => (
+        <div class="quesito-mao" key={q.id}>
+          <p><b>{q.data.origem || 'Quesito'} {q.data.numero ? `– ${q.data.numero}` : ''}</b> {q.data.texto}</p>
+          <TF rec={q} k="resposta" label="Anotação de campo / resposta" area rows={2} />
+        </div>
+      ))}
+    </details>
   );
 }
 
@@ -291,6 +365,10 @@ function Diligencia({ rec, iniciar, pegarGps, gpsMsg }) {
     avisarAlteracao();
     setSel(qtd - 1);
   };
+  // termo de presença da vistoria aberta (o gerador usa a vistoria mais recente com data)
+  const termo = async () => {
+    try { const r = await termoPresenca(rec.id); baixarArquivo(r.blob, r.nome); } catch (e) { avisar(`Não foi possível gerar o termo: ${e.message || e}`); }
+  };
   const anterior = n > 1 ? String(c[chaveVistoria(n - 1, 'Presentes')] || '').trim() : '';
   const lista = vistoriasDoCaso(c);
   const resumo = (v) => [v.data && v.data.split('-').reverse().join('/'), v.inicio && `${v.inicio}${v.fim ? `–${v.fim}` : ''}`].filter(Boolean).join(' · ');
@@ -339,7 +417,10 @@ function Diligencia({ rec, iniciar, pegarGps, gpsMsg }) {
       <AudioVistoria rec={rec} n={n} key={`audio-${n}`} />
       {n === 1 && <EquipamentosCaso rec={rec} titulo="Equipamentos utilizados" />}
       {n > 1 && <p class="dica">Os equipamentos ficam na 1ª vistoria e valem para o caso todo. Medições e fotos ficam nos postos, com a data de cada uma.</p>}
-      {n > 1 && n === qtd && <div class="linha-botoes"><button type="button" class="mini perigo" onClick={excluirUltima}>Excluir a {n}ª vistoria</button></div>}
+      <div class="linha-botoes">
+        {!/Assistente técnico/i.test(c.papel || '') && <button type="button" class="mini" onClick={termo}><Icone nome="doc" /> Termo de presença da {n}ª vistoria</button>}
+        {n > 1 && n === qtd && <button type="button" class="mini perigo" onClick={excluirUltima}>Excluir a {n}ª vistoria</button>}
+      </div>
       </div>
       <p class="dica">Para ditar, use o microfone do teclado do tablet. Tudo é gravado automaticamente enquanto você digita.</p>
     </section>

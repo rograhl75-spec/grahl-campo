@@ -373,3 +373,13 @@ input.cresce { flex: 1; min-width: min(220px, 100%); }
 .barra-gravacao button { margin-left: auto; background: #fff; color: #7F1D1D; border: 0; border-radius: 10px; padding: 6px 14px; font-weight: 700; min-height: 40px; }
 @keyframes pisca { 50% { opacity: .3; } }
 .transcricao-viva { white-space: pre-wrap; font: inherit; background: #FAFBFD; border: 1px solid var(--borda); border-radius: 10px; padding: 10px 12px; max-height: 240px; overflow: auto; margin: 0; }
+details.recolhido > summary { cursor: pointer; list-style: none; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; min-height: 32px; }
+details.recolhido > summary::before { content: '▸'; color: var(--ouro); font-weight: 700; }
+details.recolhido[open] > summary::before { content: '▾'; }
+details.recolhido[open] > summary { margin-bottom: 12px; }
+.acomp-item { border-top: 1px solid var(--borda); padding: 8px 0; }
+.acomp-item > summary { cursor: pointer; display: flex; gap: 10px; align-items: center; font-weight: 600; min-height: 36px; }
+.acomp-marca { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--borda); flex: none; }
+.acomp-marca.ok { background: var(--ok); border-color: var(--ok); }
+.quesito-mao { border-top: 1px solid var(--borda); padding-top: 10px; margin-top: 10px; }
+.quesito-mao p { margin: 0 0 6px; }

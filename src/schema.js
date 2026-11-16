@@ -392,3 +392,8 @@ export function datasDasVistorias(c = {}) {
   return ds.length <= 1 ? (ds[0] || '') : `${ds.slice(0, -1).join(', ')} e ${ds[ds.length - 1]}`;
 }
 export const variasVistorias = (c = {}) => vistoriasDoCaso(c).filter((v) => v.data).length > 1;
+
+// Assistente técnico: itens a verificar no trabalho do perito (aba Campo → Acompanhamento da perícia)
+export const ITENS_ACOMPANHAMENTO = ['Instrumentos utilizados e certificados de calibração apresentados', 'Calibração do dosímetro antes e depois da medição',
+  'Tempo de amostragem representativo da jornada', 'Postos e atividades avaliados (todos os do período discutido?)', 'Condições de operação no dia (normais ou atípicas)',
+  'Documentos solicitados e recebidos pelo perito', 'Informações colhidas e de quem', 'Pedidos e observações apresentados pela assistência'];

@@ -2,6 +2,7 @@ import { db, mergeIncoming, createRecord, updateFields, newId } from './db.js';
 import { normalize, mergeRecords, sameContent } from './merge.js';
 import { num as numBR } from './calc.js';
 import { familiaDoGrupo, tipoDoGrupo } from './schema.js';
+import { familiaProvavel, pontuar, MINIMO_SUGESTAO } from './similaridade.js';
 
 // ======================================================================
 // Banco de paradigmas (veículos e máquinas medidos), similares e famílias.
@@ -353,10 +354,31 @@ export function lerJsonVeiculos(texto) {
 // e tipo. Devolve o melhor candidato de ruído e de vibração (fora os "NÃO USAR") e o critério usado.
 export async function sugerirParaVinculo(r) {
   const x = r.data || r;
-  const familia = String(x.familiaVeiculo || '').trim() || familiaDoGrupo(x.grupoVeiculo);
-  const res = await sugerirParadigmas({ marca: x.veiculoMarca || '', modelo: x.veiculoModelo || '', tipo: x.veiculoTipo || tipoDoGrupo(x.grupoVeiculo), familia });
-  const ok = (l) => l.find(({ p }) => !/não usar/i.test(p.data.situacao || '')) || null;
-  return { ruido: ok(res.ruido), vibracao: ok(res.vibracao), criterio: res.criterio, familia: res.familia || familia, todos: res };
+  // família: a digitada no vínculo; senão, a provável pelo veículo (marca, modelo, ano) ou pelo grupo da entrevista
+  const prov = familiaProvavel({ marca: x.veiculoMarca, modelo: x.veiculoModelo, ano: x.veiculoAno || x.inicio, grupo: x.grupoVeiculo, tipo: x.veiculoTipo });
+  const familia = String(x.familiaVeiculo || '').trim() || prov.familia || familiaDoGrupo(x.grupoVeiculo);
+  const origemFamilia = String(x.familiaVeiculo || '').trim() ? 'informada no vínculo' : prov.familia ? prov.motivo : familia ? 'grupo do veículo' : '';
+  const [pars, sims] = await Promise.all([db.records.where('kind').equals('paradigma').toArray(), db.records.where('kind').equals('similar').toArray()]);
+  const ativos = pars.filter((p) => !p.deleted && !/não usar/i.test(p.data.situacao || ''));
+  const sim = melhorSimilar(sims.filter((y) => !y.deleted), x.veiculoMarca || '', x.veiculoModelo || '');
+  const daTabela = new Set(sim ? [sim.data.paradigmaRuido, sim.data.paradigmaRuidoAlt, sim.data.paradigmaVibracao].filter(Boolean) : []);
+  const veic = { familia, marca: x.veiculoMarca, modelo: x.veiculoModelo, ano: x.veiculoAno || String(x.inicio || '').slice(0, 4), tipo: x.veiculoTipo || tipoDoGrupo(x.grupoVeiculo), grupo: x.grupoVeiculo, cabine: x.cabine };
+  const ranking = ativos.map((p) => ({ p, ...pontuar(veic, p, { similar: daTabela.has(p.data.codigo) }) }))
+    .filter((c) => c.pontos >= MINIMO_SUGESTAO).sort((a, b) => b.pontos - a.pontos);
+  const ruidos = ranking.filter((c) => String(c.p.data.lavg || '').trim());
+  const vibs = ranking.filter((c) => String(c.p.data.arep || c.p.data.arenLaudo || '').trim());
+  const desc = (c) => (c ? `${c.motivos.join(', ')}` : '');
+  const ruido = ruidos[0] ? { p: ruidos[0].p, papel: desc(ruidos[0]) } : null;
+  const vibracao = vibs[0] ? { p: vibs[0].p, papel: desc(vibs[0]) } : null;
+  const criterio = ruido || vibracao ? `${desc(ruidos[0] || vibs[0])}${familia ? `; família do veículo ${familia} (${origemFamilia})` : ''}` : '';
+  return { ruido, vibracao, criterio, familia, origemFamilia, ranking: { ruido: ruidos.slice(0, 3), vibracao: vibs.slice(0, 3) } };
+}
+
+// formato da lista "Buscar paradigma" (ResultadoBusca) a partir da comparação por pontos
+export function paraResultadoBusca(s) {
+  const l = (arr) => arr.map((c) => ({ p: c.p, papel: `${c.pontos} pts – ${c.motivos.join(', ')}` }));
+  return { similar: null, ruido: l(s.ranking.ruido), vibracao: l(s.ranking.vibracao), familia: s.familia,
+    criterio: s.familia ? `Família do veículo ${s.familia} (${s.origemFamilia}); comparação por pontos` : 'Família não identificada – informe a família ou o grupo do veículo' };
 }
 
 // Ficha para pesquisar o paradigma nos documentos do signatário quando o banco não tem

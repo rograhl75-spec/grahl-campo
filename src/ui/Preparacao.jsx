@@ -8,7 +8,7 @@ import { TF, salvar } from './fields.jsx';
 import { RecordList } from './RecordList.jsx';
 import { useLive } from './hooks.js';
 import { Campos } from './fields.jsx';
-import { sugerirParadigmas, sugerirParaVinculo, fichaPesquisa, fichaPesquisaTexto, rotuloParadigma } from '../paradigmas.js';
+import { sugerirParaVinculo, paraResultadoBusca, fichaPesquisa, fichaPesquisaTexto, rotuloParadigma } from '../paradigmas.js';
 import { familiaDoGrupo, tipoDoGrupo, CAMPOS_VEICULO_COPIAVEIS } from '../schema.js';
 import { CAMPOS_PENOSIDADE } from '../docx/penosidade.js';
 import { ResultadoBusca } from './Paradigmas.jsx';
@@ -187,13 +187,14 @@ export const CAMPOS_VEICULO_PERIODO = [
   ['paradigmaRuido', 'Paradigma de ruído (código, ex.: M01)', 'text'], ['paradigmaVibracao', 'Paradigma de vibração (código)', 'text'],
 ];
 
-function VeiculoDoPeriodo({ r }) {
-  const [aberto, setAberto] = useState(!!(r.data.veiculoModelo || r.data.paradigmaRuido));
+export function VeiculoDoPeriodo({ r, abertoInicial }) {
+  const [aberto, setAberto] = useState(abertoInicial ?? !!(r.data.veiculoModelo || r.data.paradigmaRuido));
   const [res, setRes] = useState(null);
   // o grupo do veículo da entrevista orienta a busca quando o tipo não foi digitado
   const tipoBusca = () => r.data.veiculoTipo || tipoDoGrupo(r.data.grupoVeiculo);
   // o grupo do veículo indica a família técnica do banco (ex.: cavalo antigo sem ar → F5); a família digitada prevalece
-  const buscar = async () => setRes(await sugerirParadigmas({ marca: r.data.veiculoMarca, modelo: r.data.veiculoModelo, tipo: tipoBusca(), familia: r.data.familiaVeiculo || familiaDoGrupo(r.data.grupoVeiculo) }));
+  // comparação por pontos com o banco (família provável pelo veículo, similares, modelo, marca, tipo, ar, época)
+  const buscar = async () => setRes(paraResultadoBusca(await sugerirParaVinculo({ data: { ...r.data, veiculoTipo: tipoBusca() } })));
   const escolher = async (tipo, p) => {
     await updateFields(r.id, tipo === 'ruido' ? { paradigmaRuido: p.data.codigo } : { paradigmaVibracao: p.data.codigo });
     avisarAlteracao();
@@ -288,7 +289,7 @@ function FichaPesquisa({ r, familia }) {
 }
 
 // Todos os vínculos de uma vez: candidato de ruído e de vibração de cada um, para aceitar em bloco
-function ParadigmasDosVinculos({ rec }) {
+export function ParadigmasDosVinculos({ rec }) {
   const [linhas, setLinhas] = useState(null);
   const [msg, setMsg] = useState('');
   const pesquisar = async () => {
@@ -315,7 +316,7 @@ function ParadigmasDosVinculos({ rec }) {
     setMsg(`✓ Paradigmas vinculados em ${n} vínculo(s) que estavam sem. Os já escolhidos não foram alterados.`);
     setLinhas(null);
   };
-  const rot = (x) => (x ? `${rotuloParadigma(x.p)}${/^ok$/i.test(x.p.data.situacao || 'OK') ? '' : ` – situação ${x.p.data.situacao}`}` : '—');
+  const rot = (x) => (x ? `${rotuloParadigma(x.p)} (${x.papel})` : '—');
   return (
     <section class="bloco largo">
       <div class="linha-botoes entre"><h3>Paradigmas dos vínculos</h3>
@@ -324,7 +325,7 @@ function ParadigmasDosVinculos({ rec }) {
       {linhas && (
         <>
           <div class="tabela-rolagem"><table class="tabela">
-            <thead><tr><th>Vínculo</th><th>Veículo / grupo</th><th>Ruído</th><th>Vibração</th><th>Critério</th></tr></thead>
+            <thead><tr><th>Vínculo</th><th>Veículo / grupo</th><th>Ruído (motivos)</th><th>Vibração (motivos)</th><th>Família do veículo</th></tr></thead>
             <tbody>{linhas.map(({ r, s, categoria }) => (
               <tr>
                 <td><b>{r.data.empresa}</b><br /><small>{dataBR(r.data.inicio)} a {r.data.fim ? dataBR(r.data.fim) : 'atual'}</small></td>
@@ -332,7 +333,7 @@ function ParadigmasDosVinculos({ rec }) {
                 {categoria ? <td colSpan={3}><small>Até 28/04/1995: categoria profissional, sem paradigma.</small></td> : <>
                   <td><small>{r.data.paradigmaRuido ? `já vinculado: ${r.data.paradigmaRuido}` : rot(s.ruido)}</small></td>
                   <td><small>{r.data.paradigmaVibracao ? `já vinculado: ${r.data.paradigmaVibracao}` : rot(s.vibracao)}</small></td>
-                  <td><small>{s.ruido || s.vibracao ? s.criterio : <span class="alerta-txt">sem paradigma – pesquisar: {fichaPesquisaTexto(r, s.familia)}</span>}</small></td>
+                  <td><small>{s.familia ? `Família ${s.familia} (${s.origemFamilia})` : 'Família não identificada – informe no vínculo'}{s.ruido || s.vibracao ? '' : <><br /><span class="alerta-txt">sem paradigma – pesquisar: {fichaPesquisaTexto(r, s.familia)}</span></>}</small></td>
                 </>}
               </tr>))}</tbody>
           </table></div>

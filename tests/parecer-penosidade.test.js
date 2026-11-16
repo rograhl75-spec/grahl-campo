@@ -107,3 +107,31 @@ describe('leitura da entrevista na penosidade', () => {
     expect(t).toMatch(/Onde abastecia/);
   });
 });
+
+describe('família provável do veículo e comparação por pontos', async () => {
+  const { familiaProvavel, pontuar } = await import('../src/similaridade.js');
+  it('reconhece a família pela marca, modelo, ano e grupo', () => {
+    const f = (marca, modelo, ano = '', grupo = '') => familiaProvavel({ marca, modelo, ano, grupo }).familia;
+    expect(f('Chevrolet', 'D-60')).toBe('F1');
+    expect(f('Mercedes-Benz', '1313')).toBe('F1');
+    expect(f('Volkswagen', '8.150')).toBe('F3');
+    expect(f('Volkswagen', '10.160')).toBe('F3');
+    expect(f('Agrale', '9200')).toBe('F3');
+    expect(f('Agrale', '13000')).toBe('F4');
+    expect(f('Ford', 'Cargo 1717')).toBe('F4');
+    expect(f('Scania', 'R 360', '2005', 'Cavalo mecânico com cabine avançada (cara-chata)')).toBe('F6');
+    expect(f('Scania', 'R 450', '2015', 'Cavalo mecânico')).toBe('F8');
+    expect(f('Volvo', 'NH 360')).toBe('F7');
+    expect(f('Marca X', 'Y', '', 'Cavalo mecânico com cabine convencional / semiavançada, sem ar-condicionado (projeto antigo)')).toBe('F5');
+    expect(f('', '', '', 'Caminhão leve 3/4 / VUC')).toBe('F3');
+    expect(familiaProvavel({ marca: 'Chevrolet', modelo: 'D-60' }).motivo).toMatch(/provável/);
+  });
+  it('a família pesa mais que a marca; família e tipo diferentes afastam o paradigma', () => {
+    const veic = { familia: 'F1', marca: 'Chevrolet', modelo: 'D-60', tipo: 'Toco', grupo: 'Caminhão toco', cabine: 'sem ar', ano: '1993' };
+    const mesmaFam = pontuar(veic, { data: { familia: 'F1', marca: 'Ford', modelo: 'F-12000', tipo: 'Toco', arCondicionado: 'Não', ano: '1990', situacao: 'OK' } });
+    const mesmaMarca = pontuar(veic, { data: { familia: 'F6', marca: 'Chevrolet', modelo: 'X', tipo: 'Cavalo', situacao: 'OK' } });
+    expect(mesmaFam.pontos).toBeGreaterThan(mesmaMarca.pontos);
+    expect(mesmaFam.motivos).toContain('mesma família F1');
+    expect(mesmaMarca.pontos).toBeLessThan(45);
+  });
+});

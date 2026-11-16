@@ -11,7 +11,9 @@ import { promoverMedicao } from '../paradigmas.js';
 import { evidenciasDaDiligencia, aplicarEvidencias } from '../fotosLaudo.js';
 import { TF, Campos, salvar } from './fields.jsx';
 import { useLive } from './hooks.js';
-import { EquipamentosCaso } from './Preparacao.jsx';
+import { EquipamentosCaso, VeiculoDoPeriodo, ParadigmasDosVinculos } from './Preparacao.jsx';
+import { ehParecerTecnico } from '../schema.js';
+import { dataBR } from '../docx/reports.js';
 import { guardarAnexo, LIMITE_NUVEM } from '../paradigmas.js';
 import { obterAnexo } from '../sync.js';
 import { DESC_APENDICE, LETRAS, tituloSugerido } from '../apendices.js';
@@ -60,10 +62,11 @@ export function Campo({ rec }) {
   return (
     <div class="grade campo-tela">
       <AnotacoesDiligencia rec={rec} />
+      {ehEntrevistaMotorista(rec.data) && <EntrevistaVinculos rec={rec} />}
 
       <section class="bloco largo">
         <div class="linha-botoes entre">
-          <h3>Diligência</h3>
+          <h3>{ehEntrevistaMotorista(rec.data) ? 'Entrevista / diligência' : 'Diligência'}</h3>
           {!rec.data.vistoriaData && <button type="button" class="primario" onClick={iniciar}>▶ Iniciar diligência agora</button>}
         </div>
         <div class="linha3">
@@ -447,6 +450,44 @@ function AnotacoesDiligencia({ rec }) {
       )}
       {erro && <p class="erro-msg">{erro}</p>}
       {msg && <p class="ok-msg">{msg}</p>}
+    </section>
+  );
+}
+
+// Parecer de motorista: o "campo" é a entrevista do segurado, vínculo a vínculo
+const ehEntrevistaMotorista = (c) => ehParecerTecnico(c) || (c.objeto || []).includes('Penosidade (motorista)');
+
+function EntrevistaVinculos({ rec }) {
+  const ps = useLive(async () => (await db.records.where('[caseId+kind]').equals([rec.id, 'periodo']).toArray())
+    .filter((r) => !r.deleted).sort((a, b) => String(a.data.inicio).localeCompare(String(b.data.inicio))), [rec.id], []);
+  const [aberto, setAberto] = useState(null);
+  const resumo = (x) => [
+    [x.veiculoMarca, x.veiculoModelo, x.veiculoAno].filter(Boolean).join(' ') || x.grupoVeiculo,
+    x.tipoCarga && `carga: ${x.tipoCarga}`, x.vias && `trajetos: ${x.vias}`, x.jornadaSemanal && `jornada: ${x.jornadaSemanal}`,
+    x.noturnoPernoite && `pernoite: ${x.noturnoPernoite}`,
+  ].filter(Boolean).join(' · ');
+  const faltando = (x) => [!x.grupoVeiculo && 'grupo do veículo', !x.tipoCarga && 'carga', !x.vias && 'trajetos', !x.jornadaSemanal && !x.conducaoH && 'jornada',
+    !x.noturnoPernoite && 'pernoite', !x.paradigmaRuido && !(x.fim && x.fim <= '1995-04-28') && 'paradigma'].filter(Boolean);
+  return (
+    <section class="bloco largo destaque">
+      <div class="linha-botoes entre"><h3>Entrevista do segurado – vínculos <span class="contador">{ps.length}</span></h3>
+        <a class="botao sec" href={`#/caso/${encodeURIComponent(rec.id)}/preparacao`}>Ver na etapa 2</a></div>
+      <p class="dica">Neste parecer, o trabalho de campo é a entrevista. Toque no vínculo para registrar ou corrigir as respostas; elas vão direto para o parecer. Os vínculos vêm da CTPS/CNIS (etapa 2).</p>
+      {!ps.length && <p class="vazio">Nenhum vínculo cadastrado. Importe a CTPS/CNIS e a entrevista na etapa 2, ou gere o "Roteiro de entrevista do motorista" em Documentos.</p>}
+      {ps.map((r) => {
+        const x = r.data; const f = faltando(x);
+        return (
+          <div class={`item ${aberto === r.id ? 'aberto' : ''}`} key={r.id}>
+            <div class="item-topo" onClick={() => setAberto(aberto === r.id ? null : r.id)}>
+              <span class="item-titulo"><b>{x.empresa || '(empresa)'}</b> <small class="suave">{dataBR(x.inicio)} a {x.fim ? dataBR(x.fim) : 'atual'}{x.cargo ? ` · ${x.cargo}` : ''}</small>
+                <br /><small class="suave">{resumo(x) || 'entrevista não registrada'}</small>
+                {f.length > 0 && <><br /><small class="alerta-txt">Falta: {f.join(', ')}</small></>}</span>
+            </div>
+            {aberto === r.id && <div class="item-corpo"><VeiculoDoPeriodo r={r} abertoInicial /></div>}
+          </div>
+        );
+      })}
+      {ps.length > 0 && <ParadigmasDosVinculos rec={rec} />}
     </section>
   );
 }

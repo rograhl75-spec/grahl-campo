@@ -118,6 +118,7 @@ export async function importarBaseJson(obj, { versao = 1 } = {}) {
   if (!obj || !Array.isArray(obj.veiculos)) throw new Error('Arquivo sem a lista "veiculos".');
   const familias = new Map();
   const falhas = [];
+  const porCodigoExistente = new Map((await db.records.where('kind').equals('paradigma').toArray()).filter((r) => !r.deleted && r.data.codigo).map((r) => [String(r.data.codigo).toUpperCase(), r.id]));
   let nv = 0, ns = 0;
   for (const v of obj.veiculos) {
     const d = veiculoParaDados(v);
@@ -125,7 +126,9 @@ export async function importarBaseJson(obj, { versao = 1 } = {}) {
     const fam = (v.caracteristicas || {}).familia;
     if (fam && !familias.has(fam)) familias.set(fam, s((v.caracteristicas || {}).familia_descricao));
     try {
-      if (await gravarImportado(registro(`par-${slug(d.codigo)}`, 'paradigma', d, versao))) nv++;
+      // paradigma já existente com o mesmo código (ex.: incluído a partir de laudo, com id próprio): atualiza o mesmo registro
+      const id = porCodigoExistente.get(String(d.codigo).toUpperCase()) || `par-${slug(d.codigo)}`;
+      if (await gravarImportado(registro(id, 'paradigma', d, versao))) nv++;
     } catch (e) { falhas.push(`${d.codigo}: ${e.message || e}`); }
   }
   const vistosSim = new Set();
@@ -339,6 +342,16 @@ export function certificadoVencido(dataCert, dataMedicao, meses = REGRA_CERT_MES
   if (!c || !m) return false;
   const lim = new Date(c); lim.setMonth(lim.getMonth() + Number(meses || 24));
   return m > lim;
+}
+
+// citação do paradigma; sem ela (ex.: paradigma incluído a partir de laudo), monta com processo, vara e data
+export function citacaoDe(p) {
+  const d = p.data || p;
+  const c = String(d.citacao || '').trim();
+  if (c) return c;
+  if (/extrajudicial/i.test(d.fonteTipo || '')) return d.dataMedicao ? `Extrajudicial – ${d.dataMedicao}` : '';
+  const proc = String(d.processo || '').trim().replace(/\/[A-Z]{2}$/, '');
+  return [proc && `Proc. ${proc}`, String(d.vara || '').replace(/\s*\(.*\)\s*$/, '').trim(), d.dataMedicao].filter(Boolean).join(' – ');
 }
 
 export function rotuloParadigma(p) {

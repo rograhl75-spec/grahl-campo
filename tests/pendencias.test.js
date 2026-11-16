@@ -180,3 +180,17 @@ describe('exportar a base de paradigmas', () => {
     expect(p.data).toMatchObject({ lavg: '91,2', epocaFabricacao: '1975–1987', citacao: 'Proc. 0000000-00.2019.4.04.0000 – Vara X – 10/10/2020' });
   });
 });
+
+describe('base: citação montada e importação pelo código', () => {
+  it('monta a citação sem o campo e atualiza o paradigma existente com o mesmo código', async () => {
+    const { citacaoDe, importarBaseJson } = await import('../src/paradigmas.js');
+    expect(citacaoDe({ processo: '5000317-98.2015.4.04.7028/PR', vara: 'Juízo A (origem: 1ª Vara)', dataMedicao: '21/11/2025', fonteTipo: 'Judicial' }))
+      .toBe('Proc. 5000317-98.2015.4.04.7028 – Juízo A – 21/11/2025');
+    await db.records.clear();
+    const r = await createRecord('paradigma', null, { codigo: 'M21', marca: 'Volvo', modelo: 'NH 380' });
+    await importarBaseJson({ veiculos: [{ id: 'M21', identificacao: { epoca_fabricacao: '1998–2010' } }] }, { versao: 2000000000 });
+    const todos = (await db.records.where('kind').equals('paradigma').toArray());
+    expect(todos).toHaveLength(1);
+    expect((await db.records.get(r.id)).data.epocaFabricacao).toBe('1998–2010');
+  });
+});

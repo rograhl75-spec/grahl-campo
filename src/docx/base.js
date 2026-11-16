@@ -3,7 +3,7 @@ import { resumoMedicao, calculados } from '../medicoes.js';
 import { nen, num, fmt, fatorQ, doseJornada } from '../calc.js';
 import { ORIGEM_QUESITO, contextoLegal, ehSuplementar , reuEhInss, localVistoria } from '../schema.js';
 import { Doc, p, run, rich, montarDocx, ordinalDia1 } from './ooxml.js';
-import { nenParaJornada, arenParaJornada, vdvrParaJornada, certificadoVencido, rotuloParadigma, num as numP } from '../paradigmas.js';
+import { nenParaJornada, arenParaJornada, vdvrParaJornada, certificadoVencido, rotuloParadigma, citacaoDe, num as numP } from '../paradigmas.js';
 
 export const PERFIL_ID = 'perfil';
 
@@ -670,7 +670,7 @@ export function quadrosParadigmasMetodologia(d, dados) {
       const pr = P.get(r.data.paradigmaRuido), pv = P.get(r.data.paradigmaVibracao);
       const medido = [pr && `Ruído: ${rotuloParadigma(pr)}`, pv && pv !== pr && `VCI: ${rotuloParadigma(pv)}`].filter(Boolean).join('\n')
         || '[[PESQUISAR: sem paradigma no banco]]';
-      const fontes = [...new Set([pr, pv].filter(Boolean).map((x) => x.data.citacao))].join('\n');
+      const fontes = [...new Set([pr, pv].filter(Boolean).map((x) => citacaoDe(x)))].join('\n');
       return [vinculoNome(r, i), [r.data.veiculoMarca, r.data.veiculoModelo, r.data.veiculoAno].filter(Boolean).join(' ') || '[[veículo]]',
         (pr || pv) ? `${(pr || pv).data.familia}` : '', medido, fontes, (pr || pv) ? `${(pr || pv).data.jornadaLaudo || '?'} h` : ''];
     })], { larguras: [0.15, 0.17, 0.1, 0.22, 0.26, 0.1], tam: 8.5, alinhar: 'left', fonte: 'Banco de paradigmas do signatário.' });
@@ -690,7 +690,7 @@ export function quadrosParadigmasMetodologia(d, dados) {
         if (x.ruidoEquip) partes.push(`${x.ruidoEquip}, SN ${x.ruidoSerie || '?'}, certificado ${x.ruidoCert || 'n/i'} (${x.ruidoCertData || '?'})${certificadoVencido(x.ruidoCertData, x.dataMedicao, dados.regraCertMeses) ? ` [[VERIFICAR: certificado com mais de ${dados.regraCertMeses} meses na data da medição]]` : ''}`);
         if (x.calibEquip) partes.push(`calibrador ${x.calibEquip}, SN ${x.calibSerie || '?'}${x.calibCertData ? ` (${x.calibCertData})` : ''}`);
         if (x.vibEquip) partes.push(`${x.vibEquip}, série ${x.vibSerie || '?'}${x.vibCertData ? ` (calibrado em ${x.vibCertData})` : ''}${certificadoVencido(x.vibCertData, x.dataMedicao, dados.regraCertMeses) ? ` [[VERIFICAR: certificado com mais de ${dados.regraCertMeses} meses]]` : ''}`);
-        return [rotuloParadigma(p), x.citacao || '', partes.join('; ') || '[[instrumentação]]'];
+        return [rotuloParadigma(p), citacaoDe(p) || '', partes.join('; ') || '[[instrumentação]]'];
       })], { larguras: [0.22, 0.28, 0.5], tam: 8.5, alinhar: 'left', fonte: 'Relatórios de medição dos laudos de origem.' });
   }
   return true;

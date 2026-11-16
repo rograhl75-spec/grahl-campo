@@ -2,6 +2,7 @@ import { db, createRecord, updateFields, caseChildren } from './db.js';
 import { ORIGEM_QUESITO, contextoLegal, ehSuplementar, FASE, CAMPOS_DILIGENCIA, CAMPOS_POSTO, AGENTES_MEDICAO, ehAcidente, CAMPOS_ACIDENTE } from './schema.js';
 import { resumoMedicao } from './medicoes.js';
 import { dataIso } from './migrate.js';
+import { citacaoDe } from './paradigmas.js';
 
 // Origem do quesito por sinônimos (o Claude escreve "Reclamante", "Requerido", "Juiz"…); vazio = "Outro"
 export function origemQuesito(o) {
@@ -480,7 +481,7 @@ export async function textoDoCaso(caseId) {
       for (const [rot, cod] of [['ruído', x.paradigmaRuido], ['vibração', x.paradigmaVibracao]]) {
         if (!cod) continue;
         const q = pars.get(cod);
-        L.push(q ? `  - Paradigma de ${rot} ${cod}: ${q.marca} ${q.modelo} ${q.ano || ''} (família ${q.familia || '?'}); Lavg ${q.lavg || '–'} dB(A); arep ${q.arep || '–'}; VDVR ${q.vdvrLaudo || '–'}; jornada do laudo ${q.jornadaLaudo || '?'} h; fonte: ${q.citacao || '?'}; instrumentos: ${[q.ruidoEquip && `${q.ruidoEquip} SN ${q.ruidoSerie || '?'} cert. ${q.ruidoCertData || '?'}`, q.vibEquip && `${q.vibEquip} SN ${q.vibSerie || '?'} cert. ${q.vibCertData || '?'}`].filter(Boolean).join('; ') || '?'}`
+        L.push(q ? `  - Paradigma de ${rot} ${cod}: ${q.marca} ${q.modelo} ${q.ano || ''} (família ${q.familia || '?'}); Lavg ${q.lavg || '–'} dB(A); arep ${q.arep || '–'}; VDVR ${q.vdvrLaudo || '–'}; jornada do laudo ${q.jornadaLaudo || '?'} h; fonte: ${citacaoDe(q) || '?'}; instrumentos: ${[q.ruidoEquip && `${q.ruidoEquip} SN ${q.ruidoSerie || '?'} cert. ${q.ruidoCertData || '?'}`, q.vibEquip && `${q.vibEquip} SN ${q.vibSerie || '?'} cert. ${q.vibCertData || '?'}`].filter(Boolean).join('; ') || '?'}`
           : `  - Paradigma de ${rot} ${cod}: não encontrado no banco`);
       }
     });

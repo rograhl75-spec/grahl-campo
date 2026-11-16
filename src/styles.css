@@ -366,3 +366,10 @@ input.cresce { flex: 1; min-width: min(220px, 100%); }
 .secao-base .icone { color: var(--ouro); flex: none; }
 .secao-base.ativa { background: var(--azul); border-color: var(--azul); color: #fff; }
 .secao-base.ativa small { color: rgba(255,255,255,.78); }
+.barra-gravacao { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 8px 16px;
+  background: #7F1D1D; color: #fff; font-weight: 600; }
+.barra-gravacao .ponto { width: 12px; height: 12px; border-radius: 50%; background: #F87171; animation: pisca 1.2s infinite; }
+.barra-gravacao a { color: #FDE68A; }
+.barra-gravacao button { margin-left: auto; background: #fff; color: #7F1D1D; border: 0; border-radius: 10px; padding: 6px 14px; font-weight: 700; min-height: 40px; }
+@keyframes pisca { 50% { opacity: .3; } }
+.transcricao-viva { white-space: pre-wrap; font: inherit; background: #FAFBFD; border: 1px solid var(--borda); border-radius: 10px; padding: 10px 12px; max-height: 240px; overflow: auto; margin: 0; }

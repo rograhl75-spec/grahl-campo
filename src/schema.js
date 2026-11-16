@@ -373,7 +373,7 @@ export function vistoriasDoCaso(c = {}) {
   for (let n = 1; n <= qtdVistorias(c); n++) {
     const g = (campo) => String(c[chaveVistoria(n, campo)] || '').trim();
     const v = { n, rotulo: `${n}ª vistoria`, data: g('Data'), inicio: g('Inicio'), fim: g('Fim'), local: g('Local'), endereco: g('Endereco'),
-      gps: g('Gps'), presentes: g('Presentes'), condicoes: g('Condicoes'), objetivo: g('Objetivo') };
+      gps: g('Gps'), presentes: g('Presentes'), condicoes: g('Condicoes'), objetivo: g('Objetivo'), transcricao: g('Transcricao') };
     if (n > 1 && !Object.entries(v).some(([k, x]) => !['n', 'rotulo'].includes(k) && x)) continue;
     if (n > 1) { v.local = v.local || lista[0].local; v.endereco = v.endereco || lista[0].endereco; }
     lista.push(v);

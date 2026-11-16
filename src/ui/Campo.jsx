@@ -1,4 +1,6 @@
+import { horasDia } from '../calc.js';
 import { useState, useEffect, useRef } from 'preact/hooks';
+import { iniciarGravacao, pararGravacao as pararGravador, ouvir as ouvirGravador, estado as estadoGravador } from '../gravador.js';
 import { db, createRecord, softDelete, updateFields } from '../db.js';
 import { avisarAlteracao } from '../sync.js';
 import { CAMPOS_POSTO, AGENTES_MEDICAO, contextoLegal } from '../schema.js';
@@ -12,7 +14,7 @@ import { evidenciasDaDiligencia, aplicarEvidencias } from '../fotosLaudo.js';
 import { TF, Campos, salvar } from './fields.jsx';
 import { useLive } from './hooks.js';
 import { EquipamentosCaso, VeiculoDoPeriodo, ParadigmasDosVinculos } from './Preparacao.jsx';
-import { ehParecerTecnico, chaveVistoria, qtdVistorias, vistoriasDoCaso, CAMPOS_VISTORIA, DESC_AUDIO } from '../schema.js';
+import { ehParecerTecnico, chaveVistoria, qtdVistorias, vistoriasDoCaso, CAMPOS_VISTORIA, DESC_AUDIO, reuEhInss } from '../schema.js';
 import { dataBR } from '../docx/reports.js';
 import { guardarAnexo, LIMITE_NUVEM } from '../paradigmas.js';
 import { obterAnexo } from '../sync.js';
@@ -37,7 +39,8 @@ export function Campo({ rec }) {
     const k = (campo) => chaveVistoria(n, campo);
     if (!rec.data[k('Data')]) mud[k('Data')] = hojeIso();
     if (!rec.data[k('Inicio')]) mud[k('Inicio')] = agoraHM();
-    if (n === 1 && !rec.data.vistoriaLocal && rec.data.reuNome) mud.vistoriaLocal = rec.data.reuNome;
+    // o INSS não é local de vistoria: no previdenciário, a empresa vem do vínculo (escolha na Diligência)
+    if (n === 1 && !rec.data.vistoriaLocal && rec.data.reuNome && !reuEhInss(rec.data)) mud.vistoriaLocal = rec.data.reuNome;
     if (['A preparar', 'Diligência agendada', '', undefined].includes(rec.data.fase)) mud.fase = 'Diligência realizada';
     await updateFields(rec.id, mud);
     avisarAlteracao();
@@ -242,7 +245,7 @@ function Medicoes({ caseId, postoId, ctx = {}, caso }) {
                     : <button type="button" class="mini" onClick={async () => {
                       const r = await promoverMedicao(caso, m, equip.find((e) => e.id === m.data.equipamentoId));
                       avisarAlteracao();
-                      avisar(`Incluída no banco de paradigmas como ${r.data.codigo} (situação "Revisar"). Complete marca, modelo, família e características em Paradigmas.`);
+                      avisar(`Incluída no banco de paradigmas como ${r.data.codigo} (situação "Revisar"). Complete marca, modelo, família e características em Bases técnicas → Veículos.`);
                     }}><Icone nome="mais" /> Incluir no banco de paradigmas</button>
                 )}
               </div>
@@ -282,6 +285,9 @@ function Diligencia({ rec, iniciar, pegarGps, gpsMsg }) {
     const mud = { vistoriasQtd: String(qtd - 1) };
     for (const campo of CAMPOS_VISTORIA) mud[chaveVistoria(qtd, campo)] = '';
     await updateFields(rec.id, mud);
+    // os áudios dessa vistoria vão para a lixeira (não reaparecem numa próxima "nova vistoria")
+    const aud = (await db.records.where('[caseId+kind]').equals([rec.id, 'anexo']).toArray()).filter((r) => !r.deleted && r.data.descricao === DESC_AUDIO && String(r.data.vistoria) === String(qtd));
+    for (const a of aud) await softDelete(a.id);
     avisarAlteracao();
     setSel(qtd - 1);
   };
@@ -324,6 +330,7 @@ function Diligencia({ rec, iniciar, pegarGps, gpsMsg }) {
       {gpsMsg && <small class="dica">{gpsMsg}</small>}
       {n === 1 && <HorariosPelasEvidencias rec={rec} />}
       <TF rec={rec} k={k('Presentes')} label="Pessoas presentes (nome – função – quem representa)" area />
+      {n === 1 && c.papel === 'Perito do Juízo' && <TF rec={rec} k="vistoriaIntimacao" label='Comunicação da data às partes e aos assistentes (art. 474 do CPC) – ex.: "intimação do evento 52, de 10/10/2026"' />}
       {n > 1 && anterior && !String(c[k('Presentes')] || '').trim() && (
         <div class="linha-botoes"><button type="button" class="mini" onClick={async () => { await salvar(rec.id, k('Presentes'), anterior); avisarAlteracao(); }}>
           Copiar os presentes da {n - 1}ª vistoria</button><small class="dica">depois, ajuste quem não veio ou quem chegou</small></div>
@@ -348,63 +355,39 @@ function AudioVistoria({ rec, n }) {
   const audios = useLive(async () => (await db.records.where('[caseId+kind]').equals([rec.id, 'anexo']).toArray())
     .filter((r) => !r.deleted && r.data.descricao === DESC_AUDIO && String(r.data.vistoria || '1') === String(n))
     .sort((a, b) => a.createdAt - b.createdAt), [rec.id, n], []);
-  const [grav, setGrav] = useState(null); // { mr, stream, inicio, wake }
+  const [grav, setGrav] = useState(estadoGravador());
   const [seg, setSeg] = useState(0);
   const [dit, setDit] = useState(null); // reconhecedor de fala ativo
   const [parcial, setParcial] = useState('');
   const [msg, setMsg] = useState('');
   const [urls, setUrls] = useState({});
-
-  // contador de tempo e aviso ao sair da página durante a gravação
+  // a gravação vive fora da tela (src/gravador.js): continua se trocar de aba; aqui só se acompanha
+  useEffect(() => ouvirGravador(setGrav), []);
+  const gravandoAqui = grav.gravando && grav.caseId === rec.id && grav.n === n;
   useEffect(() => {
-    if (!grav) return undefined;
+    if (!gravandoAqui) return undefined;
     const t = setInterval(() => setSeg((Date.now() - grav.inicio) / 1000), 500);
     const sair = (e) => { e.preventDefault(); e.returnValue = ''; };
     window.addEventListener('beforeunload', sair);
     return () => { clearInterval(t); window.removeEventListener('beforeunload', sair); };
-  }, [grav]);
-  // ao trocar de aba ou sair da tela: encerra (e salva) a gravação e o ditado
+  }, [gravandoAqui, grav.inicio]);
+  // ao sair da tela, só o ditado é encerrado (a gravação continua)
   const vivo = useRef({});
-  vivo.current = { grav, dit };
-  useEffect(() => () => {
-    const { grav: g, dit: d } = vivo.current;
-    try { if (g && g.mr.state !== 'inactive') g.mr.stop(); } catch { /* já parado */ }
-    try { d?.parar(); } catch { /* idem */ }
-  }, []);
+  vivo.current = { dit };
+  useEffect(() => () => { try { vivo.current.dit?.parar(); } catch { /* já parado */ } }, []);
   useEffect(() => () => Object.values(urls).forEach((u) => URL.revokeObjectURL(u)), [urls]);
 
   const gravar = async () => {
     setMsg('');
-    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') { setMsg('Este navegador não grava áudio.'); return; }
+    if (grav.gravando) { setMsg('Já há uma gravação em andamento (veja a barra no topo).'); return; }
     if (!await confirmar('Antes de gravar, avise os presentes de que a diligência será gravada (e registre isso nas condições do dia). Começar a gravação?')) return;
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
-      const tipo = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm'].find((t) => MediaRecorder.isTypeSupported?.(t)) || '';
-      const mr = new MediaRecorder(stream, { ...(tipo ? { mimeType: tipo } : {}), audioBitsPerSecond: 32000 });
-      const partes = [];
-      const inicio = Date.now();
-      let wake = null;
-      try { wake = await navigator.wakeLock?.request('screen'); } catch { /* sem bloqueio de tela */ }
-      mr.ondataavailable = (e) => { if (e.data?.size) partes.push(e.data); };
-      mr.onstop = async () => {
-        stream.getTracks().forEach((t) => t.stop());
-        try { await wake?.release(); } catch { /* ok */ }
-        const mime = (mr.mimeType || tipo || 'audio/webm').split(';')[0];
-        const blob = new Blob(partes, { type: mime });
-        if (!blob.size) { setMsg('A gravação ficou vazia.'); return; }
-        const quando = new Date(inicio);
-        const nome = `Vistoria${n}_${quando.toISOString().slice(0, 10)}_${quando.toTimeString().slice(0, 5).replace(':', 'h')}.${mime.includes('mp4') ? 'm4a' : 'webm'}`;
-        const id = await guardarAnexo(new File([blob], nome, { type: mime }), DESC_AUDIO, rec.id);
-        await updateFields(id, { vistoria: String(n), duracaoSeg: Math.round((Date.now() - inicio) / 1000), inicioGravacao: quando.toTimeString().slice(0, 5) });
-        avisarAlteracao();
-        setMsg(`✓ Áudio salvo (${mmss((Date.now() - inicio) / 1000)}, ${String((blob.size / 1048576).toFixed(1)).replace('.', ',')} MB).`);
-      };
-      mr.start(10000); // entrega pedaços a cada 10 s
-      setSeg(0);
-      setGrav({ mr, stream, inicio });
-    } catch (err) { setMsg(`Não foi possível usar o microfone: ${err.message || err}`); }
+    try { await iniciarGravacao(rec.id, n); setSeg(0); } catch (err) { setMsg(`Não foi possível gravar: ${err.message || err}`); }
   };
-  const pararGravacao = () => { try { grav?.mr.stop(); } catch { /* já parado */ } setGrav(null); };
+  const pararGravacao = async () => {
+    const r = await pararGravador();
+    avisarAlteracao();
+    setMsg(r ? `✓ Áudio salvo (${mmss(r.seg)}, ${String(r.mb.toFixed(1)).replace('.', ',')} MB).` : 'A gravação ficou vazia.');
+  };
 
   const ditar = () => {
     setMsg('');
@@ -447,12 +430,12 @@ function AudioVistoria({ rec, n }) {
     <div class="campo audio-vistoria">
       <span class="rotulo">Áudio e transcrição da {n}ª vistoria</span>
       <div class="linha-botoes">
-        {!grav ? <button type="button" class="sec" onClick={gravar}>● Gravar áudio</button>
+        {!gravandoAqui ? <button type="button" class="sec" onClick={gravar}>● Gravar áudio</button>
           : <button type="button" class="perigo" onClick={pararGravacao}>■ Parar e salvar ({mmss(seg)})</button>}
         {!dit ? <button type="button" class="sec" onClick={ditar}>🎙 Ditar / transcrever ao vivo</button>
           : <button type="button" class="perigo" onClick={pararDitado}>■ Parar o ditado</button>}
       </div>
-      {grav && <small class="gravando">● Gravando… mantenha o app aberto e a tela ligada.</small>}
+      {gravandoAqui && <small class="gravando">● Gravando… pode trocar de aba; não feche o app.</small>}
       {dit && <small class="gravando">🎙 Ouvindo… {parcial && <em>{parcial}</em>}</small>}
       {msg && <small class="dica">{msg}</small>}
       {audios.map((a) => (
@@ -462,7 +445,9 @@ function AudioVistoria({ rec, n }) {
           <button type="button" class="mini perigo" onClick={() => remover(a)}>✕</button>
         </div>
       ))}
-      <TF rec={rec} k={kT} label="Transcrição / ditado (cada trecho com o horário; revise antes de usar)" area rows={4} />
+      {dit ? (
+        <div class="campo"><span class="rotulo">Transcrição / ditado (para editar, pare o ditado)</span><pre class="transcricao-viva">{c[kT] || '…'}</pre></div>
+      ) : <TF rec={rec} k={kT} label="Transcrição / ditado (cada trecho com o horário; revise antes de usar)" area rows={4} />}
     </div>
   );
 }
@@ -655,7 +640,7 @@ function EntrevistaVinculos({ rec }) {
     x.tipoCarga && `carga: ${x.tipoCarga}`, x.vias && `trajetos: ${x.vias}`, x.jornadaSemanal && `jornada: ${x.jornadaSemanal}`,
     x.noturnoPernoite && `pernoite: ${x.noturnoPernoite}`,
   ].filter(Boolean).join(' · ');
-  const faltando = (x) => [!x.grupoVeiculo && 'grupo do veículo', !x.tipoCarga && 'carga', !x.vias && 'trajetos', !x.jornadaSemanal && !x.conducaoH && 'jornada',
+  const faltando = (x) => [!x.grupoVeiculo && 'grupo do veículo', !x.tipoCarga && 'carga', !x.vias && 'trajetos', !x.jornadaSemanal && !x.conducaoH && 'jornada', !isFinite(horasDia(x.conducaoH)) && 'horas de condução por dia', (x.paradigmaRuido || x.paradigmaVibracao) && !x.paradigmaVibracao && 'paradigma de vibração',
     !x.noturnoPernoite && 'pernoite', !x.paradigmaRuido && !(x.fim && x.fim <= '1995-04-28') && 'paradigma'].filter(Boolean);
   return (
     <section class="bloco largo destaque">

@@ -1,3 +1,4 @@
+import { vistoriasDoCaso } from './schema.js';
 // Anotações da diligência já feita (Google Keep, Word, PDF, texto): o app extrai o texto dos arquivos,
 // guarda os originais no caso e monta a instrução para o Claude organizar tudo no formato do app.
 import JSZip from 'jszip';
@@ -89,6 +90,11 @@ export async function promptAnotacoes(caso, textos) {
 - "quesitos": só se as anotações trouxerem respostas; repita origem, número e texto do quesito como na lista.
 - "andamento": fase "Laudo / parecer em elaboração" e "dataDiligencia".
 Fidelidade: use só o que está nas anotações e nos relatórios anexados. Não invente nem complete com suposições; o que não estiver lá fica vazio. Corrija apenas erros evidentes de digitação. Datas em AAAA-MM-DD e horários em HH:MM.`);
+  // vistorias já cadastradas: o Claude usa a mesma data quando a anotação for da mesma vistoria
+  const vs = vistoriasDoCaso(c).filter((x) => x.data);
+  if (vs.length) L.push(`VISTORIAS JÁ CADASTRADAS NO APP: ${vs.map((x) => `${x.rotulo} em ${x.data.split('-').reverse().join('/')}`).join('; ')}. Em "diligencia.vistoriaData", use a data da vistoria a que as anotações se referem; uma data nova cria outra vistoria no app.`);
+  // transcrições do ditado feitas no app entram como anotações
+  for (const x of vistoriasDoCaso(c)) if (x.transcricao) textos = [...textos, { nome: `Transcrição do ditado – ${x.rotulo}`, texto: x.transcricao }];
   if (periodos.length) L.push(`VÍNCULOS CADASTRADOS (empresa | início | fim | cargo):\n${periodos.map((r) => `- ${r.data.empresa || ''} | ${r.data.inicio || ''} | ${r.data.fim || ''} | ${r.data.cargo || ''}`).join('\n')}`);
   if (postos.length) L.push(`POSTOS / VEÍCULOS JÁ CADASTRADOS:\n${postos.map((p) => `- ${p.data.nome || ''}`).join('\n')}`);
   if (quesitos.length) L.push(`QUESITOS CADASTRADOS (origem | número | texto):\n${quesitos.map((q) => `- ${q.data.origem || ''} | ${q.data.numero || ''} | ${String(q.data.texto || '').slice(0, 160)}`).join('\n')}`);

@@ -3,7 +3,7 @@
 // impugnação / parecer de assistente técnico, parecer preventivo, petição de
 // indicação com quesitos. O que depende de análise técnica sai marcado em
 // amarelo ("[[Redigir: ...]]") para ser escrito por você.
-import { ORIGEM_QUESITO, ehSuplementar, FORMAS_PAGAMENTO, localVistoria, ehAcidente, datasDasVistorias, variasVistorias } from '../schema.js';
+import { ORIGEM_QUESITO, ehSuplementar, FORMAS_PAGAMENTO, localVistoria, ehAcidente, datasDasVistorias, variasVistorias, vistoriasDoCaso } from '../schema.js';
 import {
   Doc, carregar, finalizar, dataBR, menosCincoAnos, ou, partes, papelAssinatura, enderecamentoTexto, linhasProcesso,
   qualificacaoCurta, qualificacaoCompleta, blocoAssinatura, credencial, equipamentosUsados, quadroEquipamentos, quadroDiligencia,
@@ -27,7 +27,7 @@ const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 // "similaridade" do caso e dos paradigmas vinculados
 function periciaIndireta(dados) {
   const { c } = dados;
-  const local = `${c.vistoriaLocal || ''} ${c.vistoriaCondicoes || ''}`;
+  const local = vistoriasDoCaso(c).map((x) => `${x.local} ${x.condicoes} ${x.objetivo}`).join(' ');
   return /indiret|similar|paradigma|terceir/i.test(local) || c.similaridade === 'Sim' || usaParadigmas(dados);
 }
 function textoTipoPericia(dados) {
@@ -65,7 +65,7 @@ function capaLaudo(d, dados, { subtitulo }) {
   const { c, perfil } = dados;
   const pt = partes(c);
   const juizo = [c.juizo, c.comarca && !String(c.juizo || '').includes(c.comarca) ? c.comarca : ''].filter(Boolean).join(' – ');
-  const vistoria = [c.vistoriaData && dataBR(c.vistoriaData), c.vistoriaLocal && String(c.vistoriaLocal).split(/\s[–-]\s/)[0]].filter(Boolean).join(' – ');
+  const vistoria = [datasDasVistorias(c), c.vistoriaLocal && String(c.vistoriaLocal).split(/\s[–-]\s/)[0]].filter(Boolean).join(' – ');
   capaTecnica(d, {
     titulo: 'LAUDO TÉCNICO PERICIAL', subtitulo, perfil,
     orgao: c.justica ? `Poder Judiciário – ${c.justica}` : '',
@@ -219,7 +219,7 @@ export async function laudoPericial(caseId, { extra = false } = {}) {
     capaTecnica(d, {
       titulo: `LAUDO TÉCNICO DE ${objTitulo.toUpperCase()}`, subtitulo: 'Caracterização conforme a CLT (arts. 189 a 195), a NR-15 e a NR-16', perfil,
       pares: [['Contratante', contratanteDe(c)], ['Empresa', c.reuNome], ['CNPJ', c.reuCnpj], ['Trabalhador', c.autorNome], ['Função', String(c.funcoes || '').split('\n')[0]],
-        ['Data da avaliação', dataBR(c.vistoriaData)], ['Responsável técnico', `${perfil.nome} – ${credencial(perfil)}`], ['ART', v(c.art) || '[[nº da ART]]']].filter(([, x]) => v(x)),
+        ['Data da avaliação', datasDasVistorias(c)], ['Responsável técnico', `${perfil.nome} – ${credencial(perfil)}`], ['ART', v(c.art) || '[[nº da ART]]']].filter(([, x]) => v(x)),
     });
   } else {
     capaLaudo(d, dados, { subtitulo: `Caracterização de ${objTitulo}` });
@@ -422,7 +422,7 @@ export async function ltcatPpp(caseId) {
     perfil,
     pares: [['Segurado', seg], ['CPF / NIT', c.autorCpf], ['Empresa', emp], ['CNPJ', c.reuCnpj],
       ['Períodos avaliados', dados.periodos.map((r) => `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`).join('; ')],
-      ['Responsável técnico', `${perfil.nome} – ${credencial(perfil)}`], ['Data da avaliação', dataBR(c.vistoriaData)]],
+      ['Responsável técnico', `${perfil.nome} – ${credencial(perfil)}`], ['Data da avaliação', datasDasVistorias(c)]],
   });
   // ABNT NBR 14724:2024, 4.2.1.9: quadros e figuras são ilustrações; recomenda-se lista própria para cada tipo (a norma não fixa ordem entre elas)
   if (dados.fotos.some((f) => !f.deleted)) d.listaFiguras({ novaPagina: true });

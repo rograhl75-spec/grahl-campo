@@ -16,7 +16,7 @@ import { matrizIAC } from './penosidade.js';
 import { comJurisprudencia, registroJurisprudencia, secaoReferencias } from './fontes.js';
 import { contratanteDe } from './modelos.js';
 import { citacaoDe, rotuloParadigma, sugerirParaVinculo, fichaPesquisaTexto } from '../paradigmas.js';
-import { fmt } from '../calc.js';
+import { fmt, horasDia as horasCampo, fmtHoras } from '../calc.js';
 
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 const per = (r) => `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`;
@@ -43,7 +43,7 @@ function fontesDaProva(r, dados, val) {
   }
   if (!out.length && (val.fonteR || val.fonteV)) out.push([val.fonteR && `Ruído: medição no veículo/posto ${val.fonteR}`, val.fonteV && `Vibração: medição em ${val.fonteV}`].filter(Boolean).join('\n'));
   // sem paradigma no banco: ficha para o signatário pesquisar nos seus laudos e incluir o paradigma
-  if (!out.length) out.push(`[[PESQUISAR PARADIGMA – sem paradigma no banco para este vínculo. ${fichaPesquisaTexto(r, r._familia)}. Inclua em Paradigmas → Importar e vincule em 2. Autos.]]`);
+  if (!out.length) out.push(`[[PESQUISAR PARADIGMA – sem paradigma no banco para este vínculo. ${fichaPesquisaTexto(r, r._familia)}. Inclua em Bases técnicas → Veículos → Importar / exportar e vincule em 2. Autos.]]`);
   return out.join('\n');
 }
 
@@ -180,7 +180,7 @@ export async function parecerPenosidade(caseId) {
       ['Função e veículo', [limpo(x.cargo), veiculo(r)].filter(Boolean).join(' – ') || '[[função e veículo]]'],
       ['Grupo do veículo', v(x.grupoVeiculo) || '[[grupo do veículo]]'],
       ['Carga e trajetos', [x.carroceria && `Carroceria/reboque: ${limpo(x.carroceria)}`, x.tipoCarga && `Carga: ${limpo(x.tipoCarga)}`, x.vias && `Trajetos: ${limpo(x.vias)}`].filter(Boolean).join('\n') || '[[carga e trajetos]]'],
-      ['Jornada e pernoite', [x.conducaoH && `Condução: cerca de ${String(x.conducaoH).replace('.', ',')} h/dia${x.conducaoBase ? ` (${x.conducaoBase})` : ''}`, x.jornadaSemanal && `Jornada: ${x.jornadaSemanal}`, x.noturnoPernoite && `Pernoite: ${x.noturnoPernoite}`].filter(Boolean).join('\n') || '[[jornada]]'],
+      ['Jornada e pernoite', [x.conducaoH && (isFinite(horasCampo(x.conducaoH)) ? `Condução: cerca de ${fmtHoras(horasCampo(x.conducaoH))}/dia${x.conducaoBase ? ` (${x.conducaoBase})` : ''}` : `Condução: ${x.conducaoH} [[informe um número de horas por dia]]`), x.jornadaSemanal && `Jornada: ${x.jornadaSemanal}`, x.noturnoPernoite && `Pernoite: ${x.noturnoPernoite}`].filter(Boolean).join('\n') || '[[jornada]]'],
       ['Penosidade – fatores apurados', penosidadeDoVinculo(r, dados, m)],
       ['Ruído', ruido], ['Vibração de corpo inteiro', vib], ['Fonte da prova', fonte], ['Enquadramento técnico', enq]],
     // quadros em sequência: o quadro do vínculo pode continuar na página seguinte (não pula página inteira)
@@ -237,7 +237,7 @@ const PERGUNTAS_ENTREVISTA = [
   ['Trajetos (cidades e UFs, estradas ruins, áreas de risco)', (x) => x.vias],
   ['Pernoite (cabine, hotel, casa) e dias fora de casa', (x) => x.noturnoPernoite],
   ['Jornada (horário de saída e chegada, dias da semana)', (x) => x.jornadaSemanal],
-  ['Horas de direção por dia e pausas', (x) => [x.conducaoH && `${x.conducaoH} h`, x.pausas].map(v).filter(Boolean).join(' – ')],
+  ['Horas de direção por dia e pausas', (x) => [x.conducaoH && (isFinite(horasCampo(x.conducaoH)) ? fmtHoras(horasCampo(x.conducaoH)) : x.conducaoH), x.pausas].map(v).filter(Boolean).join(' – ')],
   ['Prazos e metas de entrega', (x) => x.pressao],
   ['Acesso a sanitários, alimentação e descanso', (x) => x.fisiologicas],
   ['Onde abastecia (posto/frentista, base própria)', (x) => x.abastecimento],

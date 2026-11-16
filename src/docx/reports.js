@@ -1,4 +1,4 @@
-import { ORIGEM_QUESITO, contextoLegal, ehSuplementar, localVistoria, ehAcidente, ehParecerTecnico, datasDasVistorias, variasVistorias } from '../schema.js';
+import { ORIGEM_QUESITO, contextoLegal, ehSuplementar, localVistoria, ehAcidente, ehParecerTecnico, datasDasVistorias, variasVistorias, vistoriasDoCaso } from '../schema.js';
 import { parecerPenosidade, roteiroEntrevista } from './parecerPenosidade.js';
 import { db } from '../db.js';
 import { p, run } from './ooxml.js';
@@ -167,6 +167,16 @@ export async function gerarRegistroDiligencia(caseId) {
     }
   }
   if (c.vistoriaNotas) { sec('Anotações gerais'); d.texto(c.vistoriaNotas); }
+  // o que cada vistoria fez e o registro falado (ditado), para conferir e aproveitar no laudo ou na manifestação
+  const vComTexto = vistoriasDoCaso(c).filter((vi) => vi.objetivo || vi.transcricao);
+  if (vComTexto.length) {
+    sec('Registro de cada vistoria');
+    for (const vi of vComTexto) {
+      d.h3(`${vi.rotulo}${vi.data ? ` – ${dataBR(vi.data)}` : ''}`);
+      if (vi.objetivo) d.texto(vi.objetivo);
+      if (vi.transcricao) { d.add(p([run('Transcrição do ditado (revisar antes de usar):', { b: true, size: 10 })], { after: 60 })); d.texto(vi.transcricao, { recuo: false, size: 10 }); }
+    }
+  }
   if (at) {
     // relatório para o cliente (advogado ou empresa): como o perito conduziu a diligência e o que esperar do laudo
     sec('Procedimentos do perito');

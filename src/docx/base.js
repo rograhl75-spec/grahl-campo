@@ -1,9 +1,9 @@
 import { db, caseChildren } from '../db.js';
 import { resumoMedicao, calculados } from '../medicoes.js';
-import { nen, num, fmt, fatorQ, doseJornada } from '../calc.js';
+import { nen, num, fmt, fatorQ, doseJornada, horasDia, fmtHoras } from '../calc.js';
 import { ORIGEM_QUESITO, contextoLegal, ehSuplementar , reuEhInss, localVistoria, vistoriasDoCaso, datasDasVistorias, variasVistorias } from '../schema.js';
 import { Doc, p, run, rich, montarDocx, ordinalDia1, FONTES_EMBUTIDAS } from './ooxml.js';
-import { nenParaJornada, arenParaJornada, vdvrParaJornada, certificadoVencido, rotuloParadigma, citacaoDe, num as numP } from '../paradigmas.js';
+import { nenParaJornada, certificadoVencido, rotuloParadigma, citacaoDe, num as numP, vibracaoDoParadigma } from '../paradigmas.js';
 
 export const PERFIL_ID = 'perfil';
 
@@ -29,7 +29,8 @@ export function hojeLocal() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 // comparação única com o limite: arredonda para 1 casa (a mesma exibida nos quadros) e exige superar
-export const superaLimite = (x, lim) => isFinite(x) && Math.round(x * 10) / 10 > lim;
+// compara com o limite na casa decimal exibida (1 casa no ruído; 2 na vibração), para o texto e o resultado baterem
+export const superaLimite = (x, lim, casas = 1) => isFinite(x) && Math.round(x * 10 ** casas) / 10 ** casas > lim;
 // prefixo do quesito sem repetir a numeração que o próprio texto já traz ("1) …", "a) …")
 export function prefixoQuesito(q, sep = ') ') {
   const texto = String(q.data.texto || '').trim();
@@ -422,7 +423,7 @@ export function quadroConfrontoRuido(d, dados) {
       const ref = refDo(s.periodo);
       const q = ref ? fatorQ(ref) : 5;
       const q3antes = ref && q === 3 && s.janela.crit === 'Lavg';
-      const val = !ref || q3antes ? NaN : s.janela.crit === 'Lavg' ? num(ref.data.lavg) : nen(ref.data.lavg, s.periodo.data.conducaoH ? `${s.periodo.data.conducaoH}h` : ref.data.jornada, q);
+      const val = !ref || q3antes ? NaN : s.janela.crit === 'Lavg' ? num(ref.data.lavg) : nen(ref.data.lavg, isFinite(horasDia(s.periodo.data.conducaoH)) ? horasDia(s.periodo.data.conducaoH) : ref.data.jornada, q);
       const res = q3antes ? '[[q = 3 não serve antes de 19/11/2003]]' : isFinite(val) ? (superaLimite(val, s.janela.lim) ? 'Supera' : 'Não supera') : '[[medir]]';
       return [`${s.periodo.data.empresa || ''}\n${dataBR(s.ini)} a ${dataBR(s.fim)}`, ref ? nomeP(ref.data.postoId) : '—', s.janela.crit,
         isFinite(val) ? `${fmt(val)} dB(A)` : ref ? '[[valor]]' : '[[vincular posto]]', `${s.janela.lim} dB(A)`, ref ? res : '[[vincular posto ao vínculo]]'];
@@ -454,7 +455,7 @@ export function quadroMedicoesRuido(d, ms, eq, nomePosto, ctx = {}) {
       // dose projetada para a jornada; dosímetro com q = 3 não serve para a NR-15
       const dj = doseJornada(x.dose, x.tempoAmostragem, x.jornada);
       const proj = isFinite(dj) && Math.abs(dj - num(x.dose)) > 0.05;
-      const sit = fatorQ(m) === 3 ? '[[q = 3: refazer com q = 5]]' : isFinite(dj) ? (dj > 100 ? 'Acima do LT' : 'Dentro do LT') : '[[conferir]]';
+      const sit = fatorQ(m) === 3 ? '[[q = 3: refazer com q = 5]]' : isFinite(dj) ? (Math.round(dj * 10) / 10 > 100 ? 'Acima do LT' : 'Dentro do LT') : '[[conferir]]';
       return [[nomePosto(x.postoId), x.posicao].filter(Boolean).join(' – '), [x.tempoAmostragem, x.horaInicio && x.horaFim && `${x.horaInicio}–${x.horaFim}`].filter(Boolean).join(', '),
         x.jornada || '', x.dose ? (proj ? `${fmt(dj)}%\n(medida ${x.dose}%)` : `${x.dose}%`) : '', x.lavg ? `${x.lavg} dB(A)` : '', sit];
     })], { larguras: [0.27, 0.17, 0.12, 0.12, 0.14, 0.18], alinhar: 'left', tam: 9, fonte: `${fonte} Dose projetada para a jornada: D × TE / T amostrado.` });
@@ -707,7 +708,7 @@ export function quadrosParadigmasMetodologia(d, dados) {
   { larguras: [0.35, 0.65], fonte: 'Manual de Aposentadoria Especial do INSS (2017); NHO-09.' });
   d.texto('Até 18/11/2003 o valor comparado ao limite é o Lavg, pois a legislação remetia integralmente ao Anexo 1 da NR-15; a partir de 19/11/2003, somente o NEN, normalizado para a jornada.');
   d.quadro('Tempo de condução adotado por vínculo', [['Vínculo', 'Período', 'T (h/dia)', 'Base da informação'],
-    ...dados.periodos.map((r, i) => [vinculoNome(r, i), per(r), r.data.conducaoH ? `${r.data.conducaoH} h` : '[[T]]', r.data.conducaoBase || '[[base da informação]]'])],
+    ...dados.periodos.map((r, i) => [vinculoNome(r, i), per(r), isFinite(horasDia(r.data.conducaoH)) ? fmtHoras(horasDia(r.data.conducaoH)) : r.data.conducaoH ? `[[T: "${r.data.conducaoH}" – informe um número de horas]]` : '[[T]]', r.data.conducaoBase || '[[base da informação]]'])],
   { larguras: [0.22, 0.2, 0.13, 0.45], alinhar: 'left' });
   const usados = [...new Set(dados.periodos.flatMap((r) => [r.data.paradigmaRuido, r.data.paradigmaVibracao]).filter(Boolean))].map((c) => P.get(c)).filter(Boolean);
   if (usados.length) {
@@ -747,12 +748,12 @@ export function memoriasParadigmas(d, dados, { numero = '' } = {}) {
     if (!r.data.paradigmaRuido) return;
     for (const sp of subperiodosRuido([r])) {
       const lavg = p ? numP(p.data.lavg) : NaN;
-      const T = numP(r.data.conducaoH);
+      const T = horasDia(r.data.conducaoH);
       const nen = sp.janela.crit === 'NEN' && isFinite(T) ? nenParaJornada(lavg, T) : NaN;
       const valor = sp.janela.crit === 'Lavg' ? lavg : nen;
       const supera = isFinite(valor) ? (superaLimite(valor, sp.janela.lim) ? 'SIM' : 'NÃO') : '[[?]]';
       linhasR.push([`V${i + 1} – ${dataBR(sp.ini)} a ${!r.data.fim && sp.fim === hojeLocal() ? "atual" : dataBR(sp.fim)}`, p ? `${p.data.marca} ${p.data.modelo}`.trim() : `[[${r.data.paradigmaRuido}?]]`,
-        f2(lavg), isFinite(T) ? `${String(r.data.conducaoH).replace('.', ',')} h` : '[[T]]', sp.janela.crit === 'NEN' ? f2(nen) : '—',
+        f2(lavg), isFinite(T) ? fmtHoras(T) : '[[T]]', sp.janela.crit === 'NEN' ? f2(nen) : '—',
         `${sp.janela.crit} > ${sp.janela.lim}`, f2(valor), supera]);
     }
   });
@@ -765,27 +766,28 @@ export function memoriasParadigmas(d, dados, { numero = '' } = {}) {
   dados.periodos.forEach((r, i) => {
     if (!r.data.paradigmaVibracao) return;
     const p = P.get(r.data.paradigmaVibracao);
-    const T = numP(r.data.conducaoH);
-    const arep = p ? numP(p.data.arep || p.data.arenLaudo) : NaN;
-    const aren = arenParaJornada(arep, T);
-    const vdv = p ? vdvrParaJornada(p.data.vdvrLaudo, T, p.data.jornadaLaudo || 8) : NaN;
+    const T = horasDia(r.data.conducaoH);
+    // a mesma normalização da conclusão (paradigmas.js): arep·√(T/8) ou, sem arep, aren do laudo·√(T/Tlaudo)
+    const vb = p ? vibracaoDoParadigma(p, T) : { aren: NaN, vdv: NaN, base: NaN, temArep: true };
+    const { aren, vdv } = vb;
+    const arep = vb.base;
     for (const sp of subperiodosVibracao(r)) {
       let crit, res;
       if (sp.crit === 'cod115') { crit = 'Cód. 1.1.5 (Dec. 53.831/64)'; res = '[[avaliar: perfuratrizes e marteletes]]'; }
       else if (sp.crit === 'iso') {
         crit = 'ISO 2631-1 – zona de cautela';
-        res = !isFinite(aren) ? 'Sem dados' : (aren > LIM_ISO_AREN || (isFinite(vdv) && vdv > LIM_ISO_VDV)) ? 'Acima da fronteira superior' : 'Até a fronteira superior';
+        res = !isFinite(aren) ? 'Sem dados' : (superaLimite(aren, LIM_ISO_AREN, 2) || superaLimite(vdv, LIM_ISO_VDV, 2)) ? 'Acima da fronteira superior' : 'Até a fronteira superior';
       } else {
         crit = 'NR-15, Anexo 8';
-        res = !isFinite(aren) ? 'Sem dados' : (aren > LIM_NR15_AREN || (isFinite(vdv) && vdv > LIM_NR15_VDV)) ? 'Acima do LE' : 'Abaixo do LE';
+        res = !isFinite(aren) ? 'Sem dados' : (superaLimite(aren, LIM_NR15_AREN, 2) || superaLimite(vdv, LIM_NR15_VDV, 2)) ? 'Acima do LE' : 'Abaixo do LE';
       }
-      linhasV.push([`V${i + 1} – ${dataBR(sp.ini)} a ${!r.data.fim && sp.fim === hojeLocal() ? "atual" : dataBR(sp.fim)}`, p ? `${p.data.marca} ${p.data.modelo}`.trim() : 'Sem dados', f2(arep),
-        isFinite(T) ? `${String(r.data.conducaoH).replace('.', ',')} h` : '[[T]]', f2(aren), f2(vdv), crit, res]);
+      linhasV.push([`V${i + 1} – ${dataBR(sp.ini)} a ${!r.data.fim && sp.fim === hojeLocal() ? "atual" : dataBR(sp.fim)}`, p ? `${p.data.marca} ${p.data.modelo}`.trim() : 'Sem dados',
+        vb.temArep ? f2(arep) : `${f2(arep)} (aren, ${String(vb.tLaudo).replace('.', ',')} h)`, isFinite(T) ? fmtHoras(T) : '[[T]]', f2(aren), f2(vdv), crit, res]);
     }
   });
   if (linhasV.length) {
     cab('Vibração de corpo inteiro');
-    d.quadro('Memória de cálculo da vibração de corpo inteiro', [['Subperíodo', 'Paradigma', 'arep (m/s²)', 'T', 'aren(T) (m/s²)', 'VDVR(T)', 'Critério da época', 'Resultado'], ...linhasV],
+    d.quadro('Memória de cálculo da vibração de corpo inteiro', [['Subperíodo', 'Paradigma', 'arep do paradigma (m/s²)', 'T', 'aren(T) (m/s²)', 'VDVR(T)', 'Critério da época', 'Resultado'], ...linhasV],
       { larguras: [0.2, 0.15, 0.09, 0.07, 0.1, 0.09, 0.15, 0.15], tam: 8.5, alinhar: 'left',
         fonte: `Elaborado pelo signatário. ISO 2631-1: fronteira superior da zona de cautela (aren ${String(LIM_ISO_AREN).replace('.', ',')} m/s² para 8 h, conforme a Nota Técnica ASPEJUDI nº 001/2013, ou VDV ${LIM_ISO_VDV} m/s^1,75); NR-15, Anexo 8: limite de exposição aren 1,1 m/s² ou VDVR 21,0 m/s^1,75.` });
   }
@@ -898,7 +900,9 @@ export function textoDeterminacao(dados, prev) {
   let ref;
   if (ev) ref = ev[1] ? `da decisão do evento ${ev[1]}` : ev[2] ? `da decisão do mov. ${ev[2]}` : ev[3] ? `da decisão de ID ${ev[3]}` : `do despacho de fls. ${ev[4]}`;
   else ref = /^(d[ae]|conforme)\b/i.test(seg) ? seg.replace(/^conforme\s+/i, '') : `de ${seg.replace(/\s*\(.*$/, '')}`;
-  const vinc = dados.periodos.length ? ` nos ${dados.periodos.length > 1 ? `${dados.periodos.length} períodos controvertidos indicados no Quadro 1` : 'período controvertido indicado no Quadro 1'}` : '';
+  // só o laudo previdenciário traz os períodos no Quadro 1; nos demais, o 1º quadro é o registro da diligência
+  const onde = prev ? (dados.periodos.length > 1 ? ' indicados no Quadro 1' : ' indicado no Quadro 1') : '';
+  const vinc = dados.periodos.length ? ` nos ${dados.periodos.length > 1 ? `${dados.periodos.length} períodos controvertidos${onde}` : `período controvertido${onde}`}` : '';
   const obj = prev ? `apurar as condições de trabalho da parte autora e a exposição a agentes nocivos à saúde ou à integridade física${vinc}, para fins de reconhecimento de tempo especial`
     : `apurar as condições de trabalho e a caracterização ou não de ${(c.objeto || []).join(' e ').toLowerCase() || 'insalubridade e/ou periculosidade'}${vinc}`;
   const extras = [/IAC/i.test(c.despachoRef) && 'observados, quanto à penosidade, os parâmetros do IAC nº 5 do TRF4',
@@ -973,7 +977,7 @@ export function descricaoVinculo(d, r, dados, { refVistoria = '' } = {}) {
   } else d.redigir('atividades do vínculo (PPP, descrição do cargo ou entrevista).');
   const veic = [x.veiculoTipo, x.veiculoMarca, x.veiculoModelo, x.veiculoAno].filter(Boolean).join(' ');
   const comp = [veic && `veículo conduzido: ${veic}`, v(x.tipoTransporte) && `transporte: ${minuscula(v(x.tipoTransporte))}`,
-    v(x.conducaoH) && `tempo diário de condução informado: cerca de ${String(x.conducaoH).replace('.', ',')} h`].filter(Boolean);
+    isFinite(horasDia(x.conducaoH)) && `tempo diário de condução informado: cerca de ${fmtHoras(horasDia(x.conducaoH))}`].filter(Boolean);
   if (comp.length) d.texto(`Informações complementares do vínculo – ${comp.join('; ')}.`);
   const ps = postosDoPeriodo(r, dados);
   if (ps.length) d.texto(`Na perícia, este vínculo é representado ${ps.length > 1 ? 'pelos veículos/postos' : 'pelo veículo/posto'} ${ps.map((p) => nomeCurto(p.data.nome)).join('; ')}${refVistoria ? `, descrito${ps.length > 1 ? 's' : ''} no item ${refVistoria}` : ''}.`);

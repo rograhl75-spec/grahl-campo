@@ -1,5 +1,5 @@
 import { db, createRecord, updateFields, caseChildren } from './db.js';
-import { ORIGEM_QUESITO, contextoLegal, ehSuplementar, FASE, CAMPOS_DILIGENCIA, CAMPOS_POSTO, AGENTES_MEDICAO, ehAcidente, CAMPOS_ACIDENTE, chaveVistoria, qtdVistorias } from './schema.js';
+import { ORIGEM_QUESITO, contextoLegal, ehSuplementar, FASE, CAMPOS_DILIGENCIA, CAMPOS_POSTO, AGENTES_MEDICAO, ehAcidente, CAMPOS_ACIDENTE, chaveVistoria, qtdVistorias, vistoriasDoCaso } from './schema.js';
 import { resumoMedicao } from './medicoes.js';
 import { dataIso } from './migrate.js';
 import { citacaoDe } from './paradigmas.js';
@@ -116,7 +116,7 @@ Responda SOMENTE com um bloco JSON válido, sem texto antes ou depois, neste for
   "epis": [{"descricao": "", "ca": "", "dataEntrega": "", "obs": ""}],
   "quesitos": [{"origem": "Juízo | Autor / Reclamante | Réu / Reclamada | INSS | Complementares", "numero": "1", "texto": "", "resposta": "resposta dada no laudo, se já houver"}],
   "andamento": {"fase": "A preparar | Diligência agendada | Diligência realizada | Laudo / parecer em elaboração | Aguardando manifestação / esclarecimentos | Respondendo quesitos suplementares | Concluído", "laudoRefPerito": "ID/mov. do laudo", "laudoData": "", "conclusaoLaudo": "conclusão do laudo por agente e período, com as folhas", "honorariosFixados": "", "honorariosItem": "", "dataDiligencia": "", "horaDiligencia": ""},
-  "diligencia": {"vistoriaData": "", "vistoriaInicio": "HH:MM", "vistoriaFim": "HH:MM", "vistoriaLocal": "empresa onde será / foi a vistoria", "vistoriaProprietario": "nome completo, se pessoa física sem empresa", "vistoriaVeiculo": "", "vistoriaContato": "", "vistoriaEndereco": "", "vistoriaCnpj": "", "vistoriaPresentes": "nome – função – quem representa, um por linha", "vistoriaCondicoes": "", "vistoriaNotas": "outras anotações da diligência e a folha do laudo onde está"},
+  "diligencia": {"vistoriaData": "", "vistoriaInicio": "HH:MM", "vistoriaFim": "HH:MM", "vistoriaLocal": "empresa onde será / foi a vistoria", "vistoriaProprietario": "nome completo, se pessoa física sem empresa", "vistoriaVeiculo": "", "vistoriaContato": "", "vistoriaEndereco": "", "vistoriaCnpj": "", "vistoriaPresentes": "nome – função – quem representa, um por linha", "vistoriaIntimacao": "evento/mov. e data da intimação das partes sobre a data da diligência", "vistoriaCondicoes": "", "vistoriaNotas": "outras anotações da diligência e a folha do laudo onde está"},
   "postos": [{"nome": "", "descricao": "", "infoTrabalhador": "", "infoEmpresa": "", "agentes": "", "jornada": "", "epc": "", "epi": "",
     "medicoes": [{"agente": "Ruído | Calor (IBUTG) | Vibração de corpo inteiro (VCI) | Vibração de mãos e braços (VMB) | Agente químico | Outro", "dataMedicao": "", "horaInicio": "", "horaFim": "", "equipamento": "",
       "tempoAmostragem": "", "jornada": "", "dose": "", "lavg": "", "lmax": "", "calibInicial": "", "calibFinal": "", "posicao": "",
@@ -130,7 +130,7 @@ export const FORMATO_DILIGENCIA = `FORMATO DA RESPOSTA
 Responda SOMENTE com um bloco JSON válido, sem texto antes ou depois, neste formato (omita o que não houver):
 {
   "andamento": {"fase": "Laudo / parecer em elaboração", "dataDiligencia": "", "horaDiligencia": ""},
-  "diligencia": {"vistoriaData": "", "vistoriaInicio": "HH:MM", "vistoriaFim": "HH:MM", "vistoriaLocal": "", "vistoriaEndereco": "", "vistoriaPresentes": "nome – função – quem representa, um por linha", "vistoriaCondicoes": "", "vistoriaNotas": ""},
+  "diligencia": {"vistoriaData": "", "vistoriaInicio": "HH:MM", "vistoriaFim": "HH:MM", "vistoriaLocal": "", "vistoriaEndereco": "", "vistoriaPresentes": "nome – função – quem representa, um por linha", "vistoriaIntimacao": "", "vistoriaCondicoes": "", "vistoriaNotas": ""},
   "periodos": [{"empresa": "igual à lista", "inicio": "igual à lista", "fim": "igual à lista", "atividades": "", "tipoTransporte": "", "jornadaSemanal": "", "noturnoPernoite": "", "cargaDescarga": "", "vias": "", "riscoAcidente": "", "cabine": "", "pausas": "", "pressao": "", "fisiologicas": ""}],
   "quesitos": [{"origem": "", "numero": "", "texto": "", "resposta": ""}],
   "postos": [{"nome": "", "descricao": "", "infoTrabalhador": "", "infoEmpresa": "", "agentes": "", "fontes": "", "viaPeriodicidade": "", "jornada": "", "epc": "", "epi": "",
@@ -500,8 +500,15 @@ export async function textoDoCaso(caseId) {
   if (documentos.length) { L.push('\n## Documentos analisados'); documentos.forEach((d) => L.push(`- ${d.data.tipo || ''} ${d.data.identificacao || ''}: ${d.data.analise || ''}`)); }
   if (epis.length) { L.push('\n## EPIs'); epis.forEach((e) => L.push(`- ${e.data.descricao || ''} – CA ${e.data.ca || '?'} – ${e.data.dataEntrega || ''} ${e.data.obs || ''}`)); }
   L.push('\n## Diligência');
-  for (const [k, r] of [['vistoriaData', 'Data'], ['vistoriaInicio', 'Início'], ['vistoriaFim', 'Término'], ['vistoriaLocal', 'Local'], ['vistoriaProprietario', 'Proprietário (pessoa física)'], ['vistoriaVeiculo', 'Veículo paradigma'], ['vistoriaEndereco', 'Endereço'],
-    ['vistoriaGps', 'GPS'], ['vistoriaPresentes', 'Presentes'], ['vistoriaCondicoes', 'Condições do dia'], ['vistoriaNotas', 'Anotações gerais']]) campo(r, c[k]);
+  for (const [k, r] of [['vistoriaProprietario', 'Proprietário (pessoa física)'], ['vistoriaVeiculo', 'Veículo paradigma'], ['vistoriaIntimacao', 'Comunicação às partes'], ['vistoriaNotas', 'Anotações gerais']]) campo(r, c[k]);
+  // uma seção por vistoria (1ª, 2ª…), com o que foi feito e a transcrição do ditado
+  const vists = vistoriasDoCaso(c);
+  for (const vi of vists) {
+    if (vists.length > 1) L.push(`\n### ${vi.rotulo}`);
+    campo('Data', vi.data); campo('Início', vi.inicio); campo('Término', vi.fim); campo('Local', vi.local); campo('Endereço', vi.endereco); campo('GPS', vi.gps);
+    campo('O que foi feito nesta vistoria', vi.objetivo); campo('Presentes', vi.presentes); campo('Condições do dia', vi.condicoes);
+    campo('Transcrição do ditado (revisar)', vi.transcricao);
+  }
   const usados = equip.filter((e) => (c.equipamentos || []).includes(e.id) || medicoes.some((m) => m.data.equipamentoId === e.id));
   if (usados.length) { L.push('\n## Equipamentos'); usados.forEach((e) => L.push(`- ${e.data.nome} ${e.data.fabricante || ''} ${e.data.modelo || ''}, série ${e.data.serie || '?'}, certificado ${e.data.certificado || '?'} (${e.data.laboratorio || ''}), calibrado em ${e.data.dataCalibracao || '?'}`)); }
   if (postos.length) {

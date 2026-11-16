@@ -76,7 +76,7 @@ export function calculados(m, ctx = {}) {
     const proj = isFinite(doseJ) && doseJ !== dose;
     if (ctx.prev !== true && isFinite(doseJ)) {
       if (q === 3) out.push(['Situação – NR-15, Anexo 1 (trabalhista)', 'dosímetro com q = 3: a NR-15 adota q = 5 – refaça a leitura com q = 5 para o enquadramento trabalhista', '']);
-      else out.push(['Situação – NR-15, Anexo 1 (trabalhista)', `dose ${proj ? `projetada para a jornada de ${fmt(doseJ)}% (medida: ${fmt(dose)}% no tempo amostrado)` : `de ${fmt(dose)}%`} – ${doseJ > 100 ? 'acima' : 'dentro'} do limite de tolerância`, 'limite: dose de 100% (85 dB(A) para 8 h, q = 5)' + (proj ? '; D(jornada) = D × TE / T amostrado' : '')]);
+      else out.push(['Situação – NR-15, Anexo 1 (trabalhista)', `dose ${proj ? `projetada para a jornada de ${fmt(doseJ)}% (medida: ${fmt(dose)}% no tempo amostrado)` : `de ${fmt(dose)}%`} – ${Math.round(doseJ * 10) / 10 > 100 ? 'acima' : 'dentro'} do limite de tolerância`, 'limite: dose de 100% (85 dB(A) para 8 h, q = 5)' + (proj ? '; D(jornada) = D × TE / T amostrado' : '')]);
     }
     const ld = lavgDaDose(d.dose, d.tempoAmostragem, q);
     if (isFinite(ld)) out.push([`${q === 3 ? 'Leq' : 'Lavg'} calculado pela dose`, `${fmt(ld)} dB(A)`, `Conferência: 85 + ${q === 3 ? '10' : '16,61'} × log(D / (100 × T/480))`]);

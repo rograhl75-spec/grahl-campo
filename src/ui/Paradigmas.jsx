@@ -2,7 +2,7 @@ import { useState, useEffect } from 'preact/hooks';
 import { db, createRecord, softDelete, updateFields } from '../db.js';
 import { avisarAlteracao, obterAnexo } from '../sync.js';
 import {
-  importarBaseJson, tsDaBase, sugerirParadigmas, lerJsonVeiculos, adicionarParadigmas, guardarAnexo, PROMPT_LAUDO_ANTIGO,
+  importarBaseJson, tsDaBase, sugerirParaVinculo, paraResultadoBusca, lerJsonVeiculos, adicionarParadigmas, guardarAnexo, PROMPT_LAUDO_ANTIGO,
   rotuloParadigma, certificadoVencido, REGRA_CERT_MESES_PADRAO, resolverCodigosDuplicados, referenciasARevisar,
 } from '../paradigmas.js';
 import {
@@ -10,6 +10,7 @@ import {
   resumoPorCategoria, codigoCategoria, classificar, ehMaquina,
 } from '../maquinas.js';
 import { fmt } from '../calc.js';
+import { familiaProvavel, DESCRICAO_FAMILIAS } from '../similaridade.js';
 import { useLive } from './hooks.js';
 import { Campos } from './fields.jsx';
 import { RecordList } from './RecordList.jsx';
@@ -101,6 +102,7 @@ function Veiculos() {
   return (
     <div class="grade">
       <AvisoCodigos />
+      <SaudeBanco lista={lista} />
       <section class="bloco largo">
         <div class="barra-casos">
           <input class="busca" type="search" placeholder="Buscar marca, modelo, processo…" value={busca} onInput={(e) => setBusca(e.currentTarget.value)} />
@@ -326,6 +328,56 @@ function AvisoCodigos() {
   );
 }
 
+// Conferência do banco: o que impede a comparação por família (família, tipo, ano, valores) e família provável
+function SaudeBanco({ lista }) {
+  const [ver, setVer] = useState(false);
+  const [msg, setMsg] = useState('');
+  const fams = useLive(async () => (await db.records.where('kind').equals('familia').toArray()).filter((r) => !r.deleted), [], []);
+  if (!lista.length) return null;
+  const ativos = lista.filter((p) => !/não usar/i.test(p.data.situacao || ''));
+  const semFam = ativos.filter((p) => !String(p.data.familia || '').trim());
+  const semTipo = ativos.filter((p) => !String(p.data.tipo || '').trim());
+  const semAno = ativos.filter((p) => !String(p.data.ano || '').trim() || /n\/i/i.test(p.data.ano));
+  const semValor = ativos.filter((p) => !String(p.data.lavg || '').trim() && !String(p.data.arep || p.data.arenLaudo || '').trim());
+  const revisar = ativos.filter((p) => p.data.situacao && !/^ok$/i.test(p.data.situacao));
+  const propostas = semFam.map((p) => ({ p, f: familiaProvavel({ marca: p.data.marca, modelo: p.data.modelo, ano: p.data.ano, tipo: p.data.tipo }) })).filter((x) => x.f.familia);
+  const codigos = new Set(fams.map((f) => String(f.data.codigo || '').toUpperCase()));
+  const faltamFam = Object.keys(DESCRICAO_FAMILIAS).filter((k) => !codigos.has(k));
+  const aplicar = async () => {
+    for (const { p, f } of propostas) await updateFields(p.id, { familia: f.familia, observacoes: [p.data.observacoes, `Família ${f.familia} atribuída pelo app (${f.motivo}).`].filter(Boolean).join('\n') });
+    avisarAlteracao(); setMsg(`✓ Família atribuída a ${propostas.length} paradigma(s). Confira cada um (situação continua a mesma).`);
+  };
+  const criarFamilias = async () => {
+    for (const k of faltamFam) await createRecord('familia', null, { codigo: k, descricao: DESCRICAO_FAMILIAS[k] });
+    avisarAlteracao(); setMsg(`✓ ${faltamFam.length} família(s) cadastradas.`);
+  };
+  const n = semFam.length + semTipo.length + semValor.length;
+  const nome = (l) => l.slice(0, 12).map((p) => p.data.codigo).join(', ') + (l.length > 12 ? '…' : '');
+  return (
+    <section class={`bloco largo ${n ? 'evidencias alerta' : ''}`}>
+      <div class="linha-botoes entre"><b>Conferência do banco para a comparação por família</b>
+        <button type="button" class="mini" onClick={() => setVer(!ver)}>{ver ? 'Fechar' : 'Ver detalhes'}</button></div>
+      <span>{ativos.length} paradigma(s) ativos · {semFam.length} sem família · {semTipo.length} sem tipo · {semAno.length} sem ano · {semValor.length} sem valores · {revisar.length} a revisar</span>
+      {ver && <>
+        <small>A busca do paradigma compara, nesta ordem de peso: tabela de similares, família técnica, modelo, marca, tipo (rígido, cavalo, ônibus), climatização e época. Paradigma sem família ou sem tipo quase não é encontrado.</small>
+        {semFam.length > 0 && <span><b>Sem família:</b> {nome(semFam)}</span>}
+        {semTipo.length > 0 && <span><b>Sem tipo:</b> {nome(semTipo)}</span>}
+        {semAno.length > 0 && <span><b>Sem ano:</b> {nome(semAno)}</span>}
+        {semValor.length > 0 && <span><b>Sem Lavg nem aren:</b> {nome(semValor)}</span>}
+        {revisar.length > 0 && <span><b>Situação diferente de OK:</b> {nome(revisar)}</span>}
+        {propostas.length > 0 && <>
+          <span><b>Família provável (pela marca, modelo e ano):</b></span>
+          {propostas.slice(0, 20).map(({ p, f }) => <small>{rotuloParadigma(p)} → <b>{f.familia}</b> ({f.motivo})</small>)}
+          <span class="linha-botoes"><button type="button" class="primario mini" onClick={aplicar}>Atribuir as {propostas.length} famílias prováveis</button></span>
+        </>}
+        {faltamFam.length > 0 && <span class="linha-botoes"><small>Famílias {faltamFam.join(', ')} não estão em Paradigmas → Famílias.</small>
+          <button type="button" class="mini" onClick={criarFamilias}>Cadastrar F1–F8 com a descrição</button></span>}
+      </>}
+      {msg && <p class="ok-msg">{msg}</p>}
+    </section>
+  );
+}
+
 function AbrirAnexo({ id }) {
   const [msg, setMsg] = useState('');
   const abrir = async () => {
@@ -360,7 +412,7 @@ function Familias() {
 function Buscar() {
   const [q, setQ] = useState({ marca: '', modelo: '', tipo: '', familia: '' });
   const [res, setRes] = useState(null);
-  const buscar = async () => setRes(await sugerirParadigmas(q));
+  const buscar = async () => setRes(paraResultadoBusca(await sugerirParaVinculo({ data: { veiculoMarca: q.marca, veiculoModelo: q.modelo, veiculoTipo: q.tipo, familiaVeiculo: q.familia } })));
   const campo = (k, r) => (
     <label class="campo"><span class="rotulo">{r}</span><input value={q[k]} onInput={(e) => setQ({ ...q, [k]: e.currentTarget.value })} /></label>
   );

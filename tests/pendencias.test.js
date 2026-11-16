@@ -160,3 +160,23 @@ describe('base de paradigmas corrigida', () => {
     expect(sims).toEqual(['1990–2000', '2001–2010']); // épocas diferentes não se sobrescrevem
   });
 });
+
+describe('exportar a base de paradigmas', () => {
+  it('exporta no formato da importação e volta igual (ida e volta)', async () => {
+    const { importarBaseJson, exportarBaseJson } = await import('../src/paradigmas.js');
+    await db.records.clear();
+    const base = { veiculos: [{ id: 'M05', situacao: 'Revisar', identificacao: { tipo: 'Truck', marca: 'Marca', modelo: '1313', ano: null, epoca_fabricacao: '1975–1987', ano_fonte: 'Faixa de fabricação do modelo (aproximado)' },
+      caracteristicas: { familia: 'F1', ar_condicionado: 'Não' }, resultados: { lavg_q5: 91.2, arep: 1.1, jornada_laudo_h: 8 }, fonte: { tipo: 'Judicial', processo: '0000000-00.2019.4.04.0000', vara: 'Vara X', data: '10/10/2020', citacao: 'Proc. 0000000-00.2019.4.04.0000 – Vara X – 10/10/2020' } }],
+    similares: [{ marca: 'Marca', modelo: '1313', familia: 'F1', paradigma_ruido: 'M05', status: 'Validado' }] };
+    await importarBaseJson(base);
+    const j = await exportarBaseJson();
+    expect(j.veiculos).toHaveLength(1);
+    const v = j.veiculos[0];
+    expect(v).toMatchObject({ id: 'M05', situacao: 'Revisar', identificacao: { modelo: '1313', epoca_fabricacao: '1975–1987' }, caracteristicas: { familia: 'F1' }, resultados: { lavg_q5: 91.2, arep: 1.1 } });
+    expect(j.similares[0].paradigma_ruido).toBe('M05');
+    await db.records.clear();
+    await importarBaseJson(j);
+    const p = await db.records.get('par-m05');
+    expect(p.data).toMatchObject({ lavg: '91,2', epocaFabricacao: '1975–1987', citacao: 'Proc. 0000000-00.2019.4.04.0000 – Vara X – 10/10/2020' });
+  });
+});

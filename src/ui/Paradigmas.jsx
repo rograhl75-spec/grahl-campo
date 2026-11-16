@@ -2,7 +2,7 @@ import { useState, useEffect } from 'preact/hooks';
 import { db, createRecord, softDelete, updateFields } from '../db.js';
 import { avisarAlteracao, obterAnexo } from '../sync.js';
 import {
-  importarBaseJson, tsDaBase, sugerirParaVinculo, paraResultadoBusca, lerJsonVeiculos, adicionarParadigmas, guardarAnexo, PROMPT_LAUDO_ANTIGO,
+  importarBaseJson, exportarBaseJson, tsDaBase, sugerirParaVinculo, paraResultadoBusca, lerJsonVeiculos, adicionarParadigmas, guardarAnexo, PROMPT_LAUDO_ANTIGO,
   rotuloParadigma, certificadoVencido, REGRA_CERT_MESES_PADRAO, resolverCodigosDuplicados, referenciasARevisar,
 } from '../paradigmas.js';
 import {
@@ -10,6 +10,7 @@ import {
   resumoPorCategoria, codigoCategoria, classificar, ehMaquina,
 } from '../maquinas.js';
 import { fmt } from '../calc.js';
+import { baixarArquivo, carimbo } from '../backup.js';
 import { familiaProvavel, DESCRICAO_FAMILIAS } from '../similaridade.js';
 import { useLive } from './hooks.js';
 import { Campos } from './fields.jsx';
@@ -22,6 +23,8 @@ export const CAMPOS_PARADIGMA = {
   'Identificação': [
     ['codigo', 'Código', 'text'], ['tipo', 'Tipo (toco, truck, cavalo, bitrem, ônibus, van, trator…)', 'text'],
     ['marca', 'Marca', 'text'], ['modelo', 'Modelo', 'text'], ['ano', 'Ano', 'text'],
+    ['anoFonte', 'Fonte do ano', 'select', ['Laudo', 'CRLV / documento do veículo', 'Foto (placa, plaqueta do chassi)', 'Faixa de fabricação do modelo (aproximado)']],
+    ['epocaFabricacao', 'Época de fabricação, sem o ano (faixa, ex.: 1975–1987)', 'text'],
     ['situacao', 'Situação', 'select', ['OK', 'Revisar', 'Ressalva', 'Confirmar modelo', 'RECALCULAR VDVR', 'NÃO USAR']],
   ],
   'Máquina e condição de operação': [
@@ -337,7 +340,7 @@ function SaudeBanco({ lista }) {
   const ativos = lista.filter((p) => !/não usar/i.test(p.data.situacao || ''));
   const semFam = ativos.filter((p) => !String(p.data.familia || '').trim());
   const semTipo = ativos.filter((p) => !String(p.data.tipo || '').trim());
-  const semAno = ativos.filter((p) => !String(p.data.ano || '').trim() || /n\/i/i.test(p.data.ano));
+  const semAno = ativos.filter((p) => (!String(p.data.ano || '').trim() || /n\/i/i.test(p.data.ano)) && !String(p.data.epocaFabricacao || '').trim());
   const semValor = ativos.filter((p) => !String(p.data.lavg || '').trim() && !String(p.data.arep || p.data.arenLaudo || '').trim());
   const revisar = ativos.filter((p) => p.data.situacao && !/^ok$/i.test(p.data.situacao));
   const propostas = semFam.map((p) => ({ p, f: familiaProvavel({ marca: p.data.marca, modelo: p.data.modelo, ano: p.data.ano, tipo: p.data.tipo }) })).filter((x) => x.f.familia);
@@ -354,7 +357,7 @@ function SaudeBanco({ lista }) {
   const n = semFam.length + semTipo.length + semValor.length;
   const nome = (l) => l.slice(0, 12).map((p) => p.data.codigo).join(', ') + (l.length > 12 ? '…' : '');
   return (
-    <section class={`bloco largo ${n ? 'evidencias alerta' : ''}`}>
+    <section class={`bloco largo saude-banco ${n ? 'alerta' : ''}`}>
       <div class="linha-botoes entre"><b>Conferência do banco para a comparação por família</b>
         <button type="button" class="mini" onClick={() => setVer(!ver)}>{ver ? 'Fechar' : 'Ver detalhes'}</button></div>
       <span>{ativos.length} paradigma(s) ativos · {semFam.length} sem família · {semTipo.length} sem tipo · {semAno.length} sem ano · {semValor.length} sem valores · {revisar.length} a revisar</span>
@@ -493,7 +496,10 @@ function Importar() {
         <h3>Importar a base (arquivo JSON)</h3>
         <p>Use o arquivo <code>cadastro_veiculos_medidos.json</code>. Pode importar de novo depois de atualizar a planilha: nada é duplicado e o que você editou no app prevalece.</p>
         <p><b>No banco agora:</b> {total.v} veículo(s) medido(s) e {total.s} similar(es). Com a nuvem conectada, basta importar em um aparelho: os outros recebem a base sozinhos.</p>
-        <label class="botao-arquivo">Escolher arquivo JSON<input type="file" accept=".json,application/json,text/plain,*/*" hidden onChange={importarBase} /></label>
+        <div class="linha-botoes">
+          <label class="botao-arquivo">Escolher arquivo JSON<input type="file" accept=".json,application/json,text/plain,*/*" hidden onChange={importarBase} /></label>
+          <button type="button" class="sec" onClick={async () => { const j = await exportarBaseJson(); baixarArquivo(new Blob([JSON.stringify(j, null, 1)], { type: 'application/json' }), `cadastro_veiculos_medidos_${carimbo()}.json`); setMsgBase(`✓ Base exportada: ${j.veiculos.length} veículo(s), ${j.similares.length} similar(es) e ${j.familias.length} família(s), com o nome do laudo de origem de cada um.`); }}>Exportar a base (JSON)</button>
+        </div>
         {msgBase && <p class={msgBase.startsWith('Erro') ? 'erro-msg' : 'ok-msg'}>{msgBase}</p>}
       </section>
       <section class="bloco largo destaque">

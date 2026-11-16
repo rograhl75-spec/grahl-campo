@@ -20,11 +20,46 @@ export const PAPEL = [
   'Assistente técnico do autor / reclamante',
   'Assistente técnico do réu / reclamada',
   'Laudo extrajudicial (contratante)',
+  'Parecer técnico extrajudicial (segurado / advogado)',
 ];
+export const ehParecerTecnico = (c = {}) => /Parecer técnico extrajudicial/i.test(c.papel || '');
 
 export const OBJETO = [
   'Insalubridade', 'Periculosidade', 'Aposentadoria especial', 'LTCAT', 'PPP',
-  'Acidente / doença ocupacional', 'Adicional (servidor público)', 'Outro',
+  'Acidente / doença ocupacional', 'Adicional (servidor público)', 'Penosidade (motorista)', 'Outro',
+];
+
+// Finalidade do parecer técnico extrajudicial (sai na identificação e no objetivo)
+export const FINALIDADE_PARECER = [
+  'Requerimento administrativo de aposentadoria especial (INSS)',
+  'Revisão de benefício (INSS)',
+  'Instrução de ação judicial previdenciária',
+  'Outra',
+];
+
+// Grupos de veículo da entrevista do motorista (dinâmica de vibração e ruído); orientam a escolha do paradigma
+export const GRUPOS_VEICULO = [
+  'Caminhão toco (chassi rígido, eixo simples)',
+  'Caminhão truck (chassi rígido, eixo duplo)',
+  'Cavalo mecânico com cabine convencional / semiavançada, sem ar-condicionado (projeto antigo)',
+  'Cavalo mecânico com cabine avançada (cara-chata)',
+  'Caminhão pesado moderno (câmbio automatizado, suspensão de cabine, ar-condicionado)',
+  'Ônibus (transporte coletivo)',
+  'Van / utilitário',
+  'Máquina agrícola ou de construção',
+];
+// tipo usado na busca do banco de paradigmas para cada grupo
+export const TIPO_DO_GRUPO = ['Toco', 'Truck', 'Cavalo', 'Cavalo', 'Cavalo', 'Ônibus', 'Van', 'Trator'];
+
+// Entrevista do motorista por vínculo (complementa os fatores de penosidade)
+export const CAMPOS_ENTREVISTA_MOTORISTA = [
+  ['grupoVeiculo', 'Grupo do veículo', 'select', GRUPOS_VEICULO],
+  ['carroceria', 'Carroceria / reboque (ex.: graneleiro, baú, porta-contêiner, caçamba)', 'text'],
+  ['tipoCarga', 'Tipo de carga (ex.: grãos, frigorificada, perecíveis, passageiros)', 'text'],
+  ['carregaDescarrega', 'Carregava / descarregava?', 'select', ['Não', 'Carregava', 'Descarregava', 'Carregava e descarregava']],
+  ['abastecimento', 'Onde abastecia', 'text'],
+  ['acidenteVinculo', 'Acidente de trânsito no vínculo (Não, ou descreva)', 'text'],
+  ['assaltoVinculo', 'Assalto / roubo de carga no vínculo (Não, ou descreva)', 'text'],
 ];
 
 export const FASE = [

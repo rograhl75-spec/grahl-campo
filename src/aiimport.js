@@ -78,7 +78,7 @@ export function jurisprudenciaLigada(c = {}, perfil = {}) {
 }
 
 export function criteriosPara(c = {}, situacaoId = '', perfil = {}) {
-  const prev = situacaoId === 'perito-prev' || situacaoId === 'extra-ltcat' || contextoLegal(c).prev === true;
+  const prev = ['perito-prev', 'extra-ltcat', 'extra-penosidade'].includes(situacaoId) || contextoLegal(c).prev === true;
   const jur = jurisprudenciaLigada(c, perfil)
     ? 'JURISPRUDÊNCIA: pode ser registrada apenas em item próprio ("Registro de entendimentos jurisprudenciais"), separada da fundamentação técnica, citando tribunal, número do tema/súmula e a tese com fidelidade; tema ainda pendente sai marcado [[conferir]].'
     : 'JURISPRUDÊNCIA: NÃO cite súmulas, temas, precedentes nem jurisprudência neste caso; fundamente só na legislação e nas normas técnicas.';
@@ -110,7 +110,7 @@ Responda SOMENTE com um bloco JSON válido, sem texto antes ou depois, neste for
     "observacoes": ""
   },
   "acidente": {"acidenteData": "só em caso de acidente do trabalho", "acidenteHora": "", "acidenteLocal": "", "acidenteAtividade": "", "acidenteMaquina": "", "acidenteRelato": "versão do acidentado", "acidenteRelatoEmpresa": "versão da empresa e das testemunhas", "acidenteLesao": "", "acidenteCat": "", "acidenteAlteracoes": ""},
-  "periodos": [{"empresa": "", "cnpj": "", "inicio": "", "fim": "", "cargo": "", "setor": "", "atividades": "", "agentes": "", "fonte": "", "tipoTransporte": "só motorista/cobrador", "jornadaSemanal": "", "noturnoPernoite": "", "cargaDescarga": "", "vias": "", "riscoAcidente": "", "cabine": "", "pausas": "", "pressao": "", "fisiologicas": "acesso a sanitários, alimentação e descanso"}],
+  "periodos": [{"empresa": "", "cnpj": "", "inicio": "", "fim": "", "cargo": "", "setor": "", "atividades": "", "agentes": "", "fonte": "", "tipoTransporte": "só motorista/cobrador", "jornadaSemanal": "", "noturnoPernoite": "", "cargaDescarga": "", "vias": "", "riscoAcidente": "", "cabine": "", "pausas": "", "pressao": "", "fisiologicas": "acesso a sanitários, alimentação e descanso", "veiculoTipo": "", "veiculoMarca": "", "veiculoModelo": "", "veiculoAno": "", "grupoVeiculo": "só motorista – um dos grupos da instrução", "carroceria": "", "tipoCarga": "", "carregaDescarrega": "Não | Carregava | Descarregava | Carregava e descarregava", "conducaoH": "horas de direção por dia (número)", "conducaoBase": "de onde veio a informação", "abastecimento": "", "acidenteVinculo": "Não, ou descrição", "assaltoVinculo": "Não, ou descrição"}],
   "documentos": [{"tipo": "PPP | LTCAT | PGR / PPRA | Laudo pericial | Ficha de EPI | CTPS / CNIS | Outro", "identificacao": "", "analise": ""}],
   "epis": [{"descricao": "", "ca": "", "dataEntrega": "", "obs": ""}],
   "quesitos": [{"origem": "Juízo | Autor / Reclamante | Réu / Reclamada | INSS | Complementares", "numero": "1", "texto": "", "resposta": "resposta dada no laudo, se já houver"}],
@@ -174,6 +174,17 @@ Em "quesitos", transcreva os quesitos já respondidos pelo perito e SUGIRA quesi
 FOCO: segurado e categoria (empregado / contribuinte individual – STJ, Tema 1291), vínculos com datas da CTPS, lacunas do CNIS, empresa ativa ou extinta (similaridade: o INSS não aceita laudo de empresa diversa – art. 277, parágrafo único, da IN 128/2022; em juízo, Súmula 106 do TRF4 e TNU, PEDILEF 0001323-30.2010.4.03.6318: empresa inativa sem representante e sem laudos, ou ambiente substancialmente alterado sem possibilidade de novo laudo; similaridade na mesma época, condições, agentes e habitualidade e permanência), atividades e agentes por subperíodo, marcos legais e EC 103/2019, laudos existentes da empresa e suas falhas.
 Em "preliminares", as pendências e documentos a pedir ao segurado antes da vistoria. Em "roteiro", o checklist de campo (o que perguntar, observar, medir e fotografar).`,
   },  {
+    id: 'extra-penosidade', titulo: 'Extrajudicial – parecer técnico de condições de trabalho e penosidade (motorista)',
+    foco: `Vou elaborar um PARECER TÉCNICO EXTRAJUDICIAL de condições de trabalho e penosidade para um MOTORISTA (caminhão, carreta, ônibus), a pedido do segurado ou do advogado, para instruir requerimento ao INSS, revisão ou ação judicial de aposentadoria especial. Leia os documentos anexados: ENTREVISTA do segurado (Word, PDF ou anotação), CTPS, CNIS, PPP e laudos que houver.
+FOCO, por vínculo (um item em "periodos" para cada contrato; o mesmo empregador em dois contratos = dois itens):
+- empresa, CNPJ, início e fim EXATAMENTE como na CTPS/CNIS (vínculo em aberto: "fim" vazio), cargo/função;
+- veículo: tipo, marca, modelo e ano, e o "grupoVeiculo" (use exatamente um destes: Caminhão toco (chassi rígido, eixo simples) | Caminhão truck (chassi rígido, eixo duplo) | Cavalo mecânico com cabine convencional / semiavançada, sem ar-condicionado (projeto antigo) | Cavalo mecânico com cabine avançada (cara-chata) | Caminhão pesado moderno (câmbio automatizado, suspensão de cabine, ar-condicionado) | Ônibus (transporte coletivo) | Van / utilitário | Máquina agrícola ou de construção);
+- carroceria/reboque, tipo de carga, se carregava/descarregava, trajetos e rotas (em "vias", com cidades e UFs), pernoite (em "noturnoPernoite"), jornada (em "jornadaSemanal"; e as horas de direção por dia em "conducaoH", número), onde abastecia, acidente e assalto no vínculo (só "Não" quando a entrevista disser que não houve);
+- cabine e conforto (ar-condicionado, câmbio, motor junto da cabine) em "cabine"; esperas, enlonamento e amarração em "cargaDescarga"; prazos e metas em "pressao"; pausas e acesso a sanitários/alimentação em "pausas" e "fisiologicas" – SÓ se a entrevista disser; não deduza.
+Copie as palavras da entrevista; não amplie ("jornadas extenuantes", "desumanas" etc. só se o segurado disse). Em "preliminares", as divergências entre a entrevista e a CTPS/CNIS (datas, empresas) e o que falta perguntar ao segurado. Em "roteiro", os veículos sem paradigma no banco a pesquisar.
+Lembre: até 28/04/1995, categoria profissional (cód. 2.4.4 / 2.4.2); depois, penosidade só com perícia individualizada (IAC nº 5 do TRF4; STJ, Tema 1307); após 13/11/2019 não há conversão de tempo especial em comum (EC 103/2019, art. 25, § 2º).`,
+  },
+  {
     id: 'extra-trab', titulo: 'Extrajudicial – laudo de insalubridade e periculosidade para a empresa',
     foco: `Vou elaborar um LAUDO TÉCNICO EXTRAJUDICIAL de caracterização de insalubridade e periculosidade (CLT, arts. 189 a 195; NR-15 e NR-16) contratado pela empresa (ou por trabalhador/advogado, veja no caso). Leia os documentos anexados (PGR, inventário de riscos, PCMSO, fichas de EPI, FISPQs, laudos anteriores, descrição de cargos).
 FOCO: setores, cargos e atividades; agentes por posto com o anexo da NR-15 ou da NR-16 aplicável; produtos químicos e suas FISPQs; EPC e EPI (CA, fichas, troca, treinamento); avaliações quantitativas existentes e o que precisa ser medido.
@@ -191,6 +202,7 @@ export function situacaoDoCaso(c) {
   const extra = c.tipoAtuacao === 'Extrajudicial' || /extrajudicial/i.test(c.papel || '');
   const ctx = contextoLegal(c);
   if (ehAcidente(c) && ctx.prev !== true && !/Assistente/i.test(c.papel || '')) return 'acidente';
+  if (extra && (/Parecer técnico extrajudicial/i.test(c.papel || '') || (c.objeto || []).includes('Penosidade (motorista)'))) return 'extra-penosidade';
   if (extra) return ctx.prev === false ? 'extra-trab' : 'extra-ltcat';
   if (/Assistente/i.test(c.papel || '')) return c.refLaudo || /laudo|manifesta|esclarec/i.test(c.fase || '') ? 'at-laudo' : 'at-estudo';
   // (os critérios do assistente técnico seguem a matéria do caso: trabalhista ou previdenciária)
@@ -256,7 +268,7 @@ export function lerJsonIA(texto) {
   return {
     caso,
     periodos: lista(obj.periodos).map((x) => ({ empresa: s(x.empresa), cnpj: s(x.cnpj), inicio: dataIso(s(x.inicio)) || s(x.inicio), fim: dataIso(s(x.fim)) || s(x.fim), cargo: s(x.cargo), setor: s(x.setor), atividades: s(x.atividades), agentes: s(x.agentes), fonte: s(x.fonte),
-      ...Object.fromEntries(['tipoTransporte', 'jornadaSemanal', 'noturnoPernoite', 'cargaDescarga', 'vias', 'riscoAcidente', 'cabine', 'pausas', 'pressao', 'fisiologicas'].map((k) => [k, s(x[k])]).filter(([, val]) => val)) })),
+      ...Object.fromEntries(['tipoTransporte', 'jornadaSemanal', 'noturnoPernoite', 'cargaDescarga', 'vias', 'riscoAcidente', 'cabine', 'pausas', 'pressao', 'fisiologicas', 'grupoVeiculo', 'veiculoTipo', 'veiculoMarca', 'veiculoModelo', 'veiculoAno', 'conducaoH', 'conducaoBase', 'carroceria', 'tipoCarga', 'carregaDescarrega', 'abastecimento', 'acidenteVinculo', 'assaltoVinculo'].map((k) => [k, s(x[k])]).filter(([, val]) => val)) })),
     documentos: lista(obj.documentos).map((x) => ({ tipo: s(x.tipo), identificacao: s(x.identificacao), analise: s(x.analise) })),
     epis: lista(obj.epis).map((x) => ({ descricao: s(x.descricao), ca: s(x.ca), dataEntrega: s(x.dataEntrega), obs: s(x.obs) })),
     quesitos: lista(obj.quesitos).map((x) => ({ origem: origem(x.origem), numero: s(x.numero), texto: s(x.texto), resposta: s(x.resposta) })).filter((q) => q.texto),
@@ -362,6 +374,7 @@ const REDACAO = {
   laudo: 'Redija o LAUDO PERICIAL completo (perito do juízo), com a estrutura: 1 Identificação e dados da diligência; 2 Objetivo e metodologia; 3 Ambiente e atividades; 4 EPC e EPI; 5 Avaliação dos agentes; 6 Conclusão; 7 Respostas aos quesitos (todos, um a um); 8 Encerramento; Anexo I fotográfico.',
   parecerAT: 'Redija a MANIFESTAÇÃO TÉCNICA / PARECER DO ASSISTENTE TÉCNICO sobre o laudo pericial: síntese do laudo e dos pontos analisados (com quadro), análise por agente, quesitos de esclarecimento e conclusão técnica com requerimentos. Linguagem técnica, sem juridiquês, respeitosa com o perito.',
   ltcat: 'Redija o LTCAT extrajudicial (IN 128/2022, art. 276) e a minuta do PPP por subperíodo: identificação, condições da avaliação, fundamentação, ambiente e profissiografia, avaliação dos agentes, conclusão com síntese do enquadramento, recomendações e encerramento.',
+  parPenosidade: 'Redija o PARECER TÉCNICO DE CONDIÇÕES DE TRABALHO E PENOSIDADE (motorista), extrajudicial, para o segurado ou o advogado, no padrão do signatário: quadro de identificação (segurado, atividade, períodos, normas, responsável técnico com ART, finalidade); 1 Objetivo e metodologia (avaliação por similaridade com o banco de paradigmas do signatário, citando processo, vara e data de cada paradigma, sem nome de segurado extrajudicial; critérios de penosidade do IAC nº 5 do TRF4 – veículo, trajetos, cargas e jornadas); 2 Marco legal por período (tempus regit actum: categoria até 28/04/1995; ruído Lavg > 80 dB(A) até 05/03/1997, Lavg > 90 dB(A) até 18/11/2003 e NEN > 85 dB(A) a partir de 19/11/2003; VCI pela ISO 2631-1 até 13/08/2014 e pela NR-15, Anexo 8, a partir de 14/08/2014; EPI: Tema 555 do STF só para o ruído); 3 Um quadro por vínculo (função e veículo, grupo do veículo, carga e trajetos, análise de penosidade com os fatos da entrevista, ruído, vibração, fonte da prova, enquadramento por subperíodo); 4 Matriz sintética de todos os vínculos; 5 Conclusão técnica por vínculo e subperíodo (o enquadramento jurídico é do INSS ou do Juízo; não use "irrefutável", "faz jus" nem adjetivos que a entrevista não traz; após 13/11/2019 não há conversão de tempo especial em comum – EC 103/2019, art. 25, § 2º); limitações (informações do segurado, similaridade); encerramento com local, data, responsável técnico, registro e ART.',
   parprev: 'Redija o PARECER TÉCNICO previdenciário por vínculo: responsabilidade técnica, objeto, identificação, fundamentação legal, metodologia, atividades por vínculo, avaliação técnica por agente, quadro conclusivo, limitações e encerramento.',
   prevent: 'Redija o PARECER TÉCNICO PREVENTIVO para a empresa: objetivo, identificação do caso, documentos analisados, fundamentação, instalações e atividades, análise crítica da documentação de SST, avaliação dos riscos de condenação, recomendações e conclusão.',
   indic: 'Redija a PETIÇÃO de indicação de assistente técnico com documentos a requerer, pedido de avaliações no local e quesitos técnicos objetivos por agente.',
@@ -377,7 +390,7 @@ Object.assign(REDACAO, {
 
 export const OPCOES_REDACAO = [
   ['laudo', 'Laudo pericial'], ['parecerAT', 'Parecer de assistente técnico / impugnação'], ['ltcat', 'LTCAT + PPP'],
-  ['parprev', 'Parecer técnico previdenciário'], ['prevent', 'Parecer preventivo para a empresa'], ['indic', 'Petição de indicação e quesitos'],
+  ['parprev', 'Parecer técnico previdenciário'], ['parPenosidade', 'Parecer técnico de condições de trabalho e penosidade (motorista)'], ['prevent', 'Parecer preventivo para a empresa'], ['indic', 'Petição de indicação e quesitos'],
   ['supl', 'Resposta aos quesitos suplementares'],
   ['respostas', 'Respostas a todos os quesitos (voltam para o app)'],
 ];
@@ -399,7 +412,7 @@ export async function exportarParaClaude(caseId, tipo) {
 
 Use os dados do caso abaixo (coletados por mim nos autos e na diligência) como base factual. Não invente dados: o que faltar, marque como [[pendência]] para eu completar. Formatação: documento técnico no meu papel timbrado, fonte Abadi, espaçamento 1,5, texto justificado, títulos numerados em azul, cada título principal em página nova, sumário, quadros numerados com título acima e fonte abaixo.
 
-${criteriosPara(c, tipo === 'ltcat' || tipo === 'parprev' ? 'extra-ltcat' : '', ((await db.records.get('perfil')) || {}).data || {})}
+${criteriosPara(c, tipo === 'ltcat' || tipo === 'parprev' || tipo === 'parPenosidade' ? 'extra-ltcat' : '', ((await db.records.get('perfil')) || {}).data || {})}
 
 ---
 ${texto}`;
@@ -430,7 +443,7 @@ export async function textoDoCaso(caseId) {
     L.push('\n## Acidente do trabalho');
     for (const [k, r] of CAMPOS_ACIDENTE) campo(r, c[k]);
   }
-  if (periodos.length) { L.push('\n## Períodos'); periodos.forEach((p) => L.push(`- ${p.data.empresa || ''} (${p.data.cnpj || ''}) – ${p.data.inicio || '?'} a ${p.data.fim || 'atual'} – ${p.data.cargo || ''} / ${p.data.setor || ''}. Atividades: ${p.data.atividades || ''}. Agentes: ${p.data.agentes || ''}. Fonte: ${p.data.fonte || ''}${['tipoTransporte', 'jornadaSemanal', 'pausas', 'noturnoPernoite', 'cargaDescarga', 'vias', 'cabine', 'riscoAcidente', 'pressao', 'penosidadeConclusao'].filter((k) => p.data[k]).map((k) => `. ${k}: ${p.data[k]}`).join('')}`)); }
+  if (periodos.length) { L.push('\n## Períodos'); periodos.forEach((p) => L.push(`- ${p.data.empresa || ''} (${p.data.cnpj || ''}) – ${p.data.inicio || '?'} a ${p.data.fim || 'atual'} – ${p.data.cargo || ''} / ${p.data.setor || ''}. Atividades: ${p.data.atividades || ''}. Agentes: ${p.data.agentes || ''}. Fonte: ${p.data.fonte || ''}${['tipoTransporte', 'jornadaSemanal', 'pausas', 'noturnoPernoite', 'cargaDescarga', 'vias', 'cabine', 'riscoAcidente', 'pressao', 'penosidadeConclusao', 'grupoVeiculo', 'carroceria', 'tipoCarga', 'carregaDescarrega', 'abastecimento', 'acidenteVinculo', 'assaltoVinculo'].filter((k) => p.data[k]).map((k) => `. ${k}: ${p.data[k]}`).join('')}`)); }
   const comPar = periodos.filter((p) => p.data.paradigmaRuido || p.data.paradigmaVibracao || p.data.veiculoModelo);
   if (comPar.length) {
     const pars = new Map((await db.records.where('kind').equals('paradigma').toArray()).filter((r) => !r.deleted).map((r) => [r.data.codigo, r.data]));

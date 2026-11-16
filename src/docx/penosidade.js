@@ -83,12 +83,23 @@ const RE_CAB = /sem ar|sem climatiz|manual|mec[âa]nic|desconfort|calor|dur[oa]|
 const RE_VIA = /rodovi|interestad|intermunic|estrada|terra|sem pavim|buraco|serra|urban|tr[âa]nsito|ch[ãa]o|cascalh/i;
 const RE_RISCO = /assalt|roubo|acidente|perig|viol[êe]ncia|inflam|combust|vidas?|passageir|valor/i;
 const RE_CARGA = /descarg|carreg|enlon|amarra|lona|pneu|bobina|gr[ãa]os|carga/i;
-const RE_PERN = /pernoit|noturn|madrugada|dormia|cabine.*dorm|dias fora|semanas? fora|viagens? de/i;
+const RE_PERN = /pernoit|noturn|madrugada|dormia|cabine.*dorm|dias fora|semanas? fora|viagens? de|hotel|pousada|alojamento|virava a noite|sai na .*volta|segunda.*(quinta|sexta|s[áa]bado)/i;
 
 // maior tempo diário de trabalho informado (condução ou jornada total)
+// horário de início e fim ("05h00 às 20h00", "7h as 19h30", "05:00 - 20:00") → horas entre eles
+export function horasDoHorario(t) {
+  const out = [];
+  for (const m of String(t || '').matchAll(/(\d{1,2})\s*(?:h|:)\s*(\d{2})?\s*(?:h(?:oras)?)?\s*(?:às|as|a|até|-|–)\s*(\d{1,2})\s*(?:h|:)\s*(\d{2})?/gi)) {
+    const ini = Number(m[1]) + Number(m[2] || 0) / 60, fim = Number(m[3]) + Number(m[4] || 0) / 60;
+    const h = fim > ini ? fim - ini : fim + 24 - ini;
+    if (h > 0 && h <= 24) out.push(Math.round(h * 10) / 10);
+  }
+  return out;
+}
 export function horasDia(r, dados) {
   const x = { ...r.data, ...coletado(r, dados) };
-  const hs = [num(x.conducaoH), ...[...String(`${x.jornadaSemanal || ''} ${x.pausas || ''}`).matchAll(/(\d{1,2})\s*h(?:oras)?\s*(?:\/|por|ao|diárias)\s*(?:dia)?/gi)].map((m) => Number(m[1]))]
+  const txt = `${x.jornadaSemanal || ''} ${x.pausas || ''}`;
+  const hs = [num(x.conducaoH), ...[...String(txt).matchAll(/(\d{1,2})\s*h(?:oras)?\s*(?:\/|por|ao|diárias)\s*(?:dia)?/gi)].map((m) => Number(m[1])), ...horasDoHorario(txt)]
     .filter((h) => isFinite(h) && h > 0 && h <= 24);
   return hs.length ? Math.max(...hs) : NaN;
 }
@@ -97,6 +108,10 @@ const adv = (re, t) => String(t || '').split(/;\s*|\.\s+/).some((f) => re.test(f
 const UFS = /\b(AC|AL|AP|AM|BA|CE|DF|ES|GO|MA|MT|MS|MG|PA|PB|PR|PE|PI|RJ|RN|RS|RO|RR|SC|SP|SE|TO)\b/g;
 // resposta da entrevista que indica ocorrência ("Sim", "Carregava", descrição) e não "Não"
 const sim = (t) => !!v(t) && !/^\s*(n[ãa]o|nunca|nenhum|sem)\b/i.test(v(t));
+// resposta só negativa ("Acidente: não. Assalto: não.") não é fator e não entra na lista
+const soNegativa = (t) => !!v(t) && String(t).split(/[.;]\s*/).map((f) => f.replace(/^[^:]*:\s*/, '').trim()).filter(Boolean)
+  .every((f) => /^(n[ãa]o|nunca|nenhum|sem|nada)\b/i.test(f));
+const normT = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
 const interestadual = (t) => new Set(String(t || '').match(UFS) || []).size >= 2;
 
 // condições apuradas por critério + sinalização de desgaste (adverso) para a conclusão
@@ -113,7 +128,9 @@ export function matrizIAC(r, dados) {
   const pausasSug = !v(x.pausas) && T >= 10;
   const pressao = v(x.pressao) || (pressaoSug ? `[[sugestão do app – confirmar: jornada de cerca de ${hTxt} h/dia, que pode indicar pressão de prazos e metas de entrega]]` : '');
   const pausas = v(x.pausas) || (pausasSug ? `[[sugestão do app – confirmar: condução prolongada ao longo de jornada de cerca de ${hTxt} h/dia]]` : '');
-  const L = (rot, t) => (v(t) ? `${rot}: ${v(t)}` : '');
+  const L = (rot, t) => (v(t) && !soNegativa(t) ? `${rot}: ${v(t).replace(/[.;\s]+$/, '')}` : '');
+  // "Carga, descarga e esperas" que só repete o "carregava/descarregava" da entrevista não sai duas vezes
+  const cargaRepetida = v(x.cargaDescarga) && (normT(x.cargaDescarga) === normT(x.carregaDescarrega) || /^(carregava|descarregava|sim)\b/i.test(normT(x.cargaDescarga).replace(/^carregava descarregava /, '')) && sim(x.carregaDescarrega));
   const criterios = [
     { id: 'veiculo', titulo: '1. Análise do veículo',
       oque: 'Idade e modelo da frota; câmbio, embreagem, direção, assento e climatização; esforço físico, desconforto térmico, movimentos repetitivos e desgaste osteomuscular; ruído, vibração e calor do motor.',
@@ -129,14 +146,14 @@ export function matrizIAC(r, dados) {
     { id: 'cargas', titulo: '3. Análise das cargas',
       oque: 'Responsabilidade pela carga de valor ou por vidas humanas; carga, descarga, amarração e enlonamento; metas logísticas; risco de acidente e de roubo de carga.',
       linhas: [L('Tipo de transporte', x.tipoTransporte), L('Tipo de carga', x.tipoCarga), sim(x.carregaDescarrega) && L('O motorista', x.carregaDescarrega.toLowerCase()),
-        L('Carga, descarga e esperas', x.cargaDescarga), L('Prazos e metas', pressao)].filter(Boolean),
+        cargaRepetida ? '' : L('Carga, descarga e esperas', x.cargaDescarga), L('Prazos e metas', pressao)].filter(Boolean),
       adverso: adv(RE_CARGA, x.cargaDescarga) || adv(RE_RISCO, x.tipoTransporte) || /perec|frigor|refriger|valor/i.test(x.tipoCarga || '') || sim(x.carregaDescarrega) || !!pressao,
       fonte: pressaoSug ? 'Entrevista do autor; [[prazos e metas deduzidos da jornada – confirmar]]' : 'Entrevista do autor' },
     { id: 'jornadas', titulo: '4. Análise das jornadas',
       oque: 'Horários rígidos ou viagens extenuantes que impedem a recuperação; privação de sono; dificuldade de acesso a sanitários, alimentação e locais de descanso.',
       linhas: [L('Tempo diário de condução', cTxt && `cerca de ${cTxt} h/dia${x.conducaoBase ? ` (${x.conducaoBase})` : ''}`), L('Jornada e horas extras', x.jornadaSemanal),
-        L('Direção contínua e pausas', pausas), L('Trabalho noturno e pernoites', x.noturnoPernoite), L('Sanitários, alimentação e descanso', x.fisiologicas)].filter(Boolean),
-      adverso: T >= 10 || adv(RE_PERN, x.noturnoPernoite) || /sem acesso|dif[ií]cil|n[ãa]o (havia|tinha)|precária/i.test(x.fisiologicas || ''),
+        L('Direção contínua e pausas', pausas), L('Trabalho noturno e pernoites', /^sim\.?$/i.test(v(x.noturnoPernoite)) ? 'sim (pernoite fora de casa)' : x.noturnoPernoite), L('Sanitários, alimentação e descanso', x.fisiologicas)].filter(Boolean),
+      adverso: T >= 10 || adv(RE_PERN, x.noturnoPernoite) || sim(x.noturnoPernoite) || adv(RE_PERN, x.jornadaSemanal) || /sem acesso|dif[ií]cil|n[ãa]o (havia|tinha)|precária/i.test(x.fisiologicas || ''),
       fonte: pausasSug ? 'Entrevista do autor; [[pausas deduzidas da jornada – confirmar]]' : 'Entrevista do autor' },
   ];
   const nAdv = criterios.filter((c) => c.adverso).length;

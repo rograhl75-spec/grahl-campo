@@ -1,5 +1,5 @@
 import { ORIGEM_QUESITO, contextoLegal, ehSuplementar, localVistoria, ehAcidente, ehParecerTecnico } from '../schema.js';
-import { parecerPenosidade } from './parecerPenosidade.js';
+import { parecerPenosidade, roteiroEntrevista } from './parecerPenosidade.js';
 import { db } from '../db.js';
 import { p, run } from './ooxml.js';
 import {
@@ -224,6 +224,7 @@ export const CATALOGO = [
   { id: 'honorarios', grupo: '1. Início do caso', titulo: 'Honorários', desc: 'Escolha a situação: proposta com estimativa de horas (art. 465, § 2º), majoração do valor fixado (complexidade, local, Res. CJF 305/2014) ou aceite do valor arbitrado (com ou sem adiantamento). Os dados ficam em 1. Cadastro → Honorários e itens do despacho.', fn: peticaoHonorariosUnica, rec: ehPerito, usaConta: true },
   { id: 'indic', grupo: '1. Início do caso', titulo: 'Indicação de assistente técnico e quesitos', desc: 'Qualificação, documentos necessários, avaliações no local, quesitos e requerimentos.', fn: peticaoIndicacaoAT, rec: ehAT, redacao: 'indic' },
   { id: 'proposta', grupo: '1. Início do caso', titulo: 'Proposta de serviços', desc: 'Para o contratante: objeto conforme o caso (LTCAT, insalubridade/periculosidade ou acidente), etapas, documentos a fornecer, prazo, valor, forma de pagamento, ART e aceite.', fn: propostaServicos, rec: ehExtra },
+  { id: 'roteiroMot', grupo: '2. Antes da diligência', titulo: 'Roteiro de entrevista do motorista', desc: 'Para levar à entrevista com o segurado: os vínculos cadastrados, com as perguntas de cada um (veículo, carga, trajetos, pernoite, jornada, abastecimento, acidente e assalto) e o que já estiver preenchido. Depois, a entrevista volta pelo Claude para os vínculos.', fn: roteiroEntrevista, rec: (c) => ehExtra(c) && ehPrev(c) && (ehParecerTecnico(c) || (c.objeto || []).includes('Penosidade (motorista)')) },
   { id: 'termo', grupo: '2. Antes da diligência', titulo: 'Termo de presença', desc: 'Para imprimir e levar à vistoria: data, local e quadro de presentes com assinatura (já traz os nomes cadastrados em Presentes).', fn: termoPresenca, rec: (c) => !ehAT(c) },
   { id: 'agenda', grupo: '2. Antes da diligência', titulo: 'Agendamento da vistoria pericial', desc: 'Data por extenso, empresa e endereço, períodos, intimação das partes e do autor, ofício à empresa com os documentos e prazo do laudo.', fn: peticaoAgendamento, rec: ehPerito },
   { id: 'reg', grupo: '3. Depois da diligência', titulo: 'Registro da diligência', desc: 'Data, local, presentes, equipamentos com calibração, postos, medições e anotações dos quesitos.', fn: gerarRegistroDiligencia, rec: (c) => !ehAT(c) },

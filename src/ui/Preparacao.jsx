@@ -1,6 +1,6 @@
 import { useState } from 'preact/hooks';
 import { db } from '../db.js';
-import { CAMPOS_SINTESE, CAMPOS_PERIODO, CAMPOS_DOC, CAMPOS_EPI, CAMPOS_ENTREVISTA_MOTORISTA, GRUPOS_VEICULO, TIPO_DO_GRUPO } from '../schema.js';
+import { CAMPOS_SINTESE, CAMPOS_PERIODO, CAMPOS_DOC, CAMPOS_EPI, CAMPOS_ENTREVISTA_MOTORISTA } from '../schema.js';
 import { SITUACOES, situacaoDoCaso, montarPrompt, lerJsonIA, aplicarIA, limparDuplicados } from '../aiimport.js';
 import { avisarAlteracao } from '../sync.js';
 import { dataBR } from '../docx/reports.js';
@@ -8,7 +8,8 @@ import { TF, salvar } from './fields.jsx';
 import { RecordList } from './RecordList.jsx';
 import { useLive } from './hooks.js';
 import { Campos } from './fields.jsx';
-import { sugerirParadigmas } from '../paradigmas.js';
+import { sugerirParadigmas, sugerirParaVinculo, fichaPesquisa, fichaPesquisaTexto, rotuloParadigma } from '../paradigmas.js';
+import { familiaDoGrupo, tipoDoGrupo, CAMPOS_VEICULO_COPIAVEIS } from '../schema.js';
 import { CAMPOS_PENOSIDADE } from '../docx/penosidade.js';
 import { ResultadoBusca } from './Paradigmas.jsx';
 import { updateFields, softDelete } from '../db.js';
@@ -34,6 +35,7 @@ export function Preparacao({ rec }) {
         resumo={(r) => [r.data.empresa, r.data.inicio && `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`, r.data.cargo,
           (r.data.paradigmaRuido || r.data.paradigmaVibracao) && `paradigmas ${[r.data.paradigmaRuido, r.data.paradigmaVibracao].filter(Boolean).join('/')}`].filter(Boolean).join(' · ')}
         extra={(r) => <VeiculoDoPeriodo r={r} />} />
+      <ParadigmasDosVinculos rec={rec} />
       <RecordList kind="documento" caseId={rec.id} campos={CAMPOS_DOC} titulo="Documentos técnicos analisados" novo="Adicionar documento"
         resumo={(r) => [r.data.tipo, r.data.identificacao].filter(Boolean).join(' – ')} />
       <RecordList kind="epi" caseId={rec.id} campos={CAMPOS_EPI} titulo="Ficha de EPIs" novo="Adicionar EPI"
@@ -189,8 +191,9 @@ function VeiculoDoPeriodo({ r }) {
   const [aberto, setAberto] = useState(!!(r.data.veiculoModelo || r.data.paradigmaRuido));
   const [res, setRes] = useState(null);
   // o grupo do veículo da entrevista orienta a busca quando o tipo não foi digitado
-  const tipoBusca = () => r.data.veiculoTipo || TIPO_DO_GRUPO[GRUPOS_VEICULO.indexOf(r.data.grupoVeiculo)] || '';
-  const buscar = async () => setRes(await sugerirParadigmas({ marca: r.data.veiculoMarca, modelo: r.data.veiculoModelo, tipo: tipoBusca() }));
+  const tipoBusca = () => r.data.veiculoTipo || tipoDoGrupo(r.data.grupoVeiculo);
+  // o grupo do veículo indica a família técnica do banco (ex.: cavalo antigo sem ar → F5); a família digitada prevalece
+  const buscar = async () => setRes(await sugerirParadigmas({ marca: r.data.veiculoMarca, modelo: r.data.veiculoModelo, tipo: tipoBusca(), familia: r.data.familiaVeiculo || familiaDoGrupo(r.data.grupoVeiculo) }));
   const escolher = async (tipo, p) => {
     await updateFields(r.id, tipo === 'ruido' ? { paradigmaRuido: p.data.codigo } : { paradigmaVibracao: p.data.codigo });
     avisarAlteracao();
@@ -205,8 +208,12 @@ function VeiculoDoPeriodo({ r }) {
         <p class="dica">Os itens da entrevista por vínculo. Trajetos, pernoite e jornada ficam nos fatores de penosidade abaixo; o tempo diário de condução, no campo acima.</p>
         <div class="linha2"><Campos rec={r} campos={CAMPOS_ENTREVISTA_MOTORISTA} /></div>
       </details>
-      <button type="button" onClick={buscar}>Sugerir paradigmas pelo banco</button>
+      <div class="linha-botoes">
+        <button type="button" onClick={buscar}>Sugerir paradigmas pelo banco</button>
+        <CopiarDoVinculo r={r} />
+      </div>
       {res && <ResultadoBusca res={res} onEscolher={escolher} />}
+      {res && !res.ruido.length && !res.vibracao.length && <FichaPesquisa r={r} familia={res.familia || familiaDoGrupo(r.data.grupoVeiculo)} />}
       <details class="mt" open={!!(r.data.jornadaSemanal || r.data.penosidadeConclusao)}>
         <summary><b>Penosidade (motorista / cobrador – a partir de 29/04/1995)</b></summary>
         <p class="dica">Fatores concretos de desgaste, vínculo a vínculo. Até 28/04/1995 basta a categoria profissional; depois, a penosidade depende de perícia técnica individualizada. Os dados saem no quadro de penosidade do laudo, do parecer e do LTCAT.</p>
@@ -234,5 +241,106 @@ function Duplicados({ rec }) {
         <button type="button" class="primario" onClick={remover}>Remover os repetidos</button></> : <span>Nenhum dado repetido.</span>)}
       {msg && <span class="ok-msg">{msg}</span>}
     </div>
+  );
+}
+
+// "Mesma empresa anterior, mesmas atividades": copia veículo, entrevista e penosidade de outro vínculo (só os campos vazios)
+function CopiarDoVinculo({ r }) {
+  const outros = useLive(async () => (await db.records.where('[caseId+kind]').equals([r.caseId, 'periodo']).toArray())
+    .filter((x) => !x.deleted && x.id !== r.id).sort((a, b) => String(a.data.inicio).localeCompare(String(b.data.inicio))), [r.id], []);
+  const [msg, setMsg] = useState('');
+  if (!outros.length) return null;
+  const copiar = async (id) => {
+    const o = outros.find((x) => x.id === id);
+    if (!o) return;
+    const mud = {};
+    for (const k of CAMPOS_VEICULO_COPIAVEIS) if (String(o.data[k] ?? '').trim() && !String(r.data[k] ?? '').trim()) mud[k] = o.data[k];
+    if (!Object.keys(mud).length) { setMsg('Nada a copiar: os campos deste vínculo já estão preenchidos.'); return; }
+    mud.copiadoDe = `${o.data.empresa || ''} (${dataBR(o.data.inicio)})`;
+    await updateFields(r.id, mud); avisarAlteracao();
+    setMsg(`✓ ${Object.keys(mud).length - 1} campo(s) copiados de ${o.data.empresa || 'outro vínculo'}. Confira e ajuste o que mudou (ex.: trajetos).`);
+  };
+  return (
+    <span class="copiar-vinculo">
+      <select aria-label="Copiar dados de outro vínculo" value="" onChange={(e) => copiar(e.currentTarget.value)}>
+        <option value="">Copiar do vínculo… (mesmas atividades)</option>
+        {outros.map((o) => <option value={o.id}>{o.data.empresa || 'Vínculo'} – {dataBR(o.data.inicio)}</option>)}
+      </select>
+      {msg && <small class="ok-msg">{msg}</small>}
+    </span>
+  );
+}
+
+// Ficha para pesquisar o paradigma nos laudos do signatário quando o banco não tem
+function FichaPesquisa({ r, familia }) {
+  const [msg, setMsg] = useState('');
+  const copiar = async () => {
+    try { await navigator.clipboard.writeText(fichaPesquisaTexto(r, familia)); setMsg('✓ Ficha copiada.'); } catch (e) { setMsg('Selecione o texto da ficha.'); }
+  };
+  return (
+    <div class="evidencias alerta">
+      <b>Sem paradigma no banco para este veículo – pesquise nos seus laudos:</b>
+      {fichaPesquisa(r, familia).map(([k, t]) => <span><b>{k}:</b> {t}</span>)}
+      <small>Achou? Inclua em Paradigmas → Importar (laudo antigo) e volte aqui para vincular. Se o veículo tiver um similar já medido, cadastre-o em Paradigmas → Similares.</small>
+      <span class="linha-botoes"><button type="button" class="mini" onClick={copiar}>Copiar ficha</button><a class="botao sec" href="#/paradigmas/importar">Ir para Paradigmas → Importar</a>{msg && <small>{msg}</small>}</span>
+    </div>
+  );
+}
+
+// Todos os vínculos de uma vez: candidato de ruído e de vibração de cada um, para aceitar em bloco
+function ParadigmasDosVinculos({ rec }) {
+  const [linhas, setLinhas] = useState(null);
+  const [msg, setMsg] = useState('');
+  const pesquisar = async () => {
+    setMsg('Pesquisando no banco…');
+    const ps = (await db.records.where('[caseId+kind]').equals([rec.id, 'periodo']).toArray()).filter((x) => !x.deleted)
+      .sort((a, b) => String(a.data.inicio).localeCompare(String(b.data.inicio)));
+    const out = [];
+    for (const r of ps) {
+      const categoria = !!(r.data.fim && r.data.fim <= '1995-04-28');
+      out.push({ r, categoria, s: categoria ? null : await sugerirParaVinculo(r) });
+    }
+    setLinhas(out); setMsg('');
+  };
+  const aplicar = async () => {
+    let n = 0;
+    for (const { r, s } of linhas) {
+      if (!s) continue;
+      const mud = {};
+      if (!r.data.paradigmaRuido && s.ruido) mud.paradigmaRuido = s.ruido.p.data.codigo;
+      if (!r.data.paradigmaVibracao && s.vibracao) mud.paradigmaVibracao = s.vibracao.p.data.codigo;
+      if (Object.keys(mud).length) { await updateFields(r.id, mud); n++; }
+    }
+    avisarAlteracao();
+    setMsg(`✓ Paradigmas vinculados em ${n} vínculo(s) que estavam sem. Os já escolhidos não foram alterados.`);
+    setLinhas(null);
+  };
+  const rot = (x) => (x ? `${rotuloParadigma(x.p)}${/^ok$/i.test(x.p.data.situacao || 'OK') ? '' : ` – situação ${x.p.data.situacao}`}` : '—');
+  return (
+    <section class="bloco largo">
+      <div class="linha-botoes entre"><h3>Paradigmas dos vínculos</h3>
+        <button type="button" onClick={pesquisar}>Sugerir paradigmas para todos os vínculos</button></div>
+      <p class="dica">O app pesquisa no banco cada vínculo (tabela de similares, família do grupo do veículo e tipo). Vínculos sem paradigma recebem uma ficha para você pesquisar nos seus laudos. No documento, um vínculo ainda sem paradigma usa o melhor candidato marcado em amarelo para conferir.</p>
+      {linhas && (
+        <>
+          <div class="tabela-rolagem"><table class="tabela">
+            <thead><tr><th>Vínculo</th><th>Veículo / grupo</th><th>Ruído</th><th>Vibração</th><th>Critério</th></tr></thead>
+            <tbody>{linhas.map(({ r, s, categoria }) => (
+              <tr>
+                <td><b>{r.data.empresa}</b><br /><small>{dataBR(r.data.inicio)} a {r.data.fim ? dataBR(r.data.fim) : 'atual'}</small></td>
+                <td><small>{[r.data.veiculoMarca, r.data.veiculoModelo].filter(Boolean).join(' ') || '—'}<br />{r.data.grupoVeiculo || ''}</small></td>
+                {categoria ? <td colSpan={3}><small>Até 28/04/1995: categoria profissional, sem paradigma.</small></td> : <>
+                  <td><small>{r.data.paradigmaRuido ? `já vinculado: ${r.data.paradigmaRuido}` : rot(s.ruido)}</small></td>
+                  <td><small>{r.data.paradigmaVibracao ? `já vinculado: ${r.data.paradigmaVibracao}` : rot(s.vibracao)}</small></td>
+                  <td><small>{s.ruido || s.vibracao ? s.criterio : <span class="alerta-txt">sem paradigma – pesquisar: {fichaPesquisaTexto(r, s.familia)}</span>}</small></td>
+                </>}
+              </tr>))}</tbody>
+          </table></div>
+          <div class="linha-botoes"><button type="button" class="primario" onClick={aplicar}>Vincular os sugeridos aos vínculos sem paradigma</button>
+            <a class="botao sec" href="#/paradigmas/importar">Incluir paradigma pesquisado</a></div>
+        </>
+      )}
+      {msg && <p class="ok-msg">{msg}</p>}
+    </section>
   );
 }

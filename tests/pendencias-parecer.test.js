@@ -49,7 +49,7 @@ describe('regra do caso, pendências antes de gerar e cidades', () => {
     expect(tempoConducao(dados.periodos[0], dados).base).toMatch(/menos 5 h/);
     const depois = await pendenciasDoCaso(CASO);
     expect(depois.filter((i) => i.campo === 'conducaoH')).toHaveLength(0);
-    expect(depois.find((i) => i.id === 'foraDirecaoH').previa.join(' ')).toMatch(/jornada 15 h → condução 10 h/);
+    expect(depois.find((i) => i.id === 'foraDirecaoH').previa.join(' ')).toMatch(/condução 10 h \(jornada 15 h − regra\)/);
   });
   it('o parecer usa a regra (sem o T em amarelo) e corrige as cidades', async () => {
     const r = await parecerPenosidade(CASO);
@@ -58,6 +58,23 @@ describe('regra do caso, pendências antes de gerar e cidades', () => {
     expect(t).toContain('Cambé para Paiçandu, Cornélio Procópio, Maringá');
     const marcas = await marcacoesNoDocumento(() => parecerPenosidade(CASO));
     expect(marcas.some((m) => /informe o tempo diário|condução: informar/i.test(m.texto))).toBe(false);
+  });
+  it('frase digitada no lugar do número: "10 horas de condução e 5 horas de carga" vale como 10 h e 5 h', async () => {
+    const FRASE = 'utilizar sempre 10 horas de condução e 5 horas de carga e descarga de mercadorias';
+    await db.records.update(CASO, { 'data.foraDirecaoH': FRASE });
+    await db.records.update('p-1', { 'data.conducaoH': FRASE });
+    // vínculo sem jornada na entrevista: usa a condução escrita na regra (10 h)
+    await db.records.put({ id: 'p-9', kind: 'periodo', caseId: CASO, ts: {}, createdAt: 9, data: { empresa: 'Transportadora Gama', inicio: '2015-07-01', fim: '2016-01-01', cargo: 'Motorista de caminhão', grupoVeiculo: 'Caminhão truck (chassi rígido, eixo duplo)' } });
+    const dados = await carregar(CASO);
+    const porId = (id) => dados.periodos.find((r) => r.id === id);
+    expect(tempoConducao(porId('p-1'), dados).T).toBe(10);
+    expect(tempoConducao(porId('p-1'), dados).base).toMatch(/regra do caso: 5 h/);
+    expect(tempoConducao(porId('p-2'), dados).T).toBe(8); // jornada 13 h − 5 h
+    expect(tempoConducao(porId('p-9'), dados).T).toBe(10);
+    const t = await texto((await parecerPenosidade(CASO)).blob);
+    expect(t).not.toContain('utilizar sempre');
+    const marcas = await marcacoesNoDocumento(() => parecerPenosidade(CASO));
+    expect(marcas.some((m) => /tempo diário|informe um número|base da informação|^T$/.test(m.texto))).toBe(false);
   });
   it('cidades: só os municípios mudam; o resto fica como digitado', () => {
     expect(capitalizarCidades('londrina/pr - sao jose dos pinhais e foz do iguacu, serra do mar, br 277'))

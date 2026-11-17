@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'preact/hooks';
 import { pendenciasDoCaso, marcacoesNoDocumento } from '../pendencias.js';
+import { horasDia, horasForaTexto, fmtHoras } from '../calc.js';
 import { avisarAlteracao } from '../sync.js';
 import { CATALOGO, HONORARIOS, situacaoHonorarios, PETICOES_PERITO, PETICOES_AT, POSICOES_AT } from '../docx/reports.js';
 import { exportarBackup, baixarArquivo, carimbo } from '../backup.js';
@@ -304,7 +305,15 @@ function PendenciasDoc({ rec, d, gerar }) {
 
 function ItemPendencia({ it, responder }) {
   const [txt, setTxt] = useState(it.valor || it.sugestao || '');
-  const salvarTxt = () => String(txt).trim() && responder(it.rec, it.campo, String(txt).trim());
+  // campo de horas: o que o app entendeu do texto (horas fora da direção ou de condução)
+  const lerH = (t) => (it.campo === 'foraDirecaoH' ? horasForaTexto(t) : horasDia(t));
+  const h = it.tipo === 'numero' ? lerH(txt) : NaN;
+  const salvarTxt = () => {
+    const t = String(txt).trim();
+    if (!t) return;
+    if (it.tipo === 'numero') { if (isFinite(h)) responder(it.rec, it.campo, String(h).replace('.', ',')); return; }
+    responder(it.rec, it.campo, t);
+  };
   return (
     <div class="pend-item">
       <div class="pend-tit">{it.titulo}</div>
@@ -313,9 +322,12 @@ function ItemPendencia({ it, responder }) {
       {it.tipo === 'numero' && (
         <div class="com-botao">
           <label class="campo"><span class="rotulo">Horas</span><input inputMode="decimal" value={txt} onInput={(e) => setTxt(e.currentTarget.value)} onKeyDown={(e) => e.key === 'Enter' && salvarTxt()} /></label>
-          <button type="button" class="mini" onClick={salvarTxt}>Salvar</button>
+          <button type="button" class="mini" disabled={String(txt).trim() !== '' && !isFinite(h)} onClick={salvarTxt}>Salvar</button>
         </div>
       )}
+      {it.tipo === 'numero' && String(txt).trim() && (isFinite(h)
+        ? <small class="dica">O app entendeu: <b>{fmtHoras(h)}</b>{it.campo === 'foraDirecaoH' ? ' por dia fora da direção' : ' por dia'}.</small>
+        : <small class="erro-msg">Não entendi um número de horas. Digite só o número (ex.: 5 ou 8,5).</small>)}
       {it.tipo === 'escolha' && (
         <div class="linha-botoes">
           {it.opcoes.map((o) => <button type="button" class="mini" onClick={() => responder(it.rec, it.campo, o.valor)}>Usar {o.rotulo}</button>)}

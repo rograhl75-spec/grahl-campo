@@ -7,7 +7,7 @@
 import { dataBR, postosDoPeriodo, nomeCurto } from './base.js';
 import { comJurisprudencia } from './fontes.js';
 import { num } from '../paradigmas.js';
-import { fmt, horasDia as horasCampo, fmtHoras } from '../calc.js';
+import { fmt, horasDia as horasCampo, fmtHoras, horasForaTexto, horasConducaoTexto } from '../calc.js';
 import { capitalizarCidades } from '../cidades.js';
 import { valores } from './conclusao.js';
 
@@ -115,12 +115,19 @@ export function jornadaDia(r, dados) {
 // Tempo diário de condução do vínculo: o digitado no vínculo; sem ele, a regra do caso
 // "jornada − horas fora da direção" (ex.: sempre 5 h de carga e descarga). Devolve { T, base, regra }.
 export function tempoConducao(r, dados) {
+  const c = (dados && dados.c) || {};
+  const fora = horasForaTexto(c.foraDirecaoH || '');
   const T = horasCampo(r.data.conducaoH);
-  if (isFinite(T)) return { T, base: v(r.data.conducaoBase), regra: false };
-  const fora = horasCampo((dados && dados.c && dados.c.foraDirecaoH) || '');
+  // horas digitadas no vínculo: a base é a informada; sem ela, a regra do caso ou "informado para o vínculo"
+  if (isFinite(T)) return { T, base: v(r.data.conducaoBase) || (isFinite(fora) ? `regra do caso: ${fmtHoras(fora)}/dia de carga, descarga e paradas` : 'informado para o vínculo'), regra: false };
+  // condução padrão do caso: o campo próprio ou o número de condução escrito na regra ("sempre 10 horas de condução")
+  const padrao = isFinite(horasCampo(c.conducaoPadraoH || '')) ? horasCampo(c.conducaoPadraoH) : horasConducaoTexto(c.foraDirecaoH || '');
   const J = jornadaDia(r, dados);
   if (isFinite(fora) && isFinite(J) && J > fora) {
     return { T: Math.round((J - fora) * 10) / 10, base: `jornada de cerca de ${fmtHoras(J)}/dia informada na entrevista, menos ${fmtHoras(fora)} de carga, descarga e paradas`, regra: true, J };
+  }
+  if (isFinite(padrao) && padrao > 0 && padrao <= 24) {
+    return { T: padrao, base: `condução diária adotada para o caso${isFinite(fora) ? `, com ${fmtHoras(fora)} de carga, descarga e paradas` : ''} (jornada do vínculo não informada na entrevista)`, regra: true, J };
   }
   return { T: NaN, base: '', regra: false, J };
 }

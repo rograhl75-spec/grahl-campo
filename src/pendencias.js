@@ -9,7 +9,7 @@ import JSZip from 'jszip';
 import { carregar } from './docx/base.js';
 import { vinculosMotorista, tempoConducao, jornadaDia, matrizIAC } from './docx/penosidade.js';
 import { sugerirParaVinculo } from './paradigmas.js';
-import { fmtHoras, horasDia } from './calc.js';
+import { fmtHoras, horasDia, horasForaTexto } from './calc.js';
 
 const br = (iso) => String(iso || '').replace(/^(\d{4})-(\d{2})-(\d{2}).*$/, '$3/$2/$1');
 const nomeVinculo = (r, i) => `V${i + 1} – ${String(r.data.empresa || 'vínculo').split(/\s*\(|,/)[0].trim().slice(0, 45)} (${br(r.data.inicio) || '?'} a ${r.data.fim ? br(r.data.fim) : 'atual'})`;
@@ -23,16 +23,28 @@ export async function pendenciasDoCaso(caseId) {
 
   // regra do caso: horas fora da direção (carga, descarga, paradas)
   const semTdigitado = vincs.filter((r) => !isFinite(horasDia(r.data.conducaoH)));
-  if (semTdigitado.length) {
+  if (semTdigitado.length || String(c.foraDirecaoH || '').trim()) {
     itens.push({
       id: 'foraDirecaoH', grupo: 'Regra do caso', rec: caseId, campo: 'foraDirecaoH', tipo: 'numero', valor: c.foraDirecaoH || '',
       titulo: 'Horas por dia fora da direção (carga, descarga e paradas)',
       explicacao: `Vale para os ${semTdigitado.length} vínculo(s) sem tempo de condução digitado: condução = jornada da entrevista − estas horas. Ex.: 5.`,
-      previa: semTdigitado.map((r) => {
+      // o tempo que vai para o documento em cada vínculo, e de onde veio
+      previa: vincs.map((r) => {
         const J = jornadaDia(r, dados);
         const tc = tempoConducao(r, dados);
-        return `${nomeVinculo(r, idx.get(r.id))}: ${isFinite(J) ? `jornada ${fmtHoras(J)}` : 'jornada não identificada na entrevista'}${tc.regra ? ` → condução ${fmtHoras(tc.T)}` : ''}`;
+        const de = !isFinite(tc.T) ? 'sem tempo de condução' : tc.regra ? `condução ${fmtHoras(tc.T)} (${isFinite(J) ? `jornada ${fmtHoras(J)} − regra` : 'condução padrão'})` : `condução ${fmtHoras(tc.T)} (digitada no vínculo)`;
+        return `${nomeVinculo(r, idx.get(r.id))}: ${de}`;
       }),
+    });
+  }
+
+  // condução padrão para os vínculos sem jornada na entrevista (a regra acima não alcança)
+  const semJornada = vincs.filter((r) => !isFinite(tempoConducao(r, dados).T) && !isFinite(jornadaDia(r, dados)));
+  if (semJornada.length) {
+    itens.push({
+      id: 'conducaoPadraoH', grupo: 'Regra do caso', rec: caseId, campo: 'conducaoPadraoH', tipo: 'numero', valor: c.conducaoPadraoH || '',
+      titulo: 'Condução padrão (h/dia) para os vínculos sem jornada na entrevista',
+      explicacao: `${semJornada.length} vínculo(s) sem jornada identificada: ${semJornada.map((r) => nomeVinculo(r, idx.get(r.id))).join('; ')}.`,
     });
   }
 
@@ -40,7 +52,7 @@ export async function pendenciasDoCaso(caseId) {
     const i = idx.get(r.id);
     const grupo = nomeVinculo(r, i);
     const tc = tempoConducao(r, dados);
-    if (!isFinite(tc.T)) {
+    if (!isFinite(tc.T) && !semJornada.includes(r)) {
       itens.push({ id: `T-${r.id}`, grupo, rec: r.id, campo: 'conducaoH', tipo: 'numero', valor: r.data.conducaoH || '',
         titulo: 'Tempo diário de condução (h)', explicacao: isFinite(tc.J) ? `Jornada identificada: ${fmtHoras(tc.J)}. Informe as horas de direção ou preencha a regra do caso acima.` : 'A jornada deste vínculo não foi identificada na entrevista: informe as horas de direção por dia.' });
     }

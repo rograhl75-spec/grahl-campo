@@ -18,8 +18,23 @@ export function fmt(v, casas = 1) {
 
 // Horas por dia de um campo livre: "10", "10h", "8,5", "8h30", "08:30", "510 min" → horas.
 // Faixa ("8 a 10", "8-10") não tem um valor só: devolve NaN para o documento pedir o número.
+const NUM_H = '(\\d{1,2}(?:[.,]\\d+)?)\\s*h(?:oras?|s)?\\s*(?:\\/\\s*dia\\s*|por dia\\s*|diárias\\s*)?(?:de|na|no|em|com|para|ao)?\\s*';
+const RE_CONDUCAO = new RegExp(`${NUM_H}(?:condu|dire[çc]|dirig|volante|rodando)`, 'i');
+const RE_FORA = new RegExp(`${NUM_H}(?:carga|descarga|carreg|descarreg|parad|fora|espera|entrega)`, 'i');
+// frase com as horas de condução ("utilizar sempre 10 horas de condução e 5 horas de carga") → 10
+export function horasConducaoTexto(t) { const m = String(t ?? '').match(RE_CONDUCAO); return m ? num(m[1]) : NaN; }
+// horas fora da direção (carga, descarga, paradas): "5 horas de carga e descarga" → 5; só o número também vale
+export function horasForaTexto(t) {
+  const s = String(t ?? '');
+  const m = s.match(RE_FORA);
+  if (m) return num(m[1]);
+  return RE_CONDUCAO.test(s) ? NaN : horasDia(s);
+}
+
 export function horasDia(v) {
   if (typeof v === 'number') return v;
+  // frase ("10 horas de condução e 5 de carga"): vale o número ligado à condução
+  if (/[a-zà-ú]{4,}/i.test(String(v ?? '')) && RE_CONDUCAO.test(String(v))) return horasConducaoTexto(v);
   const s = String(v ?? '').trim().toLowerCase().replace(/\s*(h\/dia|horas?\s*(por|ao|\/)\s*dia|por dia|\/dia|diárias?)\s*$/, 'h');
   if (!s) return NaN;
   if (/\d\s*(a|-|–|ou|\/|até)\s*\d/.test(s.replace(/^\d{1,2}\s*[:h]\s*\d{1,2}/, ''))) return NaN;

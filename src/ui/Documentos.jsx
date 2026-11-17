@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'preact/hooks';
 import { pendenciasDoCaso, marcacoesNoDocumento } from '../pendencias.js';
+import { horasDia, horasForaTexto, fmtHoras } from '../calc.js';
 import { avisarAlteracao } from '../sync.js';
 import { CATALOGO, HONORARIOS, situacaoHonorarios, PETICOES_PERITO, PETICOES_AT, POSICOES_AT } from '../docx/reports.js';
 import { exportarBackup, baixarArquivo, carimbo } from '../backup.js';
@@ -304,7 +305,22 @@ function PendenciasDoc({ rec, d, gerar }) {
 
 function ItemPendencia({ it, responder }) {
   const [txt, setTxt] = useState(it.valor || it.sugestao || '');
-  const salvarTxt = () => String(txt).trim() && responder(it.rec, it.campo, String(txt).trim());
+  // campo de horas: o que o app entendeu do texto (horas fora da direção ou de condução)
+  const lerH = (t) => (it.campo === 'foraDirecaoH' ? horasForaTexto(t) : horasDia(t));
+  const h = it.tipo === 'numero' ? lerH(txt) : NaN;
+  // Sim / Não: grava a escolha (num vínculo ou em todos) e limpa o texto próprio, para valer o texto padrão
+  const escolherSimNao = async (valor) => {
+    for (const alvo of it.alvos || [it.rec]) {
+      if (it.limpar) await salvar(alvo, it.limpar, '');
+      await responder(alvo, it.campo, valor);
+    }
+  };
+  const salvarTxt = () => {
+    const t = String(txt).trim();
+    if (!t) return;
+    if (it.tipo === 'numero') { if (isFinite(h)) responder(it.rec, it.campo, String(h).replace('.', ',')); return; }
+    responder(it.rec, it.campo, t);
+  };
   return (
     <div class="pend-item">
       <div class="pend-tit">{it.titulo}</div>
@@ -313,7 +329,16 @@ function ItemPendencia({ it, responder }) {
       {it.tipo === 'numero' && (
         <div class="com-botao">
           <label class="campo"><span class="rotulo">Horas</span><input inputMode="decimal" value={txt} onInput={(e) => setTxt(e.currentTarget.value)} onKeyDown={(e) => e.key === 'Enter' && salvarTxt()} /></label>
-          <button type="button" class="mini" onClick={salvarTxt}>Salvar</button>
+          <button type="button" class="mini" disabled={String(txt).trim() !== '' && !isFinite(h)} onClick={salvarTxt}>Salvar</button>
+        </div>
+      )}
+      {it.tipo === 'numero' && String(txt).trim() && (isFinite(h)
+        ? <small class="dica">O app entendeu: <b>{fmtHoras(h)}</b>{it.campo === 'foraDirecaoH' ? ' por dia fora da direção' : ' por dia'}.</small>
+        : <small class="erro-msg">Não entendi um número de horas. Digite só o número (ex.: 5 ou 8,5).</small>)}
+      {it.tipo === 'simnao' && (
+        <div class="linha-botoes">
+          <button type="button" class="mini" onClick={() => escolherSimNao('Sim – caracteriza')}>Sim – caracteriza</button>
+          <button type="button" class="mini" onClick={() => escolherSimNao('Não – não caracteriza')}>Não – não caracteriza</button>
         </div>
       )}
       {it.tipo === 'escolha' && (
@@ -326,7 +351,7 @@ function ItemPendencia({ it, responder }) {
         <>
           <textarea rows={it.tipo === 'texto' ? 4 : 2} value={txt} onInput={(e) => setTxt(e.currentTarget.value)} />
           <div class="linha-botoes">
-            <button type="button" class="mini" onClick={salvarTxt}>{it.tipo === 'texto' ? 'Adotar este texto' : 'Confirmar'}</button>
+            <button type="button" class="mini" onClick={salvarTxt}>{it.tipo === 'texto' ? (it.sugestao ? 'Adotar este texto' : 'Salvar') : 'Confirmar'}</button>
             {it.recusa && <button type="button" class="mini perigo" onClick={() => responder(it.rec, it.recusa.campo, it.recusa.valor)}>Não se aplica</button>}
           </div>
         </>

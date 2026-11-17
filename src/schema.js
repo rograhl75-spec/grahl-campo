@@ -175,6 +175,8 @@ export const CAMPOS_PERFIL = [
   ['conta2', 'Conta 2 – dados (banco, agência, conta, titular, CPF/CNPJ, PIX)', 'area'],
   ['jurisprudenciaPadrao', 'Súmulas e jurisprudência nos laudos e pareceres (padrão; cada caso pode mudar)', 'select', ['Incluir em seção própria', 'Não incluir']],
   ['curriculoUrl', 'Currículo (link ou "anexo") – sai no aceite do encargo (art. 465, § 2º, II, do CPC)', 'text'],
+  ['penosidadeTextoSim', 'Texto padrão – penosidade caracterizada (vazio: o texto do app)', 'area'],
+  ['penosidadeTextoNao', 'Texto padrão – penosidade não caracterizada (vazio: o texto do app)', 'area'],
 ];
 
 export const CAMPOS_PARTES = [

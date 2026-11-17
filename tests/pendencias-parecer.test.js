@@ -40,7 +40,8 @@ describe('regra do caso, pendências antes de gerar e cidades', () => {
     const itens = await pendenciasDoCaso(CASO);
     expect(itens.find((i) => i.id === 'foraDirecaoH')).toBeTruthy();
     expect(itens.filter((i) => i.campo === 'conducaoH')).toHaveLength(2);
-    expect(itens.some((i) => i.campo === 'penosidadeConclusao')).toBe(true);
+    expect(itens.some((i) => i.campo === 'penosidadeResultado' && i.tipo === 'simnao')).toBe(true);
+    expect(itens.find((i) => i.id === 'conc-todos')).toBeTruthy(); // aplicar a todos os vínculos
     // resposta dada na lista: regra do caso
     await db.records.update(CASO, { 'data.foraDirecaoH': '5' });
     dados = await carregar(CASO);
@@ -49,7 +50,7 @@ describe('regra do caso, pendências antes de gerar e cidades', () => {
     expect(tempoConducao(dados.periodos[0], dados).base).toMatch(/menos 5 h/);
     const depois = await pendenciasDoCaso(CASO);
     expect(depois.filter((i) => i.campo === 'conducaoH')).toHaveLength(0);
-    expect(depois.find((i) => i.id === 'foraDirecaoH').previa.join(' ')).toMatch(/jornada 15 h → condução 10 h/);
+    expect(depois.find((i) => i.id === 'foraDirecaoH').previa.join(' ')).toMatch(/condução 10 h \(jornada 15 h − regra\)/);
   });
   it('o parecer usa a regra (sem o T em amarelo) e corrige as cidades', async () => {
     const r = await parecerPenosidade(CASO);
@@ -59,8 +60,56 @@ describe('regra do caso, pendências antes de gerar e cidades', () => {
     const marcas = await marcacoesNoDocumento(() => parecerPenosidade(CASO));
     expect(marcas.some((m) => /informe o tempo diário|condução: informar/i.test(m.texto))).toBe(false);
   });
+  it('frase digitada no lugar do número: "10 horas de condução e 5 horas de carga" vale como 10 h e 5 h', async () => {
+    const FRASE = 'utilizar sempre 10 horas de condução e 5 horas de carga e descarga de mercadorias';
+    await db.records.update(CASO, { 'data.foraDirecaoH': FRASE });
+    await db.records.update('p-1', { 'data.conducaoH': FRASE });
+    // vínculo sem jornada na entrevista: usa a condução escrita na regra (10 h)
+    await db.records.put({ id: 'p-9', kind: 'periodo', caseId: CASO, ts: {}, createdAt: 9, data: { empresa: 'Transportadora Gama', inicio: '2015-07-01', fim: '2016-01-01', cargo: 'Motorista de caminhão', grupoVeiculo: 'Caminhão truck (chassi rígido, eixo duplo)' } });
+    const dados = await carregar(CASO);
+    const porId = (id) => dados.periodos.find((r) => r.id === id);
+    expect(tempoConducao(porId('p-1'), dados).T).toBe(10);
+    expect(tempoConducao(porId('p-1'), dados).base).toMatch(/regra do caso: 5 h/);
+    expect(tempoConducao(porId('p-2'), dados).T).toBe(8); // jornada 13 h − 5 h
+    expect(tempoConducao(porId('p-9'), dados).T).toBe(10);
+    const t = await texto((await parecerPenosidade(CASO)).blob);
+    expect(t).not.toContain('utilizar sempre');
+    const marcas = await marcacoesNoDocumento(() => parecerPenosidade(CASO));
+    expect(marcas.some((m) => /tempo diário|informe um número|base da informação|^T$/.test(m.texto))).toBe(false);
+  });
+  it('conclusão da penosidade: Sim / Não com o texto padrão, igual em todos os vínculos', async () => {
+    for (const id of ['p-1', 'p-2']) await db.records.update(id, { 'data.penosidadeResultado': 'Sim – caracteriza', 'data.penosidadeConclusao': '' });
+    await db.records.update('p-9', { 'data.penosidadeResultado': 'Não – não caracteriza' });
+    const t = await texto((await parecerPenosidade(CASO)).blob);
+    const sim = (t.match(/a atividade foi exercida em condições excepcionalmente penosas/g) || []).length;
+    expect(sim).toBe(2);
+    expect(t).toContain('não convergem de forma suficiente para caracterizar');
+    expect(t).not.toContain('Proposta do app pela contagem de fatores');
+    expect((await pendenciasDoCaso(CASO)).some((i) => i.campo === 'penosidadeResultado')).toBe(false);
+  });
   it('cidades: só os municípios mudam; o resto fica como digitado', () => {
     expect(capitalizarCidades('londrina/pr - sao jose dos pinhais e foz do iguacu, serra do mar, br 277'))
       .toBe('Londrina/PR - São José dos Pinhais e Foz do Iguaçu, serra do mar, br 277');
+  });
+});
+
+describe('as mesmas regras em outros documentos', () => {
+  it('laudo trabalhista: pendências de quesitos e diligência, sem perguntas de motorista', async () => {
+    await db.records.put({ id: 'trab', kind: 'caso', caseId: null, ts: {}, data: { tipoAtuacao: 'Judicial', papel: 'Perito do Juízo', justica: 'Justiça do Trabalho', materia: 'Trabalhista', objeto: ['Insalubridade'], vistoriaData: '2026-09-01' } });
+    await db.records.put({ id: 'trab-p', kind: 'periodo', caseId: 'trab', ts: {}, createdAt: 1, data: { empresa: 'Empresa X', inicio: '2020-01-01', cargo: 'Auxiliar de produção' } });
+    await db.records.put({ id: 'trab-q1', kind: 'quesito', caseId: 'trab', ts: {}, createdAt: 2, data: { origem: 'Juízo', numero: '1', texto: 'Havia exposição a ruído?' } });
+    await db.records.put({ id: 'trab-q2', kind: 'quesito', caseId: 'trab', ts: {}, createdAt: 3, data: { origem: 'Juízo', numero: '2', texto: 'Qual o nível?', resposta: '88 dB(A).' } });
+    const itens = await pendenciasDoCaso('trab');
+    expect(itens.map((i) => i.id)).toEqual(['intimacao', 'presentes', 'q-trab-q1']);
+    expect(itens.find((i) => i.id === 'q-trab-q1').explicacao).toBe('Havia exposição a ruído?');
+  });
+  it('o texto para o Claude leva a regra do caso, o tempo adotado, a conclusão escolhida e as cidades corrigidas', async () => {
+    const { textoDoCaso } = await import('../src/aiimport.js');
+    const { texto: t } = await textoDoCaso(CASO);
+    expect(t).toContain('Regras do caso e valores adotados por vínculo');
+    expect(t).toContain('tempo diário de condução 10 h');
+    expect(t).toContain('conclusão da penosidade adotada: "Pela convergência cumulativa');
+    expect(t).toContain('Cambé para Paiçandu, Cornélio Procópio, Maringá');
+    expect(t).toContain('nesta avaliação');
   });
 });

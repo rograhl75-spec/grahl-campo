@@ -9,7 +9,7 @@ import JSZip from 'jszip';
 import { carregar } from './docx/base.js';
 import { vinculosMotorista, tempoConducao, jornadaDia, matrizIAC } from './docx/penosidade.js';
 import { sugerirParaVinculo } from './paradigmas.js';
-import { fmtHoras, horasDia } from './calc.js';
+import { fmtHoras, horasDia, horasForaTexto } from './calc.js';
 
 const br = (iso) => String(iso || '').replace(/^(\d{4})-(\d{2})-(\d{2}).*$/, '$3/$2/$1');
 const nomeVinculo = (r, i) => `V${i + 1} – ${String(r.data.empresa || 'vínculo').split(/\s*\(|,/)[0].trim().slice(0, 45)} (${br(r.data.inicio) || '?'} a ${r.data.fim ? br(r.data.fim) : 'atual'})`;
@@ -17,30 +17,44 @@ const nomeVinculo = (r, i) => `V${i + 1} – ${String(r.data.empresa || 'víncul
 export async function pendenciasDoCaso(caseId) {
   const dados = await carregar(caseId);
   const { c } = dados;
-  const vincs = vinculosMotorista(dados).length ? vinculosMotorista(dados) : dados.periodos;
+  // só os vínculos de motorista/operador têm condução, paradigma e penosidade
+  const vincs = vinculosMotorista(dados);
   const itens = [];
   const idx = new Map(dados.periodos.map((r, i) => [r.id, i]));
 
   // regra do caso: horas fora da direção (carga, descarga, paradas)
   const semTdigitado = vincs.filter((r) => !isFinite(horasDia(r.data.conducaoH)));
-  if (semTdigitado.length) {
+  if (semTdigitado.length || String(c.foraDirecaoH || '').trim()) {
     itens.push({
       id: 'foraDirecaoH', grupo: 'Regra do caso', rec: caseId, campo: 'foraDirecaoH', tipo: 'numero', valor: c.foraDirecaoH || '',
       titulo: 'Horas por dia fora da direção (carga, descarga e paradas)',
       explicacao: `Vale para os ${semTdigitado.length} vínculo(s) sem tempo de condução digitado: condução = jornada da entrevista − estas horas. Ex.: 5.`,
-      previa: semTdigitado.map((r) => {
+      // o tempo que vai para o documento em cada vínculo, e de onde veio
+      previa: vincs.map((r) => {
         const J = jornadaDia(r, dados);
         const tc = tempoConducao(r, dados);
-        return `${nomeVinculo(r, idx.get(r.id))}: ${isFinite(J) ? `jornada ${fmtHoras(J)}` : 'jornada não identificada na entrevista'}${tc.regra ? ` → condução ${fmtHoras(tc.T)}` : ''}`;
+        const de = !isFinite(tc.T) ? 'sem tempo de condução' : tc.regra ? `condução ${fmtHoras(tc.T)} (${isFinite(J) ? `jornada ${fmtHoras(J)} − regra` : 'condução padrão'})` : `condução ${fmtHoras(tc.T)} (digitada no vínculo)`;
+        return `${nomeVinculo(r, idx.get(r.id))}: ${de}`;
       }),
     });
   }
 
+  // condução padrão para os vínculos sem jornada na entrevista (a regra acima não alcança)
+  const semJornada = vincs.filter((r) => !isFinite(tempoConducao(r, dados).T) && !isFinite(jornadaDia(r, dados)));
+  if (semJornada.length) {
+    itens.push({
+      id: 'conducaoPadraoH', grupo: 'Regra do caso', rec: caseId, campo: 'conducaoPadraoH', tipo: 'numero', valor: c.conducaoPadraoH || '',
+      titulo: 'Condução padrão (h/dia) para os vínculos sem jornada na entrevista',
+      explicacao: `${semJornada.length} vínculo(s) sem jornada identificada: ${semJornada.map((r) => nomeVinculo(r, idx.get(r.id))).join('; ')}.`,
+    });
+  }
+
+  const conclusoes = [];
   for (const r of vincs) {
     const i = idx.get(r.id);
     const grupo = nomeVinculo(r, i);
     const tc = tempoConducao(r, dados);
-    if (!isFinite(tc.T)) {
+    if (!isFinite(tc.T) && !semJornada.includes(r)) {
       itens.push({ id: `T-${r.id}`, grupo, rec: r.id, campo: 'conducaoH', tipo: 'numero', valor: r.data.conducaoH || '',
         titulo: 'Tempo diário de condução (h)', explicacao: isFinite(tc.J) ? `Jornada identificada: ${fmtHoras(tc.J)}. Informe as horas de direção ou preencha a regra do caso acima.` : 'A jornada deste vínculo não foi identificada na entrevista: informe as horas de direção por dia.' });
     }
@@ -65,10 +79,40 @@ export async function pendenciasDoCaso(caseId) {
       itens.push({ id: `pausas-${r.id}`, grupo, rec: r.id, campo: 'pausas', tipo: 'confirmar', sugestao: m.pausasSugTexto, recusa: { campo: 'sugPausas', valor: 'recusada' },
         titulo: 'Direção contínua e pausas (sugestão do app pela jornada)', explicacao: 'Confirme ou recuse.' });
     }
-    if (m.sugerida) {
-      itens.push({ id: `conc-${r.id}`, grupo, rec: r.id, campo: 'penosidadeConclusao', tipo: 'texto', valor: '', sugestao: m.proposta,
-        titulo: 'Conclusão técnica da penosidade', explicacao: 'Proposta do app pela contagem de fatores: adote como está, edite ou escreva a sua.' });
+    // conclusão: escolha Sim / Não (texto padrão igual em todos os vínculos); também quando o texto gravado é
+    // uma proposta antiga do app adotada como estava
+    const propostaAntiga = /^(Pela convergência cumulativa dos fatores de desgaste apurados \(|Os fatores apurados \()/.test(String(r.data.penosidadeConclusao || ''));
+    if (!String(r.data.penosidadeResultado || '').trim() && (m.sugerida || propostaAntiga)) {
+      conclusoes.push(r);
+      itens.push({ id: `conc-${r.id}`, grupo, rec: r.id, campo: 'penosidadeResultado', tipo: 'simnao', limpar: 'penosidadeConclusao',
+        titulo: 'Conclusão da penosidade',
+        explicacao: `A contagem de fatores indica ${m.indicacao ? 'SIM' : 'NÃO'} (${m.nAdv} de 4 critérios com fatores de desgaste: veículo, trajetos, cargas, jornadas). Escolha o texto padrão; para um texto próprio, use o campo do vínculo.` });
     }
+  }
+  // diligência: dados que saem no registro e no laudo
+  const perito = /Perito do Juízo/i.test(c.papel || '');
+  if (perito && c.vistoriaData && !String(c.vistoriaIntimacao || '').trim()) {
+    itens.push({ id: 'intimacao', grupo: 'Diligência', rec: caseId, campo: 'vistoriaIntimacao', tipo: 'texto', valor: '',
+      titulo: 'Comunicação da data às partes e aos assistentes (art. 474 do CPC)', explicacao: 'Ex.: intimação do evento 52, de 10/10/2026.' });
+  }
+  if (c.vistoriaData && !String(c.vistoriaPresentes || '').trim()) {
+    itens.push({ id: 'presentes', grupo: 'Diligência', rec: caseId, campo: 'vistoriaPresentes', tipo: 'texto', valor: '',
+      titulo: 'Pessoas presentes na vistoria', explicacao: 'Uma por linha: nome – função – quem representa.' });
+  }
+  // quesitos sem resposta: responder aqui mesmo (o texto do quesito aparece acima do campo)
+  const ordemOrigem = (o) => ['Juízo', 'Autor / Reclamante', 'Réu / Reclamada', 'INSS', 'Complementares'].indexOf(o);
+  for (const q of [...dados.quesitos].sort((a, b) => ordemOrigem(a.data.origem) - ordemOrigem(b.data.origem) || (Number(a.data.numero) || 0) - (Number(b.data.numero) || 0))) {
+    if (String(q.data.resposta || '').trim()) continue;
+    itens.push({ id: `q-${q.id}`, grupo: 'Quesitos sem resposta', rec: q.id, campo: 'resposta', tipo: 'texto', valor: '',
+      titulo: `${q.data.origem || 'Quesito'}${q.data.numero ? ` – ${q.data.numero}` : ''}`, explicacao: String(q.data.texto || '').slice(0, 600) });
+  }
+
+  // a mesma conclusão para todos os vínculos de uma vez
+  if (conclusoes.length > 1) {
+    itens.splice(itens.findIndex((it) => it.grupo !== 'Regra do caso') === -1 ? itens.length : itens.findIndex((it) => it.grupo !== 'Regra do caso'), 0, {
+      id: 'conc-todos', grupo: 'Regra do caso', tipo: 'simnao', campo: 'penosidadeResultado', limpar: 'penosidadeConclusao', alvos: conclusoes.map((r) => r.id),
+      titulo: `Conclusão da penosidade – aplicar a todos os ${conclusoes.length} vínculos`, explicacao: 'Usa o mesmo texto padrão em todos; depois, se algum vínculo for diferente, mude só ele.',
+    });
   }
   return itens;
 }

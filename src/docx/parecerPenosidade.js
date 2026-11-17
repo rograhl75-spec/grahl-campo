@@ -26,6 +26,9 @@ const limpo = (t) => v(t).replace(/^\(\s*['"‘“]([^)]*?)['"’”]\s*\)$/, '$
 const veiculo = (r) => limpo([r.data.veiculoTipo, r.data.veiculoMarca, r.data.veiculoModelo, r.data.veiculoAno].map(v).filter(Boolean).join(' '));
 // nome curto da empresa nos quadros-resumo (sem a razão social da CTPS entre parênteses)
 const empresaCurta = (r) => v(r.data.empresa).replace(/\s*\((CTPS|sucess|antiga|atual)[^)]*\)/gi, '').trim() || v(r.data.empresa);
+// nome em maiúsculas → só iniciais maiúsculas (quebra entre palavras nas colunas estreitas); siglas ficam
+const SIGLAS = /^(ME|EPP|EIRELI|S\/?A|SA|S\.A\.|II|III|IV|SC|PR|SP)$/;
+const empresaQuadro = (r) => { const e = empresaCurta(r); return e === e.toUpperCase() ? e.split(/(\s+)/).map((w) => (SIGLAS.test(w) || w.length <= 2 && /^[A-Z&]+$/.test(w) && !/^(DE|DA|DO|E)$/.test(w) ? w : /^(DE|DA|DO|DOS|DAS|E)$/.test(w) ? w.toLowerCase() : w.charAt(0) + w.slice(1).toLowerCase())).join('') : e; };
 const fimTxt = (r, s) => (!r.data.fim && s.fim === hojeLocal() ? 'atual' : dataBR(s.fim));
 const EC103 = '2019-11-13';
 const fimOuHoje = (r) => r.data.fim || '9999-12-31';
@@ -189,7 +192,7 @@ export async function parecerPenosidade(caseId) {
     // quadros em sequência: o quadro do vínculo pode continuar na página seguinte (não pula página inteira)
     { larguras: [0.24, 0.76], alinhar: 'left', tam: 9, juntar: false, fonte: 'Entrevista do segurado, CTPS/CNIS e banco de paradigmas do signatário.' });
     const um = segs.length === 1; // um subperíodo só: sem repetir as datas nas colunas de resultado
-    resumo.push([empresaCurta(r), `${dataBR(x.inicio)} a\n${x.fim ? dataBR(x.fim) : 'atual'}`, veiculo(r) || v(x.grupoVeiculo),
+    resumo.push([empresaQuadro(r), `${dataBR(x.inicio)} a\n${x.fim ? dataBR(x.fim) : 'atual'}`, veiculo(r) || v(x.grupoVeiculo),
       [isFinite(val.nen) ? `NEN ${fmt(val.nen, 1)} dB(A)` : isFinite(val.lavg) ? `Lavg ${fmt(val.lavg, 1)} dB(A)` : '', isFinite(val.aren) ? `aren ${fmt(val.aren, 2)} m/s²` : ''].filter(Boolean).join('\n') || '—',
       segs.map((s) => `${um ? '' : `${dataBR(s.ini)}–${fimTxt(r, s)}: `}${s.caracteriza}${s.caracteriza === 'SIM' ? ` (${s.codigos})` : ''}`).join('\n'),
       fimOuHoje(r) <= '1995-04-28' ? 'não se aplica (antes de 29/04/1995)' : m.penoso === true ? 'caracterizada' : m.penoso === false ? 'não caracterizada' : '[[completar]]',
@@ -200,7 +203,7 @@ export async function parecerPenosidade(caseId) {
   d.h1('4', 'Matriz sintética por vínculo');
   if (resumo.length) {
     d.quadro('Matriz de agentes, penosidade e enquadramento técnico', [['Empresa', 'Período', 'Veículo', 'Ruído / vibração', 'Agentes nocivos', 'Penosidade', 'Resultado técnico'], ...resumo],
-      { larguras: [0.135, 0.14, 0.125, 0.12, 0.15, 0.13, 0.2], tam: 8, alinhar: 'left', fonte: 'Elaborado pelo signatário. Agentes nocivos: SIM quando o ruído ou a vibração superam o limite da época, ou pela categoria até 28/04/1995. Penosidade: matriz de fatores, a partir de 29/04/1995. Resultado técnico: SIM quando há enquadramento por qualquer desses critérios.' });
+      { larguras: [0.16, 0.13, 0.13, 0.115, 0.13, 0.145, 0.19], tam: 8, alinhar: 'left', fonte: 'Elaborado pelo signatário. Agentes nocivos: SIM quando o ruído ou a vibração superam o limite da época, ou pela categoria até 28/04/1995. Penosidade: matriz de fatores, a partir de 29/04/1995. Resultado técnico: SIM quando há enquadramento por qualquer desses critérios.' });
   } else d.redigir('cadastre os vínculos.');
   memoriasParadigmas(d, dados, { numero: '4.1' });
 

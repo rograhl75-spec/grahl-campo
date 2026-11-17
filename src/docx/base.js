@@ -3,7 +3,7 @@ import { resumoMedicao, calculados } from '../medicoes.js';
 import { nen, num, fmt, fatorQ, doseJornada, horasDia, fmtHoras } from '../calc.js';
 import { ORIGEM_QUESITO, contextoLegal, ehSuplementar , reuEhInss, localVistoria, vistoriasDoCaso, datasDasVistorias, variasVistorias } from '../schema.js';
 import { tempoConducao } from './penosidade.js';
-import { Doc, p, run, rich, montarDocx, ordinalDia1, FONTES_EMBUTIDAS } from './ooxml.js';
+import { Doc, p, run, rich, montarDocx, ordinalDia1, FONTES_EMBUTIDAS, M } from './ooxml.js';
 import { nenParaJornada, certificadoVencido, rotuloParadigma, citacaoDe, num as numP, vibracaoDoParadigma } from '../paradigmas.js';
 
 export const PERFIL_ID = 'perfil';
@@ -705,10 +705,14 @@ export function quadrosParadigmasMetodologia(d, dados) {
       const fontes = [...new Set([pr, pv].filter(Boolean).map((x) => citacaoDe(x)))].join('\n');
       return [vinculoNome(r, i), [r.data.veiculoMarca, r.data.veiculoModelo, r.data.veiculoAno].filter(Boolean).join(' ') || r.data.grupoVeiculo || (soCategoria ? '—' : '[[veículo]]'),
         (pr || pv) ? `${(pr || pv).data.familia}` : '', medido, fontes, (pr || pv) ? `${(pr || pv).data.jornadaLaudo || '?'} h` : ''];
-    })], { larguras: [0.15, 0.17, 0.1, 0.22, 0.26, 0.1], tam: 8.5, alinhar: 'left', fonte: 'Banco de paradigmas do signatário.' });
+    })], { larguras: [0.15, 0.17, 0.1, 0.22, 0.26, 0.1], tam: 8.5, alinhar: 'left', semRevisao: true, fonte: 'Banco de paradigmas do signatário.' });
+  // equações em notação matemática do Word (Office Math), não em texto
+  const T8 = M.frac(M.t('T'), M.n('8'));
   d.quadro('Equações de normalização pela jornada', [['Grandeza', 'Equação'],
-    ['Ruído (q = 5)', 'NEN = Lavg + 16,61 · log(T / 8)'], ['Vibração – aceleração', 'aren(T) = arep · √(T / 8)'], ['Vibração – dose', 'VDVR(T) = VDVR(laudo) · (T / Tlaudo)^0,25']],
-  { larguras: [0.35, 0.65], fonte: 'Manual de Aposentadoria Especial do INSS (2017); NHO-09.' });
+    ['Ruído (q = 5)', { omml: `${M.t('NEN')}${M.n(' = ')}${M.sub(M.t('L'), M.n('avg'))}${M.n(' + 16,61 · ')}${M.log(M.par(T8))}` }],
+    ['Vibração – aceleração', { omml: `${M.sub(M.t('a'), M.n('ren'))}${M.par(M.t('T'))}${M.n(' = ')}${M.sub(M.t('a'), M.n('rep'))}${M.n(' · ')}${M.raiz(T8)}` }],
+    ['Vibração – dose', { omml: `${M.sub(M.t('VDV'), M.n('R'))}${M.par(M.t('T'))}${M.n(' = ')}${M.sub(M.t('VDV'), M.n('R, laudo'))}${M.n(' · ')}${M.sup(M.par(M.frac(M.t('T'), M.sub(M.t('T'), M.n('laudo')))), M.n('0,25'))}` }]],
+  { larguras: [0.35, 0.65], fonte: 'Manual de Aposentadoria Especial do INSS (2017); NHO-09. T: tempo diário de condução (h); T laudo: jornada do laudo de origem (h).' });
   d.texto('Até 18/11/2003 o valor comparado ao limite é o Lavg, pois a legislação remetia integralmente ao Anexo 1 da NR-15; a partir de 19/11/2003, somente o NEN, normalizado para a jornada.');
   d.quadro('Tempo de condução adotado por vínculo', [['Vínculo', 'Período', 'T (h/dia)', 'Base da informação'],
     ...dados.periodos.map((r, i) => [vinculoNome(r, i), per(r), isFinite(tempoConducao(r, dados).T) ? fmtHoras(tempoConducao(r, dados).T) : r.data.conducaoH ? `[[T: "${r.data.conducaoH}" – informe um número de horas]]` : '[[T]]', tempoConducao(r, dados).base || r.data.conducaoBase || '[[base da informação]]'])],
@@ -720,10 +724,10 @@ export function quadrosParadigmasMetodologia(d, dados) {
         const x = p.data;
         const partes = [];
         if (x.ruidoEquip) partes.push(`${x.ruidoEquip}, SN ${x.ruidoSerie || '?'}, certificado ${x.ruidoCert || 'n/i'} (${x.ruidoCertData || '?'})${certificadoVencido(x.ruidoCertData, x.dataMedicao, dados.regraCertMeses) ? ` [[VERIFICAR: certificado com mais de ${dados.regraCertMeses} meses na data da medição]]` : ''}`);
-        if (x.calibEquip) partes.push(`calibrador ${x.calibEquip}, SN ${x.calibSerie || '?'}${x.calibCertData ? ` (${x.calibCertData})` : ''}`);
+        if (x.calibEquip) partes.push(`${/^calibrador/i.test(x.calibEquip) ? '' : 'calibrador '}${x.calibEquip}, SN ${x.calibSerie || '?'}${x.calibCertData ? ` (${x.calibCertData})` : ''}`);
         if (x.vibEquip) partes.push(`${x.vibEquip}, série ${x.vibSerie || '?'}${x.vibCertData ? ` (calibrado em ${x.vibCertData})` : ''}${certificadoVencido(x.vibCertData, x.dataMedicao, dados.regraCertMeses) ? ` [[VERIFICAR: certificado com mais de ${dados.regraCertMeses} meses]]` : ''}`);
         return [rotuloParadigma(p), citacaoDe(p) || '', partes.join('; ') || '[[instrumentação]]'];
-      })], { larguras: [0.22, 0.28, 0.5], tam: 8.5, alinhar: 'left', fonte: 'Relatórios de medição dos laudos de origem.' });
+      })], { larguras: [0.22, 0.28, 0.5], tam: 8.5, alinhar: 'left', semRevisao: true, fonte: 'Relatórios de medição dos laudos de origem.' });
   }
   return true;
 }
@@ -763,7 +767,7 @@ export function memoriasParadigmas(d, dados, { numero = '' } = {}) {
   if (linhasR.length) {
     cab('Ruído (q = 5)');
     d.quadro('Memória de cálculo do ruído (q = 5)', [['Subperíodo', 'Paradigma', 'Lavg (dB(A))', 'T', 'NEN (dB(A))', 'Critério da época', 'Valor comparado', 'Supera?'], ...linhasR],
-      { larguras: [0.2, 0.15, 0.1, 0.08, 0.1, 0.13, 0.12, 0.12], tam: 8.5, alinhar: 'left' });
+      { larguras: [0.19, 0.14, 0.09, 0.07, 0.1, 0.13, 0.15, 0.13], tam: 8.5, alinhar: 'left', semRevisao: true });
   }
   const linhasV = [];
   dados.periodos.forEach((r, i) => {
@@ -791,7 +795,7 @@ export function memoriasParadigmas(d, dados, { numero = '' } = {}) {
   if (linhasV.length) {
     cab('Vibração de corpo inteiro');
     d.quadro('Memória de cálculo da vibração de corpo inteiro', [['Subperíodo', 'Paradigma', 'arep do paradigma (m/s²)', 'T', 'aren(T) (m/s²)', 'VDVR(T)', 'Critério da época', 'Resultado'], ...linhasV],
-      { larguras: [0.2, 0.15, 0.09, 0.07, 0.1, 0.09, 0.15, 0.15], tam: 8.5, alinhar: 'left',
+      { larguras: [0.2, 0.15, 0.09, 0.07, 0.1, 0.09, 0.15, 0.15], tam: 8.5, alinhar: 'left', semRevisao: true,
         fonte: `Elaborado pelo signatário. ISO 2631-1: fronteira superior da zona de cautela (aren ${String(LIM_ISO_AREN).replace('.', ',')} m/s² para 8 h, conforme a Nota Técnica ASPEJUDI nº 001/2013, ou VDV ${LIM_ISO_VDV} m/s^1,75); NR-15, Anexo 8: limite de exposição aren 1,1 m/s² ou VDVR 21,0 m/s^1,75.` });
   }
   return sub > 0;
@@ -915,7 +919,7 @@ export function textoDeterminacao(dados, prev) {
 
 // ---------- Apêndices: relatórios das medições anexados na aba Campo ----------
 export async function apendicesDoCaso(dados) {
-  const { apendicesRegistros, paginasDoArquivo, LETRAS } = await import('../apendices.js');
+  const { apendicesRegistros, paginasDoArquivo, LETRAS, lerFaixaPaginas, paginasDeRelatorio, textosDoPdf } = await import('../apendices.js');
   const { obterAnexo } = await import('../sync.js');
   const regs = await apendicesRegistros(dados.id);
   const out = []; let falhas = 0;
@@ -926,7 +930,71 @@ export async function apendicesDoCaso(dados) {
       out.push({ letra: LETRAS[out.length] || String(out.length + 1), titulo: r.data.titulo || r.data.nome, paginas });
     } catch (e) { falhas++; }
   }
+  // paradigmas usados: a ficha de cada um (dados da base) e os relatórios de medição originais anexados ao paradigma
+  const usados = paradigmasUsados(dados);
+  if (usados.length) {
+    out.push({ letra: LETRAS[out.length] || String(out.length + 1), titulo: 'Fichas dos paradigmas de medição utilizados', fichas: usados });
+    // relatórios de cada paradigma: o arquivo próprio de relatórios ou, sem ele, as páginas dos relatórios
+    // dentro do laudo de origem (as informadas no paradigma ou as achadas pelo texto do aparelho)
+    const vistos = new Map(); // mesmo arquivo e mesmas páginas em vários paradigmas: um apêndice só
+    for (const p of usados) {
+      const idArq = p.data.relatoriosAnexoId || p.data.anexoId;
+      if (!idArq) continue;
+      const chave = `${idArq}|${p.data.relatoriosAnexoId ? '' : p.data.paginasRelatorios || ''}`;
+      if (vistos.has(chave)) {
+        const ap = vistos.get(chave);
+        ap.cods.push(rotuloParadigma(p));
+        ap.titulo = `Relatórios de medição dos paradigmas ${ap.cods.join(', ')}`;
+        continue;
+      }
+      try {
+        const reg = await db.records.get(idArq);
+        const blob = await obterAnexo(idArq);
+        const mime = reg?.data?.mime || blob.type;
+        let sel = null;
+        if (!p.data.relatoriosAnexoId) {
+          sel = lerFaixaPaginas(p.data.paginasRelatorios);
+          if (!sel.length && /pdf/i.test(mime)) sel = paginasDeRelatorio(await textosDoPdf(blob));
+          if (!sel.length) continue; // laudo digitalizado sem texto: informe as páginas no paradigma
+        }
+        const paginas = await paginasDoArquivo(blob, mime, { paginas: sel });
+        if (paginas.length) {
+          const ap = { letra: LETRAS[out.length] || String(out.length + 1), titulo: `Relatórios de medição do paradigma ${rotuloParadigma(p)}`, paginas, cods: [rotuloParadigma(p)] };
+          out.push(ap); vistos.set(chave, ap);
+        }
+      } catch (e) { falhas++; }
+    }
+  }
   return { apendices: out, falhasApendice: falhas };
+}
+
+// paradigmas citados nos vínculos (ruído e vibração), na ordem dos vínculos
+export function paradigmasUsados(dados) {
+  const P = dados.paradigmas || new Map();
+  return [...new Set((dados.periodos || []).flatMap((r) => [r.data.paradigmaRuido, r.data.paradigmaVibracao]).filter(Boolean))].map((c) => P.get(c)).filter(Boolean);
+}
+
+// ficha de um paradigma: tudo o que a base tem da medição, para o leitor conferir a origem dos valores
+export function fichaParadigma(d, p, dados) {
+  const x = p.data;
+  const n = (t) => String(t ?? '').trim();
+  const num = (t, u) => (n(t) ? `${String(t).replace('.', ',')}${u ? ` ${u}` : ''}` : '');
+  const linhas = [
+    ['Veículo', [x.tipo, x.marca, x.modelo].map(n).filter(Boolean).join(' – ')],
+    ['Ano / época', [n(x.ano), n(x.epocaFabricacao) && `época ${x.epocaFabricacao}`, n(x.anoFonte) && `(fonte: ${x.anoFonte})`].filter(Boolean).join(' ')],
+    ['Família técnica', n(x.familia)],
+    ['Cabine e configuração', [n(x.cabine), n(x.arCondicionado) && `ar-condicionado: ${x.arCondicionado}`, n(x.configuracao), n(x.via) && `via: ${x.via}`].filter(Boolean).join('; ')],
+    ['Fonte da medição', citacaoDe(p)],
+    ['Ruído', [num(x.lavg, 'dB(A) (Lavg, q = 5)'), num(x.leq, 'dB(A) (Leq, q = 3)'), num(x.nenLaudo, 'dB(A) (NEN do laudo)'), num(x.duracaoRuidoMin, 'min de amostragem'), num(x.jornadaLaudo, 'h de jornada no laudo')].filter(Boolean).join('; ')],
+    ['Vibração de corpo inteiro', [num(x.arep, 'm/s² (arep)'), num(x.arenLaudo, 'm/s² (aren do laudo)'), num(x.vdvrLaudo, 'm/s^1,75 (VDVR)'), n(x.eixoDominante) && `eixo ${x.eixoDominante}`, n(x.tempoVibracao) && `amostragem ${x.tempoVibracao}`].filter(Boolean).join('; ')],
+    ['Mãos e braços (VMB)', num(x.arenVmb, 'm/s² (aren)')],
+    ['Instrumentação', [n(x.ruidoEquip) && `${x.ruidoEquip}, SN ${x.ruidoSerie || '?'}${n(x.ruidoCert) ? `, certificado ${x.ruidoCert}` : ''}${n(x.ruidoCertData) ? ` (${x.ruidoCertData})` : ''}`,
+      n(x.vibEquip) && `${x.vibEquip}, série ${x.vibSerie || '?'}${n(x.vibCertData) ? ` (${x.vibCertData})` : ''}`].filter(Boolean).join('\n')],
+    ['Situação na base', n(x.situacao) || 'OK'],
+    ['Observações', n(x.observacoes)],
+  ].filter(([, v]) => n(v));
+  return d.quadro(`Ficha do paradigma ${rotuloParadigma(p)}`, [['Item', 'Registro'], ...linhas],
+    { larguras: [0.26, 0.74], tam: 9, alinhar: 'left', semRevisao: true, fonte: 'Banco de paradigmas do signatário (medição de origem citada na ficha).' });
 }
 
 // "Integram o presente laudo o Anexo I – ... e os Apêndices A a C – ..."
@@ -939,10 +1007,13 @@ export function textoIntegram(d, { fotos = false, rotuloFotos = 'Anexo I – Rel
   d.texto(`${itens.length > 1 ? 'Integram' : 'Integra'} o presente ${doc} ${lista}.`);
 }
 
-export function inserirApendices(d, apendices) {
+export function inserirApendices(d, apendices, dados) {
   for (const a of apendices) {
     d.h1('', `Apêndice ${a.letra} – ${a.titulo}`);
-    d.paginasInteiras(a.paginas, { nota: `Apêndice ${a.letra}` });
+    if (a.fichas) {
+      d.texto('Dados das medições usadas como paradigma neste documento, como registrados no banco do signatário. Os relatórios de medição originais, quando disponíveis, seguem nos apêndices seguintes.');
+      for (const p of a.fichas) fichaParadigma(d, p, dados);
+    } else d.paginasInteiras(a.paginas, { nota: `Apêndice ${a.letra}` });
   }
 }
 

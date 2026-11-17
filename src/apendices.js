@@ -19,14 +19,81 @@ async function canvasParaPagina(canvas) {
   return { bytes: new Uint8Array(await b.arrayBuffer()), w: canvas.width, h: canvas.height };
 }
 
-// páginas de um arquivo (PDF ou imagem) como JPEG
-export async function paginasDoArquivo(blob, mime = '') {
+// ---------- Relatórios de medição dentro do laudo de origem ----------
+// "45-52, 60" → [45..52, 60]
+export function lerFaixaPaginas(t) {
+  const out = [];
+  for (const parte of String(t || '').split(/[,;]\s*/)) {
+    const m = parte.trim().match(/^(\d+)(?:\s*[-–a]\s*(\d+))?$/);
+    if (!m) continue;
+    const a = Number(m[1]), b = Number(m[2] || m[1]);
+    for (let i = Math.min(a, b); i <= Math.max(a, b) && out.length < 200; i++) if (!out.includes(i)) out.push(i);
+  }
+  return out;
+}
+// [45,46,47,52] → "45-47, 52"
+export function faixaDePaginas(lst) {
+  const l = [...new Set(lst)].sort((a, b) => a - b); const out = [];
+  for (let i = 0; i < l.length; i++) { let j = i; while (j + 1 < l.length && l[j + 1] === l[j] + 1) j++; out.push(j > i ? `${l[i]}-${l[j]}` : `${l[i]}`); i = j; }
+  return out.join(', ');
+}
+// Páginas que são relatório de medidor (dosimetria, vibração, calor) ou certificado de calibração: o texto do
+// aparelho tem várias "assinaturas" (configuração, resultados, funcionário avaliado, fabricante, série…).
+// Procura da metade do laudo para o fim (os relatórios ficam no final) e inclui as páginas de continuação
+// (tabelas de leituras) logo depois de uma página de relatório.
+// do próprio aparelho (não aparecem no texto do laudo) e termos de norma (aparecem também na metodologia)
+const DO_APARELHO = [/configura[çc][ãa]o (de|da) medi[çc][ãa]o/i, /funcion[áa]rio avaliado/i, /data da avalia[çc][ãa]o:?\s*\d/i, /empresa (do avaliador|avaliada)/i,
+  /\b[NS]S:\s*\w{5,}|n[ºo°] de s[ée]rie:?\s*\w{4,}/i, /relat[óo]rio (de )?dosimetria|configura[çc][ãa]o dos dos[íi]metros|relat[óo]rio geral\s*-\s*dos[íi]metro/i, /tempo (de )?avalia[çc][ãa]o:?\s*\d/i];
+const DA_NORMA = [/inlite|criffer|instrutherm|chrompack|smartvib|sonus|dosemax|axpro|quest technolog|larson davis|svantek|3m detection|01db|bruel/i, /certificado de calibra[çc][ãa]o/i, /resultados? da (avalia[çc][ãa]o|medi[çc][ãa]o)/i, /dose projetada/i, /taxa de troca|fator de duplica/i, /crit[ée]rio de refer[êe]ncia/i, /n[íi]vel limiar/i, /histograma/i,
+  /\bVDV\s*[XYZR]\b|VDVR/i, /\bAREN\b|\bAREP\b|acelera[çc][ãa]o resultante/i, /pondera[çc][ãa]o (temporal|em frequ)|curva de pondera[çc][ãa]o/i, /\bIBUTG\b.*\bTBN\b|\bTBN\b.*\bTG\b/i, /\bL(avg|eq|max|pico)\b/i];
+export function paginasDeRelatorio(textos) {
+  const n = textos.length;
+  const ini = Math.floor(n * 0.4);
+  const conta = (lst, t) => lst.filter((re) => re.test(t || '')).length;
+  // cabeçalho corrido do laudo (a 1ª linha que se repete em mais da metade das páginas): página com ele é do corpo
+  const primeira = (t) => String(t || '').trim().split(/\s{2,}|\n/)[0].trim().slice(0, 40).toLowerCase();
+  const freq = {};
+  textos.forEach((t) => { const k = primeira(t); if (k) freq[k] = (freq[k] || 0) + 1; });
+  const [cab, nCab] = Object.entries(freq).sort((a, b) => b[1] - a[1])[0] || ['', 0];
+  const cabAparelho = conta(DO_APARELHO, cab) + conta(DA_NORMA, cab) > 0;
+  const doCorpo = (t) => nCab > n / 2 && n >= 6 && !cabAparelho && primeira(t) === cab;
+  const marca = textos.map((t, i) => { const a = conta(DO_APARELHO, t); return i >= ini && !doCorpo(t) && (a >= 2 || (a >= 1 && conta(DA_NORMA, t) >= 2)); });
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    if (marca[i]) { out.push(i + 1); continue; }
+    // continuação: logo depois de uma página de relatório, com muitas leituras (dB, m/s², horários)
+    const leituras = ((textos[i] || '').match(/\d+[.,]\d+\s*(dBA?|m\/s)|\d{2}:\d{2}(:\d{2})?/g) || []).length;
+    // ou com o mesmo cabeçalho do aparelho (fabricante / número de série) da página anterior
+    const ns = (t) => ((t || '').match(/\b[NS]S:\s*(\w+)/i) || [])[1];
+    const mesmoAparelho = ns(textos[i]) && ns(textos[i]) === ns(textos[i - 1]);
+    if (i > 0 && out.includes(i) && (leituras >= 15 || mesmoAparelho)) out.push(i + 1);
+  }
+  return out;
+}
+// texto de cada página de um PDF (para achar os relatórios)
+export async function textosDoPdf(blob) {
+  const pdfjs = await carregarPdfjs();
+  const pdf = await pdfjs.getDocument({ data: new Uint8Array(await blob.arrayBuffer()) }).promise;
+  const out = [];
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const tc = await page.getTextContent();
+    out.push(tc.items.map((x) => x.str).join(' '));
+    page.cleanup();
+  }
+  await pdf.destroy();
+  return out;
+}
+
+// páginas de um arquivo (PDF ou imagem) como JPEG; paginas: só essas (números a partir de 1)
+export async function paginasDoArquivo(blob, mime = '', { paginas = null } = {}) {
   const tipo = mime || blob.type || '';
   if (/pdf/i.test(tipo)) {
     const pdfjs = await carregarPdfjs();
     const pdf = await pdfjs.getDocument({ data: new Uint8Array(await blob.arrayBuffer()) }).promise;
     const out = [];
     for (let i = 1; i <= pdf.numPages; i++) {
+      if (paginas && !paginas.includes(i)) continue;
       const page = await pdf.getPage(i);
       const vp = page.getViewport({ scale: 1.5 }); // ~110 dpi: tabelas legíveis e arquivo leve (limite do eproc: 11 MB por arquivo)
       const c = document.createElement('canvas');

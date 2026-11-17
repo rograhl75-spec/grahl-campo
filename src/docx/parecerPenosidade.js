@@ -11,7 +11,7 @@ import {
   textoIntegram, inserirApendices, quadroEquipamentos, equipamentosUsados, hojeLocal,
 } from './base.js';
 import { Doc } from './ooxml.js';
-import { avaliarPeriodos, valores, conclusaoPrevidenciaria } from './conclusao.js';
+import { avaliarPeriodos, valores, conclusaoPrevidenciaria, resultadoSubperiodo } from './conclusao.js';
 import { matrizIAC, tempoConducao } from './penosidade.js';
 import { capitalizarCidades } from '../cidades.js';
 import { comJurisprudencia, registroJurisprudencia, secaoReferencias } from './fontes.js';
@@ -85,6 +85,8 @@ function penosidadeDoVinculo(r, dados, m) {
 function enquadramentoDoVinculo(r, segs, m) {
   const linhas = segs.map((s) => `${dataBR(s.ini)} a ${fimTxt(r, s)}: ${s.caracteriza === 'SIM' ? `especial (cód. ${s.codigos})` : s.caracteriza === 'NÃO' ? 'não especial pelos agentes avaliados' : s.caracteriza}`);
   if (fimOuHoje(r) > '1995-04-28') linhas.push(`Penosidade a partir de 29/04/1995: ${m.penoso === true ? 'condições penosas caracterizadas na matriz' : m.penoso === false ? 'não caracterizada na matriz' : '[[completar a entrevista]]'}${m.sugerida ? ' [[proposta do app – confirmar]]' : ''}`);
+  // resultado técnico por subperíodo, juntando agentes, categoria e penosidade (o mesmo da matriz e da conclusão)
+  if (segs.length) linhas.push(`Resultado técnico: ${segs.map((s) => `${dataBR(s.ini)} a ${fimTxt(r, s)} – ${resultadoSubperiodo(s, m.penoso)}`).join('; ')}`);
   if (fimOuHoje(r) > EC103) linhas.push('Após 13/11/2019: sem conversão do tempo especial em comum (EC 103/2019, art. 25, § 2º).');
   return linhas.join('\n');
 }
@@ -169,7 +171,7 @@ export async function parecerPenosidade(caseId) {
   av.forEach(({ r, val, segs }, i) => {
     const m = matrizIAC(r, dados);
     const x = r.data;
-    d.h2(`3.${i + 1}`, `${empresaCurta(r) || '[[empresa]]'} – ${per(r)}`);
+    d.h2(`3.${i + 1}`, `${empresaCurta(r) || '[[empresa]]'} – ${per(r)}`, { novaPagina: true });
     const soCategoria = !!(x.fim && x.fim <= '1995-04-28');
     const semValor = soCategoria ? 'não necessário: enquadramento por categoria profissional' : '[[sem paradigma vinculado – ver Fonte da prova]]';
     const ruido = textoItens(r, segs, (it) => it.ruido) || (isFinite(val.lavg) ? `Lavg ${fmt(val.lavg, 1)} dB(A)` : semValor);
@@ -186,24 +188,27 @@ export async function parecerPenosidade(caseId) {
       ['Ruído', ruido], ['Vibração de corpo inteiro', vib], ['Fonte da prova', fonte], ['Enquadramento técnico', enq]],
     // quadros em sequência: o quadro do vínculo pode continuar na página seguinte (não pula página inteira)
     { larguras: [0.24, 0.76], alinhar: 'left', tam: 9, juntar: false, fonte: 'Entrevista do segurado, CTPS/CNIS e banco de paradigmas do signatário.' });
-    resumo.push([empresaCurta(r), per(r), veiculo(r) || v(x.grupoVeiculo),
+    const um = segs.length === 1; // um subperíodo só: sem repetir as datas nas colunas de resultado
+    resumo.push([empresaCurta(r), `${dataBR(x.inicio)} a\n${x.fim ? dataBR(x.fim) : 'atual'}`, veiculo(r) || v(x.grupoVeiculo),
       [isFinite(val.nen) ? `NEN ${fmt(val.nen, 1)} dB(A)` : isFinite(val.lavg) ? `Lavg ${fmt(val.lavg, 1)} dB(A)` : '', isFinite(val.aren) ? `aren ${fmt(val.aren, 2)} m/s²` : ''].filter(Boolean).join('\n') || '—',
-      fimOuHoje(r) <= '1995-04-28' ? 'categoria profissional' : m.penoso === true ? 'caracterizada' : m.penoso === false ? 'não caracterizada' : '[[completar]]',
-      segs.map((s) => `${dataBR(s.ini)}–${fimTxt(r, s)}: ${s.caracteriza}${s.caracteriza === 'SIM' ? ` (${s.codigos})` : ''}`).join('\n')]);
+      segs.map((s) => `${um ? '' : `${dataBR(s.ini)}–${fimTxt(r, s)}: `}${s.caracteriza}${s.caracteriza === 'SIM' ? ` (${s.codigos})` : ''}`).join('\n'),
+      fimOuHoje(r) <= '1995-04-28' ? 'não se aplica (antes de 29/04/1995)' : m.penoso === true ? 'caracterizada' : m.penoso === false ? 'não caracterizada' : '[[completar]]',
+      segs.map((s) => `${um ? '' : `${dataBR(s.ini)}–${fimTxt(r, s)}: `}${resultadoSubperiodo(s, m.penoso)}`).join('\n')]);
   });
 
   // 4 Matriz sintética
   d.h1('4', 'Matriz sintética por vínculo');
   if (resumo.length) {
-    d.quadro('Matriz de agentes, penosidade e enquadramento técnico', [['Empresa', 'Período', 'Veículo', 'Ruído / vibração', 'Penosidade', 'Enquadramento por subperíodo'], ...resumo],
-      { larguras: [0.15, 0.13, 0.13, 0.15, 0.15, 0.29], tam: 8, alinhar: 'left', fonte: 'Elaborado pelo autor. SIM = especial pelos agentes ou pela categoria no subperíodo; a penosidade é avaliada a partir de 29/04/1995.' });
+    d.quadro('Matriz de agentes, penosidade e enquadramento técnico', [['Empresa', 'Período', 'Veículo', 'Ruído / vibração', 'Agentes nocivos', 'Penosidade', 'Resultado técnico'], ...resumo],
+      { larguras: [0.135, 0.14, 0.125, 0.12, 0.15, 0.13, 0.2], tam: 8, alinhar: 'left', fonte: 'Elaborado pelo signatário. Agentes nocivos: SIM quando o ruído ou a vibração superam o limite da época, ou pela categoria até 28/04/1995. Penosidade: matriz de fatores, a partir de 29/04/1995. Resultado técnico: SIM quando há enquadramento por qualquer desses critérios.' });
   } else d.redigir('cadastre os vínculos.');
   memoriasParadigmas(d, dados, { numero: '4.1' });
 
   // 5 Conclusão
   d.h1('5', 'Conclusão técnica');
   // a penosidade já está no quadro de cada vínculo: a conclusão não repete a síntese
-  conclusaoPrevidenciaria(d, dados, { tituloQuadro: 'Quadro conclusivo por vínculo e subperíodo', resumoPenosidade: false });
+  const penosoDe = new Map(av.map(({ r }) => [r.id, fimOuHoje(r) > '1995-04-28' ? matrizIAC(r, dados).penoso : null]));
+  conclusaoPrevidenciaria(d, dados, { tituloQuadro: 'Quadro conclusivo por vínculo e subperíodo', resumoPenosidade: false, penosidade: (r) => penosoDe.get(r.id) });
   if (ps.some((r) => fimOuHoje(r) > EC103)) d.texto('Para os períodos posteriores a 13/11/2019, o tempo eventualmente reconhecido como especial não se converte em tempo comum (EC 103/2019, art. 25, § 2º).');
   d.texto('O enquadramento final dos períodos cabe ao INSS ou ao Poder Judiciário, à vista deste parecer e das demais provas.');
   d.h2('5.1', 'Limitações');
@@ -219,7 +224,7 @@ export async function parecerPenosidade(caseId) {
   blocoAssinatura(d, dados, `Responsável técnico – ART nº ${v(c.art) || '[[nº]]'}`);
   secaoReferencias(d, dados, { prev: true, judicial: false });
   if (lista.length) { d.h1('', 'Anexo – Registro fotográfico'); d.figuras(lista); }
-  inserirApendices(d, apendices);
+  inserirApendices(d, apendices, dados);
   const r = await finalizar(d, { titulo: 'Parecer técnico de condições de trabalho e penosidade', arquivo: 'Parecer_penosidade', c });
   return { ...r, faltando, falhasApendice };
 }

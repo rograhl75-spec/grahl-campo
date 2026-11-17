@@ -316,7 +316,7 @@ export async function laudoPericial(caseId, { extra = false } = {}) {
   blocoAssinatura(d, dados, extra ? `Responsável técnico – ART nº ${v(c.art) || '[[nº]]'}` : 'Perito do Juízo');
   secaoReferencias(d, dados, { prev: false, judicial: !extra });
   if (lista.length) { d.h1('', 'Anexo I – Relatório fotográfico da diligência'); d.figuras(lista); }
-  inserirApendices(d, apendices);
+  inserirApendices(d, apendices, dados);
   const r = await finalizar(d, { titulo: extra ? 'Laudo técnico de insalubridade e periculosidade' : 'Laudo técnico pericial', arquivo: extra ? 'Laudo_insalubridade_periculosidade' : 'Laudo_pericial', c });
   return { ...r, faltando, falhasApendice };
 }
@@ -402,7 +402,7 @@ export async function laudoPrevidenciario(caseId) {
   blocoAssinatura(d, dados, 'Perito do Juízo');
   secaoReferencias(d, dados, { prev: true });
   if (lista.length) { d.h1('', 'Anexo I – Relatório fotográfico da diligência'); d.figuras(lista); }
-  inserirApendices(d, apendices);
+  inserirApendices(d, apendices, dados);
   const r = await finalizar(d, { titulo: 'Laudo técnico pericial previdenciário', arquivo: 'Laudo_pericial_previdenciario', c });
   return { ...r, faltando, falhasApendice };
 }
@@ -509,7 +509,7 @@ export async function ltcatPpp(caseId) {
   d.h1('', 'Anexo A – Dados para o Perfil Profissiográfico Previdenciário (PPP)');
   d.texto('Dados de exposição por período para o preenchimento do PPP em papel dos períodos anteriores ao eSocial (SST). O código GFIP 04 se aplica aos períodos com enquadramento (item 6).');
   quadroDadosPPP(d, dados);
-  inserirApendices(d, apendices);
+  inserirApendices(d, apendices, dados);
   const r = await finalizar(d, { titulo: 'LTCAT', arquivo: 'LTCAT_PPP', c });
   return { ...r, faltando, falhasApendice };
 }
@@ -573,7 +573,7 @@ export async function parecerPrevidenciario(caseId) {
   blocoAssinatura(d, dados, 'Responsável técnico');
   secaoReferencias(d, dados, { prev: true, judicial: false });
   if (lista.length) { d.h1('', 'Anexo – Registro fotográfico'); d.figuras(lista); }
-  inserirApendices(d, apendices);
+  inserirApendices(d, apendices, dados);
   const r = await finalizar(d, { titulo: 'Parecer técnico previdenciário', arquivo: 'Parecer_previdenciario', c });
   return { ...r, faltando, falhasApendice };
 }

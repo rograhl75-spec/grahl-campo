@@ -116,6 +116,24 @@ export async function pendenciasDoCaso(caseId) {
       titulo: `Conclusão da penosidade – aplicar a todos os ${conclusoes.length} vínculos`, explicacao: 'Usa o mesmo texto padrão em todos; depois, se algum vínculo for diferente, mude só ele.',
     });
   }
+  // relatórios de medição dos paradigmas usados: sem arquivo ligado, o apêndice do paradigma não sai
+  const { paradigmasUsados } = await import('./docx/base.js');
+  const { db } = await import('./db.js');
+  const { rotuloParadigma } = await import('./paradigmas.js');
+  for (const p of paradigmasUsados(dados)) {
+    const id = p.data.relatoriosAnexoId || p.data.anexoId;
+    const reg = id ? await db.records.get(id) : null;
+    const base = { id: `rel-${p.id}`, grupo: 'Relatórios de medição dos paradigmas', tipo: 'aviso', rec: p.id };
+    if (!id || !reg || reg.deleted) {
+      itens.push({ ...base, respondido: false, link: '#/paradigmas/importar',
+        titulo: `${rotuloParadigma(p)}: sem laudo de origem nem relatórios ligados`,
+        explicacao: 'O apêndice com os relatórios deste paradigma não vai sair. Ligue o arquivo em Paradigmas → Importar / exportar → Anexar laudos de origem em lote (nome com o código, ex.: "M28 - …pdf") ou dentro do próprio paradigma.' });
+    } else if (!(await db.blobs.get(id))) {
+      itens.push({ ...base, respondido: false, link: '#/paradigmas/veiculos',
+        titulo: `${rotuloParadigma(p)}: arquivo dos relatórios ainda não está neste aparelho`,
+        explicacao: `O arquivo "${reg.data.nome || 'laudo'}" foi ligado em outro aparelho. Com a nuvem conectada, o app o baixa ao gerar; se o outro aparelho ainda não terminou de enviar, o apêndice não sai. Abra o paradigma e toque em "Abrir" para conferir.` });
+    }
+  }
   return itens;
 }
 

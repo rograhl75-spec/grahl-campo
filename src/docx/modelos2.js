@@ -219,7 +219,7 @@ export async function laudoAcidente(caseId) {
     ? 'Este laudo foi elaborado com imparcialidade técnica, sob a responsabilidade do signatário, com base nos documentos e na vistoria descritos.'
     : 'Nada mais havendo a relatar no âmbito da Engenharia de Segurança do Trabalho, este Perito dá por encerrados os trabalhos periciais, colocando-se à disposição do Juízo e das partes para os esclarecimentos que se fizerem necessários.');
   const { lista, faltando } = await figurasDoCaso(dados);
-  const { apendices, falhasApendice } = await apendicesDoCaso(dados);
+  const { apendices, falhasApendice, semRelatorios } = await apendicesDoCaso(dados);
   if (!extra) quadroRequisitos473(d, { objeto: '2.1', analise: '4 a 9', metodo: '2.2', quesitos: String(n - 1) });
   textoIntegram(d, { fotos: lista.length > 0, apendices });
   blocoAssinatura(d, dados, extra ? `Responsável técnico – ART nº ${v(c.art) || '[[nº]]'}` : 'Perito do Juízo');
@@ -232,7 +232,7 @@ export async function laudoAcidente(caseId) {
   if (lista.length) { d.h1('', 'Anexo I – Relatório fotográfico'); d.figuras(lista); }
   inserirApendices(d, apendices, dados);
   const r = await finalizar(d, { titulo: 'Laudo técnico de acidente do trabalho', arquivo: 'Laudo_acidente', c });
-  return { ...r, faltando, falhasApendice };
+  return { ...r, faltando, falhasApendice, semRelatorios };
 }
 
 // ======================================================================

@@ -142,7 +142,8 @@ function Veiculos() {
                 <span class="item-titulo">
                   <b>{rotuloParadigma(p) || '(sem identificação)'}</b>{' '}
                   <span class="etq">{d.familia || 'sem família'}</span>{' '}
-                  {d.situacao && d.situacao !== 'OK' && <span class="etq fase">{d.situacao}</span>}
+                  {d.situacao && d.situacao !== 'OK' && <span class="etq fase">{d.situacao}</span>}{' '}
+                  {d.relatoriosAnexoId ? <span class="etq">relatórios ✓</span> : d.anexoId ? <span class="etq">laudo ✓{d.paginasRelatorios ? ` p. ${d.paginasRelatorios}` : ''}</span> : <span class="etq fase">sem arquivo</span>}
                   <br /><small class="suave">
                     {[d.lavg && `Lavg ${d.lavg}`, d.arep && `arep ${d.arep}`, d.vdvrLaudo && `VDVR ${d.vdvrLaudo}`, d.citacao].filter(Boolean).join(' · ')}
                   </small>

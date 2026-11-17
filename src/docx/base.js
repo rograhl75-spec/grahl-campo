@@ -1,4 +1,5 @@
 import { db, caseChildren } from '../db.js';
+import { revisarCampo } from '../ortografia.js';
 import { resumoMedicao, calculados } from '../medicoes.js';
 import { nen, num, fmt, fatorQ, doseJornada, horasDia, fmtHoras } from '../calc.js';
 import { ORIGEM_QUESITO, contextoLegal, ehSuplementar , reuEhInss, localVistoria, vistoriasDoCaso, datasDasVistorias, variasVistorias } from '../schema.js';
@@ -55,7 +56,8 @@ export function limpaRefsPdf(t) {
     .replace(/\(\s*[,;–-]\s*/g, '(').replace(/\s*[,;]\s*\)/g, ')').replace(/\(\s*\)/g, '')
     .replace(/[ \t]+([,;.)])/g, '$1').replace(/([,;])\s*([,;])/g, '$1').replace(/[ \t]{2,}/g, ' ').trim();
 }
-const limpaDados = (o) => Object.fromEntries(Object.entries(o || {}).map(([k, val]) => [k, limpaRefsPdf(val)]));
+// também revisa o texto digitado: acentos, crase em horários e linhas de instrução ao app (src/ortografia.js)
+const limpaDados = (o) => Object.fromEntries(Object.entries(o || {}).map(([k, val]) => [k, revisarCampo(k, limpaRefsPdf(val))]));
 
 export async function carregar(caseId) {
   const caso = await db.records.get(caseId);
@@ -794,8 +796,8 @@ export function memoriasParadigmas(d, dados, { numero = '' } = {}) {
   });
   if (linhasV.length) {
     cab('Vibração de corpo inteiro');
-    d.quadro('Memória de cálculo da vibração de corpo inteiro', [['Subperíodo', 'Paradigma', 'arep do paradigma (m/s²)', 'T', 'aren(T) (m/s²)', 'VDVR(T)', 'Critério da época', 'Resultado'], ...linhasV],
-      { larguras: [0.2, 0.15, 0.09, 0.07, 0.1, 0.09, 0.15, 0.15], tam: 8.5, alinhar: 'left', semRevisao: true,
+    d.quadro('Memória de cálculo da vibração de corpo inteiro', [['Subperíodo', 'Paradigma', 'arep (m/s²)', 'T', 'aren(T) (m/s²)', 'VDVR(T)', 'Critério da época', 'Resultado'], ...linhasV],
+      { larguras: [0.18, 0.15, 0.09, 0.07, 0.09, 0.1, 0.16, 0.16], tam: 8.5, alinhar: 'left', semRevisao: true,
         fonte: `Elaborado pelo signatário. ISO 2631-1: fronteira superior da zona de cautela (aren ${String(LIM_ISO_AREN).replace('.', ',')} m/s² para 8 h, conforme a Nota Técnica ASPEJUDI nº 001/2013, ou VDV ${LIM_ISO_VDV} m/s^1,75); NR-15, Anexo 8: limite de exposição aren 1,1 m/s² ou VDVR 21,0 m/s^1,75.` });
   }
   return sub > 0;

@@ -414,7 +414,7 @@ export function tabela(linhas, { larguras, header = true, tam = 10, alinhar = 'a
     // cabeçalho azul-marinho com texto branco; linhas alternadas em cinza-azulado claro
     const zebra = !isH && (ri - (header ? 1 : 0)) % 2 === 1;
     const cells = l.map((c, ci) => celula(c, ws[ci], {
-      b: isH, tit: isH, np: semRevisao && !isH, color: isH ? 'FFFFFF' : undefined, tam: isH ? Math.min(tam, 8.5) : tam, fill: isH ? AZUL : zebra ? ZEBRA : undefined, align: isH ? 'center' : al[ci], borda: 'quadro', keepNext: juntar,
+      b: isH, tit: isH, np: semRevisao && !isH, color: isH ? 'FFFFFF' : undefined, tam: isH ? Math.min(tam, 8.5) : tam, fill: isH ? AZUL : zebra ? ZEBRA : undefined, align: isH ? 'center' : al[ci], borda: 'quadro', keepNext: juntar || ri === linhas.length - 1, // a última linha segue com a fonte
     })).join('');
     return `<w:tr><w:trPr><w:cantSplit/>${isH ? '<w:tblHeader/>' : ''}</w:trPr>${cells}</w:tr>`;
   }).join('');

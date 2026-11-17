@@ -43,7 +43,7 @@ export function faixaDePaginas(lst) {
 // (tabelas de leituras) logo depois de uma página de relatório.
 // do próprio aparelho (não aparecem no texto do laudo) e termos de norma (aparecem também na metodologia)
 const DO_APARELHO = [/configura[çc][ãa]o (de|da) medi[çc][ãa]o/i, /funcion[áa]rio avaliado/i, /data da avalia[çc][ãa]o:?\s*\d/i, /empresa (do avaliador|avaliada)/i,
-  /\b[NS]S:\s*\w{5,}|n[ºo°] de s[ée]rie:?\s*\w{4,}/i, /relat[óo]rio (de )?dosimetria|configura[çc][ãa]o dos dos[íi]metros/i, /tempo (de )?avalia[çc][ãa]o:?\s*\d/i];
+  /\b[NS]S:\s*\w{5,}|n[ºo°] de s[ée]rie:?\s*\w{4,}/i, /relat[óo]rio (de )?dosimetria|configura[çc][ãa]o dos dos[íi]metros|relat[óo]rio geral\s*-\s*dos[íi]metro/i, /tempo (de )?avalia[çc][ãa]o:?\s*\d/i];
 const DA_NORMA = [/inlite|criffer|instrutherm|chrompack|smartvib|sonus|dosemax|axpro|quest technolog|larson davis|svantek|3m detection|01db|bruel/i, /certificado de calibra[çc][ãa]o/i, /resultados? da (avalia[çc][ãa]o|medi[çc][ãa]o)/i, /dose projetada/i, /taxa de troca|fator de duplica/i, /crit[ée]rio de refer[êe]ncia/i, /n[íi]vel limiar/i, /histograma/i,
   /\bVDV\s*[XYZR]\b|VDVR/i, /\bAREN\b|\bAREP\b|acelera[çc][ãa]o resultante/i, /pondera[çc][ãa]o (temporal|em frequ)|curva de pondera[çc][ãa]o/i, /\bIBUTG\b.*\bTBN\b|\bTBN\b.*\bTG\b/i, /\bL(avg|eq|max|pico)\b/i];
 export function paginasDeRelatorio(textos) {

@@ -551,6 +551,95 @@ export function ResultadoBusca({ res, onEscolher }) {
   );
 }
 
+// Anexar os laudos de origem (e relatórios avulsos) de vários paradigmas de uma vez
+function LaudosEmLote() {
+  const lista = useParadigmas();
+  const [itens, setItens] = useState([]); // { file, r, marcados: Set, erro }
+  const [estado, setEstado] = useState('');
+  const porId = new Map(lista.map((p) => [p.id, p]));
+  const ler = async (e) => {
+    const files = [...e.currentTarget.files];
+    e.currentTarget.value = '';
+    if (!files.length) return;
+    const { textosDoPdf } = await import('../apendices.js');
+    const { casarArquivo } = await import('../laudosLote.js');
+    const out = [];
+    for (const [i, f] of files.entries()) {
+      setEstado(`Lendo ${i + 1} de ${files.length}: ${f.name}`);
+      try {
+        const textos = /pdf/i.test(f.type || f.name) ? await textosDoPdf(f) : [];
+        const r = casarArquivo({ nome: f.name, textos }, lista);
+        // já ligado a outro laudo: fica desmarcado (o perito decide se troca)
+        const marcados = new Set(r.ids.filter((id) => { const d = porId.get(id)?.data || {}; return r.certo && !(r.tipo === 'laudo' ? d.anexoId : d.relatoriosAnexoId); }));
+        out.push({ file: f, r, marcados, semTexto: textos.join('').trim().length < 200 });
+      } catch (err) { out.push({ file: f, r: { ids: [] }, marcados: new Set(), erro: err.message }); }
+    }
+    setItens(out); setEstado('');
+  };
+  const alternar = (i, id) => setItens(itens.map((x, k) => {
+    if (k !== i) return x;
+    const m = new Set(x.marcados); if (m.has(id)) m.delete(id); else m.add(id);
+    return { ...x, marcados: m };
+  }));
+  const ligar = async () => {
+    let n = 0, arq = 0;
+    for (const x of itens) {
+      if (!x.marcados.size) continue;
+      setEstado(`Guardando ${x.file.name}…`);
+      const cods = [...x.marcados].map((id) => porId.get(id)?.data.codigo).filter(Boolean).join(', ');
+      const id = await guardarAnexo(x.file, `${x.r.tipo === 'laudo' ? 'Laudo de origem' : 'Relatórios de medição'} – paradigmas ${cods}`);
+      arq++;
+      for (const pid of x.marcados) {
+        await updateFields(pid, x.r.tipo === 'laudo' ? { anexoId: id, paginasRelatorios: x.r.paginas || '' } : { relatoriosAnexoId: id, relatoriosNome: x.file.name });
+        n++;
+      }
+    }
+    avisarAlteracao();
+    setItens([]); setEstado(`✓ ${arq} arquivo(s) guardado(s) e ligado(s) a ${n} paradigma(s). Os relatórios saem como apêndice nos documentos que usam esses paradigmas.`);
+  };
+  const semLaudo = lista.filter((p) => !p.data.anexoId && !p.data.relatoriosAnexoId).map((p) => p.data.codigo).filter(Boolean);
+  const total = itens.reduce((s, x) => s + x.marcados.size, 0);
+  return (
+    <section class="bloco largo">
+      <h3>Anexar laudos de origem em lote</h3>
+      <p>Selecione de uma vez os PDFs dos laudos (e dos relatórios avulsos). O app liga cada arquivo ao paradigma pelo código no nome do arquivo (ex.: <code>M07_M61 - Laudo.pdf</code>), pelo número do processo no cabeçalho do laudo ou pela data da medição com o modelo do veículo, e acha as páginas dos relatórios do medidor.</p>
+      <p class="dica">{semLaudo.length ? `Sem laudo nem relatórios anexados: ${semLaudo.join(', ')}.` : 'Todos os paradigmas têm laudo ou relatórios anexados.'}</p>
+      <label class="botao-arquivo">Escolher PDFs<input type="file" accept="application/pdf" multiple hidden onChange={ler} /></label>
+      {estado && <p class={estado.startsWith('✓') ? 'ok-msg' : 'dica'}>{estado}</p>}
+      {!!itens.length && (
+        <div class="lote-laudos mt">
+          {itens.map((x, i) => (
+            <div class="item" key={i}>
+              <div class="item-topo">
+                <span class="item-titulo"><b>{x.file.name}</b><br />
+                  <small class="suave">{x.erro ? `Erro: ${x.erro}` : [
+                    x.r.tipo === 'laudo' ? 'laudo de origem' : 'relatórios (arquivo separado)',
+                    x.r.paginas && `relatórios nas páginas ${x.r.paginas}`,
+                    x.semTexto && 'sem texto (digitalizado): informe as páginas no paradigma',
+                    x.r.como && `ligado por ${x.r.como}${x.r.certo ? '' : ' – confira'}`,
+                  ].filter(Boolean).join(' · ')}</small>
+                </span>
+              </div>
+              <div class="chips">
+                {x.r.ids.map((id) => {
+                  const p = porId.get(id); const d = p?.data || {};
+                  const ja = x.r.tipo === 'laudo' ? d.anexoId : d.relatoriosAnexoId;
+                  return <button type="button" class={`chip ${x.marcados.has(id) ? 'on' : ''}`} onClick={() => alternar(i, id)} title={ja ? 'Já tem arquivo: marcar troca o atual' : ''}>{x.marcados.has(id) ? '✓ ' : ''}{rotuloParadigma(p)}{ja ? ' (já tem)' : ''}</button>;
+                })}
+                {!x.r.ids.length && !x.erro && <small class="erro-msg">Não achei o paradigma. Renomeie o arquivo com o código (ex.: M20 - …) ou anexe no próprio paradigma.</small>}
+              </div>
+            </div>
+          ))}
+          <div class="linha-botoes mt">
+            <button type="button" class="primario" disabled={!total} onClick={ligar}>Ligar {total} paradigma(s)</button>
+            <button type="button" class="sec" onClick={() => setItens([])}>Cancelar</button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function Importar() {
   const [msg, setMsg] = useState('');
   const [texto, setTexto] = useState('');
@@ -602,6 +691,7 @@ function Importar() {
         </div>
         {msgBase && <p class={msgBase.startsWith('Erro') ? 'erro-msg' : 'ok-msg'}>{msgBase}</p>}
       </section>
+      <LaudosEmLote />
       <section class="bloco largo destaque">
         <h3>Incluir laudos antigos</h3>
         <ol class="passos">

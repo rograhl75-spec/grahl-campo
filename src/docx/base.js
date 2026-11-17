@@ -936,9 +936,17 @@ export async function apendicesDoCaso(dados) {
     out.push({ letra: LETRAS[out.length] || String(out.length + 1), titulo: 'Fichas dos paradigmas de medição utilizados', fichas: usados });
     // relatórios de cada paradigma: o arquivo próprio de relatórios ou, sem ele, as páginas dos relatórios
     // dentro do laudo de origem (as informadas no paradigma ou as achadas pelo texto do aparelho)
+    const vistos = new Map(); // mesmo arquivo e mesmas páginas em vários paradigmas: um apêndice só
     for (const p of usados) {
       const idArq = p.data.relatoriosAnexoId || p.data.anexoId;
       if (!idArq) continue;
+      const chave = `${idArq}|${p.data.relatoriosAnexoId ? '' : p.data.paginasRelatorios || ''}`;
+      if (vistos.has(chave)) {
+        const ap = vistos.get(chave);
+        ap.cods.push(rotuloParadigma(p));
+        ap.titulo = `Relatórios de medição dos paradigmas ${ap.cods.join(', ')}`;
+        continue;
+      }
       try {
         const reg = await db.records.get(idArq);
         const blob = await obterAnexo(idArq);
@@ -950,7 +958,10 @@ export async function apendicesDoCaso(dados) {
           if (!sel.length) continue; // laudo digitalizado sem texto: informe as páginas no paradigma
         }
         const paginas = await paginasDoArquivo(blob, mime, { paginas: sel });
-        if (paginas.length) out.push({ letra: LETRAS[out.length] || String(out.length + 1), titulo: `Relatórios de medição do paradigma ${rotuloParadigma(p)}`, paginas });
+        if (paginas.length) {
+          const ap = { letra: LETRAS[out.length] || String(out.length + 1), titulo: `Relatórios de medição do paradigma ${rotuloParadigma(p)}`, paginas, cods: [rotuloParadigma(p)] };
+          out.push(ap); vistos.set(chave, ap);
+        }
       } catch (e) { falhas++; }
     }
   }

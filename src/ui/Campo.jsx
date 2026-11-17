@@ -10,7 +10,7 @@ import { CAMPOS_MEDICAO, CAMPOS_MEDICAO_COMUNS, calculados } from '../medicoes.j
 import { confrontoAnexo11 } from '../quimicos.js';
 import { FormaPrev } from './Quimicos.jsx';
 import { fmt } from '../calc.js';
-import { lerGps } from '../photos.js';
+import { lerGpsDetalhado, AJUDA_GPS } from '../photos.js';
 import { promoverMedicao } from '../paradigmas.js';
 import { evidenciasDaDiligencia, aplicarEvidencias } from '../fotosLaudo.js';
 import { TF, Campos, salvar } from './fields.jsx';
@@ -49,10 +49,10 @@ export function Campo({ rec }) {
     pegarGps(n);
   };
   const pegarGps = async (n = 1) => {
-    setGpsMsg('Obtendo localização…');
-    const g = await lerGps(15000);
-    if (g) { await salvar(rec.id, chaveVistoria(n, 'Gps'), g); setGpsMsg(''); }
-    else setGpsMsg('Não foi possível obter o GPS (verifique a permissão de localização).');
+    setGpsMsg('Obtendo localização… (até 35 s em local fechado)');
+    const g = await lerGpsDetalhado();
+    if (g.valor) { await salvar(rec.id, chaveVistoria(n, 'Gps'), g.valor); setGpsMsg(''); }
+    else setGpsMsg(`Não foi possível obter a localização. ${AJUDA_GPS[g.erro] || AJUDA_GPS.indisponivel}`);
   };
   const novoPosto = async () => {
     const ordem = postos.reduce((m, r) => Math.max(m, r.data.ordem || 0), 0) + 1;
@@ -405,7 +405,7 @@ function Diligencia({ rec, iniciar, pegarGps, gpsMsg }) {
       <TF rec={rec} k={k('Endereco')} label="Endereço" />
       <div class="com-botao"><TF rec={rec} k={k('Gps')} label="Coordenadas GPS" />
         <button type="button" class="mini" onClick={() => pegarGps(n)}><Icone nome="pin" /> GPS</button></div>
-      {gpsMsg && <small class="dica">{gpsMsg}</small>}
+      {gpsMsg && <small class={/^Não/.test(gpsMsg) ? "erro-msg" : "dica"} role="status">{gpsMsg}</small>}
       {n === 1 && <HorariosPelasEvidencias rec={rec} />}
       <TF rec={rec} k={k('Presentes')} label="Pessoas presentes (nome – função – quem representa)" area />
       {n === 1 && c.papel === 'Perito do Juízo' && <TF rec={rec} k="vistoriaIntimacao" label='Comunicação da data às partes e aos assistentes (art. 474 do CPC) – ex.: "intimação do evento 52, de 10/10/2026"' />}

@@ -8,6 +8,7 @@ import { dataBR, postosDoPeriodo, nomeCurto } from './base.js';
 import { comJurisprudencia } from './fontes.js';
 import { num } from '../paradigmas.js';
 import { fmt, horasDia as horasCampo, fmtHoras } from '../calc.js';
+import { capitalizarCidades } from '../cidades.js';
 import { valores } from './conclusao.js';
 
 const RE_MOT = /motorista|caminh|carreteir|cobrador|ônibus|onibus|truck|carreta|bitrem|rodotrem|condutor/i;
@@ -103,6 +104,26 @@ export function horasDia(r, dados) {
     .filter((h) => isFinite(h) && h > 0 && h <= 24);
   return hs.length ? Math.max(...hs) : NaN;
 }
+// jornada diária pela entrevista (sem o tempo de condução digitado): "15 h/dia", "05h às 20h"…
+export function jornadaDia(r, dados) {
+  const x = { ...r.data, ...coletado(r, dados) };
+  const txt = `${x.jornadaSemanal || ''} ${x.pausas || ''}`;
+  const hs = [...[...String(txt).matchAll(/(\d{1,2})\s*h(?:oras)?\s*(?:\/|por|ao|diárias)\s*(?:dia)?/gi)].map((m) => Number(m[1])), ...horasDoHorario(txt)]
+    .filter((h) => isFinite(h) && h > 0 && h <= 24);
+  return hs.length ? Math.max(...hs) : NaN;
+}
+// Tempo diário de condução do vínculo: o digitado no vínculo; sem ele, a regra do caso
+// "jornada − horas fora da direção" (ex.: sempre 5 h de carga e descarga). Devolve { T, base, regra }.
+export function tempoConducao(r, dados) {
+  const T = horasCampo(r.data.conducaoH);
+  if (isFinite(T)) return { T, base: v(r.data.conducaoBase), regra: false };
+  const fora = horasCampo((dados && dados.c && dados.c.foraDirecaoH) || '');
+  const J = jornadaDia(r, dados);
+  if (isFinite(fora) && isFinite(J) && J > fora) {
+    return { T: Math.round((J - fora) * 10) / 10, base: `jornada de cerca de ${fmtHoras(J)}/dia informada na entrevista, menos ${fmtHoras(fora)} de carga, descarga e paradas`, regra: true, J };
+  }
+  return { T: NaN, base: '', regra: false, J };
+}
 // a frase conta como fator adverso só se não for negativa ("sem acidentes", "não fazia carga")
 const adv = (re, t) => String(t || '').split(/;\s*|\.\s+/).some((f) => re.test(f) && !/^\s*(sem|n[ãa]o|nunca|nenhum)/i.test(f));
 const UFS = /\b(AC|AL|AP|AM|BA|CE|DF|ES|GO|MA|MT|MS|MG|PA|PB|PR|PE|PI|RJ|RN|RS|RO|RR|SC|SP|SE|TO)\b/g;
@@ -119,13 +140,16 @@ export function matrizIAC(r, dados) {
   const x = { ...r.data, ...coletado(r, dados) };
   const T = horasDia(r, dados);
   const hTxt = isFinite(T) ? String(T).replace('.', ',') : '';
-  const Tc = horasCampo(x.conducaoH);
+  const Tc = tempoConducao(r, dados).T;
   const cTxt = isFinite(Tc) ? String(Tc).replace('.', ',') : hTxt;
   const veic = [x.veiculoTipo, x.veiculoMarca, x.veiculoModelo, x.veiculoAno].filter(Boolean).join(' ') || x.veiculosAvaliados || '';
   const fis = agentesFisicos(r, dados);
   // sem informação apurada, o app só SUGERE (deduzido da jornada); sai marcado para o perito confirmar ou apagar
-  const pressaoSug = !v(x.pressao) && T >= 12;
-  const pausasSug = !v(x.pausas) && T >= 10;
+  // sugestão recusada na lista de pendências (sugPressao/sugPausas = 'recusada') não volta
+  const pressaoSug = !v(x.pressao) && T >= 12 && r.data.sugPressao !== 'recusada';
+  const pausasSug = !v(x.pausas) && T >= 10 && r.data.sugPausas !== 'recusada';
+  const pressaoSugTexto = `jornada de cerca de ${hTxt} h/dia, que indica pressão de prazos e metas de entrega`;
+  const pausasSugTexto = `condução prolongada ao longo de jornada de cerca de ${hTxt} h/dia, com poucas pausas`;
   const pressao = v(x.pressao) || (pressaoSug ? `[[sugestão do app – confirmar: jornada de cerca de ${hTxt} h/dia, que pode indicar pressão de prazos e metas de entrega]]` : '');
   const pausas = v(x.pausas) || (pausasSug ? `[[sugestão do app – confirmar: condução prolongada ao longo de jornada de cerca de ${hTxt} h/dia]]` : '');
   const L = (rot, t) => (v(t) && !soNegativa(t) ? `${rot}: ${v(t).replace(/[.;\s]+$/, '')}` : '');
@@ -139,7 +163,7 @@ export function matrizIAC(r, dados) {
       fonte: fis ? 'Entrevista do autor; vistoria e medições no veículo' : 'Entrevista do autor; vistoria' },
     { id: 'trajetos', titulo: '2. Análise dos trajetos',
       oque: 'Rotas urbanas de trânsito intenso ou rodovias e vias em más condições ou sem pavimentação; localidades de risco de assaltos e violência; estado de alerta e tensão constantes.',
-      linhas: [L('Vias e trajetos', x.vias), interestadual(x.vias) && 'Rotas interestaduais de longa distância, com exigência de alerta constante', L('Risco de acidentes e de violência', x.riscoAcidente),
+      linhas: [L('Vias e trajetos', capitalizarCidades(x.vias)), interestadual(x.vias) && 'Rotas interestaduais de longa distância, com exigência de alerta constante', L('Risco de acidentes e de violência', x.riscoAcidente),
         sim(x.acidenteVinculo) && L('Acidente de trânsito no vínculo', x.acidenteVinculo), sim(x.assaltoVinculo) && L('Assalto / roubo de carga no vínculo', x.assaltoVinculo)].filter(Boolean),
       adverso: adv(RE_VIA, x.vias) || interestadual(x.vias) || adv(RE_RISCO, x.riscoAcidente) || sim(x.acidenteVinculo) || sim(x.assaltoVinculo),
       fonte: 'Entrevista do autor' },
@@ -151,7 +175,7 @@ export function matrizIAC(r, dados) {
       fonte: pressaoSug ? 'Entrevista do autor; [[prazos e metas deduzidos da jornada – confirmar]]' : 'Entrevista do autor' },
     { id: 'jornadas', titulo: '4. Análise das jornadas',
       oque: 'Horários rígidos ou viagens extenuantes que impedem a recuperação; privação de sono; dificuldade de acesso a sanitários, alimentação e locais de descanso.',
-      linhas: [L('Tempo diário de condução', cTxt && `cerca de ${cTxt} h/dia${x.conducaoBase ? ` (${x.conducaoBase})` : ''}`), L('Jornada e horas extras', x.jornadaSemanal),
+      linhas: [L('Tempo diário de condução', cTxt && `cerca de ${cTxt} h/dia${(tempoConducao(r, dados).base || x.conducaoBase) ? ` (${tempoConducao(r, dados).base || x.conducaoBase})` : ''}`), L('Jornada e horas extras', x.jornadaSemanal),
         L('Direção contínua e pausas', pausas), L('Trabalho noturno e pernoites', /^sim\.?$/i.test(v(x.noturnoPernoite)) ? 'sim (pernoite fora de casa)' : x.noturnoPernoite), L('Sanitários, alimentação e descanso', x.fisiologicas)].filter(Boolean),
       adverso: T >= 10 || adv(RE_PERN, x.noturnoPernoite) || sim(x.noturnoPernoite) || adv(RE_PERN, x.jornadaSemanal) || /sem acesso|dif[ií]cil|n[ãa]o (havia|tinha)|precária/i.test(x.fisiologicas || ''),
       fonte: pausasSug ? 'Entrevista do autor; [[pausas deduzidas da jornada – confirmar]]' : 'Entrevista do autor' },
@@ -170,8 +194,9 @@ export function matrizIAC(r, dados) {
       : `Os fatores apurados (${adv.join(', ') || 'nenhum adverso'}) não convergem de forma suficiente para caracterizar, na matriz de fatores adotada nesta perícia, trabalho excepcionalmente penoso.`;
   }
   // conclusão calculada pelo app (contagem de fatores): é proposta, não juízo técnico – sai marcada para revisão
+  const proposta = sugerida ? conclusao : '';
   if (sugerida) conclusao = `[[Proposta do app pela contagem de fatores – confirmar ou redigir no campo "Conclusão técnica da penosidade" do vínculo:]] ${conclusao}`;
-  return { criterios, conclusao, penoso, T, sugerida };
+  return { criterios, conclusao, penoso, T, sugerida, proposta, pressaoSug, pausasSug, pressaoSugTexto, pausasSugTexto };
 }
 
 // numero/nivel: posição do item no documento; tipo: 'laudo' | 'parecer' | 'ltcat'

@@ -3,7 +3,7 @@
 // (ISO 2631-1 de 06/03/1997 a 13/08/2014; NR-15, Anexo 8, a partir de 14/08/2014).
 import { dataBR, postosDoPeriodo, nomeCurto, hojeLocal, superaLimite } from './base.js';
 import { comJurisprudencia } from './fontes.js';
-import { avaliaPenosidade, vinculosMotorista, matrizIAC } from './penosidade.js';
+import { avaliaPenosidade, vinculosMotorista, matrizIAC, tempoConducao } from './penosidade.js';
 import { nenParaJornada, vibracaoDoParadigma } from '../paradigmas.js';
 import { num, fmt, nen, fatorQ, horasDia, fmtHoras, lavgDaDose } from '../calc.js';
 
@@ -26,8 +26,9 @@ function segmentos(r) {
 
 // valores de ruído e VCI do vínculo: paradigma (normalizado para T) ou medição do posto que o representa
 export function valores(r, dados) {
-  const T = horasDia(r.data.conducaoH);
-  const out = { T };
+  const tc = tempoConducao(r, dados);
+  const T = tc.T;
+  const out = { T, baseT: tc.base, regraT: tc.regra };
   const pr = r.data.paradigmaRuido && dados.paradigmas.get(r.data.paradigmaRuido);
   const pv = r.data.paradigmaVibracao && dados.paradigmas.get(r.data.paradigmaVibracao);
   const ids = new Set(postosDoPeriodo(r, dados).map((p) => p.id));
@@ -160,10 +161,10 @@ export function conclusaoPrevidenciaria(d, dados, { tituloQuadro = 'Conclusão p
     const base = [val.fonteR && `ruído pelo ${val.fonteR}`, val.fonteV && `vibração pelo ${val.fonteV}`, isFinite(val.T) && `condução de ${fmtHoras(val.T)}/dia`].filter(Boolean).join(', ');
     if (!partes.length && segs.some((sg) => sg.caracteriza === '[[pendente]]')) { pendentes.push(`${r.data.empresa || 'Vínculo'} (tempo diário de condução)`); continue; }
     if (partes.length) d.texto(`**${r.data.empresa || 'Vínculo'} (${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}):** a avaliação pericial${base ? ` (${base})` : ''} ${partes.join('; e ')}.`);
-    else pendentes.push(r.data.empresa || 'Vínculo');
+    else pendentes.push(`${r.data.empresa || 'Vínculo'}${isFinite(val.T) ? '' : ' (e o tempo diário de condução)'}`);
   }
   // um aviso só para todos os vínculos ainda sem valores (antes, um "Redigir" por vínculo)
-  if (pendentes.length) d.redigir(`conclusão ${pendentes.length === 1 ? 'do vínculo' : 'dos vínculos'} ${pendentes.join('; ')} – sem valores avaliados (vincule o paradigma ou a medição do veículo/posto e informe o tempo diário de condução).`);
+  if (pendentes.length) d.redigir(`conclusão ${pendentes.length === 1 ? 'do vínculo' : 'dos vínculos'} ${pendentes.join('; ')} – sem valores avaliados (vincule o paradigma ou a medição do veículo/posto).`);
   const ruidoSup = av.some(({ segs }) => segs.some((s) => s.itens.some((i) => i.ruido && i.sup)));
   if (ruidoSup && !semEpi && comJurisprudencia(dados)) d.texto('Quanto ao ruído, a eventual declaração de eficácia do EPI (protetor auricular) não descaracteriza o tempo especial (STF, Tema 555 – ARE 664.335).');
   if (semEpi) d.texto('Não foram apresentados registros de fornecimento de EPI nem dos demais requisitos de responsabilidade do empregador (art. 291 da IN 128/2022); assim, não se considera neutralizada a exposição em nenhum dos períodos.');

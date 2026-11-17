@@ -383,3 +383,14 @@ details.recolhido[open] > summary { margin-bottom: 12px; }
 .acomp-marca.ok { background: var(--ok); border-color: var(--ok); }
 .quesito-mao { border-top: 1px solid var(--borda); padding-top: 10px; margin-top: 10px; }
 .quesito-mao p { margin: 0 0 6px; }
+.pendencias { margin-top: 12px; border-top: 2px solid var(--ouro); padding-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+.pend-grupo { border: 1px solid var(--borda); border-radius: 12px; padding: 10px 12px; background: #FAFBFD; display: flex; flex-direction: column; gap: 10px; }
+.pend-grupo-tit { color: var(--azul); }
+.pend-item { border-top: 1px dashed var(--borda); padding-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+.pend-item:first-of-type { border-top: 0; padding-top: 0; }
+.pend-tit { font-weight: 600; }
+.pend-item textarea { width: 100%; font: inherit; border: 1px solid var(--borda); border-radius: 10px; padding: 8px 10px; }
+.pend-previa { margin: 0; padding-left: 18px; color: var(--suave); font-size: .9rem; }
+.pend-marcas ul { margin: 6px 0 0; padding-left: 18px; font-size: .9rem; }
+.regra-caso { max-width: 560px; }
+.grade-docs .doc-aberto { grid-column: 1 / -1; }

@@ -12,7 +12,8 @@ import {
 } from './base.js';
 import { Doc } from './ooxml.js';
 import { avaliarPeriodos, valores, conclusaoPrevidenciaria } from './conclusao.js';
-import { matrizIAC } from './penosidade.js';
+import { matrizIAC, tempoConducao } from './penosidade.js';
+import { capitalizarCidades } from '../cidades.js';
 import { comJurisprudencia, registroJurisprudencia, secaoReferencias } from './fontes.js';
 import { contratanteDe } from './modelos.js';
 import { citacaoDe, rotuloParadigma, sugerirParaVinculo, fichaPesquisaTexto } from '../paradigmas.js';
@@ -43,7 +44,7 @@ function fontesDaProva(r, dados, val) {
   }
   if (!out.length && (val.fonteR || val.fonteV)) out.push([val.fonteR && `Ruído: medição no veículo/posto ${val.fonteR}`, val.fonteV && `Vibração: medição em ${val.fonteV}`].filter(Boolean).join('\n'));
   // sem paradigma no banco: ficha para o signatário pesquisar nos seus laudos e incluir o paradigma
-  if (!out.length) out.push(`[[PESQUISAR PARADIGMA – sem paradigma no banco para este vínculo. ${fichaPesquisaTexto(r, r._familia)}. Inclua em Bases técnicas → Veículos → Importar / exportar e vincule em 2. Autos.]]`);
+  if (!out.length) out.push(`[[PESQUISAR PARADIGMA – sem paradigma no banco para este vínculo. ${fichaPesquisaTexto(isFinite(val.T) && !v(r.data.conducaoH) ? { ...r, data: { ...r.data, conducaoH: String(val.T) } } : r, r._familia)}. Inclua em Bases técnicas → Veículos → Importar / exportar e vincule em 2. Autos.]]`);
   return out.join('\n');
 }
 
@@ -179,8 +180,8 @@ export async function parecerPenosidade(caseId) {
       ['Empresa e documentos', [v(x.empresa), x.cnpj && `CNPJ ${x.cnpj}`, v(x.fonte) && `Fonte: ${v(x.fonte)}`].filter(Boolean).join('\n')],
       ['Função e veículo', [limpo(x.cargo), veiculo(r)].filter(Boolean).join(' – ') || '[[função e veículo]]'],
       ['Grupo do veículo', v(x.grupoVeiculo) || '[[grupo do veículo]]'],
-      ['Carga e trajetos', [x.carroceria && `Carroceria/reboque: ${limpo(x.carroceria)}`, x.tipoCarga && `Carga: ${limpo(x.tipoCarga)}`, x.vias && `Trajetos: ${limpo(x.vias)}`].filter(Boolean).join('\n') || '[[carga e trajetos]]'],
-      ['Jornada e pernoite', [x.conducaoH && (isFinite(horasCampo(x.conducaoH)) ? `Condução: cerca de ${fmtHoras(horasCampo(x.conducaoH))}/dia${x.conducaoBase ? ` (${x.conducaoBase})` : ''}` : `Condução: ${x.conducaoH} [[informe um número de horas por dia]]`), x.jornadaSemanal && `Jornada: ${x.jornadaSemanal}`, x.noturnoPernoite && `Pernoite: ${x.noturnoPernoite}`].filter(Boolean).join('\n') || '[[jornada]]'],
+      ['Carga e trajetos', [x.carroceria && `Carroceria/reboque: ${limpo(x.carroceria)}`, x.tipoCarga && `Carga: ${limpo(x.tipoCarga)}`, x.vias && `Trajetos: ${capitalizarCidades(limpo(x.vias))}`].filter(Boolean).join('\n') || '[[carga e trajetos]]'],
+      ['Jornada e pernoite', [(() => { const tc = tempoConducao(r, dados); if (isFinite(tc.T)) return `Condução: cerca de ${fmtHoras(tc.T)}/dia${tc.base ? ` (${tc.base})` : ''}`; return x.conducaoH ? `Condução: ${x.conducaoH} [[informe um número de horas por dia]]` : ''; })(), x.jornadaSemanal && `Jornada: ${x.jornadaSemanal}`, x.noturnoPernoite && `Pernoite: ${x.noturnoPernoite}`].filter(Boolean).join('\n') || '[[jornada]]'],
       ['Penosidade – fatores apurados', penosidadeDoVinculo(r, dados, m)],
       ['Ruído', ruido], ['Vibração de corpo inteiro', vib], ['Fonte da prova', fonte], ['Enquadramento técnico', enq]],
     // quadros em sequência: o quadro do vínculo pode continuar na página seguinte (não pula página inteira)

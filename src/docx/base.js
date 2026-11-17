@@ -2,6 +2,7 @@ import { db, caseChildren } from '../db.js';
 import { resumoMedicao, calculados } from '../medicoes.js';
 import { nen, num, fmt, fatorQ, doseJornada, horasDia, fmtHoras } from '../calc.js';
 import { ORIGEM_QUESITO, contextoLegal, ehSuplementar , reuEhInss, localVistoria, vistoriasDoCaso, datasDasVistorias, variasVistorias } from '../schema.js';
+import { tempoConducao } from './penosidade.js';
 import { Doc, p, run, rich, montarDocx, ordinalDia1, FONTES_EMBUTIDAS } from './ooxml.js';
 import { nenParaJornada, certificadoVencido, rotuloParadigma, citacaoDe, num as numP, vibracaoDoParadigma } from '../paradigmas.js';
 
@@ -423,7 +424,7 @@ export function quadroConfrontoRuido(d, dados) {
       const ref = refDo(s.periodo);
       const q = ref ? fatorQ(ref) : 5;
       const q3antes = ref && q === 3 && s.janela.crit === 'Lavg';
-      const val = !ref || q3antes ? NaN : s.janela.crit === 'Lavg' ? num(ref.data.lavg) : nen(ref.data.lavg, isFinite(horasDia(s.periodo.data.conducaoH)) ? horasDia(s.periodo.data.conducaoH) : ref.data.jornada, q);
+      const val = !ref || q3antes ? NaN : s.janela.crit === 'Lavg' ? num(ref.data.lavg) : nen(ref.data.lavg, isFinite(tempoConducao(s.periodo, dados).T) ? tempoConducao(s.periodo, dados).T : ref.data.jornada, q);
       const res = q3antes ? '[[q = 3 não serve antes de 19/11/2003]]' : isFinite(val) ? (superaLimite(val, s.janela.lim) ? 'Supera' : 'Não supera') : '[[medir]]';
       return [`${s.periodo.data.empresa || ''}\n${dataBR(s.ini)} a ${dataBR(s.fim)}`, ref ? nomeP(ref.data.postoId) : '—', s.janela.crit,
         isFinite(val) ? `${fmt(val)} dB(A)` : ref ? '[[valor]]' : '[[vincular posto]]', `${s.janela.lim} dB(A)`, ref ? res : '[[vincular posto ao vínculo]]'];
@@ -708,7 +709,7 @@ export function quadrosParadigmasMetodologia(d, dados) {
   { larguras: [0.35, 0.65], fonte: 'Manual de Aposentadoria Especial do INSS (2017); NHO-09.' });
   d.texto('Até 18/11/2003 o valor comparado ao limite é o Lavg, pois a legislação remetia integralmente ao Anexo 1 da NR-15; a partir de 19/11/2003, somente o NEN, normalizado para a jornada.');
   d.quadro('Tempo de condução adotado por vínculo', [['Vínculo', 'Período', 'T (h/dia)', 'Base da informação'],
-    ...dados.periodos.map((r, i) => [vinculoNome(r, i), per(r), isFinite(horasDia(r.data.conducaoH)) ? fmtHoras(horasDia(r.data.conducaoH)) : r.data.conducaoH ? `[[T: "${r.data.conducaoH}" – informe um número de horas]]` : '[[T]]', r.data.conducaoBase || '[[base da informação]]'])],
+    ...dados.periodos.map((r, i) => [vinculoNome(r, i), per(r), isFinite(tempoConducao(r, dados).T) ? fmtHoras(tempoConducao(r, dados).T) : r.data.conducaoH ? `[[T: "${r.data.conducaoH}" – informe um número de horas]]` : '[[T]]', tempoConducao(r, dados).base || r.data.conducaoBase || '[[base da informação]]'])],
   { larguras: [0.22, 0.2, 0.13, 0.45], alinhar: 'left' });
   const usados = [...new Set(dados.periodos.flatMap((r) => [r.data.paradigmaRuido, r.data.paradigmaVibracao]).filter(Boolean))].map((c) => P.get(c)).filter(Boolean);
   if (usados.length) {
@@ -748,7 +749,7 @@ export function memoriasParadigmas(d, dados, { numero = '' } = {}) {
     if (!r.data.paradigmaRuido) return;
     for (const sp of subperiodosRuido([r])) {
       const lavg = p ? numP(p.data.lavg) : NaN;
-      const T = horasDia(r.data.conducaoH);
+      const T = tempoConducao(r, dados).T;
       const nen = sp.janela.crit === 'NEN' && isFinite(T) ? nenParaJornada(lavg, T) : NaN;
       const valor = sp.janela.crit === 'Lavg' ? lavg : nen;
       const supera = isFinite(valor) ? (superaLimite(valor, sp.janela.lim) ? 'SIM' : 'NÃO') : '[[?]]';
@@ -766,7 +767,7 @@ export function memoriasParadigmas(d, dados, { numero = '' } = {}) {
   dados.periodos.forEach((r, i) => {
     if (!r.data.paradigmaVibracao) return;
     const p = P.get(r.data.paradigmaVibracao);
-    const T = horasDia(r.data.conducaoH);
+    const T = tempoConducao(r, dados).T;
     // a mesma normalização da conclusão (paradigmas.js): arep·√(T/8) ou, sem arep, aren do laudo·√(T/Tlaudo)
     const vb = p ? vibracaoDoParadigma(p, T) : { aren: NaN, vdv: NaN, base: NaN, temArep: true };
     const { aren, vdv } = vb;
@@ -977,7 +978,7 @@ export function descricaoVinculo(d, r, dados, { refVistoria = '' } = {}) {
   } else d.redigir('atividades do vínculo (PPP, descrição do cargo ou entrevista).');
   const veic = [x.veiculoTipo, x.veiculoMarca, x.veiculoModelo, x.veiculoAno].filter(Boolean).join(' ');
   const comp = [veic && `veículo conduzido: ${veic}`, v(x.tipoTransporte) && `transporte: ${minuscula(v(x.tipoTransporte))}`,
-    isFinite(horasDia(x.conducaoH)) && `tempo diário de condução informado: cerca de ${fmtHoras(horasDia(x.conducaoH))}`].filter(Boolean);
+    isFinite(tempoConducao(r, dados).T) && `tempo diário de condução: cerca de ${fmtHoras(tempoConducao(r, dados).T)}${tempoConducao(r, dados).regra ? ` (${tempoConducao(r, dados).base})` : ''}`].filter(Boolean);
   if (comp.length) d.texto(`Informações complementares do vínculo – ${comp.join('; ')}.`);
   const ps = postosDoPeriodo(r, dados);
   if (ps.length) d.texto(`Na perícia, este vínculo é representado ${ps.length > 1 ? 'pelos veículos/postos' : 'pelo veículo/posto'} ${ps.map((p) => nomeCurto(p.data.nome)).join('; ')}${refVistoria ? `, descrito${ps.length > 1 ? 's' : ''} no item ${refVistoria}` : ''}.`);

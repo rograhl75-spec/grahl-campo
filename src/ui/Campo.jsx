@@ -500,7 +500,14 @@ function AudioVistoria({ rec, n }) {
   const pararDitado = () => { dit?.parar(); setDit(null); setParcial(''); avisarAlteracao(); };
 
   const ouvir = async (a) => {
-    try { const u = URL.createObjectURL(await obterAnexo(a.id)); setUrls((x) => ({ ...x, [a.id]: u })); } catch (err) { setMsg(err.message); }
+    try { const u = URL.createObjectURL(await obterAnexo(a.id)); setUrls((x) => ({ ...x, [a.id]: u })); } catch (err) {
+      // o arquivo ainda não está na nuvem: ficou no aparelho em que foi gravado
+      if (/object-not-found/.test(String(err.code || err.message))) {
+        setMsg(a.data.nuvem === 'recusado'
+          ? 'Este áudio não subiu para a nuvem: as regras do Firebase Storage recusaram o arquivo de áudio. Publique as regras novas (firebase/storage.rules) e, no aparelho em que ele foi gravado, toque em "Sincronizar agora". Até lá, ele só toca nesse aparelho.'
+          : 'Este áudio ainda não chegou à nuvem: está no aparelho em que foi gravado, aguardando envio. Abra o app nesse aparelho com internet (Configurações → Nuvem → "Sincronizar agora") e tente de novo.');
+      } else setMsg(err.message || String(err));
+    }
   };
   const remover = async (a) => {
     if (!await confirmar(`Mover o áudio "${a.data.nome}" para a lixeira?`)) return;
@@ -521,7 +528,7 @@ function AudioVistoria({ rec, n }) {
       {msg && <small class="dica">{msg}</small>}
       {audios.map((a) => (
         <div class="audio-item" key={a.id}>
-          <span>{a.data.inicioGravacao ? `${a.data.inicioGravacao} · ` : ''}{a.data.duracaoSeg ? mmss(a.data.duracaoSeg) : ''} · {String((Number(a.data.tamanho || 0) / 1048576).toFixed(1)).replace('.', ',')} MB{a.data.soLocal ? ' · só neste aparelho' : ''}</span>
+          <span>{a.data.inicioGravacao ? `${a.data.inicioGravacao} · ` : ''}{a.data.duracaoSeg ? mmss(a.data.duracaoSeg) : ''} · {String((Number(a.data.tamanho || 0) / 1048576).toFixed(1)).replace('.', ',')} MB{a.data.soLocal ? ' · só no aparelho em que foi gravado' : a.data.nuvem === 'recusado' ? ' · não subiu (regras do Storage)' : ''}</span>
           {urls[a.id] ? <audio controls src={urls[a.id]} preload="metadata" /> : <button type="button" class="mini" onClick={() => ouvir(a)}>▶ Ouvir</button>}
           <button type="button" class="mini perigo" onClick={() => remover(a)}>✕</button>
         </div>

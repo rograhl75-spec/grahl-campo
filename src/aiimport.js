@@ -484,6 +484,24 @@ export async function textoDoCaso(caseId) {
     for (const [k, r] of CAMPOS_ACIDENTE) campo(r, c[k]);
   }
   if (periodos.length) { L.push('\n## Períodos'); periodos.forEach((p) => L.push(`- ${p.data.empresa || ''} (${p.data.cnpj || ''}) – ${p.data.inicio || '?'} a ${p.data.fim || 'atual'} – ${p.data.cargo || ''} / ${p.data.setor || ''}. Atividades: ${p.data.atividades || ''}. Agentes: ${p.data.agentes || ''}. Fonte: ${p.data.fonte || ''}${['tipoTransporte', 'jornadaSemanal', 'pausas', 'noturnoPernoite', 'cargaDescarga', 'vias', 'cabine', 'riscoAcidente', 'pressao', 'penosidadeConclusao', 'grupoVeiculo', 'carroceria', 'tipoCarga', 'carregaDescarrega', 'abastecimento', 'acidenteVinculo', 'assaltoVinculo'].filter((k) => p.data[k]).map((k) => `. ${k}: ${p.data[k]}`).join('')}`)); }
+  // regras do caso e o que o app já adota por vínculo (tempo de condução, conclusão da penosidade): o Claude usa o mesmo
+  if (periodos.length) {
+    const [{ carregar }, pen, { capitalizarCidades }] = await Promise.all([import('./docx/base.js'), import('./docx/penosidade.js'), import('./cidades.js')]);
+    const dados = await carregar(caseId);
+    const vincs = pen.vinculosMotorista(dados);
+    if (vincs.length) {
+      L.push('\n## Regras do caso e valores adotados por vínculo (use exatamente estes)');
+      if (String(c.foraDirecaoH || '').trim()) L.push(`- Regra do caso – horas por dia fora da direção (carga, descarga, paradas): ${c.foraDirecaoH}`);
+      if (String(c.conducaoPadraoH || '').trim()) L.push(`- Condução padrão para vínculos sem jornada na entrevista: ${c.conducaoPadraoH} h/dia`);
+      for (const r of vincs) {
+        const tc = pen.tempoConducao(r, dados);
+        const esc = String(r.data.penosidadeResultado || '');
+        const conc = String(r.data.penosidadeConclusao || '').trim() || (/^(sim|n[ãa]o)/i.test(esc) ? pen.textoPadraoPenosidade(/^sim/i.test(esc), dados.perfil) : '');
+        L.push(`- ${r.data.empresa || 'Vínculo'} (${r.data.inicio || '?'} a ${r.data.fim || 'atual'}): tempo diário de condução ${isFinite(tc.T) ? `${String(tc.T).replace('.', ',')} h${tc.base ? ` (${tc.base})` : ''}` : '[[pendente]]'}`
+          + `${r.data.vias ? `; trajetos: ${capitalizarCidades(r.data.vias)}` : ''}${conc ? `; conclusão da penosidade adotada: "${conc}"` : '; conclusão da penosidade: [[escolher Sim ou Não]]'}`);
+      }
+    }
+  }
   const comPar = periodos.filter((p) => p.data.paradigmaRuido || p.data.paradigmaVibracao || p.data.veiculoModelo);
   if (comPar.length) {
     const pars = new Map((await db.records.where('kind').equals('paradigma').toArray()).filter((r) => !r.deleted).map((r) => [r.data.codigo, r.data]));

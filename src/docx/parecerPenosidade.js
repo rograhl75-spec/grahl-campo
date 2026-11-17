@@ -238,6 +238,7 @@ const PERGUNTAS_ENTREVISTA = [
   ['Trajetos (cidades e UFs, estradas ruins, áreas de risco)', (x) => x.vias],
   ['Pernoite (cabine, hotel, casa) e dias fora de casa', (x) => x.noturnoPernoite],
   ['Jornada (horário de saída e chegada, dias da semana)', (x) => x.jornadaSemanal],
+  ['Horas por dia de carga, descarga e paradas (fora da direção)', (x) => x.cargaDescarga],
   ['Horas de direção por dia e pausas', (x) => [x.conducaoH && (isFinite(horasCampo(x.conducaoH)) ? fmtHoras(horasCampo(x.conducaoH)) : x.conducaoH), x.pausas].map(v).filter(Boolean).join(' – ')],
   ['Prazos e metas de entrega', (x) => x.pressao],
   ['Acesso a sanitários, alimentação e descanso', (x) => x.fisiologicas],

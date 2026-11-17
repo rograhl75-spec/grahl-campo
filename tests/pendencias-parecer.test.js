@@ -92,3 +92,24 @@ describe('regra do caso, pendências antes de gerar e cidades', () => {
       .toBe('Londrina/PR - São José dos Pinhais e Foz do Iguaçu, serra do mar, br 277');
   });
 });
+
+describe('as mesmas regras em outros documentos', () => {
+  it('laudo trabalhista: pendências de quesitos e diligência, sem perguntas de motorista', async () => {
+    await db.records.put({ id: 'trab', kind: 'caso', caseId: null, ts: {}, data: { tipoAtuacao: 'Judicial', papel: 'Perito do Juízo', justica: 'Justiça do Trabalho', materia: 'Trabalhista', objeto: ['Insalubridade'], vistoriaData: '2026-09-01' } });
+    await db.records.put({ id: 'trab-p', kind: 'periodo', caseId: 'trab', ts: {}, createdAt: 1, data: { empresa: 'Empresa X', inicio: '2020-01-01', cargo: 'Auxiliar de produção' } });
+    await db.records.put({ id: 'trab-q1', kind: 'quesito', caseId: 'trab', ts: {}, createdAt: 2, data: { origem: 'Juízo', numero: '1', texto: 'Havia exposição a ruído?' } });
+    await db.records.put({ id: 'trab-q2', kind: 'quesito', caseId: 'trab', ts: {}, createdAt: 3, data: { origem: 'Juízo', numero: '2', texto: 'Qual o nível?', resposta: '88 dB(A).' } });
+    const itens = await pendenciasDoCaso('trab');
+    expect(itens.map((i) => i.id)).toEqual(['intimacao', 'presentes', 'q-trab-q1']);
+    expect(itens.find((i) => i.id === 'q-trab-q1').explicacao).toBe('Havia exposição a ruído?');
+  });
+  it('o texto para o Claude leva a regra do caso, o tempo adotado, a conclusão escolhida e as cidades corrigidas', async () => {
+    const { textoDoCaso } = await import('../src/aiimport.js');
+    const { texto: t } = await textoDoCaso(CASO);
+    expect(t).toContain('Regras do caso e valores adotados por vínculo');
+    expect(t).toContain('tempo diário de condução 10 h');
+    expect(t).toContain('conclusão da penosidade adotada: "Pela convergência cumulativa');
+    expect(t).toContain('Cambé para Paiçandu, Cornélio Procópio, Maringá');
+    expect(t).toContain('nesta avaliação');
+  });
+});

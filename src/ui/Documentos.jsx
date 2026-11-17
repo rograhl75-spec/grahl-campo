@@ -351,7 +351,7 @@ function ItemPendencia({ it, responder }) {
         <>
           <textarea rows={it.tipo === 'texto' ? 4 : 2} value={txt} onInput={(e) => setTxt(e.currentTarget.value)} />
           <div class="linha-botoes">
-            <button type="button" class="mini" onClick={salvarTxt}>{it.tipo === 'texto' ? 'Adotar este texto' : 'Confirmar'}</button>
+            <button type="button" class="mini" onClick={salvarTxt}>{it.tipo === 'texto' ? (it.sugestao ? 'Adotar este texto' : 'Salvar') : 'Confirmar'}</button>
             {it.recusa && <button type="button" class="mini perigo" onClick={() => responder(it.rec, it.recusa.campo, it.recusa.valor)}>Não se aplica</button>}
           </div>
         </>

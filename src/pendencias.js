@@ -17,7 +17,8 @@ const nomeVinculo = (r, i) => `V${i + 1} – ${String(r.data.empresa || 'víncul
 export async function pendenciasDoCaso(caseId) {
   const dados = await carregar(caseId);
   const { c } = dados;
-  const vincs = vinculosMotorista(dados).length ? vinculosMotorista(dados) : dados.periodos;
+  // só os vínculos de motorista/operador têm condução, paradigma e penosidade
+  const vincs = vinculosMotorista(dados);
   const itens = [];
   const idx = new Map(dados.periodos.map((r, i) => [r.id, i]));
 
@@ -88,6 +89,24 @@ export async function pendenciasDoCaso(caseId) {
         explicacao: `A contagem de fatores indica ${m.indicacao ? 'SIM' : 'NÃO'} (${m.nAdv} de 4 critérios com fatores de desgaste: veículo, trajetos, cargas, jornadas). Escolha o texto padrão; para um texto próprio, use o campo do vínculo.` });
     }
   }
+  // diligência: dados que saem no registro e no laudo
+  const perito = /Perito do Juízo/i.test(c.papel || '');
+  if (perito && c.vistoriaData && !String(c.vistoriaIntimacao || '').trim()) {
+    itens.push({ id: 'intimacao', grupo: 'Diligência', rec: caseId, campo: 'vistoriaIntimacao', tipo: 'texto', valor: '',
+      titulo: 'Comunicação da data às partes e aos assistentes (art. 474 do CPC)', explicacao: 'Ex.: intimação do evento 52, de 10/10/2026.' });
+  }
+  if (c.vistoriaData && !String(c.vistoriaPresentes || '').trim()) {
+    itens.push({ id: 'presentes', grupo: 'Diligência', rec: caseId, campo: 'vistoriaPresentes', tipo: 'texto', valor: '',
+      titulo: 'Pessoas presentes na vistoria', explicacao: 'Uma por linha: nome – função – quem representa.' });
+  }
+  // quesitos sem resposta: responder aqui mesmo (o texto do quesito aparece acima do campo)
+  const ordemOrigem = (o) => ['Juízo', 'Autor / Reclamante', 'Réu / Reclamada', 'INSS', 'Complementares'].indexOf(o);
+  for (const q of [...dados.quesitos].sort((a, b) => ordemOrigem(a.data.origem) - ordemOrigem(b.data.origem) || (Number(a.data.numero) || 0) - (Number(b.data.numero) || 0))) {
+    if (String(q.data.resposta || '').trim()) continue;
+    itens.push({ id: `q-${q.id}`, grupo: 'Quesitos sem resposta', rec: q.id, campo: 'resposta', tipo: 'texto', valor: '',
+      titulo: `${q.data.origem || 'Quesito'}${q.data.numero ? ` – ${q.data.numero}` : ''}`, explicacao: String(q.data.texto || '').slice(0, 600) });
+  }
+
   // a mesma conclusão para todos os vínculos de uma vez
   if (conclusoes.length > 1) {
     itens.splice(itens.findIndex((it) => it.grupo !== 'Regra do caso') === -1 ? itens.length : itens.findIndex((it) => it.grupo !== 'Regra do caso'), 0, {

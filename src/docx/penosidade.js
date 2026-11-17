@@ -256,8 +256,8 @@ export function secaoPenosidade(d, dados, { numero = '', nivel = 'h2', tipo = 'l
 
 // Textos padrão da conclusão de penosidade (Sim / Não): os mesmos para todos os vínculos; o signatário pode
 // trocá-los em Meus dados (penosidadeTextoSim / penosidadeTextoNao)
-export const PENOSIDADE_TEXTO_SIM = 'Pela convergência cumulativa dos fatores de desgaste apurados na entrevista e na avaliação do veículo (veículo, trajetos, cargas e jornadas), na matriz de fatores adotada neste parecer, a atividade foi exercida em condições excepcionalmente penosas, com exposição habitual e permanente a condições concretas de desgaste físico e mental à saúde.';
-export const PENOSIDADE_TEXTO_NAO = 'Os fatores apurados na entrevista e na avaliação do veículo não convergem de forma suficiente para caracterizar, na matriz de fatores adotada neste parecer, trabalho excepcionalmente penoso.';
+export const PENOSIDADE_TEXTO_SIM = 'Pela convergência cumulativa dos fatores de desgaste apurados na entrevista e na avaliação do veículo (veículo, trajetos, cargas e jornadas), na matriz de fatores adotada nesta avaliação, a atividade foi exercida em condições excepcionalmente penosas, com exposição habitual e permanente a condições concretas de desgaste físico e mental à saúde.';
+export const PENOSIDADE_TEXTO_NAO = 'Os fatores apurados na entrevista e na avaliação do veículo não convergem de forma suficiente para caracterizar, na matriz de fatores adotada nesta avaliação, trabalho excepcionalmente penoso.';
 export function textoPadraoPenosidade(sim, perfil = {}) {
   const t = sim ? perfil.penosidadeTextoSim : perfil.penosidadeTextoNao;
   return v(t) || (sim ? PENOSIDADE_TEXTO_SIM : PENOSIDADE_TEXTO_NAO);

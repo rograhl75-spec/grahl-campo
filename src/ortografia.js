@@ -17,7 +17,9 @@ perecivel:perecível pereciveis:perecíveis quimicos:químicos quimico:químico 
 saude:saúde critico:crítico critica:crítica unico:único unica:única basico:básico pratico:prático sanitario:sanitário sanitarios:sanitários
 condicoes:condições pressao:pressão tensao:tensão extensao:extensão excessao:exceção vibracao:vibração ruido:ruído ruidos:ruídos
 carroceria:carroceria bitrem:bitrem rodotrem:rodotrem graneleiro:graneleiro graneleira:graneleira bau-frigorifico:baú-frigorífico
-caloré:Kaloré calore:Kaloré`;
+caloré:Kaloré calore:Kaloré
+goncalves:gonçalves sao:são joao:joão conceicao:conceição assuncao:assunção comercio:comércio industria:indústria logistica:logística
+distribuidora:distribuidora panificadora:panificadora agricola:agrícola agropecuaria:agropecuária metalurgica:metalúrgica ceramica:cerâmica`;
 const MAPA = new Map(PALAVRAS.split(/\s+/).filter(Boolean).map((p) => p.split(':')));
 
 const casoDe = (orig, nova) => {
@@ -57,7 +59,10 @@ export function semInstrucoes(texto) {
 const PROTEGIDOS = /nome|empresa|cnpj|cpf|numero|processo|email|telefone|url|arquivo|^id$|Id$|codigo|placa|cid$|juizo|vara|oab/i;
 const HORAS = /H$|horas|jornadaDia|^T$/;
 export function revisarCampo(chave, valor) {
-  if (typeof valor !== 'string' || !valor.trim() || PROTEGIDOS.test(chave)) return valor;
+  if (typeof valor !== 'string' || !valor.trim()) return valor;
+  // razão social: só os acentos (SERVICOS → SERVIÇOS, GONCALVES → GONÇALVES); o resto fica como registrado
+  if (/^(empresa|razaoSocial|contratante)$/i.test(chave)) return acentuar(valor);
+  if (PROTEGIDOS.test(chave)) return valor;
   const t = HORAS.test(chave) ? valor : semInstrucoes(valor);
   return acentuar(t);
 }

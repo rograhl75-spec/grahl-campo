@@ -1,5 +1,6 @@
 import { db, caseChildren } from '../db.js';
 import { revisarCampo } from '../ortografia.js';
+import { herdarDoAnterior } from '../heranca.js';
 import { resumoMedicao, calculados } from '../medicoes.js';
 import { nen, num, fmt, fatorQ, doseJornada, horasDia, fmtHoras } from '../calc.js';
 import { ORIGEM_QUESITO, contextoLegal, ehSuplementar , reuEhInss, localVistoria, vistoriasDoCaso, datasDasVistorias, variasVistorias } from '../schema.js';
@@ -57,7 +58,16 @@ export function limpaRefsPdf(t) {
     .replace(/[ \t]+([,;.)])/g, '$1').replace(/([,;])\s*([,;])/g, '$1').replace(/[ \t]{2,}/g, ' ').trim();
 }
 // também revisa o texto digitado: acentos, crase em horários e linhas de instrução ao app (src/ortografia.js)
-const limpaDados = (o) => Object.fromEntries(Object.entries(o || {}).map(([k, val]) => [k, revisarCampo(k, limpaRefsPdf(val))]));
+const limpaDados = (o) => {
+  const out = {};
+  for (const [k, val] of Object.entries(o || {})) {
+    const novo = revisarCampo(k, limpaRefsPdf(val));
+    out[k] = novo;
+    // o campo tinha só instruções ao app: fica vazio no texto, mas conta como respondido
+    if (typeof val === 'string' && val.trim() && typeof novo === 'string' && !novo.trim()) out[`${k}Instrucao`] = val;
+  }
+  return out;
+};
 
 export async function carregar(caseId) {
   const caso = await db.records.get(caseId);
@@ -88,7 +98,7 @@ export async function carregar(caseId) {
   }
   // referências internas aos arquivos PDF (Parte N, p. X) e datas ISO no meio do texto não vão para o documento
   const limpa = (lst) => lst.map((r) => ({ ...r, data: limpaDados(r.data) }));
-  const dados = { id: caseId, c: limpaDados(caso.data), quesitos: limpa(quesitos), periodos: limpa(pers), documentos: limpa(documentos), epis, postos: limpa(psts), medicoes: meds, fotos, equipamentos, perfil, paradigmas, quimicos,
+  const dados = { id: caseId, c: limpaDados(caso.data), quesitos: limpa(quesitos), periodos: limpa(herdarDoAnterior(pers)), documentos: limpa(documentos), epis, postos: limpa(psts), medicoes: meds, fotos, equipamentos, perfil, paradigmas, quimicos,
     regraCertMeses: Number((cfgPar && cfgPar.data.regraCertMeses) || 24) };
   // ordem cronológica: cada posto/veículo vai para a posição do primeiro vínculo que representa
   const ordemP = new Map(dados.postos.map((ps) => [ps.id, (periodosDoPosto(ps, dados)[0] || {}).data?.inicio || '9999']));

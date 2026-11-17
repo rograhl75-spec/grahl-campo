@@ -154,11 +154,13 @@ export function matrizIAC(r, dados) {
   // sem informação apurada, o app só SUGERE (deduzido da jornada); sai marcado para o perito confirmar ou apagar
   // sugestão recusada na lista de pendências (sugPressao/sugPausas = 'recusada') não volta
   const pressaoSug = !v(x.pressao) && T >= 12 && r.data.sugPressao !== 'recusada';
-  const pausasSug = !v(x.pausas) && T >= 10 && r.data.sugPausas !== 'recusada';
+  // pausas respondidas com uma instrução ("utilizar sempre 10 horas de condução…"): vale a dedução pela jornada, sem marca
+  const pausasPorInstrucao = !v(x.pausas) && !!v(x.pausasInstrucao) && T >= 10;
+  const pausasSug = !v(x.pausas) && !pausasPorInstrucao && T >= 10 && r.data.sugPausas !== 'recusada';
   const pressaoSugTexto = `jornada de cerca de ${hTxt} h/dia, que indica pressão de prazos e metas de entrega`;
   const pausasSugTexto = `condução prolongada ao longo de jornada de cerca de ${hTxt} h/dia, com poucas pausas`;
   const pressao = v(x.pressao) || (pressaoSug ? `[[sugestão do app – confirmar: jornada de cerca de ${hTxt} h/dia, que pode indicar pressão de prazos e metas de entrega]]` : '');
-  const pausas = v(x.pausas) || (pausasSug ? `[[sugestão do app – confirmar: condução prolongada ao longo de jornada de cerca de ${hTxt} h/dia]]` : '');
+  const pausas = v(x.pausas) || (pausasPorInstrucao ? `condução prolongada ao longo de jornada de cerca de ${hTxt} h/dia, com poucas pausas` : '') || (pausasSug ? `[[sugestão do app – confirmar: condução prolongada ao longo de jornada de cerca de ${hTxt} h/dia]]` : '');
   const L = (rot, t) => (v(t) && !soNegativa(t) ? `${rot}: ${v(t).replace(/[.;\s]+$/, '')}` : '');
   // "Carga, descarga e esperas" que só repete o "carregava/descarregava" da entrevista não sai duas vezes
   const cargaRepetida = v(x.cargaDescarga) && (normT(x.cargaDescarga) === normT(x.carregaDescarrega) || /^(carregava|descarregava|sim)\b/i.test(normT(x.cargaDescarga).replace(/^carregava descarregava /, '')) && sim(x.carregaDescarrega));

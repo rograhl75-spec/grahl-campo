@@ -230,7 +230,7 @@ export async function laudoAcidente(caseId) {
   ];
   d.texto(refs.join('\n'), { recuo: false });
   if (lista.length) { d.h1('', 'Anexo I – Relatório fotográfico'); d.figuras(lista); }
-  inserirApendices(d, apendices);
+  inserirApendices(d, apendices, dados);
   const r = await finalizar(d, { titulo: 'Laudo técnico de acidente do trabalho', arquivo: 'Laudo_acidente', c });
   return { ...r, faltando, falhasApendice };
 }

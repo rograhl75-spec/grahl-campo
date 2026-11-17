@@ -128,3 +128,47 @@ describe('as mesmas regras em outros documentos', () => {
     expect(t).toContain('nesta avaliação');
   });
 });
+
+describe('parecer: coerência e anexos', () => {
+  it('penosidade caracterizada com agentes abaixo do limite: resultado SIM pela penosidade na matriz, no vínculo e na conclusão', async () => {
+    const r = await parecerPenosidade(CASO);
+    const zip = await JSZip.loadAsync(await r.blob.arrayBuffer());
+    const xml = await zip.file('word/document.xml').async('string');
+    const t = xml.replace(/<w:tab\/>/g, ' ').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ');
+    expect(t).toContain('Resultado técnico');
+    expect(t).toMatch(/SIM – (penosidade|agentes nocivos e penosidade)/);
+    // fichas dos paradigmas usados, como apêndice
+    expect(t).toMatch(/Apêndice [A-Z] – Fichas dos paradigmas de medição utilizados/);
+    expect(t).toContain('Ficha do paradigma M77');
+    // equações em Office Math (não texto)
+    expect(xml).toContain('<m:oMath>');
+    expect(xml).toContain('<m:rad>');
+    expect(t).not.toContain('VDVR(laudo) · (T / Tlaudo)^0,25');
+    // cada vínculo começa em página nova
+    const vinc = xml.match(/<w:p><w:pPr><w:pStyle w:val="Ttulo2"\/><w:keepNext\/><w:pageBreakBefore\/>/g) || [];
+    expect(vinc.length).toBeGreaterThanOrEqual(3);
+    // idioma português em todo o texto (revisão ortográfica certa)
+    expect(xml).toContain('<w:lang w:val="pt-BR"/>');
+    // matriz: o código do agente fica em "Agentes nocivos" (antes de "Penosidade") e a penosidade depois
+    const mat = t.slice(t.lastIndexOf('Matriz de agentes, penosidade'));
+    expect(mat).toMatch(/SIM \(2\.0\.1; 2\.0\.2\)\s*caracterizada/);
+    expect(mat).toContain('não se aplica (antes de 29/04/1995)');
+  });
+});
+
+describe('relatórios de medição no laudo de origem', () => {
+  it('lê e escreve faixas de páginas', async () => {
+    const { lerFaixaPaginas, faixaDePaginas } = await import('../src/apendices.js');
+    expect(lerFaixaPaginas('45-48, 52; 50 a 51')).toEqual([45, 46, 47, 48, 52, 50, 51]);
+    expect(faixaDePaginas([52, 45, 46, 47, 50])).toBe('45-47, 50, 52');
+    expect(lerFaixaPaginas('')).toEqual([]);
+  });
+  it('acha as páginas do medidor no final do laudo, com continuações', async () => {
+    const { paginasDeRelatorio } = await import('../src/apendices.js');
+    const corpo = 'O perito avaliou o ruído conforme a NHO 01. Configuração de medição descrita no item 4.';
+    const rel = 'Configuração de medição Resultados da avaliação Funcionário Avaliado Data da avaliação Tempo avaliação Taxa de troca 5 Instrutherm NS: 1234';
+    const leit = Array.from({ length: 20 }, (_, i) => `10:${String(i).padStart(2, '0')} 85,${i} dBA`).join(' ');
+    const textos = [rel, ...Array(10).fill(corpo), rel, leit, corpo, rel];
+    expect(paginasDeRelatorio(textos)).toEqual([12, 13, 15]); // a 1ª (antes de 40%) é ignorada
+  });
+});

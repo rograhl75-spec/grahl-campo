@@ -51,6 +51,9 @@ export function veiculoParaDados(v) {
     calibEquip: s(ic.equipamento), calibSerie: s(ic.serie), calibCertData: s(ic.data_certificado),
     vibEquip: s(iv.equipamento), vibSerie: s(iv.serie), vibCert: s(iv.certificado), vibCertData: s(iv.data_certificado),
     situacao: s(v.situacao) || 'OK', servePara: s(v.serve_de_paradigma_para), observacoes: s(v.observacoes),
+    // laudo de origem já guardado no app e as páginas dos relatórios do medidor nele
+    ...(s((v.laudo_de_origem || {}).anexo_id) ? { anexoId: s(v.laudo_de_origem.anexo_id) } : {}),
+    ...(s((v.laudo_de_origem || {}).paginas_relatorios) ? { paginasRelatorios: s(v.laudo_de_origem.paginas_relatorios) } : {}),
   };
 }
 
@@ -73,7 +76,7 @@ export function dadosParaVeiculo(d, { anexoNome = '' } = {}) {
       vibracao: { equipamento: tx(d.vibEquip), serie: tx(d.vibSerie), certificado: tx(d.vibCert), data_certificado: tx(d.vibCertData) },
     },
     ...(d.categoriaMaquina ? { maquina: { categoria: tx(d.categoriaMaquina), origem: tx(d.origemDado), operacao: tx(d.operacao), implemento: tx(d.implemento), referencia: tx(d.referencia) } } : {}),
-    laudo_de_origem: anexoNome ? { anexo_id: d.anexoId, arquivo: anexoNome } : null,
+    laudo_de_origem: anexoNome ? { anexo_id: d.anexoId, arquivo: anexoNome, ...(d.paginasRelatorios ? { paginas_relatorios: d.paginasRelatorios } : {}) } : null,
   };
 }
 export async function exportarBaseJson() {

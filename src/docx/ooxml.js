@@ -31,12 +31,12 @@ export function esc(s) {
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g, '');
 }
 
-function rPr({ b, i, size = 12, color, caps, hl, sup, tit } = {}) {
+function rPr({ b, i, size = 12, color, caps, hl, sup, tit, np } = {}) {
   const F = tit ? FONTE_TITULO : FONTE;
-  return `<w:rPr><w:rFonts w:ascii="${F}" w:hAnsi="${F}" w:cs="${F}" w:eastAsia="${F}"/>` +
+  return `<w:rPr><w:rFonts w:ascii="${F}" w:hAnsi="${F}" w:cs="${F}" w:eastAsia="${F}"/>` + (np ? '<w:noProof/>' : '') +
     (b ? '<w:b/><w:bCs/>' : '') + (i ? '<w:i/><w:iCs/>' : '') + (caps ? '<w:caps/>' : '') +
     (color ? `<w:color w:val="${color}"/>` : '') + `<w:sz w:val="${Math.round(size * 2)}"/><w:szCs w:val="${Math.round(size * 2)}"/>` +
-    (hl ? '<w:highlight w:val="yellow"/>' : '') + (sup ? '<w:vertAlign w:val="superscript"/>' : '') + '</w:rPr>';
+    (hl ? '<w:highlight w:val="yellow"/>' : '') + (sup ? '<w:vertAlign w:val="superscript"/>' : '') + '<w:lang w:val="pt-BR"/></w:rPr>';
 }
 
 // unidade do VDV (m/s elevado a 1,75), escrita de várias formas nos textos, sai sempre com o expoente sobrescrito
@@ -70,6 +70,19 @@ export function rich(text, base = {}) {
   if (last < s.length) out.push(run(s.slice(last), base));
   return out.join('');
 }
+
+// ---------- Fórmulas (Office Math / OMML): equações de verdade no Word, não texto ----------
+const mt = (t, { normal = false } = {}) => `<m:r>${normal ? '<m:rPr><m:sty m:val="p"/></m:rPr>' : ''}<w:rPr><w:rFonts w:ascii="Cambria Math" w:hAnsi="Cambria Math"/></w:rPr><m:t xml:space="preserve">${esc(t)}</m:t></m:r>`;
+export const M = {
+  t: (x) => mt(x),
+  n: (x) => mt(x, { normal: true }), // texto reto (números, operadores, palavras)
+  sub: (base, sub) => `<m:sSub><m:e>${base}</m:e><m:sub>${sub}</m:sub></m:sSub>`,
+  sup: (base, sup) => `<m:sSup><m:e>${base}</m:e><m:sup>${sup}</m:sup></m:sSup>`,
+  frac: (num, den) => `<m:f><m:num>${num}</m:num><m:den>${den}</m:den></m:f>`,
+  raiz: (x) => `<m:rad><m:radPr><m:degHide m:val="1"/></m:radPr><m:deg/><m:e>${x}</m:e></m:rad>`,
+  par: (x) => `<m:d><m:e>${x}</m:e></m:d>`,
+  log: (x) => `<m:func><m:fName>${mt('log', { normal: true })}</m:fName><m:e>${x}</m:e></m:func>`,
+};
 
 export const NUM_MARCADOR = 901; // numId da lista com marcador ▪ azul (acrescentada em montarDocx)
 function pPr({ style, align = 'both', before = 0, after = 120, line = 360, keepNext, keepLines, pageBreakBefore, left, hanging, first, outline, lista } = {}) {
@@ -142,10 +155,10 @@ export class Doc {
     return this.add(`<w:p>${pp}${a1}` +
       `${run(t1, { b: true, size: 12, color: AZUL, tit: true })}${z1}</w:p>`);
   }
-  h2(num, titulo) {
+  h2(num, titulo, { novaPagina = false } = {}) {
     const t2 = `${num ? num + ' ' : ''}${String(titulo).toUpperCase()}`;
     const [a2, z2] = this.marca('toc', t2, 2);
-    return this.add(`<w:p>${pPr({ style: 'Ttulo2', align: 'left', before: 360, after: 160, keepNext: true, outline: 1 })}${a2}` +
+    return this.add(`<w:p>${pPr({ style: 'Ttulo2', align: 'left', before: novaPagina ? 0 : 360, after: 160, keepNext: true, outline: 1, pageBreakBefore: novaPagina })}${a2}` +
       `${run(t2, { b: true, size: 11, color: AZUL, tit: true })}${z2}</w:p>`);
   }
   // seção terciária (ABNT NBR 6024): número progressivo e título em negrito, sem caixa alta
@@ -156,14 +169,14 @@ export class Doc {
     return this.add(p([a3, run(t3, { b: true, size: 11, color: AZUL, tit: true }), z3], { style: 'Ttulo3', align: 'left', before: 240, after: 120, keepNext: true, outline: 2 }));
   }
   // Quadro numerado: título acima, tabela, fonte abaixo
-  quadro(titulo, linhas, { larguras, header = true, fonte = 'Elaborado pelo signatário.', tam = 10, alinhar = 'both', juntar } = {}) {
+  quadro(titulo, linhas, { larguras, header = true, fonte = 'Elaborado pelo signatário.', tam = 10, alinhar = 'both', juntar, semRevisao } = {}) {
     if (!linhas || linhas.length <= (header ? 1 : 0)) return this;
     this.nQuad += 1;
     const n = this.nQuad;
     const [aq, zq] = this.marca('Quadro', `Quadro ${n} – ${titulo}`);
     this.add(`<w:p>${pPr({ align: 'center', before: 240, after: 100, line: 276, keepNext: true })}${aq}` +
       run('Quadro ', { b: true, size: 9.5, color: AZUL, tit: true }) + campoSeq('Quadro', n, { b: true, size: 9.5, color: AZUL, tit: true }) + run(` – ${titulo}`, { b: true, size: 9.5, color: AZUL, tit: true }) + `${zq}</w:p>`);
-    this.add(tabela(linhas, { larguras, header, tam, alinhar, juntar }));
+    this.add(tabela(linhas, { larguras, header, tam, alinhar, juntar, semRevisao }));
     // ABNT/IBGE: "Fonte" alinhada à esquerda, logo abaixo do quadro
     this.add(p([run(fonte ? 'Fonte: ' : '', { size: 9, b: true, color: CINZA }), rich(fonte || '', { size: 9, color: CINZA })], { align: 'left', before: 60, after: 280, line: 240 }));
     return this;
@@ -289,7 +302,8 @@ export class Doc {
       const isH = ri === 0;
       const cells = l.map((c, ci) => {
         const o = typeof c === 'object' && c ? c : { t: c };
-        return celula(o.t ?? '', ws[ci], { b: isH || o.b, tit: isH, color: isH ? 'FFFFFF' : o.corTexto, tam: isH ? Math.min(tam, 8) : tam, fill: isH ? AZUL : o.cor, align: ci === 0 && !isH ? 'left' : 'center', borda: 'all', keepNext: true });
+        // quadro grande (muitos vínculos) pode continuar na página seguinte; só o pequeno fica inteiro
+        return celula(o.t ?? '', ws[ci], { b: isH || o.b, tit: isH, color: isH ? 'FFFFFF' : o.corTexto, tam: isH ? Math.min(tam, 8) : tam, fill: isH ? AZUL : o.cor, align: ci === 0 && !isH ? 'left' : 'center', borda: 'all', keepNext: isH || linhas.length <= 7 });
       }).join('');
       return `<w:tr><w:trPr><w:cantSplit/>${isH ? '<w:tblHeader/>' : ''}</w:trPr>${cells}</w:tr>`;
     }).join('');
@@ -355,11 +369,15 @@ function tamQueCabe(texto, w, tam, b) {
   return t;
 }
 
-function celula(texto, w, { b, color, tam = 10, fill, borda = 'all', align = 'both', keepNext = false, tit } = {}) {
+function celula(texto, w, { b, color, tam = 10, fill, borda = 'all', align = 'both', keepNext = false, tit, np } = {}) {
   const shade = fill ? `<w:shd w:val="clear" w:color="auto" w:fill="${fill}"/>` : '';
+  // fórmula (Office Math): a célula leva a equação editável do Word, centralizada
+  if (texto && typeof texto === 'object' && texto.omml) {
+    return `<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/>${bordas(borda)}${shade}<w:vAlign w:val="center"/></w:tcPr><w:p>${pPr({ align: 'center', after: 0, line: 276, keepNext })}<m:oMath>${texto.omml}</m:oMath></w:p></w:tc>`;
+  }
   const linhas = String(texto ?? '').split(/\r?\n/);
   const t = tamQueCabe(texto, w, tam, b);
-  const paras = linhas.map((l, i) => p([rich(l, { size: t, b, color, tit })], { align, after: i < linhas.length - 1 ? 60 : 0, line: 276, keepNext })).join('');
+  const paras = linhas.map((l, i) => p([rich(l, { size: t, b, color, tit, np })], { align, after: i < linhas.length - 1 ? 60 : 0, line: 276, keepNext })).join('');
   return `<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/>${bordas(borda)}${shade}<w:vAlign w:val="center"/></w:tcPr>${paras}</w:tc>`;
 }
 
@@ -375,9 +393,17 @@ function alinhamentoColuna(linhas, ci, w, header) {
   return 'left';
 }
 
-export function tabela(linhas, { larguras, header = true, tam = 10, alinhar = 'auto', juntar } = {}) {
-  // quadros curtos (até 15 linhas) ficam inteiros na mesma página, junto com a "Fonte"
-  if (juntar === undefined) juntar = linhas.length <= 15;
+export function tabela(linhas, { larguras, header = true, tam = 10, alinhar = 'auto', juntar, semRevisao } = {}) {
+  const ncol0 = Math.max(...linhas.map((l) => l.length));
+  const ws0 = larguras ? larguras.map((f) => Math.round(f * LARGURA)) : Array(ncol0).fill(Math.round(LARGURA / ncol0));
+  // quadros curtos ficam inteiros na mesma página, junto com a "Fonte"; os altos (mais de ~28 linhas de texto)
+  // podem continuar na página seguinte – antes, o Word empurrava o quadro inteiro e deixava uma página só com o título
+  if (juntar === undefined) {
+    const linhasDe = (c, w) => String(typeof c === 'object' && c ? (c.t ?? '') : c ?? '').split(/\r?\n/)
+      .reduce((n, l) => n + Math.max(1, Math.ceil((l.length * tam * 0.55) / Math.max((w - 230) / 20, 10))), 0);
+    const altura = linhas.reduce((n, l) => n + Math.max(...l.map((c, ci) => linhasDe(c, ws0[ci] || ws0[0]))), 0);
+    juntar = linhas.length <= 15 && altura <= 28;
+  }
   tam = Math.max(tam, 8);
   const ncol = Math.max(...linhas.map((l) => l.length));
   const ws = larguras ? larguras.map((f) => Math.round(f * LARGURA)) : Array(ncol).fill(Math.round(LARGURA / ncol));
@@ -388,7 +414,7 @@ export function tabela(linhas, { larguras, header = true, tam = 10, alinhar = 'a
     // cabeçalho azul-marinho com texto branco; linhas alternadas em cinza-azulado claro
     const zebra = !isH && (ri - (header ? 1 : 0)) % 2 === 1;
     const cells = l.map((c, ci) => celula(c, ws[ci], {
-      b: isH, tit: isH, color: isH ? 'FFFFFF' : undefined, tam: isH ? Math.min(tam, 8.5) : tam, fill: isH ? AZUL : zebra ? ZEBRA : undefined, align: isH ? 'center' : al[ci], borda: 'quadro', keepNext: juntar,
+      b: isH, tit: isH, np: semRevisao && !isH, color: isH ? 'FFFFFF' : undefined, tam: isH ? Math.min(tam, 8.5) : tam, fill: isH ? AZUL : zebra ? ZEBRA : undefined, align: isH ? 'center' : al[ci], borda: 'quadro', keepNext: juntar,
     })).join('');
     return `<w:tr><w:trPr><w:cantSplit/>${isH ? '<w:tblHeader/>' : ''}</w:trPr>${cells}</w:tr>`;
   }).join('');

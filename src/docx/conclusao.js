@@ -129,12 +129,26 @@ function fontesPenosidade(dados) {
 export const fimSeg = (r, s) => (!r.data.fim && s.fim === hojeLocal() ? 'atual' : dataBR(s.fim));
 
 // resumoPenosidade: false quando o documento já traz a penosidade vínculo a vínculo (parecer de penosidade)
-export function conclusaoPrevidenciaria(d, dados, { tituloQuadro = 'Conclusão por período', resumoPenosidade = true } = {}) {
+// Resultado técnico do subperíodo juntando agentes nocivos, categoria (até 28/04/1995) e penosidade (a partir de
+// 29/04/1995, quando a matriz de fatores a caracteriza): o mesmo critério na matriz, no vínculo e na conclusão
+export function resultadoSubperiodo(s, penoso) {
+  const soCatS = s.caracteriza === 'SIM' && s.itens.filter((i) => i.sup).every((i) => i.categoria);
+  const pen = penoso === true && s.fim > '1995-04-28';
+  if (s.caracteriza === 'SIM') return soCatS ? 'SIM – categoria profissional' : pen ? 'SIM – agentes nocivos e penosidade' : 'SIM – agentes nocivos';
+  if (pen) return s.caracteriza === 'NÃO' ? 'SIM – penosidade' : `SIM – penosidade (agentes: ${String(s.caracteriza).replace(/\[\[|\]\]/g, '')})`;
+  return s.caracteriza;
+}
+
+// penosidade: (r) => true | false | null – quando informada, a penosidade entra no resultado de cada subperíodo
+export function conclusaoPrevidenciaria(d, dados, { tituloQuadro = 'Conclusão por período', resumoPenosidade = true, penosidade = null } = {}) {
   const av = avaliarPeriodos(dados);
   if (!av.length) { d.redigir('cadastre os vínculos na etapa 2. Autos.'); return; }
+  const penDe = (r) => (penosidade ? penosidade(r) : null);
   d.quadro(tituloQuadro, [['Vínculo / período', 'Avaliação pericial', 'Código', 'Caracteriza'],
     ...av.flatMap(({ r, segs }) => segs.map((s) => [`${String(r.data.empresa || '').replace(/\s*\((CTPS|sucess)[^)]*\)/gi, '')}\n${dataBR(s.ini)} a ${fimSeg(r, s)}`,
-      s.itens.length ? s.itens.map((i) => i.t).join('\n') : '[[sem avaliação quantitativa para o período]]', s.codigos, s.caracteriza]))],
+      [s.itens.length ? s.itens.map((i) => i.t).join('\n') : '[[sem avaliação quantitativa para o período]]', penDe(r) === true && s.fim > '1995-04-28' ? 'Penosidade: caracterizada na matriz de fatores (item 3)' : ''].filter(Boolean).join('\n'),
+      [s.codigos, penDe(r) === true && s.fim > '1995-04-28' && s.caracteriza !== 'SIM' ? 'penosidade (IAC nº 5 do TRF4; Tema 1307 do STJ)' : ''].filter((x) => x && x !== '—').join('; ') || '—',
+      penosidade ? resultadoSubperiodo(s, penDe(r)) : s.caracteriza]))],
   { larguras: [0.23, 0.45, 0.2, 0.12], tam: 9,
     fonte: `Elaborado pelo signatário. Ruído com o fator de duplicação de cada medição (q = 5, salvo indicação de q = 3); NEN e aren normalizados para o tempo diário de exposição${/motorista|caminh|ônibus|carreteir/i.test(`${dados.c.funcoes || ''} ${dados.periodos.map((r) => r.data.cargo || '').join(' ')}`) ? ' (condução)' : ''} de cada vínculo, quando informado.` });
 
@@ -157,7 +171,12 @@ export function conclusaoPrevidenciaria(d, dados, { tituloQuadro = 'Conclusão p
     const cods = (l) => [...new Set(l.flatMap((s) => s.codigos.split('; ')))].join('; ');
     if (cat.length) partes.push(`enquadra-se por categoria profissional, com presunção legal de exposição, ${pl(cat, 'no período', 'nos períodos')} de ${p(cat)} (cód. ${cods(cat)})`);
     if (agente.length) partes.push(`caracteriza exposição habitual e permanente, não ocasional nem intermitente, a agentes nocivos ${pl(agente, 'no período', 'nos períodos')} de ${p(agente)} (cód. ${cods(agente)})`);
-    if (nao.length) partes.push(`não caracteriza ${pl(nao, 'no período', 'nos períodos')} de ${p(nao)}, em que os valores avaliados não superam os limites da época`);
+    // penosidade caracterizada onde os agentes não superam os limites: o resultado é especial pela penosidade
+    const penR = penDe(r) === true;
+    const naoPen = penR ? nao.filter((s) => s.fim > '1995-04-28') : [];
+    const naoSo = nao.filter((s) => !naoPen.includes(s));
+    if (naoPen.length) partes.push(`caracteriza condições penosas ${pl(naoPen, 'no período', 'nos períodos')} de ${p(naoPen)}, pela matriz de fatores (veículo, trajetos, cargas e jornadas), embora os agentes avaliados não superem os limites da época`);
+    if (naoSo.length) partes.push(`não caracteriza ${pl(naoSo, 'no período', 'nos períodos')} de ${p(naoSo)}, em que os valores avaliados não superam os limites da época`);
     const base = [val.fonteR && `ruído pelo ${val.fonteR}`, val.fonteV && `vibração pelo ${val.fonteV}`, isFinite(val.T) && `condução de ${fmtHoras(val.T)}/dia`].filter(Boolean).join(', ');
     if (!partes.length && segs.some((sg) => sg.caracteriza === '[[pendente]]')) { pendentes.push(`${r.data.empresa || 'Vínculo'} (tempo diário de condução)`); continue; }
     if (partes.length) d.texto(`**${r.data.empresa || 'Vínculo'} (${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}):** a avaliação pericial${base ? ` (${base})` : ''} ${partes.join('; e ')}.`);

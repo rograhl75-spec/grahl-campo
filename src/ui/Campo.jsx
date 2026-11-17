@@ -728,13 +728,17 @@ function EntrevistaVinculos({ rec }) {
     x.tipoCarga && `carga: ${x.tipoCarga}`, x.vias && `trajetos: ${x.vias}`, x.jornadaSemanal && `jornada: ${x.jornadaSemanal}`,
     x.noturnoPernoite && `pernoite: ${x.noturnoPernoite}`,
   ].filter(Boolean).join(' · ');
-  const faltando = (x) => [!x.grupoVeiculo && 'grupo do veículo', !x.tipoCarga && 'carga', !x.vias && 'trajetos', !x.jornadaSemanal && !x.conducaoH && 'jornada', !isFinite(horasDia(x.conducaoH)) && 'horas de condução por dia', (x.paradigmaRuido || x.paradigmaVibracao) && !x.paradigmaVibracao && 'paradigma de vibração',
+  const faltando = (x) => [!x.grupoVeiculo && 'grupo do veículo', !x.tipoCarga && 'carga', !x.vias && 'trajetos', !x.jornadaSemanal && !x.conducaoH && 'jornada', !isFinite(horasDia(x.conducaoH)) && !(rec.data.foraDirecaoH && x.jornadaSemanal) && 'horas de condução por dia', (x.paradigmaRuido || x.paradigmaVibracao) && !x.paradigmaVibracao && 'paradigma de vibração',
     !x.noturnoPernoite && 'pernoite', !x.paradigmaRuido && !(x.fim && x.fim <= '1995-04-28') && 'paradigma'].filter(Boolean);
   return (
     <section class="bloco largo destaque">
       <div class="linha-botoes entre"><h3>Entrevista do segurado – vínculos <span class="contador">{ps.length}</span></h3>
         <a class="botao sec" href={`#/caso/${encodeURIComponent(rec.id)}/preparacao`}>Ver na etapa 2</a></div>
       <p class="dica">Neste parecer, o trabalho de campo é a entrevista. Toque no vínculo para registrar ou corrigir as respostas; elas vão direto para o parecer. Os vínculos vêm da CTPS/CNIS (etapa 2).</p>
+      <div class="regra-caso">
+        <TF rec={rec} k="foraDirecaoH" label="Regra do caso: horas por dia fora da direção (carga, descarga, paradas) – ex.: 5" inputMode="decimal" />
+        <small class="dica">Com a regra, o tempo de condução de cada vínculo sem horas digitadas = jornada da entrevista − estas horas (sai no parecer com a explicação).</small>
+      </div>
       {!ps.length && <p class="vazio">Nenhum vínculo cadastrado. Importe a CTPS/CNIS e a entrevista na etapa 2, ou gere o "Roteiro de entrevista do motorista" em Documentos.</p>}
       {ps.map((r) => {
         const x = r.data; const f = faltando(x);

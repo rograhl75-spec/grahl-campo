@@ -1,0 +1,66 @@
+import 'fake-indexeddb/auto';
+import { describe, it, expect, beforeAll } from 'vitest';
+import { readFile } from 'node:fs/promises';
+import JSZip from 'jszip';
+import { db } from '../src/db.js';
+import { PERFIL_ID } from '../src/docx/base.js';
+import { parecerPenosidade } from '../src/docx/parecerPenosidade.js';
+import { tempoConducao, jornadaDia } from '../src/docx/penosidade.js';
+import { pendenciasDoCaso, marcacoesNoDocumento } from '../src/pendencias.js';
+import { capitalizarCidades } from '../src/cidades.js';
+import { carregar } from '../src/docx/base.js';
+
+// Dados sintéticos (sem dados reais de segurados)
+const CASO = 'caso-pend';
+async function texto(blob) {
+  const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+  return (await zip.file('word/document.xml').async('string')).replace(/<w:tab\/>/g, ' ').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ');
+}
+beforeAll(async () => {
+  globalThis.fetch = async (url) => {
+    const buf = await readFile(new URL(`../public/modelos/${String(url).split('/').pop()}`, import.meta.url));
+    return { ok: true, arrayBuffer: async () => buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) };
+  };
+  await db.records.put({ id: PERFIL_ID, kind: 'perfil', caseId: null, data: { nome: 'ENGENHEIRO TESTE', titulos: 'Engenheiro', crea: 'CREA-XX 0', cidade: 'Cidade – UF' }, ts: {} });
+  await db.records.put({ id: CASO, kind: 'caso', caseId: null, ts: {}, data: { tipoAtuacao: 'Extrajudicial', papel: 'Parecer técnico extrajudicial (segurado / advogado)', objeto: ['Penosidade (motorista)'], materia: 'Previdenciária', autorNome: 'Segurado Teste', art: '0', finalidade: 'Instrução de ação judicial previdenciária' } });
+  await db.records.put({ id: 'par-M77', kind: 'paradigma', caseId: null, ts: {}, data: { codigo: 'M77', marca: 'Mercedes-Benz', modelo: '1720', familia: 'F1', tipo: 'Truck', lavg: '86,2', arep: '0,9', jornadaLaudo: '8', citacao: 'Proc. 0000000-00.2019.4.04.0000 – Vara Federal de Cidade A – 06/11/2019', situacao: 'OK' } });
+  let n = 0;
+  const per = (data) => db.records.put({ id: `p-${++n}`, kind: 'periodo', caseId: CASO, ts: {}, createdAt: n, data });
+  await per({ empresa: 'Distribuidora Alfa', inicio: '2005-01-10', fim: '2008-06-30', cargo: 'Motorista de caminhão', veiculoMarca: 'Mercedes-Benz', veiculoModelo: '1720', grupoVeiculo: 'Caminhão truck (chassi rígido, eixo duplo)', jornadaSemanal: '15 h/dia', vias: 'cambé para paisandu, cornelio procopio, maringa', tipoCarga: 'alimentos', paradigmaRuido: 'M77', paradigmaVibracao: 'M77' });
+  await per({ empresa: 'Transportes Beta', inicio: '2009-01-10', fim: '2010-06-30', cargo: 'Motorista de caminhão', grupoVeiculo: 'Caminhão truck (chassi rígido, eixo duplo)', jornadaSemanal: '05h00 às 18h00', tipoCarga: 'alimentos' });
+});
+
+describe('regra do caso, pendências antes de gerar e cidades', () => {
+  it('sem a regra, o tempo de condução fica pendente; com 5 h fora da direção, condução = jornada − 5', async () => {
+    let dados = await carregar(CASO);
+    const [a, b] = dados.periodos;
+    expect(jornadaDia(a, dados)).toBe(15);
+    expect(jornadaDia(b, dados)).toBe(13);
+    expect(tempoConducao(a, dados).T).toBeNaN();
+    const itens = await pendenciasDoCaso(CASO);
+    expect(itens.find((i) => i.id === 'foraDirecaoH')).toBeTruthy();
+    expect(itens.filter((i) => i.campo === 'conducaoH')).toHaveLength(2);
+    expect(itens.some((i) => i.campo === 'penosidadeConclusao')).toBe(true);
+    // resposta dada na lista: regra do caso
+    await db.records.update(CASO, { 'data.foraDirecaoH': '5' });
+    dados = await carregar(CASO);
+    expect(tempoConducao(dados.periodos[0], dados).T).toBe(10);
+    expect(tempoConducao(dados.periodos[1], dados).T).toBe(8);
+    expect(tempoConducao(dados.periodos[0], dados).base).toMatch(/menos 5 h/);
+    const depois = await pendenciasDoCaso(CASO);
+    expect(depois.filter((i) => i.campo === 'conducaoH')).toHaveLength(0);
+    expect(depois.find((i) => i.id === 'foraDirecaoH').previa.join(' ')).toMatch(/jornada 15 h → condução 10 h/);
+  });
+  it('o parecer usa a regra (sem o T em amarelo) e corrige as cidades', async () => {
+    const r = await parecerPenosidade(CASO);
+    const t = await texto(r.blob);
+    expect(t).toContain('Condução: cerca de 10 h/dia (jornada de cerca de 15 h/dia informada na entrevista, menos 5 h de carga, descarga e paradas)');
+    expect(t).toContain('Cambé para Paiçandu, Cornélio Procópio, Maringá');
+    const marcas = await marcacoesNoDocumento(() => parecerPenosidade(CASO));
+    expect(marcas.some((m) => /informe o tempo diário|condução: informar/i.test(m.texto))).toBe(false);
+  });
+  it('cidades: só os municípios mudam; o resto fica como digitado', () => {
+    expect(capitalizarCidades('londrina/pr - sao jose dos pinhais e foz do iguacu, serra do mar, br 277'))
+      .toBe('Londrina/PR - São José dos Pinhais e Foz do Iguaçu, serra do mar, br 277');
+  });
+});

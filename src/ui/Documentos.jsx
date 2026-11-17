@@ -1,4 +1,6 @@
-import { useState } from 'preact/hooks';
+import { useState, useEffect } from 'preact/hooks';
+import { pendenciasDoCaso, marcacoesNoDocumento } from '../pendencias.js';
+import { avisarAlteracao } from '../sync.js';
 import { CATALOGO, HONORARIOS, situacaoHonorarios, PETICOES_PERITO, PETICOES_AT, POSICOES_AT } from '../docx/reports.js';
 import { exportarBackup, baixarArquivo, carimbo } from '../backup.js';
 import { exportarParaClaude } from '../aiimport.js';
@@ -88,8 +90,9 @@ export function Documentos({ rec }) {
 }
 
 function CartaoDoc({ d, ocupado, gerar, contas = [], contaSel, recId, rec }) {
+  const [conferir, setConferir] = useState(false);
   return (
-    <div class="bloco doc">
+    <div class={`bloco doc ${conferir ? 'doc-aberto' : ''}`}>
       <h4>{d.titulo}</h4>
       <p>{d.desc}</p>
       {d.usaConta && (contas.length ? (
@@ -128,8 +131,10 @@ function CartaoDoc({ d, ocupado, gerar, contas = [], contaSel, recId, rec }) {
       {d.id === 'parecerAT' && rec && <Sel rec={rec} k="posicaoAT" label="Posição sobre o laudo" opcoes={POSICOES_AT} />}
       <div class="linha-botoes">
         <button type="button" class="primario" disabled={!!ocupado} onClick={() => gerar(d)}>{ocupado === d.id ? 'Gerando…' : 'Gerar Word'}</button>
+        {/^4\./.test(d.grupo) && rec && <button type="button" class="sec" onClick={() => setConferir(!conferir)}><Icone nome="nota" /> {conferir ? 'Fechar pendências' : 'Conferir pendências'}</button>}
         {d.redacao && rec && <BotaoClaude rec={rec} tipo={d.redacao} />}
       </div>
+      {conferir && rec && <PendenciasDoc rec={rec} d={d} gerar={() => gerar(d)} />}
       {d.id === 'agenda' && rec && <LinkAgenda c={rec.data} />}
     </div>
   );
@@ -257,5 +262,75 @@ function MontarDoClaude({ rec }) {
         {msg && <p class="ok-msg">{msg}</p>}
       </div>
     </section>
+  );
+}
+
+// Pendências antes de gerar: perguntas respondidas aqui gravam no caso ou no vínculo; depois, o que ainda
+// ficaria em amarelo no documento, agrupado
+function PendenciasDoc({ rec, d, gerar }) {
+  const [itens, setItens] = useState(null);
+  const [marcas, setMarcas] = useState(null);
+  const [ver, setVer] = useState(0);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { let vivo = true; pendenciasDoCaso(rec.id).then((x) => vivo && setItens(x)).catch((e) => vivo && setItens({ erro: e.message })); return () => { vivo = false; }; }, [rec.id, ver]);
+  const responder = async (alvo, campo, valor) => { await salvar(alvo, campo, valor); avisarAlteracao(); setMarcas(null); setVer((v) => v + 1); };
+  const conferirDoc = async () => { setBusy(true); try { setMarcas(await marcacoesNoDocumento(() => d.fn(rec.id, {}))); } finally { setBusy(false); } };
+  if (!itens) return <div class="pendencias"><p class="dica">Conferindo…</p></div>;
+  if (itens.erro) return <div class="pendencias"><p class="erro-msg">{itens.erro}</p></div>;
+  const grupos = [...new Set(itens.map((i) => i.grupo))];
+  return (
+    <div class="pendencias">
+      <h4>Pendências antes de gerar {itens.length ? <span class="contador">{itens.length}</span> : null}</h4>
+      {!itens.length && <p class="ok-msg">Nenhuma pergunta pendente nos vínculos. Confira abaixo o que ainda sairia em amarelo.</p>}
+      {grupos.map((g) => (
+        <div class="pend-grupo" key={g}>
+          <b class="pend-grupo-tit">{g}</b>
+          {itens.filter((i) => i.grupo === g).map((it) => <ItemPendencia key={it.id} it={it} responder={responder} />)}
+        </div>
+      ))}
+      <div class="linha-botoes">
+        <button type="button" class="sec" disabled={busy} onClick={conferirDoc}>{busy ? 'Conferindo o documento…' : 'Ver o que ainda sai em amarelo'}</button>
+        <button type="button" class="primario" onClick={gerar}>Gerar o Word</button>
+      </div>
+      {marcas && (marcas.length ? (
+        <div class="pend-marcas">
+          <small class="dica">{marcas.reduce((s, m) => s + m.n, 0)} trecho(s) em amarelo no documento, agrupados:</small>
+          <ul>{marcas.map((m) => <li key={m.texto}><span class="contador">{m.n}×</span> {m.texto}</li>)}</ul>
+        </div>
+      ) : <p class="ok-msg">✓ O documento sai sem trechos em amarelo.</p>)}
+    </div>
+  );
+}
+
+function ItemPendencia({ it, responder }) {
+  const [txt, setTxt] = useState(it.valor || it.sugestao || '');
+  const salvarTxt = () => String(txt).trim() && responder(it.rec, it.campo, String(txt).trim());
+  return (
+    <div class="pend-item">
+      <div class="pend-tit">{it.titulo}</div>
+      {it.explicacao && <small class="dica">{it.explicacao}</small>}
+      {it.previa && <ul class="pend-previa">{it.previa.map((l) => <li>{l}</li>)}</ul>}
+      {it.tipo === 'numero' && (
+        <div class="com-botao">
+          <label class="campo"><span class="rotulo">Horas</span><input inputMode="decimal" value={txt} onInput={(e) => setTxt(e.currentTarget.value)} onKeyDown={(e) => e.key === 'Enter' && salvarTxt()} /></label>
+          <button type="button" class="mini" onClick={salvarTxt}>Salvar</button>
+        </div>
+      )}
+      {it.tipo === 'escolha' && (
+        <div class="linha-botoes">
+          {it.opcoes.map((o) => <button type="button" class="mini" onClick={() => responder(it.rec, it.campo, o.valor)}>Usar {o.rotulo}</button>)}
+          {!it.opcoes.length && <small class="dica">Sem sugestão no banco.</small>}
+        </div>
+      )}
+      {(it.tipo === 'confirmar' || it.tipo === 'texto') && (
+        <>
+          <textarea rows={it.tipo === 'texto' ? 4 : 2} value={txt} onInput={(e) => setTxt(e.currentTarget.value)} />
+          <div class="linha-botoes">
+            <button type="button" class="mini" onClick={salvarTxt}>{it.tipo === 'texto' ? 'Adotar este texto' : 'Confirmar'}</button>
+            {it.recusa && <button type="button" class="mini perigo" onClick={() => responder(it.rec, it.recusa.campo, it.recusa.valor)}>Não se aplica</button>}
+          </div>
+        </>
+      )}
+    </div>
   );
 }

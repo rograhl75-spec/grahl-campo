@@ -698,10 +698,12 @@ export function quadrosParadigmasMetodologia(d, dados) {
   d.quadro('Veículos do requerente e paradigmas de medição', [['Vínculo', 'Veículo do requerente', 'Família', 'Veículo efetivamente medido', 'Fonte (processo e data)', 'Jornada (h)'],
     ...dados.periodos.map((r, i) => {
       const pr = P.get(r.data.paradigmaRuido), pv = P.get(r.data.paradigmaVibracao);
+      // vínculo encerrado até 28/04/1995: enquadramento pela categoria profissional, sem necessidade de paradigma
+      const soCategoria = r.data.fim && r.data.fim <= '1995-04-28';
       const medido = [pr && `Ruído: ${rotuloParadigma(pr)}`, pv && pv !== pr && `VCI: ${rotuloParadigma(pv)}`].filter(Boolean).join('\n')
-        || '[[PESQUISAR: sem paradigma no banco]]';
+        || (soCategoria ? 'Não se aplica (categoria profissional até 28/04/1995)' : '[[PESQUISAR: sem paradigma no banco]]');
       const fontes = [...new Set([pr, pv].filter(Boolean).map((x) => citacaoDe(x)))].join('\n');
-      return [vinculoNome(r, i), [r.data.veiculoMarca, r.data.veiculoModelo, r.data.veiculoAno].filter(Boolean).join(' ') || '[[veículo]]',
+      return [vinculoNome(r, i), [r.data.veiculoMarca, r.data.veiculoModelo, r.data.veiculoAno].filter(Boolean).join(' ') || r.data.grupoVeiculo || (soCategoria ? '—' : '[[veículo]]'),
         (pr || pv) ? `${(pr || pv).data.familia}` : '', medido, fontes, (pr || pv) ? `${(pr || pv).data.jornadaLaudo || '?'} h` : ''];
     })], { larguras: [0.15, 0.17, 0.1, 0.22, 0.26, 0.1], tam: 8.5, alinhar: 'left', fonte: 'Banco de paradigmas do signatário.' });
   d.quadro('Equações de normalização pela jornada', [['Grandeza', 'Equação'],

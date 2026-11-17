@@ -93,6 +93,21 @@ describe('regra do caso, pendências antes de gerar e cidades', () => {
   });
 });
 
+describe('vínculo até 28/04/1995 (categoria profissional)', () => {
+  it('sem paradigma não vira "PESQUISAR"; o que sobrar em amarelo mostra onde está', async () => {
+    await db.records.put({ id: 'p-0', kind: 'periodo', caseId: CASO, ts: {}, createdAt: 0, data: { empresa: 'Transportes Antigos', inicio: '1993-06-01', fim: '1993-12-02', cargo: 'Motorista de caminhão', conducaoH: '10', penosidadeResultado: 'Sim – caracteriza' } });
+    const marcas = await marcacoesNoDocumento(() => parecerPenosidade(CASO));
+    const t = await texto((await parecerPenosidade(CASO)).blob);
+    // a linha do vínculo de 1993 no quadro de paradigmas: "Não se aplica", sem pedir pesquisa
+    expect(t).toMatch(/Transportes Antigos—{0,1}[^]*?Não se aplica \(categoria profissional até 28\/04\/1995\)/);
+    // os "PESQUISAR" que restam são só dos vínculos depois de 1995 sem paradigma (2 neste caso), com o lugar
+    const pesq = marcas.find((m) => /PESQUISAR: sem paradigma no banco/.test(m.texto));
+    expect(pesq.n).toBe(2);
+    expect(pesq.onde).toMatch(/Quadro \d+ – Veículos do requerente e paradigmas/);
+    for (const m of marcas) expect(m.onde).toBeTruthy();
+  });
+});
+
 describe('as mesmas regras em outros documentos', () => {
   it('laudo trabalhista: pendências de quesitos e diligência, sem perguntas de motorista', async () => {
     await db.records.put({ id: 'trab', kind: 'caso', caseId: null, ts: {}, data: { tipoAtuacao: 'Judicial', papel: 'Perito do Juízo', justica: 'Justiça do Trabalho', materia: 'Trabalhista', objeto: ['Insalubridade'], vistoriaData: '2026-09-01' } });

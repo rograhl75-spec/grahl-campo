@@ -43,13 +43,50 @@ function rPr({ b, i, size = 12, color, caps, hl, sup, tit, np } = {}) {
 const RE_VDV = /m\/s(?:\^\s*\{?1[,.]75\}?|¹[·,.]?⁷⁵)/g;
 // tabulação literal dentro de <w:t> não é válida no Word: vira <w:tab/>
 const tx = (t) => esc(t).replace(/\t/g, '</w:t><w:tab/><w:t xml:space="preserve">');
+// Termos técnicos, abreviaturas e nomes próprios que o dicionário do Word não conhece saem sem revisão
+// ortográfica (<w:noProof/>): o Word não os sublinha e continua revisando o resto do texto.
+const TERMOS_TECNICOS = ['aren', 'arep', 'areq', 'Lavg', 'Leq', 'NEN', 'VDVR', 'VDV', 'VCI', 'VMB', 'IBUTG', 'NHO', 'truck', 'Truck', 'toco', 'bitrem', 'rodotrem',
+  'Ltda', 'LTDA', 'EIRELI', 'fl.', 'fls.', 'cód.', 'Cód.', 'seq.', 'últ.', 'remun.', 'veic.', 'Proc.', 'subperíodo', 'subperíodos', 'Subperíodo', 'Subperíodos',
+  'semiavançada', 'semiavançado', 'Semiavançada', 'art.', 'arts.', 'Art.', 'Dec.', 'rel.', 'inc.', 'ii', 'iii', 'iv', 'vi', 'vii', 'app', 'decidendi', 'tempus', 'regit', 'actum', 'TLVs', 'BEIs', 'ACGIH', 'Fundacentro', 'FUNDACENTRO', 'ASPEJUDI',
+  'Grahl', 'Benz', 'Mercedes', 'Volkswagen', 'Volvo', 'Scania', 'Agrale', 'Atego', 'Iveco', 'Perkins', 'Chevrolet', 'Constellation', 'Worker', 'Delivery',
+  'Sonus', 'Criffer', 'Chrompack', 'SmartVib', 'Instrutherm', 'Inlite', 'Rodofrio', 'Jumper', 'Ducato', 'Boxer', 'Cincinnati', 'UFs', 'CNIS', 'CTPS', 'CBO', 'PPP', 'LTCAT'];
+const extras = new Set();
+let reTec = null;
+// nomes do caso (empresas, pessoas, cidades): acrescentados ao carregar os dados
+export function semRevisao(palavras) {
+  let mudou = false;
+  for (const w of palavras) if (w && w.length > 2 && !extras.has(w)) { extras.add(w); mudou = true; }
+  if (mudou) reTec = null;
+}
+const escRe = (w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function regexTec() {
+  if (!reTec) {
+    const lst = [...new Set([...TERMOS_TECNICOS, ...extras])].sort((a, b) => b.length - a.length).map(escRe);
+    reTec = new RegExp(`(?<![\\p{L}\\d])(?:${lst.join('|')})(?![\\p{L}\\d])`, 'gu');
+  }
+  reTec.lastIndex = 0;
+  return reTec;
+}
+function runTexto(t, opts, br) {
+  if (opts.np || !t) return `<w:r>${rPr(opts)}${br}<w:t xml:space="preserve">${tx(t)}</w:t></w:r>`;
+  const re = regexTec();
+  const out = []; let last = 0, m, primeiro = true;
+  const r = (pt, np) => { out.push(`<w:r>${rPr(np ? { ...opts, np: true } : opts)}${primeiro ? br : ''}<w:t xml:space="preserve">${tx(pt)}</w:t></w:r>`); primeiro = false; };
+  while ((m = re.exec(t))) {
+    if (m.index > last) r(t.slice(last, m.index), false);
+    r(m[0], true);
+    last = m.index + m[0].length;
+  }
+  if (last < t.length || primeiro) r(t.slice(last), false);
+  return out.join('');
+}
 export function run(text, opts = {}) {
   return String(text ?? '').split(/\r?\n/).map((t, i) => {
     const br = i ? '<w:br/>' : '';
-    if (!RE_VDV.test(t)) return `<w:r>${rPr(opts)}${br}<w:t xml:space="preserve">${tx(t)}</w:t></w:r>`;
+    if (!RE_VDV.test(t)) return runTexto(t, opts, br);
     RE_VDV.lastIndex = 0;
     const partes = t.split(RE_VDV);
-    return partes.map((pt, k) => `<w:r>${rPr(opts)}${k === 0 ? br : ''}<w:t xml:space="preserve">${tx(pt)}${k < partes.length - 1 ? 'm/s' : ''}</w:t></w:r>`
+    return partes.map((pt, k) => runTexto(`${pt}${k < partes.length - 1 ? 'm/s' : ''}`, opts, k === 0 ? br : '')
       + (k < partes.length - 1 ? `<w:r>${rPr({ ...opts, sup: true })}<w:t xml:space="preserve">1,75</w:t></w:r>` : '')).join('');
   }).join('');
 }

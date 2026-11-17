@@ -5,7 +5,7 @@ import { resumoMedicao, calculados } from '../medicoes.js';
 import { nen, num, fmt, fatorQ, doseJornada, horasDia, fmtHoras } from '../calc.js';
 import { ORIGEM_QUESITO, contextoLegal, ehSuplementar , reuEhInss, localVistoria, vistoriasDoCaso, datasDasVistorias, variasVistorias } from '../schema.js';
 import { tempoConducao } from './penosidade.js';
-import { Doc, p, run, rich, montarDocx, ordinalDia1, FONTES_EMBUTIDAS, M } from './ooxml.js';
+import { Doc, p, run, rich, montarDocx, ordinalDia1, FONTES_EMBUTIDAS, M, semRevisao } from './ooxml.js';
 import { nenParaJornada, certificadoVencido, rotuloParadigma, citacaoDe, num as numP, vibracaoDoParadigma } from '../paradigmas.js';
 
 export const PERFIL_ID = 'perfil';
@@ -100,6 +100,10 @@ export async function carregar(caseId) {
   const limpa = (lst) => lst.map((r) => ({ ...r, data: limpaDados(r.data) }));
   const dados = { id: caseId, c: limpaDados(caso.data), quesitos: limpa(quesitos), periodos: limpa(herdarDoAnterior(pers)), documentos: limpa(documentos), epis, postos: limpa(psts), medicoes: meds, fotos, equipamentos, perfil, paradigmas, quimicos,
     regraCertMeses: Number((cfgPar && cfgPar.data.regraCertMeses) || 24) };
+  // nomes próprios do caso (empresas, pessoas, cidades dos trajetos) não são sublinhados pelo corretor do Word
+  const nomes = [dados.c.autorNome, dados.c.reuNome, perfil.nome, ...dados.periodos.flatMap((r) => [r.data.empresa, r.data.vias, r.data.cargo])]
+    .filter(Boolean).join(' ').match(/[A-ZÀ-Ý][\p{L}'’-]+/gu) || [];
+  semRevisao(nomes);
   // ordem cronológica: cada posto/veículo vai para a posição do primeiro vínculo que representa
   const ordemP = new Map(dados.postos.map((ps) => [ps.id, (periodosDoPosto(ps, dados)[0] || {}).data?.inicio || '9999']));
   dados.postos.sort((a, b) => ordemP.get(a.id).localeCompare(ordemP.get(b.id)) || (a.data.ordem ?? a.createdAt) - (b.data.ordem ?? b.createdAt));
@@ -934,7 +938,7 @@ export async function apendicesDoCaso(dados) {
   const { apendicesRegistros, paginasDoArquivo, LETRAS, lerFaixaPaginas, paginasDeRelatorio, textosDoPdf } = await import('../apendices.js');
   const { obterAnexo } = await import('../sync.js');
   const regs = await apendicesRegistros(dados.id);
-  const out = []; let falhas = 0;
+  const out = []; let falhas = 0; const semRelatorios = [];
   for (const r of regs) {
     try {
       const blob = await obterAnexo(r.id);
@@ -951,7 +955,7 @@ export async function apendicesDoCaso(dados) {
     const vistos = new Map(); // mesmo arquivo e mesmas páginas em vários paradigmas: um apêndice só
     for (const p of usados) {
       const idArq = p.data.relatoriosAnexoId || p.data.anexoId;
-      if (!idArq) continue;
+      if (!idArq) { semRelatorios.push(p.data.codigo); continue; }
       const chave = `${idArq}|${p.data.relatoriosAnexoId ? '' : p.data.paginasRelatorios || ''}`;
       if (vistos.has(chave)) {
         const ap = vistos.get(chave);
@@ -967,17 +971,17 @@ export async function apendicesDoCaso(dados) {
         if (!p.data.relatoriosAnexoId) {
           sel = lerFaixaPaginas(p.data.paginasRelatorios);
           if (!sel.length && /pdf/i.test(mime)) sel = paginasDeRelatorio(await textosDoPdf(blob));
-          if (!sel.length) continue; // laudo digitalizado sem texto: informe as páginas no paradigma
+          if (!sel.length) { semRelatorios.push(p.data.codigo); continue; } // laudo digitalizado sem texto: informe as páginas no paradigma
         }
         const paginas = await paginasDoArquivo(blob, mime, { paginas: sel });
         if (paginas.length) {
           const ap = { letra: LETRAS[out.length] || String(out.length + 1), titulo: `Relatórios de medição do paradigma ${rotuloParadigma(p)}`, paginas, cods: [rotuloParadigma(p)] };
           out.push(ap); vistos.set(chave, ap);
         }
-      } catch (e) { falhas++; }
+      } catch (e) { falhas++; semRelatorios.push(p.data.codigo); }
     }
   }
-  return { apendices: out, falhasApendice: falhas };
+  return { apendices: out, falhasApendice: falhas, semRelatorios };
 }
 
 // paradigmas citados nos vínculos (ruído e vibração), na ordem dos vínculos

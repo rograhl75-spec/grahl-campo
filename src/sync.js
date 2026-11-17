@@ -114,6 +114,7 @@ export async function obterAnexo(id) {
 
 async function começar() {
   parar();
+  reenviarRecusados().catch(() => {}); // uma tentativa por sessão para o que a nuvem recusou antes
   const lastSrv = (await getMeta('lastSrv:' + auth.currentUser.uid)) || 0;
   let maxSrv = lastSrv;
   // só baixa o que mudou desde a última sincronização (margem de 5 min)
@@ -223,7 +224,12 @@ async function enviarFotos() {
       await uploadBytes(anexo ? anexoRef(b.id) : fotoRef(b.id), b.blob, { contentType: anexo ? b.mime : 'image/jpeg' });
     } catch (e) {
       // anexo recusado pelas regras (tamanho/tipo): fica só no aparelho e entra no backup
-      if (anexo && /unauthorized|permission/i.test(String(e.code || e.message))) { await db.blobs.update(b.id, { uploaded: 2 }); continue; }
+      if (anexo && /unauthorized|permission/i.test(String(e.code || e.message))) {
+        await db.blobs.update(b.id, { uploaded: 2, ultimoErro: 'recusado pelas regras do Storage' });
+        // o registro do anexo leva o motivo para os outros aparelhos ("Ouvir" explica em vez do erro do Firebase)
+        if (rec.kind === 'anexo' && rec.data.nuvem !== 'recusado') await marcarNuvem(rec.id, 'recusado');
+        continue;
+      }
       if (ehErroDeRede(e)) throw e; // sem rede: para a fila e tenta tudo depois
       // falha só deste arquivo: conta a tentativa e segue com os outros (não trava a fila)
       const tentativas = (b.tentativas || 0) + 1;
@@ -231,6 +237,7 @@ async function enviarFotos() {
       continue;
     }
     await db.blobs.update(b.id, { uploaded: 1, tentativas: 0, ultimoErro: '' });
+    if (rec.kind === 'anexo' && rec.data.nuvem && rec.data.nuvem !== 'ok') await marcarNuvem(rec.id, 'ok');
     await refreshPending();
   }
   return db.blobs.where('uploaded').equals(4).count();
@@ -264,8 +271,22 @@ export async function refreshPending() {
 }
 
 // toque manual: os arquivos pausados por falha voltam para a fila
+// anexos recusados pelas regras (ex.: áudio antes de publicar as regras que aceitam audio/*) voltam para a fila:
+// depois de publicar as regras, sobem sozinhos. Os grandes demais (só no aparelho por tamanho) continuam onde estão.
+const LIMITE_NUVEM_ANEXO = 39 * 1024 * 1024;
+async function reenviarRecusados() {
+  for (const b of await db.blobs.where('uploaded').equals(2).toArray()) {
+    if (b.blob && b.blob.size <= LIMITE_NUVEM_ANEXO) await db.blobs.update(b.id, { uploaded: 0, tentativas: 0 });
+  }
+}
+async function marcarNuvem(id, estado) {
+  const { updateFields } = await import('./db.js');
+  await updateFields(id, { nuvem: estado });
+}
+
 export async function sincronizarAgora() {
   for (const b of await db.blobs.where('uploaded').equals(4).toArray()) await db.blobs.update(b.id, { uploaded: 0, tentativas: 0 });
+  await reenviarRecusados();
   ultimaBaixa = 0;
   agendar(0);
 }

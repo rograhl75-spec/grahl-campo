@@ -41,6 +41,35 @@ export async function processarFoto(file) {
 }
 
 let gpsCache = { at: 0, value: '' };
+// Localização com o motivo da falha: { valor, erro } – erro: 'permissao' | 'indisponivel' | 'tempo' | 'sem-suporte' | 'inseguro'.
+// Tenta o GPS (alta precisão) e, sem sinal (local fechado, GPS frio), a localização aproximada da rede.
+export async function lerGpsDetalhado({ timeout = 20000 } = {}) {
+  if (typeof window !== 'undefined' && window.isSecureContext === false) return { valor: '', erro: 'inseguro' };
+  if (!navigator.geolocation) return { valor: '', erro: 'sem-suporte' };
+  const tentar = (alta, t) => new Promise((resolve) => {
+    navigator.geolocation.getCurrentPosition(
+      (p) => resolve({ p }),
+      (e) => resolve({ erro: e && e.code === 1 ? 'permissao' : e && e.code === 3 ? 'tempo' : 'indisponivel' }),
+      { enableHighAccuracy: alta, timeout: t, maximumAge: alta ? 60000 : 300000 },
+    );
+  });
+  let r = await tentar(true, timeout);
+  if (r.erro && r.erro !== 'permissao') r = await tentar(false, 15000);
+  if (r.erro) return { valor: '', erro: r.erro };
+  const v = `${r.p.coords.latitude.toFixed(6)}, ${r.p.coords.longitude.toFixed(6)} (±${Math.round(r.p.coords.accuracy)} m)`;
+  gpsCache = { at: Date.now(), value: v };
+  return { valor: v, erro: '' };
+}
+
+// O que fazer em cada falha (mostrado na tela)
+export const AJUDA_GPS = {
+  permissao: 'O celular negou a localização para o app. Android/Chrome: toque no cadeado (ou nos três pontos ⋮ → ⓘ) ao lado do endereço → Permissões → Localização → Permitir. Se o app foi instalado na tela inicial: Configurações do Android → Apps → Chrome → Permissões → Localização → Permitir durante o uso. iPhone: Ajustes → Privacidade → Serviços de Localização → Safari/Chrome → Durante o uso.',
+  indisponivel: 'O celular não informou a posição. Confira se a Localização do aparelho está ligada (puxe a barra de notificações → Localização) e, no Android, se o modo de precisão (Google Location Accuracy) está ativo. Depois toque em GPS de novo.',
+  tempo: 'Sem sinal de GPS a tempo (comum em local fechado ou com o GPS recém-ligado). Vá para perto de uma janela ou ao ar livre e toque em GPS de novo; ou digite as coordenadas.',
+  'sem-suporte': 'Este navegador não informa a localização. Use o Chrome ou o Safari atualizados.',
+  inseguro: 'A localização só funciona no endereço seguro (https). Abra o app pelo endereço oficial.',
+};
+
 export function lerGps(timeout = 8000) {
   return new Promise((resolve) => {
     if (!navigator.geolocation) return resolve('');

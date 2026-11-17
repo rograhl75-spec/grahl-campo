@@ -190,8 +190,14 @@ export function matrizIAC(r, dados) {
   const nAdv = criterios.filter((c) => c.adverso).length;
   const comDados = criterios.filter((c) => c.linhas.length).length;
   let conclusao = v(x.penosidadeConclusao);
-  let penoso = conclusao ? !/n[ãa]o (h[áa]|caracteriz|se caracteriz)/i.test(conclusao) : null;
+  let penoso = conclusao ? !/n[ãa]o (h[áa]|caracteriz|se caracteriz|convergem)/i.test(conclusao) : null;
   let sugerida = false;
+  // escolha Sim / Não do vínculo (lista de pendências ou formulário): texto padrão, igual em todos os vínculos
+  const escolha = v(r.data.penosidadeResultado);
+  if (!conclusao && /^(sim|n[ãa]o)/i.test(escolha)) {
+    penoso = /^sim/i.test(escolha);
+    conclusao = textoPadraoPenosidade(penoso, (dados && dados.perfil) || {});
+  }
   if (!conclusao && comDados >= 2) {
     sugerida = true;
     penoso = nAdv >= 3;
@@ -203,7 +209,7 @@ export function matrizIAC(r, dados) {
   // conclusão calculada pelo app (contagem de fatores): é proposta, não juízo técnico – sai marcada para revisão
   const proposta = sugerida ? conclusao : '';
   if (sugerida) conclusao = `[[Proposta do app pela contagem de fatores – confirmar ou redigir no campo "Conclusão técnica da penosidade" do vínculo:]] ${conclusao}`;
-  return { criterios, conclusao, penoso, T, sugerida, proposta, pressaoSug, pausasSug, pressaoSugTexto, pausasSugTexto };
+  return { criterios, conclusao, penoso, T, sugerida, proposta, pressaoSug, pausasSug, pressaoSugTexto, pausasSugTexto, nAdv, comDados, indicacao: nAdv >= 3 };
 }
 
 // numero/nivel: posição do item no documento; tipo: 'laudo' | 'parecer' | 'ltcat'
@@ -248,8 +254,18 @@ export function secaoPenosidade(d, dados, { numero = '', nivel = 'h2', tipo = 'l
   return true;
 }
 
+// Textos padrão da conclusão de penosidade (Sim / Não): os mesmos para todos os vínculos; o signatário pode
+// trocá-los em Meus dados (penosidadeTextoSim / penosidadeTextoNao)
+export const PENOSIDADE_TEXTO_SIM = 'Pela convergência cumulativa dos fatores de desgaste apurados na entrevista e na avaliação do veículo (veículo, trajetos, cargas e jornadas), na matriz de fatores adotada neste parecer, a atividade foi exercida em condições excepcionalmente penosas, com exposição habitual e permanente a condições concretas de desgaste físico e mental à saúde.';
+export const PENOSIDADE_TEXTO_NAO = 'Os fatores apurados na entrevista e na avaliação do veículo não convergem de forma suficiente para caracterizar, na matriz de fatores adotada neste parecer, trabalho excepcionalmente penoso.';
+export function textoPadraoPenosidade(sim, perfil = {}) {
+  const t = sim ? perfil.penosidadeTextoSim : perfil.penosidadeTextoNao;
+  return v(t) || (sim ? PENOSIDADE_TEXTO_SIM : PENOSIDADE_TEXTO_NAO);
+}
+
 export const CAMPOS_PENOSIDADE = [
   ['penosidade', 'Avaliar penosidade neste vínculo?', 'select', ['Automático (motorista)', 'Sim', 'Não']],
+  ['penosidadeResultado', 'Conclusão da penosidade (texto padrão Sim / Não; vazio: proposta do app a conferir)', 'select', ['Sim – caracteriza', 'Não – não caracteriza']],
   ['tipoTransporte', 'Tipo de transporte (ex.: carga seca rodoviária, grãos, combustível, passageiros urbano)', 'text'],
   ['jornadaSemanal', 'Jornada semanal e horas extras habituais', 'text'],
   ['pausas', 'Direção contínua e pausas (ex.: 6 h seguidas sem pausa)', 'text'],
@@ -260,5 +276,5 @@ export const CAMPOS_PENOSIDADE = [
   ['riscoAcidente', 'Risco de acidente e violência (carga perigosa, roubo, ocorrências)', 'text'],
   ['pressao', 'Pressão de prazos, metas, remuneração por produção (vazio: deduzido de jornada ≥ 12 h/dia)', 'text'],
   ['fisiologicas', 'Acesso a sanitários, alimentação e descanso durante a jornada', 'text'],
-  ['penosidadeConclusao', 'Conclusão técnica da penosidade (vazio: o app propõe uma conclusão pela contagem de fatores da matriz, marcada para conferir)', 'area'],
+  ['penosidadeConclusao', 'Conclusão da penosidade – texto próprio deste vínculo (substitui o texto padrão Sim / Não)', 'area'],
 ];

@@ -265,7 +265,7 @@ const GRUPOS_PERFIL = [
   { id: 'prof', icone: 'pessoa', titulo: 'Identificação profissional', dica: 'Sai na capa, na qualificação das petições e na assinatura.', campos: ['nome', 'titulos', 'crea', 'vistoCrea', 'curriculoUrl'] },
   { id: 'contato', icone: 'contato', titulo: 'Contato e local da assinatura', dica: 'Endereço profissional, telefone e e-mail saem na qualificação completa.', campos: ['endereco', 'telefone', 'email', 'cidade'] },
   { id: 'pessoal', icone: 'cadeado', titulo: 'Documentos pessoais', dica: 'Só na petição de indicação e no aceite do encargo. Ficam neste aparelho e na sua nuvem.', campos: ['cpf', 'rg'] },
-  { id: 'docs', icone: 'ajuste', titulo: 'Preferências dos documentos', dica: 'Padrão para os casos novos; cada caso pode mudar.', campos: ['jurisprudenciaPadrao'] },
+  { id: 'docs', icone: 'ajuste', titulo: 'Preferências dos documentos', dica: 'Padrão para os casos novos; cada caso pode mudar.', campos: ['jurisprudenciaPadrao', 'penosidadeTextoSim', 'penosidadeTextoNao'] },
 ];
 const campoPerfil = (k) => CAMPOS_PERFIL.find(([x]) => x === k);
 

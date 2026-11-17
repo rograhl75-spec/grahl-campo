@@ -308,6 +308,13 @@ function ItemPendencia({ it, responder }) {
   // campo de horas: o que o app entendeu do texto (horas fora da direção ou de condução)
   const lerH = (t) => (it.campo === 'foraDirecaoH' ? horasForaTexto(t) : horasDia(t));
   const h = it.tipo === 'numero' ? lerH(txt) : NaN;
+  // Sim / Não: grava a escolha (num vínculo ou em todos) e limpa o texto próprio, para valer o texto padrão
+  const escolherSimNao = async (valor) => {
+    for (const alvo of it.alvos || [it.rec]) {
+      if (it.limpar) await salvar(alvo, it.limpar, '');
+      await responder(alvo, it.campo, valor);
+    }
+  };
   const salvarTxt = () => {
     const t = String(txt).trim();
     if (!t) return;
@@ -328,6 +335,12 @@ function ItemPendencia({ it, responder }) {
       {it.tipo === 'numero' && String(txt).trim() && (isFinite(h)
         ? <small class="dica">O app entendeu: <b>{fmtHoras(h)}</b>{it.campo === 'foraDirecaoH' ? ' por dia fora da direção' : ' por dia'}.</small>
         : <small class="erro-msg">Não entendi um número de horas. Digite só o número (ex.: 5 ou 8,5).</small>)}
+      {it.tipo === 'simnao' && (
+        <div class="linha-botoes">
+          <button type="button" class="mini" onClick={() => escolherSimNao('Sim – caracteriza')}>Sim – caracteriza</button>
+          <button type="button" class="mini" onClick={() => escolherSimNao('Não – não caracteriza')}>Não – não caracteriza</button>
+        </div>
+      )}
       {it.tipo === 'escolha' && (
         <div class="linha-botoes">
           {it.opcoes.map((o) => <button type="button" class="mini" onClick={() => responder(it.rec, it.campo, o.valor)}>Usar {o.rotulo}</button>)}

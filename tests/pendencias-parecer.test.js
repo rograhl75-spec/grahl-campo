@@ -40,7 +40,8 @@ describe('regra do caso, pendências antes de gerar e cidades', () => {
     const itens = await pendenciasDoCaso(CASO);
     expect(itens.find((i) => i.id === 'foraDirecaoH')).toBeTruthy();
     expect(itens.filter((i) => i.campo === 'conducaoH')).toHaveLength(2);
-    expect(itens.some((i) => i.campo === 'penosidadeConclusao')).toBe(true);
+    expect(itens.some((i) => i.campo === 'penosidadeResultado' && i.tipo === 'simnao')).toBe(true);
+    expect(itens.find((i) => i.id === 'conc-todos')).toBeTruthy(); // aplicar a todos os vínculos
     // resposta dada na lista: regra do caso
     await db.records.update(CASO, { 'data.foraDirecaoH': '5' });
     dados = await carregar(CASO);
@@ -75,6 +76,16 @@ describe('regra do caso, pendências antes de gerar e cidades', () => {
     expect(t).not.toContain('utilizar sempre');
     const marcas = await marcacoesNoDocumento(() => parecerPenosidade(CASO));
     expect(marcas.some((m) => /tempo diário|informe um número|base da informação|^T$/.test(m.texto))).toBe(false);
+  });
+  it('conclusão da penosidade: Sim / Não com o texto padrão, igual em todos os vínculos', async () => {
+    for (const id of ['p-1', 'p-2']) await db.records.update(id, { 'data.penosidadeResultado': 'Sim – caracteriza', 'data.penosidadeConclusao': '' });
+    await db.records.update('p-9', { 'data.penosidadeResultado': 'Não – não caracteriza' });
+    const t = await texto((await parecerPenosidade(CASO)).blob);
+    const sim = (t.match(/a atividade foi exercida em condições excepcionalmente penosas/g) || []).length;
+    expect(sim).toBe(2);
+    expect(t).toContain('não convergem de forma suficiente para caracterizar');
+    expect(t).not.toContain('Proposta do app pela contagem de fatores');
+    expect((await pendenciasDoCaso(CASO)).some((i) => i.campo === 'penosidadeResultado')).toBe(false);
   });
   it('cidades: só os municípios mudam; o resto fica como digitado', () => {
     expect(capitalizarCidades('londrina/pr - sao jose dos pinhais e foz do iguacu, serra do mar, br 277'))

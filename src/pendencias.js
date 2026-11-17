@@ -48,6 +48,7 @@ export async function pendenciasDoCaso(caseId) {
     });
   }
 
+  const conclusoes = [];
   for (const r of vincs) {
     const i = idx.get(r.id);
     const grupo = nomeVinculo(r, i);
@@ -77,10 +78,22 @@ export async function pendenciasDoCaso(caseId) {
       itens.push({ id: `pausas-${r.id}`, grupo, rec: r.id, campo: 'pausas', tipo: 'confirmar', sugestao: m.pausasSugTexto, recusa: { campo: 'sugPausas', valor: 'recusada' },
         titulo: 'Direção contínua e pausas (sugestão do app pela jornada)', explicacao: 'Confirme ou recuse.' });
     }
-    if (m.sugerida) {
-      itens.push({ id: `conc-${r.id}`, grupo, rec: r.id, campo: 'penosidadeConclusao', tipo: 'texto', valor: '', sugestao: m.proposta,
-        titulo: 'Conclusão técnica da penosidade', explicacao: 'Proposta do app pela contagem de fatores: adote como está, edite ou escreva a sua.' });
+    // conclusão: escolha Sim / Não (texto padrão igual em todos os vínculos); também quando o texto gravado é
+    // uma proposta antiga do app adotada como estava
+    const propostaAntiga = /^(Pela convergência cumulativa dos fatores de desgaste apurados \(|Os fatores apurados \()/.test(String(r.data.penosidadeConclusao || ''));
+    if (!String(r.data.penosidadeResultado || '').trim() && (m.sugerida || propostaAntiga)) {
+      conclusoes.push(r);
+      itens.push({ id: `conc-${r.id}`, grupo, rec: r.id, campo: 'penosidadeResultado', tipo: 'simnao', limpar: 'penosidadeConclusao',
+        titulo: 'Conclusão da penosidade',
+        explicacao: `A contagem de fatores indica ${m.indicacao ? 'SIM' : 'NÃO'} (${m.nAdv} de 4 critérios com fatores de desgaste: veículo, trajetos, cargas, jornadas). Escolha o texto padrão; para um texto próprio, use o campo do vínculo.` });
     }
+  }
+  // a mesma conclusão para todos os vínculos de uma vez
+  if (conclusoes.length > 1) {
+    itens.splice(itens.findIndex((it) => it.grupo !== 'Regra do caso') === -1 ? itens.length : itens.findIndex((it) => it.grupo !== 'Regra do caso'), 0, {
+      id: 'conc-todos', grupo: 'Regra do caso', tipo: 'simnao', campo: 'penosidadeResultado', limpar: 'penosidadeConclusao', alvos: conclusoes.map((r) => r.id),
+      titulo: `Conclusão da penosidade – aplicar a todos os ${conclusoes.length} vínculos`, explicacao: 'Usa o mesmo texto padrão em todos; depois, se algum vínculo for diferente, mude só ele.',
+    });
   }
   return itens;
 }

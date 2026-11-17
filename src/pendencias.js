@@ -28,7 +28,9 @@ export async function pendenciasDoCaso(caseId) {
     itens.push({
       id: 'foraDirecaoH', grupo: 'Regra do caso', rec: caseId, campo: 'foraDirecaoH', tipo: 'numero', valor: c.foraDirecaoH || '',
       titulo: 'Horas por dia fora da direção (carga, descarga e paradas)',
-      explicacao: `Vale para os ${semTdigitado.length} vínculo(s) sem tempo de condução digitado: condução = jornada da entrevista − estas horas. Ex.: 5.`,
+      explicacao: semTdigitado.length ? `Vale para os ${semTdigitado.length} vínculo(s) sem tempo de condução digitado: condução = jornada da entrevista − estas horas. Ex.: 5.`
+        : 'Todos os vínculos já têm o tempo de condução; a regra vale para os que vierem sem ele. Abaixo, a condução que vai para o documento.',
+      respondido: isFinite(horasForaTexto(c.foraDirecaoH || '')),
       // o tempo que vai para o documento em cada vínculo, e de onde veio
       previa: vincs.map((r) => {
         const J = jornadaDia(r, dados);
@@ -43,7 +45,7 @@ export async function pendenciasDoCaso(caseId) {
   const semJornada = vincs.filter((r) => !isFinite(tempoConducao(r, dados).T) && !isFinite(jornadaDia(r, dados)));
   if (semJornada.length) {
     itens.push({
-      id: 'conducaoPadraoH', grupo: 'Regra do caso', rec: caseId, campo: 'conducaoPadraoH', tipo: 'numero', valor: c.conducaoPadraoH || '',
+      id: 'conducaoPadraoH', grupo: 'Regra do caso', respondido: false, rec: caseId, campo: 'conducaoPadraoH', tipo: 'numero', valor: c.conducaoPadraoH || '',
       titulo: 'Condução padrão (h/dia) para os vínculos sem jornada na entrevista',
       explicacao: `${semJornada.length} vínculo(s) sem jornada identificada: ${semJornada.map((r) => nomeVinculo(r, idx.get(r.id))).join('; ')}.`,
     });
@@ -122,12 +124,23 @@ export async function marcacoesNoDocumento(gerar) {
   const r = await gerar();
   const zip = await JSZip.loadAsync(await r.blob.arrayBuffer());
   const xml = await zip.file('word/document.xml').async('string');
-  // o texto marcado sai em runs com <w:highlight>
-  const runs = [...xml.matchAll(/<w:r>((?:(?!<\/w:r>).)*?<w:highlight[^>]*>(?:(?!<\/w:r>).)*?)<\/w:r>/gs)]
-    .map((m) => [...m[1].matchAll(/<w:t[^>]*>([^<]*)<\/w:t>/g)].map((t) => t[1]).join(''))
-    .map((t) => t.replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim())
-    .filter(Boolean);
+  const des = (t) => t.replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  const textoDe = (frag) => des([...frag.matchAll(/<w:t[^>]*>([^<]*)<\/w:t>/g)].map((t) => t[1]).join(''));
   const cont = new Map();
-  for (const t of runs) cont.set(t, (cont.get(t) || 0) + 1);
-  return [...cont.entries()].map(([texto, n]) => ({ texto, n })).sort((a, b) => b.n - a.n);
+  let onde = '';
+  // percorre os parágrafos: título (estilo Título) ou legenda "Quadro N – …" / "Figura N – …" marca o lugar
+  for (const m of xml.matchAll(/<w:p[ >][\s\S]*?<\/w:p>/g)) {
+    const p = m[0];
+    const t = textoDe(p).trim();
+    if (/w:pStyle w:val="Ttulo[123]"/.test(p) || /^(Quadro|Figura)\s*(SEQ[^–]*)?\d*\s*–/.test(t.replace(/SEQ \w+ \\\* ARABIC /, ''))) onde = t.replace(/SEQ \w+ \\\* ARABIC /, '').slice(0, 90);
+    for (const run of p.matchAll(/<w:r>((?:(?!<\/w:r>).)*?<w:highlight[^>]*>(?:(?!<\/w:r>).)*?)<\/w:r>/gs)) {
+      const texto = textoDe(run[1]).trim();
+      if (!texto) continue;
+      const k = texto;
+      const e = cont.get(k) || { texto, n: 0, onde: new Set() };
+      e.n += 1; if (onde) e.onde.add(onde);
+      cont.set(k, e);
+    }
+  }
+  return [...cont.values()].map((e) => ({ texto: e.texto, n: e.n, onde: [...e.onde].slice(0, 3).join('; ') })).sort((a, b) => b.n - a.n);
 }

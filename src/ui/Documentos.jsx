@@ -279,10 +279,11 @@ function PendenciasDoc({ rec, d, gerar }) {
   if (!itens) return <div class="pendencias"><p class="dica">Conferindo…</p></div>;
   if (itens.erro) return <div class="pendencias"><p class="erro-msg">{itens.erro}</p></div>;
   const grupos = [...new Set(itens.map((i) => i.grupo))];
+  const abertas = itens.filter((i) => !i.respondido).length;
   return (
     <div class="pendencias">
-      <h4>Pendências antes de gerar {itens.length ? <span class="contador">{itens.length}</span> : null}</h4>
-      {!itens.length && <p class="ok-msg">Nenhuma pergunta pendente nos vínculos. Confira abaixo o que ainda sairia em amarelo.</p>}
+      <h4>Pendências antes de gerar {abertas ? <span class="contador">{abertas}</span> : <span class="contador ok">✓</span>}</h4>
+      {!abertas && <p class="ok-msg">Nenhuma pergunta pendente. {itens.length ? 'As respostas ficam abaixo, para conferir ou mudar. ' : ''}Confira o que ainda sairia em amarelo.</p>}
       {grupos.map((g) => (
         <div class="pend-grupo" key={g}>
           <b class="pend-grupo-tit">{g}</b>
@@ -296,7 +297,8 @@ function PendenciasDoc({ rec, d, gerar }) {
       {marcas && (marcas.length ? (
         <div class="pend-marcas">
           <small class="dica">{marcas.reduce((s, m) => s + m.n, 0)} trecho(s) em amarelo no documento, agrupados:</small>
-          <ul>{marcas.map((m) => <li key={m.texto}><span class="contador">{m.n}×</span> {m.texto}</li>)}</ul>
+          <ul>{marcas.map((m) => <li key={m.texto}><span class="contador">{m.n}×</span> {m.texto}{m.onde && <small class="dica"> – em: {m.onde}</small>}</li>)}</ul>
+          <small class="dica">Esses trechos não têm pergunta na lista: complete no Word ou no campo correspondente do caso (o local indicado mostra onde estão).</small>
         </div>
       ) : <p class="ok-msg">✓ O documento sai sem trechos em amarelo.</p>)}
     </div>

@@ -447,7 +447,8 @@ function RelatoriosParadigma({ p }) {
   const remover = async () => {
     if (!await confirmar('Tirar o arquivo de relatórios deste paradigma? O arquivo vai para a lixeira.')) return;
     if (id) await softDelete(id);
-    await updateFields(p.id, { relatoriosAnexoId: '', relatoriosNome: '' });
+    for (const ex of String(d.relatoriosExtras || '').split(/[\s,;]+/).filter(Boolean)) await softDelete(ex);
+    await updateFields(p.id, { relatoriosAnexoId: '', relatoriosNome: '', relatoriosExtras: '', relatoriosNomesExtras: '' });
     avisarAlteracao(); setMsg('');
   };
   return (
@@ -471,6 +472,7 @@ function RelatoriosParadigma({ p }) {
         {id ? (
           <div class="linha-botoes">
             <AbrirAnexo id={id} rotulo={`Abrir ${d.relatoriosNome || 'relatórios'}`} />
+            {String(d.relatoriosExtras || '').split(/[\s,;]+/).filter(Boolean).map((ex, k) => <AbrirAnexo key={ex} id={ex} rotulo={`Abrir ${(String(d.relatoriosNomesExtras || '').split(' | ')[k]) || `arquivo ${k + 2}`}`} />)}
             <label class="botao sec mini">Trocar arquivo<input type="file" accept="application/pdf,image/*" hidden onChange={anexar} /></label>
             <button type="button" class="mini perigo" onClick={remover}>Tirar</button>
           </div>
@@ -554,6 +556,9 @@ export function ResultadoBusca({ res, onEscolher }) {
   );
 }
 
+// arquivo de relatórios com o mesmo nome já ligado ao paradigma (não liga duas vezes)
+const jaLigado = (d, nome) => d.relatoriosNome === nome || String(d.relatoriosNomesExtras || '').split(' | ').includes(nome);
+
 // Anexar os laudos de origem (e relatórios avulsos) de vários paradigmas de uma vez
 function LaudosEmLote() {
   const lista = useParadigmas();
@@ -573,7 +578,8 @@ function LaudosEmLote() {
         const textos = /pdf/i.test(f.type || f.name) ? await textosDoPdf(f) : [];
         const r = casarArquivo({ nome: f.name, textos }, lista);
         // já ligado a outro laudo: fica desmarcado (o perito decide se troca)
-        const marcados = new Set(r.ids.filter((id) => { const d = porId.get(id)?.data || {}; return r.certo && !(r.tipo === 'laudo' ? d.anexoId : d.relatoriosAnexoId); }));
+        // laudo: um por paradigma (o que já tem fica desmarcado); relatórios: vários arquivos somam-se ao paradigma
+        const marcados = new Set(r.ids.filter((id) => { const d = porId.get(id)?.data || {}; return r.certo && (r.tipo === 'laudo' ? !d.anexoId : !jaLigado(d, f.name)); }));
         out.push({ file: f, r, marcados, semTexto: textos.join('').trim().length < 200 });
       } catch (err) { out.push({ file: f, r: { ids: [] }, marcados: new Set(), erro: err.message }); }
     }
@@ -593,7 +599,13 @@ function LaudosEmLote() {
       const id = await guardarAnexo(x.file, `${x.r.tipo === 'laudo' ? 'Laudo de origem' : 'Relatórios de medição'} – paradigmas ${cods}`);
       arq++;
       for (const pid of x.marcados) {
-        await updateFields(pid, x.r.tipo === 'laudo' ? { anexoId: id, paginasRelatorios: x.r.paginas || '' } : { relatoriosAnexoId: id, relatoriosNome: x.file.name });
+        if (x.r.tipo === 'laudo') await updateFields(pid, { anexoId: id, paginasRelatorios: x.r.paginas || '' });
+        else {
+          // relatórios: o 1º arquivo é o principal; os seguintes vão para a lista de extras (ruído, VCI, VMB…)
+          const d = (await db.records.get(pid))?.data || {};
+          if (!d.relatoriosAnexoId) await updateFields(pid, { relatoriosAnexoId: id, relatoriosNome: x.file.name });
+          else await updateFields(pid, { relatoriosExtras: [...String(d.relatoriosExtras || '').split(/[\s,;]+/).filter(Boolean), id].join(' '), relatoriosNomesExtras: [d.relatoriosNomesExtras, x.file.name].filter(Boolean).join(' | ') });
+        }
         n++;
       }
     }
@@ -626,7 +638,7 @@ function LaudosEmLote() {
               <div class="chips">
                 {x.r.ids.map((id) => {
                   const p = porId.get(id); const d = p?.data || {};
-                  const ja = x.r.tipo === 'laudo' ? d.anexoId : d.relatoriosAnexoId;
+                  const ja = x.r.tipo === 'laudo' ? d.anexoId : jaLigado(d, x.file.name);
                   return <button type="button" class={`chip ${x.marcados.has(id) ? 'on' : ''}`} onClick={() => alternar(i, id)} title={ja ? 'Já tem arquivo: marcar troca o atual' : ''}>{x.marcados.has(id) ? '✓ ' : ''}{rotuloParadigma(p)}{ja ? ' (já tem)' : ''}</button>;
                 })}
                 {!x.r.ids.length && !x.erro && <small class="erro-msg">Não achei o paradigma. Renomeie o arquivo com o código (ex.: M20 - …) ou anexe no próprio paradigma.</small>}

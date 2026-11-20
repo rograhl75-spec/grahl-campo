@@ -958,7 +958,9 @@ export async function apendicesDoCaso(dados) {
       if (!idArq) { semRelatorios.push(p.data.codigo); continue; }
       // extrajudicial: os relatórios do medidor trazem trabalhador e empresa avaliada; só vão se marcados "sem nomes" (LGPD)
       if (/extrajudicial/i.test(p.data.fonteTipo || '') && !/^sim/i.test(String(p.data.relatoriosSemNomes || ''))) { semRelatoriosLgpd.push(p.data.codigo); continue; }
-      const chave = `${idArq}|${p.data.relatoriosAnexoId ? '' : p.data.paginasRelatorios || ''}`;
+      // relatórios em vários arquivos (ex.: ruído, VCI e VMB separados): o principal e os extras, em sequência
+      const extras = p.data.relatoriosAnexoId ? String(p.data.relatoriosExtras || '').split(/[\s,;]+/).filter(Boolean) : [];
+      const chave = `${idArq}|${extras.join(',')}|${p.data.relatoriosAnexoId ? '' : p.data.paginasRelatorios || ''}`;
       if (vistos.has(chave)) {
         const ap = vistos.get(chave);
         ap.cods.push(rotuloParadigma(p));
@@ -976,6 +978,14 @@ export async function apendicesDoCaso(dados) {
           if (!sel.length) { semRelatorios.push(p.data.codigo); continue; } // laudo digitalizado sem texto: informe as páginas no paradigma
         }
         const paginas = await paginasDoArquivo(blob, mime, { paginas: sel });
+        for (const ex of extras) {
+          try {
+            const rx = await db.records.get(ex);
+            if (!rx || rx.deleted) continue;
+            const bx = await obterAnexo(ex);
+            paginas.push(...await paginasDoArquivo(bx, rx.data?.mime || bx.type));
+          } catch (e) { falhas++; }
+        }
         if (paginas.length) {
           const ap = { letra: LETRAS[out.length] || String(out.length + 1), titulo: `Relatórios de medição do paradigma ${rotuloParadigma(p)}`, paginas, cods: [rotuloParadigma(p)] };
           out.push(ap); vistos.set(chave, ap);

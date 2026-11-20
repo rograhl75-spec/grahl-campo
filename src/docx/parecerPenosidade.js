@@ -222,14 +222,14 @@ export async function parecerPenosidade(caseId) {
     ['Responsável técnico', perfil.nome], ['Formação', perfil.titulos], ['Registro profissional', credencial(perfil)], ['ART', v(c.art) || '[[nº da ART]]']],
   { larguras: [0.3, 0.7], alinhar: 'left', fonte: '' });
   const { lista, faltando } = await figurasDoCaso(dados);
-  const { apendices, falhasApendice, semRelatorios } = await apendicesDoCaso(dados);
+  const { apendices, falhasApendice, semRelatorios, semRelatoriosLgpd } = await apendicesDoCaso(dados);
   textoIntegram(d, { fotos: lista.length > 0, rotuloFotos: 'Anexo – Registro fotográfico', apendices, doc: 'parecer' });
   blocoAssinatura(d, dados, `Responsável técnico – ART nº ${v(c.art) || '[[nº]]'}`);
   secaoReferencias(d, dados, { prev: true, judicial: false });
   if (lista.length) { d.h1('', 'Anexo – Registro fotográfico'); d.figuras(lista); }
   inserirApendices(d, apendices, dados);
   const r = await finalizar(d, { titulo: 'Parecer técnico de condições de trabalho e penosidade', arquivo: 'Parecer_penosidade', c });
-  return { ...r, faltando, falhasApendice, semRelatorios };
+  return { ...r, faltando, falhasApendice, semRelatorios, semRelatoriosLgpd };
 }
 
 // ======================================================================

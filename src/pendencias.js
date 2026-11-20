@@ -10,6 +10,8 @@ import { carregar } from './docx/base.js';
 import { vinculosMotorista, tempoConducao, jornadaDia, matrizIAC } from './docx/penosidade.js';
 import { sugerirParaVinculo } from './paradigmas.js';
 import { fmtHoras, horasDia, horasForaTexto } from './calc.js';
+import { contextoLegal, ehParecerTecnico, EMITENTE_PPP, CATEGORIAS_SEGURADO, RESULTADO_AGENTE } from './schema.js';
+import { categoriaDoVinculo } from './enquadramento.js';
 
 const br = (iso) => String(iso || '').replace(/^(\d{4})-(\d{2})-(\d{2}).*$/, '$3/$2/$1');
 const nomeVinculo = (r, i) => `V${i + 1} – ${String(r.data.empresa || 'vínculo').split(/\s*\(|,/)[0].trim().slice(0, 45)} (${br(r.data.inicio) || '?'} a ${r.data.fim ? br(r.data.fim) : 'atual'})`;
@@ -100,6 +102,29 @@ export async function pendenciasDoCaso(caseId) {
   if (c.vistoriaData && !String(c.vistoriaPresentes || '').trim()) {
     itens.push({ id: 'presentes', grupo: 'Diligência', rec: caseId, campo: 'vistoriaPresentes', tipo: 'texto', valor: '',
       titulo: 'Pessoas presentes na vistoria', explicacao: 'Uma por linha: nome – função – quem representa.' });
+  }
+  // LTCAT + PPP: quem emite, categoria do segurado por vínculo e resultado dos agentes avaliados
+  const ltcat = c.tipoAtuacao === 'Extrajudicial' && contextoLegal(c).prev && !ehParecerTecnico(c);
+  if (ltcat && dados.periodos.length) {
+    const g = 'LTCAT + PPP';
+    if (!String(c.pppEmitente || '').trim()) {
+      itens.push({ id: 'pppEmitente', grupo: g, rec: caseId, campo: 'pppEmitente', tipo: 'escolha', valor: '', opcoes: EMITENTE_PPP.map((x) => ({ valor: x, rotulo: x })),
+        titulo: 'Quem emite o PPP', explicacao: 'Cooperativa: o PPP sai só com os vínculos de cooperado. Próprio segurado: contribuinte individual sem empresa.' });
+    }
+    dados.periodos.forEach((r, i) => {
+      if (String(r.data.categoriaSegurado || '').trim()) return;
+      itens.push({ id: `cat-${r.id}`, grupo: g, rec: r.id, campo: 'categoriaSegurado', tipo: 'escolha', valor: '', opcoes: CATEGORIAS_SEGURADO.map((x) => ({ valor: x, rotulo: x })),
+        titulo: `Categoria do segurado – ${nomeVinculo(r, i)}`, explicacao: categoriaDoVinculo(r) ? `Pelo texto do vínculo, o app adota "${categoriaDoVinculo(r)}".` : 'Sem a categoria, o item 3.2 do LTCAT fica para completar.' });
+    });
+    const temAte97 = dados.periodos.some((r) => (r.data.inicio || '9999') <= '1997-03-05');
+    for (const a of dados.agentes) {
+      for (const [campo, rot, vale] of [['resAte97', 'até 05/03/1997', temAte97], ['resDesde97', 'a partir de 06/03/1997', true]]) {
+        const val = String(a.data[campo] || '').trim();
+        if (!vale || (val && val !== 'A confirmar')) continue;
+        itens.push({ id: `${campo}-${a.id}`, grupo: g, rec: a.id, campo, tipo: 'escolha', valor: '', opcoes: RESULTADO_AGENTE.filter((x) => x !== 'A confirmar').map((x) => ({ valor: x, rotulo: x })),
+          titulo: `${a.data.nome} – resultado ${rot}`, explicacao: val ? 'Marcado "a confirmar": confirme com o segurado e escolha o resultado.' : 'Sem o resultado, o agente fica pendente na síntese e fora do PPP.' });
+      }
+    }
   }
   // quesitos sem resposta: responder aqui mesmo (o texto do quesito aparece acima do campo)
   const ordemOrigem = (o) => ['Juízo', 'Autor / Reclamante', 'Réu / Reclamada', 'INSS', 'Complementares'].indexOf(o);

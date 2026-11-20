@@ -4,6 +4,7 @@
 import { ehSuplementar } from '../schema.js';
 import { doseJornada, fatorQ, fmt, ibutg, nen } from '../calc.js';
 import { confrontoAnexo11, num as numQ } from '../quimicos.js';
+import { exposicaoNoVinculo, codigosDoAgente, medidasDoAgente } from '../enquadramento.js';
 import {
   Doc, carregar, finalizar, dataBR, partes, art, enderecamentoTexto, linhasProcesso, qualificacaoCurta, credencial,
   equipamentosUsados, quadroEquipamentos, quadroDiligencia, quadroDocumentos, quadroEpis, profissiografia, figurasDoCaso,
@@ -400,13 +401,21 @@ export function linhasRecomendacoes(dados) {
       if (cf && cf.pct >= 50) rows.push([posto, x.descricao || ag.data.nome, `${fmt(cf.pct, 0)}% do LT (nível de ação: 50%)`, `Substituição do produto, ventilação local exaustora, enclausuramento; proteção respiratória adequada${cf.pele ? ' e luvas (absorção pela pele)' : ''}; monitoramento biológico quando houver indicador (NR-7)`]);
     }
   }
+  // agentes avaliados sem medição que caracterizam na época atual (ou na única avaliada)
+  const postoGeral = dados.postos?.length === 1 ? nome(dados.postos[0].id) : 'Todos os postos';
+  for (const a of dados.agentes || []) {
+    const x = a.data;
+    if (x.resDesde97 !== 'Caracteriza' && !(x.resAte97 === 'Caracteriza' && !x.resDesde97)) continue;
+    rows.push([postoGeral, x.nome, 'Exposição caracterizada (avaliação qualitativa)', medidasDoAgente(a)]);
+  }
   return rows;
 }
 export function quadroRecomendacoes(d, dados) {
   const rows = linhasRecomendacoes(dados);
+  const soQuali = rows.length && !dados.medicoes?.length;
   d.quadro('Recomendações por agente', [['Posto', 'Agente', 'Situação', 'Medidas recomendadas (ordem da NR-1)'],
     ...(rows.length ? rows : [['[[posto]]', '[[agente]]', '[[situação]]', '[[medidas]]']])],
-  { larguras: [0.18, 0.17, 0.2, 0.45], tam: 9, alinhar: 'left', fonte: 'Elaborado pelo signatário. Agentes no nível de ação ou acima (NR-9: ruído – dose de 50%; VCI – aren 0,5 m/s² ou VDVR 9,1 m/s^1,75; VMB – aren 2,5 m/s²; químicos – metade do limite de exposição).' });
+  { larguras: [0.18, 0.17, 0.2, 0.45], tam: 9, alinhar: 'left', fonte: soQuali ? 'Elaborado pelo signatário. Agentes com exposição caracterizada na avaliação qualitativa (item 5).' : 'Elaborado pelo signatário. Agentes no nível de ação ou acima (NR-9: ruído – dose de 50%; VCI – aren 0,5 m/s² ou VDVR 9,1 m/s^1,75; VMB – aren 2,5 m/s²; químicos – metade do limite de exposição).' });
   return rows.length;
 }
 
@@ -433,6 +442,14 @@ export function quadroDadosPPP(d, dados) {
     const ps = postosDoPeriodo(r, dados).map((x) => x.id);
     const ms = dados.medicoes.filter((m) => ps.includes(m.data.postoId) && m.data.agente !== 'Outro');
     const per = `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`;
+    const idx = dados.periodos.indexOf(r);
+    const exps = exposicaoNoVinculo(r, idx, dados.agentes || []);
+    for (const e of exps) {
+      const x = e.agente.data; const k = codigosDoAgente(e.agente);
+      linhas.push([`${dataBR(e.ini)} a ${!r.data.fim && e.fim === new Date().toISOString().slice(0, 10) ? 'atual' : dataBR(e.fim)}`, (x.tipo || 'Q')[0], x.nome, v(x.intensidade) || 'Não se aplica (avaliação qualitativa)', k.tecnica || '[[técnica]]',
+        x.epcEficaz || '[[S/N]]', e.fim < '1998-12-03' ? 'Não se aplica (antes de 03/12/1998)' : [x.epiEficaz || '[[S/N]]', v(x.ca) && `CA ${x.ca}`].filter(Boolean).join(' – ')]);
+    }
+    if (exps.length && !ms.length) continue;
     if (!ms.length) { linhas.push([per, '[[tipo]]', '[[fator de risco]]', '[[intensidade]]', '[[técnica]]', '[[S/N]]', '[[S/N – CA]]']); continue; }
     for (const m of ms) {
       const tipo = m.data.agente === 'Agente químico' ? 'Q' : 'F';

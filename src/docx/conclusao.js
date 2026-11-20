@@ -6,8 +6,9 @@ import { comJurisprudencia } from './fontes.js';
 import { avaliaPenosidade, vinculosMotorista, matrizIAC, tempoConducao } from './penosidade.js';
 import { nenParaJornada, vibracaoDoParadigma } from '../paradigmas.js';
 import { num, fmt, nen, fatorQ, horasDia, fmtHoras, lavgDaDose } from '../calc.js';
+import { categoriaSaude, itensAgentes, lerAfastamentos, recortarAfastamentos } from '../enquadramento.js';
 
-const CORTES = ['1995-04-28', '1997-03-05', '2003-11-18', '2014-08-13'];
+const CORTES = ['1995-04-28', '1997-03-05', '2003-11-18', '2014-08-13', '2019-11-13'];
 const dia = (iso, n) => { const d = new Date(`${iso}T12:00:00`); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 const RE_MOT = /motorista|caminh|carreteir|cobrador|ônibus|onibus/i;
@@ -15,11 +16,12 @@ const RE_MOT = /motorista|caminh|carreteir|cobrador|ônibus|onibus/i;
 const RE_TRAT = /tratorist|operador de trator|operador de m[aá]quinas? agr[ií]col/i;
 const RE_COBR = /cobrador/i;
 
-function segmentos(r) {
+// cortes: os marcos do ruído (18/11/2003) e da vibração (13/08/2014) só entram quando o vínculo tem esses agentes
+function segmentos(r, cortes = CORTES) {
   const ini = r.data.inicio; const fim = r.data.fim || hojeLocal();
   if (!ini) return [];
   const out = []; let a = ini;
-  for (const c of CORTES) if (c >= a && c < fim) { out.push([a, c]); a = dia(c, 1); }
+  for (const c of cortes) if (c >= a && c < fim) { out.push([a, c]); a = dia(c, 1); }
   out.push([a, fim]);
   return out;
 }
@@ -59,15 +61,40 @@ export function valores(r, dados) {
   return out;
 }
 
+const empresaCurta = (r) => String(r.data.empresa || 'vínculo').replace(/\s*\([^)]*\)/g, '').trim();
+// nota de rodapé da síntese: só fala de ruído e vibração quando houver
+function fonteSintese(dados, av) {
+  const ruido = av.some(({ segs }) => segs.some((s) => s.itens.some((i) => i.ruido)));
+  const vib = av.some(({ segs }) => segs.some((s) => s.itens.some((i) => /^VCI/.test(i.t))));
+  const quali = (dados.agentes || []).length > 0;
+  const partes = ['Elaborado pelo signatário.'];
+  if (ruido) partes.push('Ruído com o fator de duplicação de cada medição (q = 5, salvo indicação de q = 3).');
+  if (ruido || vib) partes.push(`NEN${vib ? ' e aren' : ''} normalizados para o tempo diário de exposição${/motorista|caminh|ônibus|carreteir/i.test(`${dados.c.funcoes || ''} ${dados.periodos.map((r) => r.data.cargo || '').join(' ')}`) ? ' (condução)' : ''} de cada vínculo, quando informado.`);
+  if (quali) partes.push('Agentes sem medição: resultado da avaliação qualitativa do item 5, pelo código vigente em cada época.');
+  return partes.join(' ');
+}
+
 export function avaliarPeriodos(dados) {
-  return dados.periodos.map((r) => {
+  const agentes = dados.agentes || [];
+  return dados.periodos.map((r, idx) => {
     const val = valores(r, dados);
     const funcao = `${r.data.cargo || ''} ${r.data.atividades || ''}`;
     const tratorista = RE_TRAT.test(funcao);
     const motorista = RE_MOT.test(funcao);
     const soCobrador = RE_COBR.test(funcao) && !/motorista/i.test(funcao);
-    const segs = segmentos(r).map(([a, b]) => {
+    const saude = categoriaSaude(r.data.cargo || funcao);
+    // afastamentos por benefício que não contam como tempo especial saem dos subperíodos
+    const temRuido = isFinite(val.lavg) || !!r.data.paradigmaRuido || motorista || tratorista;
+    const temVib = isFinite(val.aren) || !!r.data.paradigmaVibracao || motorista || tratorista;
+    const cortes = CORTES.filter((c) => (c !== '2003-11-18' || temRuido) && (c !== '2014-08-13' || temVib));
+    const { segs: partes, excluidos } = recortarAfastamentos(segmentos(r, cortes), lerAfastamentos(r.data.afastamentos));
+    const segs = partes.map(([a, b]) => {
       const itens = []; let algum = false; let dadosOk = false;
+      if (b <= '1995-04-28' && saude && !motorista && !tratorista) { itens.push({ ...saude }); algum = true; dadosOk = true; }
+      for (const it of itensAgentes(agentes, idx, a, b)) {
+        itens.push(it); dadosOk = true;
+        if (it.sup) algum = true;
+      }
       if (b <= '1995-04-28' && (motorista || tratorista)) {
         if (tratorista && !motorista) itens.push({ t: 'Categoria profissional de tratorista, equiparada à de motorista de caminhão (Súmula 70 da TNU) – enquadramento por presunção', cod: '2.4.4 (Dec. 53.831/64) / 2.4.2 (Dec. 83.080/79)', sup: true, categoria: true });
         else if (soCobrador) itens.push({ t: 'Categoria profissional de cobrador de ônibus – enquadramento por presunção', cod: '2.4.4 (Dec. 53.831/64)', sup: true, categoria: true });
@@ -111,7 +138,7 @@ export function avaliarPeriodos(dados) {
       const pend = !algum && itens.some((i) => i.pendente);
       return { ini: a, fim: b, itens, caracteriza: pend ? '[[pendente]]' : dadosOk ? (algum ? 'SIM' : 'NÃO') : '[[S/N]]', codigos: [...new Set(itens.filter((i) => i.sup).map((i) => i.cod))].join('; ') || '—' };
     });
-    return { r, val, segs };
+    return { r, val, segs, excluidos };
   });
 }
 
@@ -145,12 +172,15 @@ export function conclusaoPrevidenciaria(d, dados, { tituloQuadro = 'Conclusão p
   if (!av.length) { d.redigir('cadastre os vínculos na etapa 2. Autos.'); return; }
   const penDe = (r) => (penosidade ? penosidade(r) : null);
   d.quadro(tituloQuadro, [['Vínculo / período', 'Avaliação pericial', 'Código', 'Caracteriza'],
-    ...av.flatMap(({ r, segs }) => segs.map((s) => [`${String(r.data.empresa || '').replace(/\s*\((CTPS|sucess)[^)]*\)/gi, '')}\n${dataBR(s.ini)} a ${fimSeg(r, s)}`,
+    ...av.flatMap(({ r, segs }) => segs.map((s) => [`${empresaCurta(r)}\n${dataBR(s.ini)} a ${fimSeg(r, s)}`,
       [s.itens.length ? s.itens.map((i) => i.t).join('\n') : '[[sem avaliação quantitativa para o período]]', penDe(r) === true && s.fim > '1995-04-28' ? 'Penosidade: caracterizada na matriz de fatores (item 3)' : ''].filter(Boolean).join('\n'),
       [s.codigos, penDe(r) === true && s.fim > '1995-04-28' && s.caracteriza !== 'SIM' ? 'penosidade (IAC nº 5 do TRF4; Tema 1307 do STJ)' : ''].filter((x) => x && x !== '—').join('; ') || '—',
       penosidade ? resultadoSubperiodo(s, penDe(r)) : s.caracteriza]))],
-  { larguras: [0.23, 0.45, 0.2, 0.12], tam: 9,
-    fonte: `Elaborado pelo signatário. Ruído com o fator de duplicação de cada medição (q = 5, salvo indicação de q = 3); NEN e aren normalizados para o tempo diário de exposição${/motorista|caminh|ônibus|carreteir/i.test(`${dados.c.funcoes || ''} ${dados.periodos.map((r) => r.data.cargo || '').join(' ')}`) ? ' (condução)' : ''} de cada vínculo, quando informado.` });
+  { larguras: [0.22, 0.44, 0.2, 0.14], tam: 9, alinhar: 'left',
+    fonte: fonteSintese(dados, av) });
+  // afastamentos que não contam como tempo especial
+  const excl = av.flatMap(({ r, excluidos }) => (excluidos || []).map(([a, b, x]) => `${dataBR(a)} a ${dataBR(b)} (${empresaCurta(r)})`));
+  if (excl.length) d.texto(`Não ${excl.length > 1 ? 'são computados' : 'é computado'} como tempo especial o afastamento por benefício por incapacidade temporária de natureza previdenciária – ${excl.join('; ')} –, pois, a partir do Decreto nº 10.410/2020, somente o afastamento decorrente de benefício acidentário é considerado tempo de trabalho permanente (art. 65, parágrafo único, do Decreto nº 3.048/1999).`);
 
   const semEpi = !dados.epis.length;
   const pendentes = [];
@@ -179,11 +209,11 @@ export function conclusaoPrevidenciaria(d, dados, { tituloQuadro = 'Conclusão p
     if (naoSo.length) partes.push(`não caracteriza ${pl(naoSo, 'no período', 'nos períodos')} de ${p(naoSo)}, em que os valores avaliados não superam os limites da época`);
     const base = [val.fonteR && `ruído pelo ${val.fonteR}`, val.fonteV && `vibração pelo ${val.fonteV}`, isFinite(val.T) && `condução de ${fmtHoras(val.T)}/dia`].filter(Boolean).join(', ');
     if (!partes.length && segs.some((sg) => sg.caracteriza === '[[pendente]]')) { pendentes.push(`${r.data.empresa || 'Vínculo'} (tempo diário de condução)`); continue; }
-    if (partes.length) d.texto(`**${r.data.empresa || 'Vínculo'} (${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}):** a avaliação pericial${base ? ` (${base})` : ''} ${partes.join('; e ')}.`);
-    else pendentes.push(`${r.data.empresa || 'Vínculo'}${isFinite(val.T) ? '' : ' (e o tempo diário de condução)'}`);
+    if (partes.length) d.texto(`**${empresaCurta(r)} (${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}):** a avaliação pericial${base ? ` (${base})` : ''} ${partes.join('; e ')}.`);
+    else pendentes.push(`${r.data.empresa || 'Vínculo'}${isFinite(val.T) || !RE_MOT.test(`${r.data.cargo || ''} ${r.data.atividades || ''}`) ? '' : ' (e o tempo diário de condução)'}`);
   }
   // um aviso só para todos os vínculos ainda sem valores (antes, um "Redigir" por vínculo)
-  if (pendentes.length) d.redigir(`conclusão ${pendentes.length === 1 ? 'do vínculo' : 'dos vínculos'} ${pendentes.join('; ')} – sem valores avaliados (vincule o paradigma ou a medição do veículo/posto).`);
+  if (pendentes.length) d.redigir(`conclusão ${pendentes.length === 1 ? 'do vínculo' : 'dos vínculos'} ${pendentes.join('; ')} – sem valores avaliados (${(dados.agentes || []).length ? 'complete o resultado dos agentes avaliados na etapa 2. Autos' : 'cadastre os agentes avaliados na etapa 2. Autos, ou vincule o paradigma ou a medição do veículo/posto'}).`);
   const ruidoSup = av.some(({ segs }) => segs.some((s) => s.itens.some((i) => i.ruido && i.sup)));
   if (ruidoSup && !semEpi && comJurisprudencia(dados)) d.texto('Quanto ao ruído, a eventual declaração de eficácia do EPI (protetor auricular) não descaracteriza o tempo especial (STF, Tema 555 – ARE 664.335).');
   if (semEpi) d.texto('Não foram apresentados registros de fornecimento de EPI nem dos demais requisitos de responsabilidade do empregador (art. 291 da IN 128/2022); assim, não se considera neutralizada a exposição em nenhum dos períodos.');

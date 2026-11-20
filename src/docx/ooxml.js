@@ -207,8 +207,15 @@ export class Doc {
     return this.add(p([a3, run(t3, { b: true, size: 11, color: AZUL, tit: true }), z3], { style: 'Ttulo3', align: 'left', before: 240, after: 120, keepNext: true, outline: 2 }));
   }
   // Quadro numerado: título acima, tabela, fonte abaixo
-  quadro(titulo, linhas, { larguras, header = true, fonte = 'Elaborado pelo signatário.', tam = 10, alinhar = 'both', juntar, semRevisao } = {}) {
+  // semNumero: formulário (PPP) com a numeração de campos própria – título sem "Quadro N" e fora da lista de quadros
+  quadro(titulo, linhas, { larguras, header = true, fonte = 'Elaborado pelo signatário.', tam = 10, alinhar = 'both', juntar, semRevisao, semNumero = false } = {}) {
     if (!linhas || linhas.length <= (header ? 1 : 0)) return this;
+    if (semNumero) {
+      this.add(p([run(titulo, { b: true, size: 9.5, color: AZUL, tit: true })], { align: 'left', before: 240, after: 100, line: 276, keepNext: true }));
+      this.add(tabela(linhas, { larguras, header, tam, alinhar, juntar, semRevisao }));
+      this.add(p([run(fonte ? 'Fonte: ' : '', { size: 9, b: true, color: CINZA }), rich(fonte || '', { size: 9, color: CINZA })], { align: 'left', before: 60, after: 280, line: 240 }));
+      return this;
+    }
     this.nQuad += 1;
     const n = this.nQuad;
     const [aq, zq] = this.marca('Quadro', `Quadro ${n} – ${titulo}`);
@@ -428,7 +435,8 @@ function alinhamentoColuna(linhas, ci, w, header) {
   const media = corpo.reduce((s, t) => s + t.length, 0) / corpo.length;
   const curto = corpo.every((t) => t.length <= 24);
   if (curto) return 'center';
-  if (w >= LARGURA * 0.3 && media > 70) return 'both';
+  // células com itens em linhas separadas ficam à esquerda (justificar abre espaços nas linhas curtas)
+  if (w >= LARGURA * 0.3 && media > 70 && !corpo.some((t) => t.includes('\n'))) return 'both';
   return 'left';
 }
 

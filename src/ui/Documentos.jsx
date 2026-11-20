@@ -39,7 +39,9 @@ export function Documentos({ rec }) {
     try {
       const r = await doc.fn(rec.id, { conta: contaSel });
       baixarArquivo(r.blob, r.nome);
-      setMsg(`✓ ${r.nome} gerado. Ao abrir no Word, confirme "Sim" para atualizar o sumário e as listas. Trechos em amarelo são para você completar.${r.faltando ? ` Atenção: ${r.faltando} foto(s) ainda não baixadas neste aparelho ficaram de fora.` : ''}${r.semRelatorios?.length ? ` Atenção: sem os relatórios de medição dos paradigmas ${r.semRelatorios.join(', ')} (arquivo não ligado, não baixado neste aparelho ou páginas não achadas) – veja a lista de pendências.` : ''}${r.semRelatoriosLgpd?.length ? ` Relatórios dos paradigmas extrajudiciais ${r.semRelatoriosLgpd.join(', ')} não incluídos (trazem nomes; marque "Relatórios sem nomes" no paradigma quando o arquivo estiver anonimizado).` : ''}`);
+      // documentos que saem juntos (LTCAT + PPP)
+      for (const x of r.extras || []) baixarArquivo(x.blob, x.nome);
+      setMsg(`✓ ${[r.nome, ...(r.extras || []).map((x) => x.nome)].join(' e ')} ${r.extras?.length ? 'gerados' : 'gerado'}. Ao abrir no Word, confirme "Sim" para atualizar o sumário e as listas. Trechos em amarelo são para você completar.${r.faltando ? ` Atenção: ${r.faltando} foto(s) ainda não baixadas neste aparelho ficaram de fora.` : ''}${r.semRelatorios?.length ? ` Atenção: sem os relatórios de medição dos paradigmas ${r.semRelatorios.join(', ')} (arquivo não ligado, não baixado neste aparelho ou páginas não achadas) – veja a lista de pendências.` : ''}${r.semRelatoriosLgpd?.length ? ` Relatórios dos paradigmas extrajudiciais ${r.semRelatoriosLgpd.join(', ')} não incluídos (trazem nomes; marque "Relatórios sem nomes" no paradigma quando o arquivo estiver anonimizado).` : ''}`);
     } catch (e) {
       console.error(e);
       setMsg('Erro ao gerar: ' + e.message);

@@ -256,6 +256,7 @@ export const CAMPOS_POSTO = [
   ['epi', 'EPI observados (tipo, CA, uso efetivo)', 'area'],
 ];
 
+export const CATEGORIAS_SEGURADO = ['Empregado', 'Contribuinte individual', 'Cooperado (cooperativa de trabalho)', 'Avulso'];
 export const CAMPOS_PERIODO = [
   ['empresa', 'Empresa', 'text'],
   ['cnpj', 'CNPJ', 'text'],
@@ -266,6 +267,45 @@ export const CAMPOS_PERIODO = [
   ['atividades', 'Atividades', 'area'],
   ['agentes', 'Agentes / enquadramento pretendido', 'area'],
   ['fonte', 'Fonte (PPP, CTPS, CNIS, laudo...)', 'text'],
+  ['categoriaSegurado', 'Categoria do segurado no período', 'select', CATEGORIAS_SEGURADO],
+  ['local', 'Local de trabalho no período (endereço / cidade)', 'text'],
+  ['cbo', 'CBO (para o PPP)', 'text'],
+  ['afastamentos', 'Afastamentos por benefício (um por linha: "13/11/2025 a 11/01/2026 – B31")', 'area'],
+];
+
+// LTCAT + PPP: quem emite o PPP e os dados administrativos do formulário
+export const EMITENTE_PPP = ['Empresa (empregador)', 'Cooperativa de trabalho', 'Próprio segurado (contribuinte individual)'];
+export const CAMPOS_PPP = [
+  ['pppEmitente', 'Quem emite o PPP', 'select', EMITENTE_PPP],
+  ['pppEmitenteNome', 'Emitente – nome empresarial (ou nome do segurado)', 'text'],
+  ['pppEmitenteCnpj', 'Emitente – CNPJ / CAEPF / CPF', 'text'],
+  ['pppCnae', 'CNAE do emitente', 'text'],
+  ['pppEndereco', 'Endereço do estabelecimento', 'text'],
+  ['pppNit', 'NIT do segurado', 'text'],
+  ['pppSexo', 'Sexo do segurado', 'select', ['Masculino', 'Feminino']],
+  ['pppRepresentante', 'Representante legal do emitente (nome)', 'text'],
+  ['pppRepresentanteNit', 'Representante legal – NIT / CPF', 'text'],
+  ['pppObs', 'Observações do PPP', 'area'],
+];
+
+// Agentes avaliados no LTCAT (biológicos, químicos e físicos sem medição), com o resultado por época:
+// alimentam o item 5, a síntese do enquadramento e a seção de exposição do PPP
+export const RESULTADO_AGENTE = ['Caracteriza', 'Não caracteriza', 'Não enquadrável', 'A confirmar'];
+export const CAMPOS_AGENTE_AVALIADO = [
+  ['nome', 'Agente (ex.: "Microrganismos e parasitas infectocontagiosos vivos e suas toxinas")', 'text'],
+  ['tipo', 'Tipo', 'select', ['Biológico', 'Químico', 'Físico']],
+  ['vinculos', 'Vínculos (V1, V2…; em branco = todos)', 'text'],
+  ['fonte', 'Fonte geradora / atividade com exposição', 'area'],
+  ['codAte97', 'Código até 05/03/1997 (Dec. 53.831/64 e 83.080/79)', 'text'],
+  ['resAte97', 'Resultado até 05/03/1997', 'select', RESULTADO_AGENTE],
+  ['codDesde97', 'Código a partir de 06/03/1997 (Anexo IV)', 'text'],
+  ['resDesde97', 'Resultado a partir de 06/03/1997', 'select', RESULTADO_AGENTE],
+  ['intensidade', 'Intensidade / concentração (PPP)', 'text'],
+  ['tecnica', 'Técnica utilizada (PPP) – ex.: "Qualitativa"', 'text'],
+  ['epcEficaz', 'EPC eficaz', 'select', ['Sim', 'Não', 'Não se aplica']],
+  ['epiEficaz', 'EPI eficaz', 'select', ['Sim', 'Não', 'Não se aplica']],
+  ['ca', 'CA do EPI', 'text'],
+  ['fundamentacao', 'Fundamentação técnica (vai para o item 5 do LTCAT)', 'area'],
 ];
 
 export const CAMPOS_DOC = [

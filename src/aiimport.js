@@ -1,6 +1,7 @@
 import { db, createRecord, updateFields, caseChildren } from './db.js';
 import { CONVENCOES_CLAUDE } from './docx/claudeDoc.js';
-import { ORIGEM_QUESITO, contextoLegal, ehSuplementar, FASE, CAMPOS_DILIGENCIA, CAMPOS_POSTO, AGENTES_MEDICAO, ehAcidente, CAMPOS_ACIDENTE, chaveVistoria, qtdVistorias, vistoriasDoCaso } from './schema.js';
+import { ORIGEM_QUESITO, contextoLegal, ehSuplementar, FASE, CAMPOS_DILIGENCIA, CAMPOS_POSTO, AGENTES_MEDICAO, ehAcidente, CAMPOS_ACIDENTE, chaveVistoria, qtdVistorias, vistoriasDoCaso,
+  CAMPOS_PPP, CAMPOS_AGENTE_AVALIADO, RESULTADO_AGENTE, CATEGORIAS_SEGURADO, EMITENTE_PPP } from './schema.js';
 import { resumoMedicao } from './medicoes.js';
 import { dataIso } from './migrate.js';
 import { citacaoDe } from './paradigmas.js';
@@ -112,7 +113,9 @@ Responda SOMENTE com um bloco JSON válido, sem texto antes ou depois, neste for
     "observacoes": ""
   },
   "acidente": {"acidenteData": "só em caso de acidente do trabalho", "acidenteHora": "", "acidenteLocal": "", "acidenteAtividade": "", "acidenteMaquina": "", "acidenteRelato": "versão do acidentado", "acidenteRelatoEmpresa": "versão da empresa e das testemunhas", "acidenteLesao": "", "acidenteCat": "", "acidenteAlteracoes": ""},
-  "periodos": [{"empresa": "", "cnpj": "", "inicio": "", "fim": "", "cargo": "", "setor": "", "atividades": "", "agentes": "", "fonte": "", "tipoTransporte": "só motorista/cobrador", "jornadaSemanal": "", "noturnoPernoite": "", "cargaDescarga": "", "vias": "", "riscoAcidente": "", "cabine": "", "pausas": "", "pressao": "", "fisiologicas": "acesso a sanitários, alimentação e descanso", "veiculoTipo": "", "veiculoMarca": "", "veiculoModelo": "", "veiculoAno": "", "grupoVeiculo": "só motorista – um dos grupos da instrução", "carroceria": "", "tipoCarga": "", "carregaDescarrega": "Não | Carregava | Descarregava | Carregava e descarregava", "conducaoH": "horas de direção por dia (número)", "conducaoBase": "de onde veio a informação", "abastecimento": "", "acidenteVinculo": "Não, ou descrição", "assaltoVinculo": "Não, ou descrição"}],
+  "periodos": [{"empresa": "", "cnpj": "", "inicio": "", "fim": "", "cargo": "", "setor": "", "atividades": "", "agentes": "", "fonte": "", "categoriaSegurado": "Empregado | Contribuinte individual | Cooperado (cooperativa de trabalho) | Avulso", "local": "endereço/cidade do local de trabalho no período", "cbo": "", "afastamentos": "um por linha: dd/mm/aaaa a dd/mm/aaaa – B31 ou B91", "tipoTransporte": "só motorista/cobrador", "jornadaSemanal": "", "noturnoPernoite": "", "cargaDescarga": "", "vias": "", "riscoAcidente": "", "cabine": "", "pausas": "", "pressao": "", "fisiologicas": "acesso a sanitários, alimentação e descanso", "veiculoTipo": "", "veiculoMarca": "", "veiculoModelo": "", "veiculoAno": "", "grupoVeiculo": "só motorista – um dos grupos da instrução", "carroceria": "", "tipoCarga": "", "carregaDescarrega": "Não | Carregava | Descarregava | Carregava e descarregava", "conducaoH": "horas de direção por dia (número)", "conducaoBase": "de onde veio a informação", "abastecimento": "", "acidenteVinculo": "Não, ou descrição", "assaltoVinculo": "Não, ou descrição"}],
+  "agentesAvaliados": [{"nome": "agente avaliado sem medição (biológico, químico ou físico)", "tipo": "Biológico | Químico | Físico", "vinculos": "V1, V2… pela ordem cronológica dos períodos; vazio = todos", "fonte": "fonte geradora / atividade com exposição", "codAte97": "código do Dec. 53.831/64 e do Dec. 83.080/79", "resAte97": "Caracteriza | Não caracteriza | Não enquadrável | A confirmar", "codDesde97": "código do Anexo IV", "resDesde97": "Caracteriza | Não caracteriza | Não enquadrável | A confirmar", "intensidade": "", "tecnica": "Qualitativa ou a norma da medição", "epcEficaz": "Sim | Não | Não se aplica", "epiEficaz": "Sim | Não | Não se aplica", "ca": "", "fundamentacao": "texto técnico do item 5 do LTCAT"}],
+  "ppp": {"pppEmitente": "Empresa (empregador) | Cooperativa de trabalho | Próprio segurado (contribuinte individual)", "pppEmitenteNome": "", "pppEmitenteCnpj": "", "pppCnae": "", "pppEndereco": "", "pppNit": "", "pppSexo": "Masculino | Feminino", "pppRepresentante": "", "pppRepresentanteNit": "", "pppObs": ""},
   "documentos": [{"tipo": "PPP | LTCAT | PGR / PPRA | Laudo pericial | Ficha de EPI | CTPS / CNIS | Outro", "identificacao": "", "analise": ""}],
   "epis": [{"descricao": "", "ca": "", "dataEntrega": "", "obs": ""}],
   "quesitos": [{"origem": "Juízo | Autor / Reclamante | Réu / Reclamada | INSS | Complementares", "numero": "1", "texto": "", "resposta": "resposta dada no laudo, se já houver"}],
@@ -174,7 +177,10 @@ Em "quesitos", transcreva os quesitos já respondidos pelo perito e SUGIRA quesi
     id: 'extra-ltcat', titulo: 'Extrajudicial – LTCAT + PPP (inclusive extemporâneo / por similaridade)',
     foco: `Vou elaborar um LTCAT + PPP extrajudicial para fins de aposentadoria especial (Lei 8.213/91, Decreto 3.048/99, IN PRES/INSS 128/2022). Leia os documentos anexados (CNIS, CTPS, cartão CNPJ, contrato social, laudos anteriores, anotações) e prepare o pré-relatório.
 FOCO: segurado e categoria (empregado / contribuinte individual – STJ, Tema 1291), vínculos com datas da CTPS, lacunas do CNIS, empresa ativa ou extinta (similaridade: o INSS não aceita laudo de empresa diversa – art. 277, parágrafo único, da IN 128/2022; em juízo, Súmula 106 do TRF4 e TNU, PEDILEF 0001323-30.2010.4.03.6318: empresa inativa sem representante e sem laudos, ou ambiente substancialmente alterado sem possibilidade de novo laudo; similaridade na mesma época, condições, agentes e habitualidade e permanência), atividades e agentes por subperíodo, marcos legais e EC 103/2019, laudos existentes da empresa e suas falhas.
-Em "preliminares", as pendências e documentos a pedir ao segurado antes da vistoria. Em "roteiro", o checklist de campo (o que perguntar, observar, medir e fotografar).`,
+Em "preliminares", as pendências e documentos a pedir ao segurado antes da vistoria. Em "roteiro", o checklist de campo (o que perguntar, observar, medir e fotografar).
+VÍNCULOS: em "empresa", só o nome (sem observações entre parênteses – elas vão para "atividades" ou "preliminares"); preencha "categoriaSegurado", "local" (endereço/cidade do trabalho naquele período), "cbo" e "afastamentos" (benefícios do CNIS dentro do vínculo, um por linha: "13/11/2025 a 11/01/2026 – B31").
+AGENTES AVALIADOS ("agentesAvaliados"): um item por agente avaliado sem medição (biológico, químico ou físico), com o código e o resultado de cada época (até 05/03/1997 e a partir de 06/03/1997: Caracteriza | Não caracteriza | Não enquadrável | A confirmar), a fonte, a técnica ("Qualitativa") e a fundamentação técnica que vai para o item 5 do LTCAT. Agente que depende de confirmação do segurado: "A confirmar". Ruído, calor e vibração medidos vão em "postos[].medicoes", não aqui.
+PPP ("ppp"): quem emite (empresa, cooperativa de trabalho ou o próprio segurado), nome e CNPJ/CAEPF/CPF do emitente, CNAE, NIT e sexo do segurado, representante legal.`,
   },  {
     id: 'extra-penosidade', titulo: 'Extrajudicial – parecer técnico de condições de trabalho e penosidade (motorista)',
     foco: `Vou elaborar um PARECER TÉCNICO EXTRAJUDICIAL de condições de trabalho e penosidade para um MOTORISTA (caminhão, carreta, ônibus), a pedido do segurado ou do advogado, para instruir requerimento ao INSS, revisão ou ação judicial de aposentadoria especial. Leia os documentos anexados: ENTREVISTA do segurado (Word, PDF ou anotação), CTPS, CNIS, PPP e laudos que houver.
@@ -249,6 +255,7 @@ const CAMPOS_CASO = {
   partes: ['autorNome', 'autorCpf', 'autorNascimento', 'reuNome', 'reuCnpj'],
   sintese: ['funcoes', 'atividadesAlegadas', 'agentesAlegados', 'pedidos', 'defesa', 'preliminares', 'analiseEpi', 'roteiro', 'observacoes'],
   acidente: CAMPOS_ACIDENTE.map(([k]) => k),
+  ppp: CAMPOS_PPP.map(([k]) => k),
 };
 
 export function lerJsonIA(texto) {
@@ -272,6 +279,11 @@ export function lerJsonIA(texto) {
   const fase = FASE.find((f) => f.toLowerCase() === s(and.fase).toLowerCase());
   if (fase && fase !== 'A preparar') caso.fase = fase;
   Object.assign(caso, pegar(obj.diligencia, [...CAMPOS_DILIGENCIA.map(([k]) => k).filter((k) => k !== 'vistoriaGps'), 'vistoriaCnpj']));
+  // PPP: emitente e sexo só com as opções do app
+  if (caso.pppEmitente) caso.pppEmitente = EMITENTE_PPP.find((t) => semAc(t).startsWith(semAc(caso.pppEmitente).split(' ')[0])) || '';
+  if (!caso.pppEmitente) delete caso.pppEmitente;
+  if (caso.pppSexo) caso.pppSexo = /^f/i.test(caso.pppSexo) ? 'Feminino' : 'Masculino';
+  const categoriaOk = (x) => { const t = semAc(s(x)); if (!t) return ''; return CATEGORIAS_SEGURADO.find((c) => semAc(c).startsWith(t.split(' ')[0])) || ''; };
   if (caso.similaridade && !/^(sim|não|nao)$/i.test(caso.similaridade)) delete caso.similaridade;
   if (caso.similaridade) caso.similaridade = /^sim$/i.test(caso.similaridade) ? 'Sim' : 'Não';
   const agenteOk = agenteMedicao;
@@ -294,9 +306,16 @@ export function lerJsonIA(texto) {
   const limparPeriodo = (p) => Object.fromEntries(Object.entries(p).map(([k, val]) => [k, typeof val === 'string' && !['inicio', 'fim', 'cnpj'].includes(k) ? limpar(val) : val]));
   return {
     caso,
-    periodos: lista(obj.periodos).map((x) => limparPeriodo({ empresa: s(x.empresa), cnpj: s(x.cnpj), inicio: dataIso(s(x.inicio)) || s(x.inicio), fim: dataIso(s(x.fim)) || s(x.fim), cargo: s(x.cargo), setor: s(x.setor), atividades: s(x.atividades), agentes: s(x.agentes), fonte: s(x.fonte),
+    periodos: lista(obj.periodos).map((x) => limparPeriodo({ empresa: s(x.empresa), cnpj: s(x.cnpj), inicio: dataIso(s(x.inicio)) || s(x.inicio), fim: dataIso(s(x.fim)) || s(x.fim), cargo: s(x.cargo), setor: s(x.setor), atividades: s(x.atividades), agentes: s(x.agentes), fonte: s(x.fonte), categoriaSegurado: categoriaOk(x.categoriaSegurado), local: s(x.local), cbo: s(x.cbo), afastamentos: s(x.afastamentos),
       ...Object.fromEntries(['tipoTransporte', 'jornadaSemanal', 'noturnoPernoite', 'cargaDescarga', 'vias', 'riscoAcidente', 'cabine', 'pausas', 'pressao', 'fisiologicas', 'grupoVeiculo', 'veiculoTipo', 'veiculoMarca', 'veiculoModelo', 'veiculoAno', 'conducaoH', 'conducaoBase', 'carroceria', 'tipoCarga', 'carregaDescarrega', 'abastecimento', 'acidenteVinculo', 'assaltoVinculo'].map((k) => [k, s(x[k])]).filter(([, val]) => val)) })),
     documentos: lista(obj.documentos).map((x) => ({ tipo: s(x.tipo), identificacao: s(x.identificacao), analise: s(x.analise) })),
+    agentesAvaliados: lista(obj.agentesAvaliados).map((x) => {
+      const r = pegar(x, CAMPOS_AGENTE_AVALIADO.map(([k]) => k));
+      r.tipo = ['Biológico', 'Químico', 'Físico'].find((t) => semAc(t) === semAc(r.tipo)) || 'Químico';
+      for (const k of ['resAte97', 'resDesde97']) if (r[k]) r[k] = RESULTADO_AGENTE.find((t) => semAc(t) === semAc(r[k])) || 'A confirmar';
+      for (const k of ['epcEficaz', 'epiEficaz']) if (r[k]) r[k] = /^s/i.test(r[k]) ? 'Sim' : /^n[aã]o se/i.test(r[k]) ? 'Não se aplica' : 'Não';
+      return r;
+    }).filter((r) => r.nome),
     epis: lista(obj.epis).map((x) => ({ descricao: s(x.descricao), ca: s(x.ca), dataEntrega: s(x.dataEntrega), obs: s(x.obs) })),
     quesitos: lista(obj.quesitos).map((x) => ({ origem: origem(x.origem), numero: s(x.numero), texto: s(x.texto), resposta: s(x.resposta) })).filter((q) => q.texto),
     postos,
@@ -323,13 +342,13 @@ export async function aplicarIA(caseId, dados, { substituir = false, criarPeriod
     if (substituir || !atual || (k === 'fase' && atual === 'A preparar')) mudancas[k] = v;
   }
   if (Object.keys(mudancas).length) await updateFields(caseId, mudancas);
-  const cont = { campos: Object.keys(mudancas).length, periodos: 0, documentos: 0, epis: 0, quesitos: 0, respostas: 0, postos: 0, medicoes: 0 };
-  const kinds = { periodos: 'periodo', documentos: 'documento', epis: 'epi' };
+  const cont = { campos: Object.keys(mudancas).length, periodos: 0, documentos: 0, epis: 0, agentesAvaliados: 0, quesitos: 0, respostas: 0, postos: 0, medicoes: 0 };
+  const kinds = { periodos: 'periodo', documentos: 'documento', epis: 'epi', agentesAvaliados: 'agenteAvaliado' };
   for (const [lista, kind] of Object.entries(kinds)) {
-    if (!dados[lista].length) continue;
+    if (!(dados[lista] || []).length) continue;
     const existentes = await caseChildren(caseId, kind);
     // identidade pelos campos essenciais; o que vier a mais completa o registro existente
-    const KS = { periodos: ['empresa', 'inicio', 'fim'], documentos: ['tipo', 'identificacao'], epis: ['descricao', 'ca', 'dataEntrega'] }[lista];
+    const KS = { periodos: ['empresa', 'inicio', 'fim'], documentos: ['tipo', 'identificacao'], epis: ['descricao', 'ca', 'dataEntrega'], agentesAvaliados: ['nome', 'vinculos'] }[lista];
     const chave = (d) => JSON.stringify(KS.map((k) => (k === 'empresa' ? normTxt(d[k]).slice(0, 30) : String(d[k] ?? '').toLowerCase().replace(/\s+/g, ' ').trim())));
     const vistos = new Map(existentes.map((r) => [chave(r.data), r]));
     // vínculo com o nome da empresa escrito de outro jeito: reconhece pelas datas
@@ -519,6 +538,8 @@ export async function textoDoCaso(caseId) {
     });
   }
   if (documentos.length) { L.push('\n## Documentos analisados'); documentos.forEach((d) => L.push(`- ${d.data.tipo || ''} ${d.data.identificacao || ''}: ${d.data.analise || ''}`)); }
+  const agentesAv = await caseChildren(caseId, 'agenteAvaliado');
+  if (agentesAv.length) { L.push('\n## Agentes avaliados (sem medição)'); agentesAv.forEach((a) => L.push(`- [${a.data.tipo || ''}] ${a.data.nome || ''}${a.data.vinculos ? ` (vínculos ${a.data.vinculos})` : ''}: até 05/03/1997 ${a.data.resAte97 || '?'}${a.data.codAte97 ? ` (cód. ${a.data.codAte97})` : ''}; a partir de 06/03/1997 ${a.data.resDesde97 || '?'}${a.data.codDesde97 ? ` (cód. ${a.data.codDesde97})` : ''}${a.data.fundamentacao ? ` – ${a.data.fundamentacao}` : ''}`)); }
   if (epis.length) { L.push('\n## EPIs'); epis.forEach((e) => L.push(`- ${e.data.descricao || ''} – CA ${e.data.ca || '?'} – ${e.data.dataEntrega || ''} ${e.data.obs || ''}`)); }
   L.push('\n## Diligência');
   for (const [k, r] of [['vistoriaProprietario', 'Proprietário (pessoa física)'], ['vistoriaVeiculo', 'Veículo paradigma'], ['vistoriaIntimacao', 'Comunicação às partes'], ['vistoriaNotas', 'Anotações gerais']]) campo(r, c[k]);
@@ -612,6 +633,7 @@ export function lerJsonSuplementares(texto) {
 }
 
 const normTxt = (t) => String(t || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+const semAc = (t) => normTxt(String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, ''));
 
 // Cria os quesitos suplementares (sem duplicar) e preenche as respostas vazias.
 export async function aplicarSuplementares(caseId, dados, { substituir = false } = {}) {

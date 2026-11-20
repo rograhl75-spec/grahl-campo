@@ -278,8 +278,9 @@ export class Doc {
   assinatura({ local = 'Londrina – PR', data = dataExtenso(), nome = 'ROGÉRIO GRAHL', linhas = [], linha = false } = {}) {
     this.add(p([run(`${local}, ${data}.`)], { align: 'right', before: 240, after: linha ? 480 : 720, keepNext: true }));
     if (linha) this.add(p([run('_____________________________________')], { align: 'center', after: 0, keepNext: true }));
-    this.add(p([run(nome, { b: true })], { align: 'center', after: 0, keepNext: true }));
-    linhas.forEach((l, i) => this.add(p([rich(l, { size: 11 })], { align: 'center', after: 0, keepNext: i < linhas.length - 1 })));
+    this.add(p([run(nome, { b: true, np: true })], { align: 'center', after: 0, keepNext: true }));
+    // bloco fixo (títulos, CREA, ART): sem revisão – o Word detecta linha curta com siglas como inglês
+    linhas.forEach((l, i) => this.add(p([rich(l, { size: 11, np: true })], { align: 'center', after: 0, keepNext: i < linhas.length - 1 })));
     return this;
   }
   sumario(titulo = 'SUMÁRIO') {

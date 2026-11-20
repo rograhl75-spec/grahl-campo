@@ -370,7 +370,7 @@ export function citacaoDe(p) {
   if (ehExtrajudicial(d)) return d.dataMedicao ? `Medição extrajudicial – ${d.dataMedicao}` : 'Medição extrajudicial';
   const c = String(d.citacao || '').trim();
   if (c) return c;
-  const proc = String(d.processo || '').trim().replace(/\/[A-Z]{2}$/, '');
+  const proc = String(d.processo || '').trim().replace(/^proc(esso)?\.?\s*(n[ºo°]\.?\s*)?/i, '').replace(/\/[A-Z]{2}$/, '');
   return [proc && `Proc. ${proc}`, String(d.vara || '').replace(/\s*\(.*\)\s*$/, '').trim(), d.dataMedicao].filter(Boolean).join(' – ');
 }
 

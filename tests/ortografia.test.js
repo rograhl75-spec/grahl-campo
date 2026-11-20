@@ -69,3 +69,11 @@ describe('gramática apontada pelo Word', () => {
     expect(acentuar('a noite toda')).toBe('a noite toda');
   });
 });
+
+describe('mais apontamentos do Word', () => {
+  it('data com mês ilegível e ar-condicionado', async () => {
+    const { acentuar } = await import('../src/ortografia.js');
+    expect(acentuar("saída em '06/[mês ilegível]/2019'; CTPS")).toBe('saída em dia 06 de mês ilegível de 2019; CTPS');
+    expect(acentuar('cabine com ar condicionado')).toBe('cabine com ar-condicionado');
+  });
+});

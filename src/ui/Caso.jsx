@@ -1,7 +1,7 @@
 import { db, softDelete } from '../db.js';
 import { avisarAlteracao } from '../sync.js';
 import {
-  TIPO_ATUACAO, JUSTICA, MATERIA, PAPEL, OBJETO, FASE, CONTRATADO_POR, CAMPOS_ACIDENTE, ehAcidente, CAMPOS_PROCESSO, CAMPOS_PARTES, CAMPOS_PRAZOS, CAMPOS_HONORARIOS, tituloCaso, contextoLegal, ehParecerTecnico, FINALIDADE_PARECER } from '../schema.js';
+  TIPO_ATUACAO, JUSTICA, MATERIA, PAPEL, OBJETO, FASE, CONTRATADO_POR, CAMPOS_ACIDENTE, ehAcidente, CAMPOS_PROCESSO, CAMPOS_PARTES, CAMPOS_PRAZOS, CAMPOS_HONORARIOS, CAMPOS_PPP, tituloCaso, contextoLegal, ehParecerTecnico, FINALIDADE_PARECER } from '../schema.js';
 import { useLive, ir } from './hooks.js';
 import { siglaTipo, FASE_COR } from './Casos.jsx';
 import { Campos, Chips, Opcoes, Sel, TF } from './fields.jsx';
@@ -139,6 +139,13 @@ function Resumo({ rec }) {
         <h3>Datas e prazos</h3>
         <Campos rec={rec} campos={CAMPOS_PRAZOS} />
       </section>
+      {rec.data.tipoAtuacao === 'Extrajudicial' && contextoLegal(rec.data).prev && !ehParecerTecnico(rec.data) && (
+        <section class="bloco">
+          <h3>PPP (LTCAT + PPP)</h3>
+          <p class="dica">Quem emite o PPP e os dados administrativos do formulário. Cooperativa: o PPP sai só com os vínculos de cooperado; os demais ficam no LTCAT. Próprio segurado: contribuinte individual sem empresa.</p>
+          <Campos rec={rec} campos={CAMPOS_PPP} />
+        </section>
+      )}
       {rec.data.papel === 'Perito do Juízo' && (
         <section class="bloco">
           <h3>Honorários e itens do despacho</h3>

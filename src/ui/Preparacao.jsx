@@ -1,7 +1,7 @@
 import { horasDia, fmtHoras } from '../calc.js';
 import { useState } from 'preact/hooks';
 import { db } from '../db.js';
-import { CAMPOS_SINTESE, CAMPOS_PERIODO, CAMPOS_DOC, CAMPOS_EPI, CAMPOS_ENTREVISTA_MOTORISTA } from '../schema.js';
+import { CAMPOS_SINTESE, CAMPOS_PERIODO, CAMPOS_DOC, CAMPOS_EPI, CAMPOS_ENTREVISTA_MOTORISTA, CAMPOS_AGENTE_AVALIADO, contextoLegal } from '../schema.js';
 import { SITUACOES, situacaoDoCaso, montarPrompt, lerJsonIA, aplicarIA, limparDuplicados } from '../aiimport.js';
 import { avisarAlteracao } from '../sync.js';
 import { dataBR } from '../docx/reports.js';
@@ -37,6 +37,12 @@ export function Preparacao({ rec }) {
           (r.data.paradigmaRuido || r.data.paradigmaVibracao) && `paradigmas ${[r.data.paradigmaRuido, r.data.paradigmaVibracao].filter(Boolean).join('/')}`].filter(Boolean).join(' · ')}
         extra={(r) => <VeiculoDoPeriodo r={r} />} />
       <ParadigmasDosVinculos rec={rec} />
+      {contextoLegal(rec.data).prev && (
+        <RecordList kind="agenteAvaliado" caseId={rec.id} campos={CAMPOS_AGENTE_AVALIADO} titulo="Agentes avaliados (sem medição: biológicos, químicos e físicos)" novo="Adicionar agente"
+          inicial={{ tipo: 'Químico' }}
+          resumo={(r) => [r.data.tipo, r.data.nome, r.data.vinculos && `vínculos ${r.data.vinculos}`,
+            [r.data.resAte97 && `até 1997: ${r.data.resAte97}`, r.data.resDesde97 && `desde 1997: ${r.data.resDesde97}`].filter(Boolean).join(' / ')].filter(Boolean).join(' · ')} />
+      )}
       <RecordList kind="documento" caseId={rec.id} campos={CAMPOS_DOC} titulo="Documentos técnicos analisados" novo="Adicionar documento"
         resumo={(r) => [r.data.tipo, r.data.identificacao].filter(Boolean).join(' – ')} />
       <RecordList kind="epi" caseId={rec.id} campos={CAMPOS_EPI} titulo="Ficha de EPIs" novo="Adicionar EPI"
@@ -127,7 +133,7 @@ function ImportarIA({ rec, abertoInicial = false }) {
   const aplicar = async () => {
     const r = await aplicarIA(rec.id, previa, { substituir });
     avisarAlteracao();
-    setMsg(`Aplicado: ${r.campos} campo(s), ${r.periodos} período(s), ${r.documentos} documento(s), ${r.epis} EPI(s), ${r.quesitos} quesito(s)`
+    setMsg(`Aplicado: ${r.campos} campo(s), ${r.periodos} período(s), ${r.documentos} documento(s), ${r.epis} EPI(s), ${r.agentesAvaliados ? `${r.agentesAvaliados} agente(s) avaliado(s), ` : ''}${r.fotos ? `${r.fotos} legenda(s) de foto, ` : ''}${r.quesitos} quesito(s)`
       + (r.respostas ? `, ${r.respostas} resposta(s) do laudo` : '') + (r.postos || r.medicoes ? `, ${r.postos} posto(s) e ${r.medicoes} medição(ões) da diligência (veja em 4. Campo)` : '') + '.');
     setPrevia(null); setTexto('');
   };

@@ -20,6 +20,9 @@ import { conclusaoPrevidenciaria, avaliarPeriodos } from './conclusao.js';
 import { p, run, rich } from './ooxml.js';
 import { quadroQuimicosAnexo11, quadroConclusivoTrab, conclusaoAT, POSICOES_AT, agenteDaMedicao, sinteseTrab, quadroRequisitos473, quadroRecomendacoes, quadroDadosPPP, roteiroPericulosidade } from './modelos2.js';
 import { formaAvaliacaoPrev } from '../quimicos.js';
+import { codigosDoAgente, agenteNoVinculo, categoriaDoVinculo, lerAfastamentos } from '../enquadramento.js';
+import { ppp, emitenteDoPpp } from './ppp.js';
+import { empresaLimpa } from '../nomes.js';
 
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 
@@ -135,6 +138,51 @@ function avaliacaoTrabalhista(d, dados, base) {
   if (!n) d.redigir('avaliação dos agentes (cadastre as medições na aba Campo).');
 }
 
+// Agentes avaliados sem medição (cadastro "Agentes avaliados" do caso): biológicos, químicos e físicos,
+// com o código e o resultado de cada época; o texto de fundamentação é o digitado no cadastro
+const TIT_TIPO = { 'Biológico': 'Agentes biológicos', 'Químico': 'Agentes químicos – avaliação qualitativa e enquadramento', 'Físico': 'Agentes físicos sem medição' };
+const TXT_TIPO = {
+  'Biológico': 'Os agentes biológicos são avaliados de forma qualitativa, pela atividade exercida. Até 05/03/1997, o enquadramento se dá pelo cód. 1.3.2 do Decreto 53.831/1964 (assistência médica, odontológica, hospitalar e outras atividades afins, com contato com germes infecciosos ou parasitários) e pelo cód. 1.3.4 do Anexo I do Decreto 83.080/1979 (trabalhos com contato permanente com doentes ou materiais infectocontagiantes). A partir de 06/03/1997, pelo cód. 3.0.1 do Anexo IV dos Decretos 2.172/1997 e 3.048/1999, cujo rol de atividades é exaustivo; não se utiliza o Anexo 14 da NR-15 para fins previdenciários.',
+  'Químico': 'Até 05/03/1997, os agentes químicos são enquadrados de forma qualitativa, por presunção de exposição, nos códigos 1.2.x dos Decretos 53.831/1964 e 83.080/1979. A partir de 06/03/1997, somente os agentes do Anexo IV dos Decretos 2.172/1997 e 3.048/1999 são considerados, avaliados conforme os Anexos 11 e 12 (quantitativos) e 13 e 13-A (qualitativos) da NR-15, e, a partir de 01/01/2004, pela metodologia das NHO da FUNDACENTRO. Agente que não consta do Anexo IV não é enquadrável, ainda que presente no ambiente.',
+  'Físico': 'Agentes físicos de avaliação quantitativa (ruído, calor, vibração, radiação ionizante) só caracterizam a condição especial com a demonstração da intensidade acima do limite de tolerância de cada época.',
+};
+const RES_TXT = (r) => ({ 'Caracteriza': 'caracteriza', 'Não caracteriza': 'não caracteriza', 'Não enquadrável': 'não enquadrável', 'A confirmar': '[[a confirmar]]' }[r] || '[[resultado]]');
+function agentesAvaliados(d, dados, sub, n) {
+  const ags = dados.agentes || [];
+  if (!ags.length) return n;
+  const per = dados.periodos;
+  const alcance = (a) => {
+    const ids = agenteVinculos(a, per);
+    return ids.length === per.length ? 'Todos os vínculos' : ids.map((i) => `V${i + 1}`).join(', ');
+  };
+  const temAte97 = per.some((r) => (r.data.inicio || '9999') <= '1997-03-05');
+  const temDesde97 = per.some((r) => !r.data.fim || r.data.fim >= '1997-03-06');
+  for (const tipo of ['Biológico', 'Químico', 'Físico']) {
+    const lst = ags.filter((a) => (a.data.tipo || 'Químico') === tipo);
+    if (!lst.length) continue;
+    sub(TIT_TIPO[tipo]); n += 1;
+    d.texto(TXT_TIPO[tipo]);
+    const cab = ['Agente', 'Vínculos'];
+    if (temAte97) cab.push('Até 05/03/1997');
+    if (temDesde97) cab.push('A partir de 06/03/1997');
+    d.quadro(`${TIT_TIPO[tipo].split(' – ')[0]} – enquadramento por época`, [cab, ...lst.map((a) => {
+      const k = codigosDoAgente(a);
+      const lin = [a.data.nome, alcance(a)];
+      if (temAte97) lin.push(`${RES_TXT(a.data.resAte97)}${k.ate97 ? `\ncód. ${k.ate97}` : ''}`);
+      if (temDesde97) lin.push(`${RES_TXT(a.data.resDesde97)}${k.desde97 ? `\ncód. ${k.desde97}` : ''}`);
+      return lin;
+    })], { larguras: temAte97 && temDesde97 ? [0.3, 0.16, 0.27, 0.27] : [0.4, 0.2, 0.4], tam: 9, alinhar: 'left',
+      fonte: 'Elaborado pelo signatário com base nos Decretos 53.831/1964, 83.080/1979, 2.172/1997 e 3.048/1999 e na IN PRES/INSS nº 128/2022.' });
+    for (const a of lst) {
+      const partes = [v(a.data.fonte) && `Fonte e atividade: ${v(a.data.fonte).replace(/\.?$/, '.')}`, v(a.data.fundamentacao)].filter(Boolean);
+      if (partes.length) d.texto(`**${a.data.nome}.** ${partes.join(' ')}`);
+      else d.redigir(`fundamentação de ${a.data.nome} (fonte, via e frequência da exposição e código de cada época).`);
+    }
+  }
+  return n;
+}
+const agenteVinculos = (a, per) => per.map((r, i) => i).filter((i) => agenteNoVinculo(a, i));
+
 function avaliacaoPrevidenciaria(d, dados, base, inicio = 0) {
   const ctx = { prev: true };
   const g = medicoesPorAgente(dados);
@@ -192,6 +240,7 @@ function avaliacaoPrevidenciaria(d, dados, base, inicio = 0) {
       if (linach.length) d.texto(`${linach.join(', ')} ${linach.length > 1 ? 'constam' : 'consta'} do Grupo 1 da LINACH (Portaria Interministerial nº 9/2014). Para agentes reconhecidamente cancerígenos em humanos, a avaliação é qualitativa (Decreto 3.048/1999, art. 68, §§ 2º a 4º), desde que o agente tenha registro no Chemical Abstracts Service (CAS) e conste do Anexo IV, para os períodos trabalhados a partir de 08/10/2014, data da publicação da Portaria Interministerial nº 9 (IN 128/2022, art. 298, I, II e § 1º). Na redação do Decreto nº 8.123/2013 (até 30/06/2020), a presença no ambiente de trabalho com possibilidade de exposição bastava para a comprovação da efetiva exposição; na redação do Decreto nº 10.410/2020 (a partir de 01/07/2020), a efetiva exposição é descaracterizada quando adotadas as medidas de controle previstas na legislação trabalhista que eliminem a nocividade (art. 298, III e § 2º).`);
     }
   }
+  n = agentesAvaliados(d, dados, sub, n);
   if (v(dados.c.agentesAlegados) && n === inicio) {
     sub('Agentes alegados');
     d.texto(`Agentes indicados: ${dados.c.agentesAlegados.replace(/\n+/g, '; ')}`);
@@ -415,14 +464,17 @@ export async function ltcatPpp(caseId) {
   const { c, perfil } = dados;
   const d = new Doc();
   const seg = c.autorNome || '[[segurado]]';
-  const emp = c.reuNome || dados.periodos[0]?.data.empresa || '[[empresa]]';
+  const emit = emitenteDoPpp(dados);
+  const emp = emit.nome || '[[empresa]]';
+  const cargos = [...new Set(dados.periodos.map((r) => v(r.data.cargo)).filter(Boolean))].join('; ');
+  const art = v(c.art) || '[[nº da ART]]';
   capaTecnica(d, {
     titulo: 'LAUDO TÉCNICO DAS CONDIÇÕES AMBIENTAIS DO TRABALHO (LTCAT)',
-    subtitulo: 'Demonstração ambiental para fins previdenciários (art. 58 da Lei nº 8.213/1991)',
+    subtitulo: 'Demonstração ambiental para fins previdenciários (art. 58 da Lei nº 8.213/1991), com base para o PPP',
     perfil,
-    pares: [['Segurado', seg], ['CPF / NIT', c.autorCpf], ['Empresa', emp], ['CNPJ', c.reuCnpj],
+    pares: [['Segurado', seg], ['CPF / NIT', [c.autorCpf, c.pppNit].filter(Boolean).join(' / ')], ['Emitente do PPP', emp], ['CNPJ / CAEPF / CPF', emit.doc],
       ['Períodos avaliados', dados.periodos.map((r) => `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`).join('; ')],
-      ['Responsável técnico', `${perfil.nome} – ${credencial(perfil)}`], ['Data da avaliação', datasDasVistorias(c)]],
+      ['Responsável técnico', `${perfil.nome} – ${credencial(perfil)}`], ['ART', art], ['Data da avaliação', datasDasVistorias(c)]],
   });
   // ABNT NBR 14724:2024, 4.2.1.9: quadros e figuras são ilustrações; recomenda-se lista própria para cada tipo (a norma não fixa ordem entre elas)
   if (dados.fotos.some((f) => !f.deleted)) d.listaFiguras({ novaPagina: true });
@@ -430,25 +482,27 @@ export async function ltcatPpp(caseId) {
   d.sumario();
 
   d.h1('1', 'Identificação');
-  d.h2('1.1', 'Empresa emitente');
-  d.identificacao([['Razão social', emp], ['CNPJ', c.reuCnpj], ['Endereço', c.vistoriaEndereco]]);
+  d.h2('1.1', 'Emitente do PPP');
+  d.identificacao([['Nome / razão social', emp], ['CNPJ / CAEPF / CPF', emit.doc], ['CNAE', c.pppCnae], ['Quem emite', c.pppEmitente || '[[defina quem emite o PPP na etapa 1. Cadastro]]'],
+    ['Endereço do local avaliado', c.pppEndereco || c.vistoriaEndereco]]);
   d.h2('1.2', 'Segurado');
-  d.identificacao([['Nome', seg], ['CPF / NIT', c.autorCpf], ['Nascimento', dataBR(c.autorNascimento)], ['Função', c.funcoes]]);
+  d.identificacao([['Nome', seg], ['CPF', c.autorCpf], ['NIT', c.pppNit], ['Nascimento', dataBR(c.autorNascimento)], ['Cargo / função', cargos || '[[cargo]]']]);
   d.h2('1.3', 'Períodos avaliados');
-  quadroPeriodos(d, dados.periodos);
+  quadroVinculosLtcat(d, dados);
   d.h2('1.4', 'Responsável técnico');
-  d.identificacao([['Nome', perfil.nome], ['Formação', perfil.titulos], ['Registro', credencial(perfil)], ['ART', '[[nº da ART]]']]);
+  d.identificacao([['Nome', perfil.nome], ['Formação', perfil.titulos], ['Registro', credencial(perfil)], ['ART', art]]);
 
   d.h1('2', 'Condições da avaliação');
   d.h2('2.1', 'Objeto e natureza');
-  d.texto(`Este laudo avalia a exposição de ${seg} a agentes nocivos nas atividades exercidas na ${emp}, nos períodos do item 1.3, para fundamentar o PPP (Anexo A). [[Avaliação individual / extemporânea / por similaridade – ajustar.]]`);
+  d.texto(naturezaLtcat(dados, seg));
   d.h2('2.2', 'Diligência');
   d.texto('O laudo individual deve ser acompanhado de autorização escrita da empresa para efetuar o levantamento e do nome e identificação do acompanhante da empresa, quando o responsável técnico não for seu empregado, e da data e do local da realização da perícia (art. 277, IV, *a* a *c*, da IN 128/2022).');
   quadroDiligencia(d, c);
   d.h2('2.3', 'Declarações');
-  d.redigir('autorização da diligência e declarações do responsável legal / ex-sócio, com assinaturas.');
+  d.texto(`Integram este laudo (Anexo G) a autorização para o levantamento e a declaração ${/Pr[oó]prio/.test(c.pppEmitente || '') || !c.reuNome ? 'do segurado' : 'do responsável legal'} sobre o histórico dos locais de trabalho, das atividades, dos equipamentos e dos produtos utilizados em cada período, assinadas. As condições dos períodos anteriores à vistoria foram reconstituídas com base nessas declarações e nos documentos do item 1.3.`);
   d.h2('2.4', 'Instrumentos e calibração');
-  quadroEquipamentos(d, equipamentosUsados(dados));
+  if (equipamentosUsados(dados).length || dados.medicoes.length) quadroEquipamentos(d, equipamentosUsados(dados));
+  else d.texto('Os agentes deste laudo foram avaliados de forma qualitativa, pela atividade e pelas condições observadas na vistoria; não houve medição instrumental.');
   d.h2('2.5', 'Valor probatório');
   d.texto(`O laudo extrajudicial é meio de prova lícito (arts. 369 e 371 do CPC) e pode dispensar a perícia judicial quando suficiente (art. 472). Sua estrutura atende ao art. 473 do CPC – objeto, análise técnica, método e conclusão${comJurisprudencia(dados) ? ' – e a extemporaneidade não lhe retira a eficácia (Súmula 68 da TNU)' : ''}.`);
   if (c.similaridade === 'Sim' || usaParadigmas(dados)) {
@@ -460,7 +514,7 @@ export async function ltcatPpp(caseId) {
   d.h2('3.1', 'Exigências por período');
   quadroFormaEnquadramento(d, dados);
   d.h2('3.2', 'Categoria de segurado e Emenda Constitucional nº 103/2019');
-  d.redigir(`categoria do segurado (empregado / contribuinte individual${comJurisprudencia(dados) ? ' – STJ, Tema 1291' : ''}) e efeitos da EC 103/2019 (vigente desde 13/11/2019) sobre os períodos posteriores.`);
+  textoCategoriaSegurado(d, dados);
   registroJurisprudencia(d, dados, { numero: '3.3', nivel: 'h2', prev: true, tipo: 'ltcat' });
 
   d.h1('4', 'Ambiente de trabalho e profissiografia');
@@ -485,7 +539,7 @@ export async function ltcatPpp(caseId) {
   d.h2('6.1', 'Síntese do enquadramento');
   conclusaoPrevidenciaria(d, dados, { tituloQuadro: 'Síntese do enquadramento por período' });
   d.h2('6.2', 'Parecer técnico');
-  d.texto(`Nos períodos que caracterizam exposição habitual e permanente, não ocasional nem intermitente, a agentes nocivos, o PPP deve informar o código GFIP 04; nos demais, o código aplicável à ausência de exposição.`);
+  d.texto('Nos períodos que caracterizam exposição habitual e permanente, não ocasional nem intermitente, a agentes nocivos, o PPP deve informar o código GFIP 04; nos demais, o código aplicável à ausência de exposição. Os dados do PPP constam do Anexo A e do formulário emitido com este laudo.');
   d.h1('7', 'Recomendações');
   d.texto('Em atendimento ao art. 58, § 2º, da Lei nº 8.213/1991, recomendam-se as medidas abaixo, na ordem de prioridade da NR-1. As recomendações não alteram o enquadramento dos períodos avaliados.');
   quadroRecomendacoes(d, dados);
@@ -493,25 +547,69 @@ export async function ltcatPpp(caseId) {
   d.texto('Este laudo foi elaborado com imparcialidade técnica, sob responsabilidade civil e criminal do signatário, e é assinado digitalmente. A validade dos dados pretéritos depende da veracidade das declarações do item 2.3.');
   d.quadro('Elementos do LTCAT – art. 276 da IN 128/2022', [['Elemento', 'Item deste laudo'],
     ['I – se individual ou coletivo', '2.1'], ['II – identificação da empresa', '1.1'], ['III – identificação do setor e da função', '1.3 e 4'],
-    ['IV – descrição da atividade', '4'], ['V – agente prejudicial arrolado na legislação previdenciária', '5'], ['VI – localização das possíveis fontes geradoras', '4 (registro de cada posto)'],
-    ['VII – via e periodicidade de exposição', '4 (registro de cada posto)'], ['VIII – metodologia e procedimentos de avaliação', '5.1'], ['IX – medidas de controle existentes', '5.2'],
+    ['IV – descrição da atividade', '4'], ['V – agente prejudicial arrolado na legislação previdenciária', '5'], ['VI – localização das possíveis fontes geradoras', '4 e 5'],
+    ['VII – via e periodicidade de exposição', '4 e 5'], ['VIII – metodologia e procedimentos de avaliação', '5.1'], ['IX – medidas de controle existentes', '5.2'],
     ['X – conclusão', '6'], ['XI – assinatura e identificação do médico do trabalho ou engenheiro de segurança do trabalho', 'Encerramento'], ['XII – data da avaliação ambiental', '2.2']],
   { larguras: [0.65, 0.35], tam: 9, alinhar: 'left', fonte: 'Elaborado pelo signatário com base em Brasil (2022, art. 276).' });
-  if (!dados.postos.some((x) => v(x.data.fontes)) || !dados.postos.some((x) => v(x.data.viaPeriodicidade))) {
-    d.texto('[[Preencher, em cada posto da etapa 4. Campo, as fontes geradoras e a via e periodicidade da exposição (art. 276, VI e VII).]]');
+  if ((!dados.postos.some((x) => v(x.data.fontes)) && !dados.agentes.some((a) => v(a.data.fonte))) || (!dados.postos.some((x) => v(x.data.viaPeriodicidade)) && !dados.agentes.length)) {
+    d.texto('[[Preencher, em cada posto da etapa 4. Campo, as fontes geradoras e a via e periodicidade da exposição (art. 276, VI e VII), ou a fonte de cada agente avaliado (etapa 2. Autos).]]');
   }
-  blocoAssinatura(d, dados, `Responsável técnico – ART nº [[nº]]`);
+  blocoAssinatura(d, dados, `Responsável técnico – ART nº ${art}`);
   secaoReferencias(d, dados, { prev: true, judicial: true });
   d.h1('', 'Anexos');
-  d.texto('- Anexo A – Dados para o Perfil Profissiográfico Previdenciário (PPP)\n- Anexo B – Calibração dos instrumentos\n- Anexo C – Anotação de Responsabilidade Técnica\n- Anexo D – Comprovante de inscrição no CNPJ\n- Anexo E – Fichas com dados de segurança dos produtos químicos\n- Anexo F – Anotações da CTPS');
+  d.texto('- Anexo A – Dados para o Perfil Profissiográfico Previdenciário (PPP)\n- Anexo B – Calibração dos instrumentos\n- Anexo C – Anotação de Responsabilidade Técnica\n- Anexo D – Comprovante de inscrição no CNPJ / CAEPF\n- Anexo E – Fichas com dados de segurança dos produtos químicos\n- Anexo F – Documentos dos períodos (CNIS, CTPS, certidões e declarações de terceiros)\n- Anexo G – Autorização e declaração sobre o histórico dos períodos');
   const { apendices, falhasApendice, semRelatorios, semRelatoriosLgpd } = await apendicesDoCaso(dados);
   if (apendices.length) d.texto(apendices.map((a) => `- Apêndice ${a.letra} – ${a.titulo}`).join('\n'));
   d.h1('', 'Anexo A – Dados para o Perfil Profissiográfico Previdenciário (PPP)');
-  d.texto('Dados de exposição por período para o preenchimento do PPP em papel dos períodos anteriores ao eSocial (SST). O código GFIP 04 se aplica aos períodos com enquadramento (item 6).');
+  d.texto('Dados de exposição por período para o PPP, que acompanha este laudo em arquivo próprio. O código GFIP 04 se aplica aos períodos com enquadramento (item 6).');
   quadroDadosPPP(d, dados);
   inserirApendices(d, apendices, dados);
-  const r = await finalizar(d, { titulo: 'LTCAT', arquivo: 'LTCAT_PPP', c });
-  return { ...r, faltando, falhasApendice, semRelatorios, semRelatoriosLgpd };
+  const r = await finalizar(d, { titulo: 'LTCAT', arquivo: 'LTCAT', c });
+  const formulario = await ppp(caseId, dados);
+  return { ...r, extras: [formulario], faltando, falhasApendice, semRelatorios, semRelatoriosLgpd };
+}
+
+// vínculos do LTCAT: empresa sem as anotações entre parênteses; local e categoria do segurado em colunas próprias
+function quadroVinculosLtcat(d, dados) {
+  if (!dados.periodos.length) return d.texto('[[Cadastrar os vínculos/períodos na aba Preparação.]]');
+  return d.quadro('Períodos avaliados', [['Vínculo', 'Período', 'Cargo / setor / local', 'Categoria', 'Fonte'],
+    ...dados.periodos.map((r, i) => [[`V${i + 1} – ${empresaLimpa(r.data.empresa) || 'vínculo'}`, r.data.cnpj && `CNPJ ${r.data.cnpj}`].filter(Boolean).join('\n'),
+      `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`,
+      [r.data.cargo, r.data.setor, r.data.local].filter((x) => v(x)).join(' / '), categoriaDoVinculo(r) || '[[categoria]]', r.data.fonte || ''])],
+  { larguras: [0.24, 0.15, 0.24, 0.14, 0.23], tam: 9, alinhar: 'left' });
+}
+
+// natureza da avaliação: individual; contemporânea na vistoria e extemporânea para os períodos anteriores
+function naturezaLtcat(dados, seg) {
+  const { c } = dados;
+  const vist = datasDasVistorias(c);
+  const end = v(c.vistoriaEndereco);
+  const anteriores = dados.periodos.some((r) => c.vistoriaData && (r.data.inicio || '') < c.vistoriaData);
+  const locais = [...new Set(dados.periodos.map((r) => v(r.data.local)).filter(Boolean))];
+  const partes = [`Este laudo avalia, de forma individual (art. 276, I, da IN 128/2022), a exposição de ${seg} a agentes nocivos nas atividades de ${[...new Set(dados.periodos.map((r) => v(r.data.cargo).toLowerCase()).filter(Boolean))].join(' e ') || '[[cargo]]'}, nos períodos do item 1.3, e fundamenta o Perfil Profissiográfico Previdenciário (PPP) emitido com ele.`];
+  if (vist) partes.push(`A avaliação é contemporânea quanto às condições observadas na vistoria de ${vist}${end ? `, em ${end}` : ''}${anteriores ? ', e extemporânea quanto aos períodos anteriores, cujas condições foram reconstituídas pelas declarações do item 2.3, pelos documentos do item 1.3 e pela permanência da atividade, com as alterações registradas no item 4' : ''}.`);
+  else partes.push('[[Informe a data da vistoria (etapa 4. Campo).]]');
+  if (locais.length > 1 || (locais.length === 1 && end && !end.includes(locais[0]))) partes.push('Nos vínculos com local de trabalho diverso do vistoriado (item 1.3), a avaliação considera a mesma atividade profissional, conforme as declarações do item 2.3.');
+  return partes.join(' ');
+}
+
+// categoria de segurado por vínculo, emitente do PPP e EC 103/2019
+function textoCategoriaSegurado(d, dados) {
+  const per = dados.periodos.map((r, i) => ({ r, i, cat: categoriaDoVinculo(r) }));
+  const lista = (f) => per.filter(f).map(({ i }) => `V${i + 1}`).join(', ');
+  const ci = lista((x) => /individual/i.test(x.cat));
+  const coop = lista((x) => /cooperad/i.test(x.cat));
+  const emp = lista((x) => /Empregado|Avulso/i.test(x.cat));
+  const sem = lista((x) => !x.cat);
+  const jur = comJurisprudencia(dados);
+  if (emp) d.texto(`Nos períodos como empregado (${emp}), o PPP é emitido pelo empregador com base no LTCAT (art. 58, § 1º, da Lei nº 8.213/1991).`);
+  const proprio = /Pr[oó]prio/.test(dados.c.pppEmitente || '');
+  if (coop) d.texto(`Nos períodos como cooperado de cooperativa de trabalho (${coop}), as regras da aposentadoria especial aplicam-se ao cooperado filiado que trabalha sujeito a condições especiais (art. 1º da Lei nº 10.666/2003)${proprio ? '. Como o segurado presta os serviços em consultório próprio, também a outros contratantes, e não exclusivamente pela cooperativa, o PPP é emitido em seu próprio nome, com base neste laudo, para todos os períodos' : ', e cabe à cooperativa emitir o PPP com base neste laudo'}.`);
+  if (ci) d.texto(`Nos períodos como contribuinte individual (${ci}), não há empresa obrigada a emitir o PPP${proprio ? ', que é emitido pelo próprio segurado' : ''}; este LTCAT é o documento técnico que demonstra as condições de trabalho e a exposição a agentes nocivos nesses períodos${jur ? ', sem exigência de formulário emitido por empresa (STJ, Tema 1291)' : ''}.`);
+  if (sem) d.texto(`[[Informe a categoria do segurado nos vínculos ${sem} (etapa 2. Autos).]]`);
+  if (dados.periodos.some((r) => !r.data.fim || r.data.fim > '2019-11-13')) d.texto('A partir de 14/11/2019, data de entrada em vigor da Emenda Constitucional nº 103/2019, o tempo especial não pode ser convertido em tempo comum (art. 25, § 2º); por isso, os subperíodos posteriores são indicados separadamente na síntese do item 6.');
+  const afs = dados.periodos.flatMap((r) => lerAfastamentos(r.data.afastamentos));
+  if (afs.some((x) => x.excluido)) d.texto('Os afastamentos por benefício por incapacidade temporária previdenciário posteriores ao Decreto nº 10.410/2020 não são computados como tempo especial (art. 65, parágrafo único, do Decreto nº 3.048/1999) e são indicados no item 6 e nas observações do PPP.');
 }
 
 // ======================================================================

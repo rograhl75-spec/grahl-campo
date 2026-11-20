@@ -73,8 +73,8 @@ const limpaDados = (o) => {
 export async function carregar(caseId) {
   const caso = await db.records.get(caseId);
   if (!caso) throw new Error('Caso não encontrado.');
-  const kinds = ['quesito', 'periodo', 'documento', 'epi', 'posto', 'medicao', 'foto'];
-  const [quesitos, periodos, documentos, epis, postos, medicoes, fotos] = await Promise.all(kinds.map((k) => caseChildren(caseId, k)));
+  const kinds = ['quesito', 'periodo', 'documento', 'epi', 'posto', 'medicao', 'foto', 'agenteAvaliado'];
+  const [quesitos, periodos, documentos, epis, postos, medicoes, fotos, agentes] = await Promise.all(kinds.map((k) => caseChildren(caseId, k)));
   const equipamentos = (await db.records.where('kind').equals('equip').toArray()).filter((e) => !e.deleted)
     .sort((a, b) => (a.data.ordem || 0) - (b.data.ordem || 0));
   const paradigmas = new Map((await db.records.where('kind').equals('paradigma').toArray()).filter((r) => !r.deleted).map((r) => [r.data.codigo, r]));
@@ -99,7 +99,7 @@ export async function carregar(caseId) {
   }
   // referências internas aos arquivos PDF (Parte N, p. X) e datas ISO no meio do texto não vão para o documento
   const limpa = (lst) => lst.map((r) => ({ ...r, data: limpaDados(r.data) }));
-  const dados = { id: caseId, c: limpaDados(caso.data), quesitos: limpa(quesitos), periodos: limpa(herdarDoAnterior(pers)), documentos: limpa(documentos), epis, postos: limpa(psts), medicoes: meds, fotos, equipamentos, perfil, paradigmas, quimicos,
+  const dados = { id: caseId, c: limpaDados(caso.data), quesitos: limpa(quesitos), periodos: limpa(herdarDoAnterior(pers)), documentos: limpa(documentos), epis, postos: limpa(psts), agentes: limpa(agentes.filter((a) => v(a.data.nome))).sort((a, b) => (a.data.ordem ?? a.createdAt ?? 0) - (b.data.ordem ?? b.createdAt ?? 0)), medicoes: meds, fotos, equipamentos, perfil, paradigmas, quimicos,
     regraCertMeses: Number((cfgPar && cfgPar.data.regraCertMeses) || 24) };
   // nomes próprios do caso (empresas, pessoas, cidades dos trajetos) não são sublinhados pelo corretor do Word
   const nomes = [dados.c.autorNome, dados.c.reuNome, perfil.nome, ...dados.periodos.flatMap((r) => [r.data.empresa, empresaLimpa(r.data.empresa), r.data.vias, r.data.cargo])]
@@ -829,7 +829,8 @@ const MARCOS_PREV = [
   ['19/11/2003 a 13/11/2019', 'Dec. 4.882/2003; NEN > 85 dB(A)', '2003-11-19', '2019-11-13'],
   ['A partir de 14/11/2019', 'EC 103/2019: sem conversão', '2019-11-14', '2999-12-31'],
 ];
-export function linhaDoTempo(d, periodos) {
+const MARCOS_SEM_RUIDO = ['Categoria profissional ou agente nocivo', 'Agente nocivo (Dec. 53.831/64 e 83.080/79)', 'Anexo IV (Dec. 2.172/97 e 3.048/99)', 'Anexo IV; NHO a partir de 01/01/2004', 'EC 103/2019: sem conversão'];
+export function linhaDoTempo(d, periodos, { ruido = true } = {}) {
   const ps = (periodos || []).filter((r) => r.data.inicio);
   if (!ps.length) return d;
   const hoje = new Date().toISOString().slice(0, 10);
@@ -840,8 +841,8 @@ export function linhaDoTempo(d, periodos) {
     if (ini > fim) return { t: '–', corTexto: 'A6B4C8' };
     return { t: `${dataBR(ini)}\na\n${r.data.fim || fim < fimV ? dataBR(fim) : 'atual'}`, cor: 'DCE6F2', b: true, corTexto: '1B365D' };
   })]);
-  return d.quadroDestaque('Linha do tempo dos vínculos e marcos legais', [['Vínculo', ...MARCOS_PREV.map(([t, x]) => `${t}\n${x}`)], ...lin],
-    { larguras: [0.2, 0.16, 0.16, 0.16, 0.16, 0.16], fonte: 'Elaborado pelo signatário. Vibração de corpo inteiro: ISO 2631 até 13/08/2014 e NR-15, Anexo 8, a partir de 14/08/2014.' });
+  return d.quadroDestaque('Linha do tempo dos vínculos e marcos legais', [['Vínculo', ...MARCOS_PREV.map(([t, x], i) => `${t}\n${ruido ? x : MARCOS_SEM_RUIDO[i]}`)], ...lin],
+    { larguras: [0.2, 0.16, 0.16, 0.16, 0.16, 0.16], fonte: ruido ? 'Elaborado pelo signatário. Vibração de corpo inteiro: ISO 2631 até 13/08/2014 e NR-15, Anexo 8, a partir de 14/08/2014.' : 'Elaborado pelo signatário.' });
 }
 
 // Fluxo da avaliação (figura), conforme o tipo de documento; usa as datas das vistorias quando houver
@@ -864,10 +865,13 @@ export function fluxoAvaliacao(d, dados, tipo) {
 }
 
 export function quadroFormaEnquadramento(d, dados) {
-  if (dados?.periodos?.length) linhaDoTempo(d, dados.periodos);
+  // sem ruído ou vibração no caso (medição, paradigma ou motorista), os marcos não falam em dB(A)
+  const ruido = !dados?.agentes?.length || dados.medicoes?.some((m) => /Ru[ií]do|Vibra/.test(m.data.agente || ''))
+    || dados.periodos?.some((r) => r.data.paradigmaRuido || r.data.paradigmaVibracao || /motorista|caminh|ônibus|cobrador|tratorist/i.test(`${r.data.cargo || ''}`));
+  if (dados?.periodos?.length) linhaDoTempo(d, dados.periodos, { ruido });
   return d.quadro('Forma de enquadramento, prova e medidas de controle', [['Período', 'Enquadramento', 'Documentos', 'Permanência', 'EPC / EPI'],
-    ['Até 28/04/1995', 'Categoria profissional ou agente nocivo', 'CTPS para categoria; formulário e laudo para ruído', 'Não exigida (art. 286, § 2º)', 'Não considerados'],
-    ['29/04/1995 a 13/10/1996', 'Agente nocivo', 'Formulário; laudo para ruído', 'Exigida', 'Não considerados'],
+    ['Até 28/04/1995', 'Categoria profissional ou agente nocivo', ruido ? 'CTPS para categoria; formulário e laudo para ruído' : 'Comprovação do exercício da profissão para categoria; formulário para agente', 'Não exigida (art. 286, § 2º)', 'Não considerados'],
+    ['29/04/1995 a 13/10/1996', 'Agente nocivo', ruido ? 'Formulário; laudo para ruído' : 'Formulário', 'Exigida', 'Não considerados'],
     ['14/10/1996 a 02/12/1998', 'Agente nocivo', 'Formulário com base em LTCAT ou PPP', 'Exigida', 'EPC informado; EPI não considerado'],
     ['03/12/1998 a 31/12/2003', 'Agente nocivo', 'Formulário com base em LTCAT ou PPP', 'Exigida', 'EPC e EPI considerados (art. 291)'],
     ['A partir de 01/01/2004', 'Agente nocivo', 'PPP com base em LTCAT', 'Exigida', 'EPC e EPI considerados; NHO exigidas nas avaliações realizadas a partir de 01/01/2004 (art. 289, parágrafo único)']],

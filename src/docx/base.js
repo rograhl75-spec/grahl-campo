@@ -102,9 +102,10 @@ export async function carregar(caseId) {
   const dados = { id: caseId, c: limpaDados(caso.data), quesitos: limpa(quesitos), periodos: limpa(herdarDoAnterior(pers)), documentos: limpa(documentos), epis, postos: limpa(psts), medicoes: meds, fotos, equipamentos, perfil, paradigmas, quimicos,
     regraCertMeses: Number((cfgPar && cfgPar.data.regraCertMeses) || 24) };
   // nomes próprios do caso (empresas, pessoas, cidades dos trajetos) não são sublinhados pelo corretor do Word
-  const nomes = [dados.c.autorNome, dados.c.reuNome, perfil.nome, ...dados.periodos.flatMap((r) => [r.data.empresa, r.data.vias, r.data.cargo])]
+  const nomes = [dados.c.autorNome, dados.c.reuNome, perfil.nome, ...dados.periodos.flatMap((r) => [r.data.empresa, empresaLimpa(r.data.empresa), r.data.vias, r.data.cargo])]
     .filter(Boolean).join(' ').match(/[A-ZÀ-Ý][\p{L}'’-]+/gu) || [];
-  semRevisao(nomes);
+  // a mesma palavra como sai nos quadros: "CLOPAN" → "Clopan"
+  semRevisao([...nomes, ...nomes.map((w) => w.charAt(0) + w.slice(1).toLowerCase())]);
   // ordem cronológica: cada posto/veículo vai para a posição do primeiro vínculo que representa
   const ordemP = new Map(dados.postos.map((ps) => [ps.id, (periodosDoPosto(ps, dados)[0] || {}).data?.inicio || '9999']));
   dados.postos.sort((a, b) => ordemP.get(a.id).localeCompare(ordemP.get(b.id)) || (a.data.ordem ?? a.createdAt) - (b.data.ordem ?? b.createdAt));

@@ -17,7 +17,7 @@ perecivel:perecível pereciveis:perecíveis quimicos:químicos quimico:químico 
 saude:saúde critico:crítico critica:crítica unico:único unica:única basico:básico pratico:prático sanitario:sanitário sanitarios:sanitários
 condicoes:condições pressao:pressão tensao:tensão extensao:extensão excessao:exceção vibracao:vibração ruido:ruído ruidos:ruídos
 carroceria:carroceria bitrem:bitrem rodotrem:rodotrem graneleiro:graneleiro graneleira:graneleira bau-frigorifico:baú-frigorífico
-caloré:Kaloré calore:Kaloré
+caloré:Kaloré calore:Kaloré veic:veículo
 goncalves:gonçalves sao:são joao:joão conceicao:conceição assuncao:assunção comercio:comércio industria:indústria logistica:logística
 distribuidora:distribuidora panificadora:panificadora agricola:agrícola agropecuaria:agropecuária metalurgica:metalúrgica ceramica:cerâmica`;
 const MAPA = new Map(PALAVRAS.split(/\s+/).filter(Boolean).map((p) => p.split(':')));

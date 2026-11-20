@@ -62,7 +62,7 @@ describe('parecer técnico de condições de trabalho e penosidade', () => {
     expect(t).toMatch(/Vínculo 1 – Transportes Alfa/);
     expect(t).toMatch(/Proc\. 0000000-00\.2017\.4\.04\.0000/); // fonte da prova vem do paradigma
     expect(t).toMatch(/Caminhão truck/);
-    expect(t).toMatch(/Assalto/);
+    expect(t).toMatch(/[Aa]ssalto/);
     expect(t).toMatch(/EC 103\/2019, art\. 25, § 2º/);
     expect(t).toMatch(/Matriz de agentes, penosidade e enquadramento técnico/);
     expect(t).not.toMatch(/Súmula Vinculante|IRDR 15|irrefutável|faz jus|undefined|NaN/);

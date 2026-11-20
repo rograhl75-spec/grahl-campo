@@ -4,6 +4,7 @@
 // - depois da Lei 9.032/1995: STJ, Tema 1307 – penosidade reconhecível se comprovada, por perícia
 //   técnica individualizada, a exposição habitual e permanente a condições concretas de desgaste à saúde.
 // O documento apresenta a avaliação técnica dos fatores de desgaste; o enquadramento é do Juízo.
+import { empresaLimpa } from '../nomes.js';
 import { dataBR, postosDoPeriodo, nomeCurto } from './base.js';
 import { comJurisprudencia } from './fontes.js';
 import { num } from '../paradigmas.js';
@@ -28,17 +29,19 @@ export function avaliaPenosidade(dados) {
 }
 
 const periodo = (r) => `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`;
-const nome = (r, dados) => `V${dados.periodos.indexOf(r) + 1} – ${r.data.empresa || ''}`.trim();
+const nome = (r, dados) => `V${dados.periodos.indexOf(r) + 1} – ${empresaLimpa(r.data.empresa)}`.trim();
 
 // ruído e vibração do vínculo: medição do veículo avaliado ou paradigma (mesma base da conclusão)
 function agentesFisicos(r, dados) {
   const val = valores(r, dados);
   const out = [];
-  if (isFinite(val.nen) || isFinite(val.lavg)) out.push(`ruído ${isFinite(val.nen) ? `NEN ${fmt(val.nen, 1)}` : `Lavg ${fmt(val.lavg, 1)}`} dB(A)`);
-  if (isFinite(val.aren)) out.push(`vibração de corpo inteiro aren ${fmt(val.aren, 2)} m/s²${isFinite(val.vdv) ? ` e VDVR ${fmt(val.vdv, 2)} m/s^1,75` : ''}`);
+  // frase corrente: o valor, o indicador e de qual paradigma veio cada um
+  const ref = (f) => (!f ? '' : /^paradigma/i.test(f) ? f : `medição na vistoria – ${f}`);
+  if (isFinite(val.nen) || isFinite(val.lavg)) out.push(`ruído de ${fmt(isFinite(val.nen) ? val.nen : val.lavg, 1)} dB(A) (${isFinite(val.nen) ? 'NEN' : 'Lavg'}${val.fonteR ? `, ${ref(val.fonteR)}` : ''})`);
+  if (isFinite(val.aren)) out.push(`vibração de corpo inteiro com aren de ${fmt(val.aren, 2)} m/s²${isFinite(val.vdv) ? ` e VDVR de ${fmt(val.vdv, 2)} m/s^1,75` : ''}${val.fonteV ? ` (${ref(val.fonteV)})` : ''}`);
   if (!out.length) return '';
-  const fonte = [...new Set([val.fonteR, val.fonteV].filter(Boolean))].join(' / ');
-  return `${out.join('; ')}${fonte ? ` (${fonte})` : ''}`;
+  const conc = out.length > 1 ? 'considerados' : /^ruído/.test(out[0]) ? 'considerado' : 'considerada';
+  return `${out.join(' e ')} – ${conc} como fator de desgaste mesmo quando abaixo dos limites de tolerância`;
 }
 
 // Informações já coletadas na diligência e nos autos, por vínculo (o que foi digitado no vínculo prevalece)
@@ -167,7 +170,7 @@ export function matrizIAC(r, dados) {
   const criterios = [
     { id: 'veiculo', titulo: '1. Análise do veículo',
       oque: 'Idade e modelo da frota; câmbio, embreagem, direção, assento e climatização; esforço físico, desconforto térmico, movimentos repetitivos e desgaste osteomuscular; ruído, vibração e calor do motor.',
-      linhas: [L('Veículo', veic), L('Grupo do veículo', x.grupoVeiculo), L('Carroceria / reboque', x.carroceria), L('Cabine e conforto', x.cabine), L('Agentes físicos medidos (mesmo abaixo dos limites)', fis)].filter(Boolean),
+      linhas: [L('Veículo', veic), L('Grupo do veículo', x.grupoVeiculo), L('Carroceria / reboque', x.carroceria), L('Cabine e conforto', x.cabine), L('Ruído e vibração do veículo', fis)].filter(Boolean),
       adverso: adv(RE_CAB, x.cabine) || !!fis,
       fonte: fis ? 'Entrevista do autor; vistoria e medições no veículo' : 'Entrevista do autor; vistoria' },
     { id: 'trajetos', titulo: '2. Análise dos trajetos',

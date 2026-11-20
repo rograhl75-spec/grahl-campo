@@ -40,7 +40,9 @@ export function acentuar(texto) {
     return w;
   });
   // crase antes de horário: "as 20h00", "das 05h as 20h"
-  s = s.replace(/\b([Aa])s(\s+\d{1,2}\s*(h|:\d{2}|horas?\b))/g, (m, a, resto) => `${a === 'A' ? 'À' : 'à'}s${resto}`);
+  // só entre dois horários ("05h00 as 20h00") ou na forma "das 5 as 18"; "menos as 5 h de carga" fica como está
+  s = s.replace(/(\d{1,2}(?:h\d{0,2}|:\d{2}))\s+as\s+(\d{1,2}\s*(?:h|:\d{2}|horas?\b))/g, '$1 às $2');
+  s = s.replace(/\b(das?)\s+(\d{1,2}(?:\s*(?:h\d{0,2}|:\d{2}|horas?))?)\s+as\s+(\d)/gi, '$1 $2 às $3');
   // concordância comum em ditado: "além dos anterior" → "além dos anteriores"
   s = s.replace(/\b(dos|das) anterior\b/gi, (m, d) => `${d} anterior${d.toLowerCase() === 'das' ? 'es' : 'es'}`);
   return s;
@@ -49,8 +51,10 @@ export function acentuar(texto) {
 // linha que começa com um verbo de comando dirigido ao app ou ao perito
 const RE_INSTRUCAO = /^\s*(sempre\s+)?(utilizar|utilize|usar|use|adotar|adote|considerar|considere|aplicar|aplique|manter|mantenha|repetir|repita|copiar|copie|seguir|siga|colocar|coloque|incluir|inclua|desconsiderar|desconsidere|ignorar|ignore|ver o|vide o)\b/i;
 export const ehInstrucao = (linha) => RE_INSTRUCAO.test(String(linha || ''));
+// notas de trabalho que não vão para o documento ("Confirmar com o segurado.", "(conferir)")
+const RE_NOTA = /\s*\(?\b(confirmar|conferir|verificar)\s+com\s+o\s+(segurado|autor|periciado|reclamante)\b[^.()]*[.)]?/gi;
 export function semInstrucoes(texto) {
-  const s = String(texto ?? '');
+  const s = String(texto ?? '').replace(RE_NOTA, '').replace(/\(\s*\)/g, '').replace(/\s{2,}/g, ' ');
   if (!s.includes('\n') && !ehInstrucao(s)) return s;
   return s.split('\n').filter((l) => !ehInstrucao(l)).join('\n').trim();
 }

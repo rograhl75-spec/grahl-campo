@@ -31,12 +31,12 @@ export function esc(s) {
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g, '');
 }
 
-function rPr({ b, i, size = 12, color, caps, hl, sup, tit, np } = {}) {
+function rPr({ b, i, size = 12, color, caps, hl, sup, tit, np, lang = 'pt-BR' } = {}) {
   const F = tit ? FONTE_TITULO : FONTE;
   return `<w:rPr><w:rFonts w:ascii="${F}" w:hAnsi="${F}" w:cs="${F}" w:eastAsia="${F}"/>` + (np ? '<w:noProof/>' : '') +
     (b ? '<w:b/><w:bCs/>' : '') + (i ? '<w:i/><w:iCs/>' : '') + (caps ? '<w:caps/>' : '') +
     (color ? `<w:color w:val="${color}"/>` : '') + `<w:sz w:val="${Math.round(size * 2)}"/><w:szCs w:val="${Math.round(size * 2)}"/>` +
-    (hl ? '<w:highlight w:val="yellow"/>' : '') + (sup ? '<w:vertAlign w:val="superscript"/>' : '') + '<w:lang w:val="pt-BR"/></w:rPr>';
+    (hl ? '<w:highlight w:val="yellow"/>' : '') + (sup ? '<w:vertAlign w:val="superscript"/>' : '') + `<w:lang w:val="${lang}"/></w:rPr>`;
 }
 
 // unidade do VDV (m/s elevado a 1,75), escrita de várias formas nos textos, sai sempre com o expoente sobrescrito
@@ -68,7 +68,7 @@ function regexTec() {
   return reTec;
 }
 function runTexto(t, opts, br) {
-  if (opts.np || !t) return `<w:r>${rPr(opts)}${br}<w:t xml:space="preserve">${tx(t)}</w:t></w:r>`;
+  if (opts.np || !t || (opts.lang && opts.lang !== 'pt-BR')) return `<w:r>${rPr(opts)}${br}<w:t xml:space="preserve">${tx(t)}</w:t></w:r>`;
   const re = regexTec();
   const out = []; let last = 0, m, primeiro = true;
   const r = (pt, np) => { out.push(`<w:r>${rPr(np ? { ...opts, np: true } : opts)}${primeiro ? br : ''}<w:t xml:space="preserve">${tx(pt)}</w:t></w:r>`); primeiro = false; };
@@ -94,14 +94,15 @@ export function run(text, opts = {}) {
 // Texto com marcações: **negrito**, *itálico* e [[pendência]] (amarelo, para conferir)
 export function rich(text, base = {}) {
   const out = [];
-  const re = /(\*\*([^*]+)\*\*|\[\[([^\]]+)\]\]|\*([^*]+)\*)/g;
+  const re = /(\*\*([^*]+)\*\*|\[\[([^\]]+)\]\]|\*([^*]+)\*|\{\{(en|es|fr|de):([^}]+)\}\})/g;
   let last = 0, m;
   const s = String(text ?? '');
   while ((m = re.exec(s))) {
     if (m.index > last) out.push(run(s.slice(last, m.index), base));
     if (m[2] !== undefined) out.push(run(m[2], { ...base, b: true }));
     else if (m[3] !== undefined) out.push(run(m[3], { ...base, b: true, hl: true }));
-    else out.push(run(m[4], { ...base, i: true }));
+    else if (m[4] !== undefined) out.push(run(m[4], { ...base, i: true }));
+    else out.push(run(m[6], { ...base, np: false, lang: { en: 'en-US', es: 'es-ES', fr: 'fr-FR', de: 'de-DE' }[m[5]] }));
     last = m.index + m[0].length;
   }
   if (last < s.length) out.push(run(s.slice(last), base));
@@ -109,7 +110,7 @@ export function rich(text, base = {}) {
 }
 
 // ---------- Fórmulas (Office Math / OMML): equações de verdade no Word, não texto ----------
-const mt = (t, { normal = false } = {}) => `<m:r>${normal ? '<m:rPr><m:sty m:val="p"/></m:rPr>' : ''}<w:rPr><w:rFonts w:ascii="Cambria Math" w:hAnsi="Cambria Math"/></w:rPr><m:t xml:space="preserve">${esc(t)}</m:t></m:r>`;
+const mt = (t, { normal = false } = {}) => `<m:r>${normal ? '<m:rPr><m:sty m:val="p"/></m:rPr>' : ''}<w:rPr><w:rFonts w:ascii="Cambria Math" w:hAnsi="Cambria Math"/><w:lang w:val="pt-BR"/></w:rPr><m:t xml:space="preserve">${esc(t)}</m:t></m:r>`;
 export const M = {
   t: (x) => mt(x),
   n: (x) => mt(x, { normal: true }), // texto reto (números, operadores, palavras)
@@ -128,7 +129,7 @@ function pPr({ style, align = 'both', before = 0, after = 120, line = 360, keepN
     (lista ? `<w:numPr><w:ilvl w:val="0"/><w:numId w:val="${NUM_MARCADOR}"/></w:numPr>` : '') +
     `<w:spacing w:before="${before}" w:after="${after}" w:line="${line}" w:lineRule="auto"/>` +
     (left || hanging || first ? `<w:ind${left ? ` w:left="${left}"` : ''}${hanging ? ` w:hanging="${hanging}"` : ''}${first ? ` w:firstLine="${first}"` : ''}/>` : '') +
-    `<w:jc w:val="${align}"/>` + (outline !== undefined ? `<w:outlineLvl w:val="${outline}"/>` : '') + '</w:pPr>';
+    `<w:jc w:val="${align}"/>` + (outline !== undefined ? `<w:outlineLvl w:val="${outline}"/>` : '') + '<w:rPr><w:lang w:val="pt-BR"/></w:rPr></w:pPr>';
 }
 
 export function p(content, opts = {}) {
@@ -368,7 +369,7 @@ function listaPronta(tipo, entradas) {
     const estilo = tipo === 'toc' ? `Sumrio${e.nivel}` : 'Sumrio2';
     const ini = i === 0 ? `${r('<w:fldChar w:fldCharType="begin"/>')}${r(`<w:instrText xml:space="preserve"> ${INSTR_LISTA[tipo]} </w:instrText>`)}${fld('separate')}` : '';
     const fim = i === entradas.length - 1 ? fld('end') : '';
-    const pagina = `${fld('begin')}${r(`<w:instrText xml:space="preserve"> PAGEREF ${e.nome} \\h </w:instrText>`)}${fld('separate')}${r('<w:t>–</w:t>')}${fld('end')}`;
+    const pagina = `${fld('begin')}${r(`<w:instrText xml:space="preserve"> PAGEREF ${e.nome} \\h </w:instrText>`)}${fld('separate')}${r('<w:rPr><w:lang w:val="pt-BR"/></w:rPr><w:t>–</w:t>')}${fld('end')}`;
     return `<w:p><w:pPr><w:pStyle w:val="${estilo}"/><w:tabs><w:tab w:val="right" w:leader="dot" w:pos="8494"/></w:tabs></w:pPr>${ini}`
       + `<w:hyperlink w:anchor="${e.nome}" w:history="1">${run(e.texto, { size: 11, b: tipo === 'toc' && e.nivel === 1 })}${r('<w:tab/>')}${pagina}</w:hyperlink>${fim}</w:p>`;
   }).join('');
@@ -489,7 +490,9 @@ export async function montarDocx(modeloBytes, corpoXml, { imagens = [], tituloDo
   const ini = xml.indexOf('<w:body>') + '<w:body>'.length;
   const sect = xml.lastIndexOf('<w:sectPr');
   if (ini < 8 || sect < 0) throw new Error('Modelo timbrado inválido (corpo não encontrado).');
-  xml = xml.slice(0, ini) + corpoXml + xml.slice(sect);
+  // toda marca de parágrafo em pt-BR (o texto digitado depois no Word herda o idioma)
+  const corpo = corpoXml.replace(/<w:pPr>((?:(?!<\/w:pPr>).)*?)<\/w:pPr>/gs, (m, dentro) => (/<w:rPr>|<w:sectPr/.test(dentro) ? m : `<w:pPr>${dentro}<w:rPr><w:lang w:val="pt-BR"/></w:rPr></w:pPr>`));
+  xml = xml.slice(0, ini) + corpo + xml.slice(sect);
   // primeira página (capa ou 1ª folha da petição) sem número: usa o cabeçalho/rodapé "first" do timbrado,
   // que tem o mesmo timbre e não recebe o campo PAGE (ABNT NBR 14724: a capa não é numerada)
   const ultSect = xml.lastIndexOf('<w:sectPr');

@@ -5,6 +5,7 @@
 // um quadro por vínculo, matriz sintética, conclusão e encerramento com a ART); os valores, a fonte da
 // prova e o enquadramento por subperíodo são calculados pelo app – nada é digitado no texto.
 // ======================================================================
+import { empresaLimpa } from '../nomes.js';
 import {
   carregar, finalizar, dataBR, credencial, capaTecnica, blocoAssinatura, quadroFormaEnquadramento, quadroCriteriosRuido,
   quadroCriteriosVibracao, quadrosParadigmasMetodologia, memoriasParadigmas, figurasDoCaso, apendicesDoCaso, fluxoAvaliacao,
@@ -26,9 +27,7 @@ const limpo = (t) => v(t).replace(/^\(\s*['"‘“]([^)]*?)['"’”]\s*\)$/, '$
 const veiculo = (r) => limpo([r.data.veiculoTipo, r.data.veiculoMarca, r.data.veiculoModelo, r.data.veiculoAno].map(v).filter(Boolean).join(' '));
 // nome curto da empresa nos quadros-resumo (sem a razão social da CTPS entre parênteses)
 const empresaCurta = (r) => v(r.data.empresa).replace(/\s*\((CTPS|sucess|antiga|atual)[^)]*\)/gi, '').trim() || v(r.data.empresa);
-// nome em maiúsculas → só iniciais maiúsculas (quebra entre palavras nas colunas estreitas); siglas ficam
-const SIGLAS = /^(ME|EPP|EIRELI|S\/?A|SA|S\.A\.|II|III|IV|SC|PR|SP)$/;
-const empresaQuadro = (r) => { const e = empresaCurta(r); return e === e.toUpperCase() ? e.split(/(\s+)/).map((w) => (SIGLAS.test(w) || w.length <= 2 && /^[A-Z&]+$/.test(w) && !/^(DE|DA|DO|E)$/.test(w) ? w : /^(DE|DA|DO|DOS|DAS|E)$/.test(w) ? w.toLowerCase() : w.charAt(0) + w.slice(1).toLowerCase())).join('') : e; };
+const empresaQuadro = (r) => empresaLimpa(r.data.empresa);
 const fimTxt = (r, s) => (!r.data.fim && s.fim === hojeLocal() ? 'atual' : dataBR(s.fim));
 const EC103 = '2019-11-13';
 const fimOuHoje = (r) => r.data.fim || '9999-12-31';
@@ -80,9 +79,9 @@ function penosidadeDoVinculo(r, dados, m) {
   // itens já mostrados nas linhas anteriores do quadro (veículo, carga, trajetos, jornada) não se repetem aqui
   const JA = /^(Veículo|Grupo do veículo|Carroceria \/ reboque|Tipo de carga|Vias e trajetos|Tempo diário de condução|Jornada e horas extras|Trabalho noturno e pernoites):/;
   const fatos = m.criterios.map((c) => [c, c.linhas.filter((l) => !JA.test(l))]).filter(([, ls]) => ls.length)
-    .map(([c, ls]) => `${c.titulo.replace(/^\d\. Análise d[oa]s? /, '').replace(/^./, (k) => k.toUpperCase())} – ${ls.join('; ')}`);
+    .map(([c, ls]) => `**${c.titulo.replace(/^\d\. Análise d[oa]s? /, '').replace(/^./, (k) => k.toUpperCase())}** – ${ls.map((l) => l.replace(/^./, (k) => k.toLowerCase())).join('; ')}`);
   const algum = m.criterios.some((c) => c.linhas.length);
-  return [fatos.join('.\n') || (algum ? 'Fatores descritos nas linhas anteriores deste quadro.' : '') || '[[preencher a entrevista do vínculo (etapa 2 → vínculo → Entrevista do motorista e Penosidade)]]', m.conclusao].filter(Boolean).join('\n');
+  return [fatos.join('.\n') + (fatos.length ? '.' : '') || (algum ? 'Fatores descritos nas linhas anteriores deste quadro.' : '') || '[[preencher a entrevista do vínculo (etapa 2 → vínculo → Entrevista do motorista e Penosidade)]]', m.conclusao].filter(Boolean).join('\n');
 }
 
 function enquadramentoDoVinculo(r, segs, m) {

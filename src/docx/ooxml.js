@@ -47,7 +47,7 @@ const tx = (t) => esc(t).replace(/\t/g, '</w:t><w:tab/><w:t xml:space="preserve"
 // ortográfica (<w:noProof/>): o Word não os sublinha e continua revisando o resto do texto.
 const TERMOS_TECNICOS = ['aren', 'arep', 'areq', 'Lavg', 'Leq', 'NEN', 'VDVR', 'VDV', 'VCI', 'VMB', 'IBUTG', 'NHO', 'truck', 'Truck', 'toco', 'bitrem', 'rodotrem',
   'Ltda', 'LTDA', 'EIRELI', 'fl.', 'fls.', 'cód.', 'Cód.', 'seq.', 'últ.', 'remun.', 'veic.', 'Proc.', 'subperíodo', 'subperíodos', 'Subperíodo', 'Subperíodos',
-  'semiavançada', 'semiavançado', 'Semiavançada', 'art.', 'arts.', 'Art.', 'Dec.', 'rel.', 'inc.', 'ii', 'iii', 'iv', 'vi', 'vii', 'app', 'decidendi', 'tempus', 'regit', 'actum', 'TLVs', 'BEIs', 'ACGIH', 'Fundacentro', 'FUNDACENTRO', 'ASPEJUDI',
+  'semiavançada', 'semiavançado', 'Semiavançada', 'art.', 'arts.', 'Art.', 'Dec.', 'rel.', 'inc.', 'ii', 'iii', 'iv', 'vi', 'vii', 'app', 'decidendi', 'ratio', 'stare', 'decisis', 'tempus', 'regit', 'actum', 'DJe', 'DJEN', 'REsp', 'AREsp', 'AgRg', 'AgInt', 'EDcl', 'PEDILEF', 'Pet', 'RE', 'ARE', 'IAC', 'IRDR', 'TLVs', 'BEIs', 'ACGIH', 'Fundacentro', 'FUNDACENTRO', 'ASPEJUDI',
   'Grahl', 'Benz', 'Mercedes', 'Volkswagen', 'Volvo', 'Scania', 'Agrale', 'Atego', 'Iveco', 'Perkins', 'Chevrolet', 'Constellation', 'Worker', 'Delivery',
   'Sonus', 'Criffer', 'Chrompack', 'SmartVib', 'Instrutherm', 'Inlite', 'Rodofrio', 'Jumper', 'Ducato', 'Boxer', 'Cincinnati', 'UFs', 'CNIS', 'CTPS', 'CBO', 'PPP', 'LTCAT'];
 const extras = new Set();

@@ -180,7 +180,7 @@ export async function parecerPenosidade(caseId) {
     const vib = textoItens(r, segs, (it) => /^VCI/.test(it.t)) || (isFinite(val.aren) ? `aren ${fmt(val.aren, 2)} m/s²` : semValor);
     const fonte = soCategoria && !v(x.paradigmaRuido) && !v(x.paradigmaVibracao) ? 'Não se aplica (categoria profissional até 28/04/1995).' : fontesDaProva(r, dados, val);
     const enq = enquadramentoDoVinculo(r, segs, m);
-    d.quadro(`Vínculo ${i + 1} – ${empresaCurta(r)}`, [['Item', 'Registro'],
+    d.quadro(`Vínculo ${i + 1} – ${empresaQuadro(r)}`, [['Item', 'Registro'],
       ['Empresa e documentos', [v(x.empresa), x.cnpj && `CNPJ ${x.cnpj}`, v(x.fonte) && `Fonte: ${v(x.fonte)}`].filter(Boolean).join('\n')],
       ['Função e veículo', [limpo(x.cargo), veiculo(r)].filter(Boolean).join(' – ') || '[[função e veículo]]'],
       ['Grupo do veículo', v(x.grupoVeiculo) || '[[grupo do veículo]]'],

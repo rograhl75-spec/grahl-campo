@@ -43,6 +43,13 @@ export function acentuar(texto) {
   // só entre dois horários ("05h00 as 20h00") ou na forma "das 5 as 18"; "menos as 5 h de carga" fica como está
   s = s.replace(/(\d{1,2}(?:h\d{0,2}|:\d{2}))\s+as\s+(\d{1,2}\s*(?:h|:\d{2}|horas?\b))/g, '$1 às $2');
   s = s.replace(/\b(das?)\s+(\d{1,2}(?:\s*(?:h\d{0,2}|:\d{2}|horas?))?)\s+as\s+(\d)/gi, '$1 $2 às $3');
+  // "jornada de 05h00 às 20h00" → "das 05h00 às 20h00"
+  s = s.replace(/\bde (\d{1,2}(?:h\d{0,2}|:\d{2}))\s+às\s+(\d)/g, 'das $1 às $2');
+  // "quinta a noite", "volta a tarde" → "à noite", "à tarde"
+  s = s.replace(/\b(segunda|terça|terca|quarta|quinta|sexta|sábado|sabado|domingo|feira|volta|voltava|retorna|retornava|chega|chegava|sai|saía|saia|até|ate)\s+a\s+(noite|tarde|tardinha)\b/gi, '$1 à $2');
+  // prefixo "pré-" com hífen digitado sem acento ("pre-mistura" → "pré-mistura"); "UFs" no texto corrido vira "estados"
+  s = s.replace(/\b([Pp])re-(?=[a-zà-ú])/g, (m, p) => `${p === 'P' ? 'P' : 'p'}ré-`);
+  s = s.replace(/\bUFs não informadas\b/g, 'estados não informados');
   // concordância comum em ditado: "além dos anterior" → "além dos anteriores"
   s = s.replace(/\b(dos|das) anterior\b/gi, (m, d) => `${d} anterior${d.toLowerCase() === 'das' ? 'es' : 'es'}`);
   return s;

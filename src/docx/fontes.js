@@ -3,8 +3,12 @@
 // incluído ou não conforme a escolha do caso (ou o padrão em Meus dados).
 // Situação dos temas conferida em novembro de 2026 – temas pendentes saem marcados para conferência.
 
+// com agentes avaliados cadastrados, o contexto sai deles e das medições (o texto livre dos agentes alegados
+// cita agentes descartados, como "ruído a avaliar", e puxaria temas que não se aplicam)
 const tem = (dados, re) => dados.medicoes.some((m) => re.test(m.data.agente || ''))
-  || re.test(`${dados.c.agentesAlegados || ''} ${dados.periodos.map((p) => p.data.agentes || '').join(' ')}`);
+  || ((dados.agentes || []).length
+    ? dados.agentes.some((a) => re.test(`${a.data.nome || ''} ${a.data.tipo === 'Biológico' ? 'biológico' : ''}`) && [a.data.resAte97, a.data.resDesde97].includes('Caracteriza'))
+    : re.test(`${dados.c.agentesAlegados || ''} ${dados.periodos.map((p) => p.data.agentes || '').join(' ')}`));
 
 export function comJurisprudencia(dados) {
   const caso = dados.c.jurisprudencia || '';
@@ -42,6 +46,7 @@ const PREV = [
   { q: (x) => x.tratorista, t: '**TNU, Súmula 70:** a atividade de tratorista pode ser equiparada à de motorista de caminhão para fins de reconhecimento de atividade especial mediante enquadramento por categoria profissional (períodos até 28/04/1995).' },
   { q: (x) => x.calor, t: '**TNU, Tema 323 (PEDILEF 0510577-41.2020.4.05.8200/PB; embargos rejeitados em 11/03/2026):** calor – de 06/03/1997 a 18/11/2003, a taxa metabólica é dispensável no trabalho intermitente com descanso no próprio local e atividades da mesma categoria, e indispensável (média ponderada) nos demais casos; a partir de 01/01/2004 (facultativamente desde 19/11/2003), a NHO-06 é obrigatória, com a taxa metabólica no PPP ou no LTCAT.' },
   { q: (x) => x.calor, t: '**TNU, PEDILEF 0506002-13.2018.4.05.8312:** até a Portaria SEPRT nº 1.359/2019, admite-se o tempo especial por calor de fonte natural, se habitual e permanente e superados os limites do Anexo 3 da NR-15, com o IBUTG calculado para ambiente externo com carga solar.' },
+  { q: (x) => x.biologico, t: '**TNU, Tema 211:** para a aplicação do art. 57, § 3º, da Lei nº 8.213/1991 a agentes biológicos, exige-se a probabilidade da exposição ocupacional, avaliando-se, de acordo com a profissiografia, o seu caráter indissociável da produção do bem ou da prestação do serviço, independentemente de tempo mínimo de exposição durante a jornada.' },
   { q: () => true, t: '**TNU, Súmula 68:** o laudo pericial não contemporâneo ao período trabalhado é apto à comprovação da atividade especial do segurado.' },
   { q: (x) => x.paradigmas, t: '**TNU, PEDILEF 0001323-30.2010.4.03.6318 (julgado em 22/06/2017):** é possível a perícia indireta (por similaridade) se a empresa de origem estiver inativa, sem representante legal e sem laudos técnicos ou formulários, ou se tiver alterado substancialmente as condições do ambiente de trabalho da época do vínculo e não for mais possível elaborar laudo técnico, observados: (I) a similaridade, na mesma época, entre a empresa paradigma e a de origem; (II) as condições insalubres existentes; (III) os agentes a que o segurado foi submetido; e (IV) a habitualidade e permanência dessas condições.' },
   { q: (x, tipo) => tipo !== 'laudo', t: '**STJ, Tema 1291 (julgado em 10/09/2025):** é possível o reconhecimento de atividade especial do contribuinte individual não cooperado após a Lei nº 9.032/1995, mediante a comprovação da exposição a agentes nocivos; não se aplica a esses segurados a exigência de formulário emitido por empresa.' },

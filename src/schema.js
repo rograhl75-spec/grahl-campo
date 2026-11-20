@@ -164,6 +164,7 @@ export const CAMPOS_PERFIL = [
   ['crea', 'Registro principal', 'text'],
   ['vistoCrea', 'Visto', 'text'],
   ['cpf', 'CPF (sai na petição de indicação)', 'text'],
+  ['nit', 'NIT (sai no PPP, campo 16 – responsável pelos registros ambientais)', 'text'],
   ['rg', 'RG', 'text'],
   ['endereco', 'Endereço profissional', 'text'],
   ['telefone', 'Telefone', 'text'],
@@ -270,6 +271,7 @@ export const CAMPOS_PERIODO = [
   ['categoriaSegurado', 'Categoria do segurado no período', 'select', CATEGORIAS_SEGURADO],
   ['local', 'Local de trabalho no período (endereço / cidade)', 'text'],
   ['cbo', 'CBO (para o PPP)', 'text'],
+  ['profissiografia', 'Profissiografia para o PPP (descrição das atividades; em branco = "Atividades")', 'area'],
   ['afastamentos', 'Afastamentos por benefício (um por linha: "13/11/2025 a 11/01/2026 – B31")', 'area'],
 ];
 

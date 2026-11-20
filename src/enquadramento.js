@@ -13,15 +13,15 @@ const SAUDE = [
   { re: /\bm[eé]dic[oa]\b/i, t: 'Categoria profissional de médico – enquadramento por presunção' },
   { re: /enfermeir|enfermagem/i, t: 'Categoria profissional de enfermagem – enquadramento por presunção' },
 ];
-export const COD_CAT_SAUDE = '2.1.3 (Dec. 53.831/64) / 2.1.3 do Anexo II (Dec. 83.080/79)';
+export const COD_CAT_SAUDE = '2.1.3 do Dec. 53.831/64 e do Anexo II do Dec. 83.080/79';
 export function categoriaSaude(funcao) {
   const f = SAUDE.find((x) => x.re.test(funcao || ''));
   return f ? { t: f.t, cod: COD_CAT_SAUDE, sup: true, categoria: true } : null;
 }
 
 // Biológico: códigos por época quando o cadastro deixou em branco
-export const BIO_ATE97 = '1.3.2 (Dec. 53.831/64) / 1.3.4 (Dec. 83.080/79)';
-export const BIO_DESDE97 = '3.0.1, a (Anexo IV dos Dec. 2.172/97 e 3.048/99)';
+export const BIO_ATE97 = '1.3.2 do Dec. 53.831/64 e 1.3.4 do Anexo I do Dec. 83.080/79';
+export const BIO_DESDE97 = '3.0.1, a, do Anexo IV dos Dec. 2.172/97 e 3.048/99';
 export function codigosDoAgente(a) {
   const x = a.data || a;
   const bio = x.tipo === 'Biológico';

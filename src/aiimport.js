@@ -113,10 +113,10 @@ Responda SOMENTE com um bloco JSON válido, sem texto antes ou depois, neste for
     "observacoes": ""
   },
   "acidente": {"acidenteData": "só em caso de acidente do trabalho", "acidenteHora": "", "acidenteLocal": "", "acidenteAtividade": "", "acidenteMaquina": "", "acidenteRelato": "versão do acidentado", "acidenteRelatoEmpresa": "versão da empresa e das testemunhas", "acidenteLesao": "", "acidenteCat": "", "acidenteAlteracoes": ""},
-  "periodos": [{"empresa": "", "cnpj": "", "inicio": "", "fim": "", "cargo": "", "setor": "", "atividades": "", "agentes": "", "fonte": "", "categoriaSegurado": "Empregado | Contribuinte individual | Cooperado (cooperativa de trabalho) | Avulso", "local": "endereço/cidade do local de trabalho no período", "cbo": "", "afastamentos": "um por linha: dd/mm/aaaa a dd/mm/aaaa – B31 ou B91", "tipoTransporte": "só motorista/cobrador", "jornadaSemanal": "", "noturnoPernoite": "", "cargaDescarga": "", "vias": "", "riscoAcidente": "", "cabine": "", "pausas": "", "pressao": "", "fisiologicas": "acesso a sanitários, alimentação e descanso", "veiculoTipo": "", "veiculoMarca": "", "veiculoModelo": "", "veiculoAno": "", "grupoVeiculo": "só motorista – um dos grupos da instrução", "carroceria": "", "tipoCarga": "", "carregaDescarrega": "Não | Carregava | Descarregava | Carregava e descarregava", "conducaoH": "horas de direção por dia (número)", "conducaoBase": "de onde veio a informação", "abastecimento": "", "acidenteVinculo": "Não, ou descrição", "assaltoVinculo": "Não, ou descrição"}],
+  "periodos": [{"empresa": "", "cnpj": "", "inicio": "", "fim": "", "cargo": "", "setor": "", "atividades": "", "agentes": "", "fonte": "", "categoriaSegurado": "Empregado | Contribuinte individual | Cooperado (cooperativa de trabalho) | Avulso", "local": "endereço/cidade do local de trabalho no período", "cbo": "", "profissiografia": "descrição das atividades para o PPP, sem anotações de trabalho", "afastamentos": "um por linha: dd/mm/aaaa a dd/mm/aaaa – B31 ou B91", "tipoTransporte": "só motorista/cobrador", "jornadaSemanal": "", "noturnoPernoite": "", "cargaDescarga": "", "vias": "", "riscoAcidente": "", "cabine": "", "pausas": "", "pressao": "", "fisiologicas": "acesso a sanitários, alimentação e descanso", "veiculoTipo": "", "veiculoMarca": "", "veiculoModelo": "", "veiculoAno": "", "grupoVeiculo": "só motorista – um dos grupos da instrução", "carroceria": "", "tipoCarga": "", "carregaDescarrega": "Não | Carregava | Descarregava | Carregava e descarregava", "conducaoH": "horas de direção por dia (número)", "conducaoBase": "de onde veio a informação", "abastecimento": "", "acidenteVinculo": "Não, ou descrição", "assaltoVinculo": "Não, ou descrição"}],
   "agentesAvaliados": [{"nome": "agente avaliado sem medição (biológico, químico ou físico)", "tipo": "Biológico | Químico | Físico", "vinculos": "V1, V2… pela ordem cronológica dos períodos; vazio = todos", "fonte": "fonte geradora / atividade com exposição", "codAte97": "código do Dec. 53.831/64 e do Dec. 83.080/79", "resAte97": "Caracteriza | Não caracteriza | Não enquadrável | A confirmar", "codDesde97": "código do Anexo IV", "resDesde97": "Caracteriza | Não caracteriza | Não enquadrável | A confirmar", "intensidade": "", "tecnica": "Qualitativa ou a norma da medição", "epcEficaz": "Sim | Não | Não se aplica", "epiEficaz": "Sim | Não | Não se aplica", "ca": "", "fundamentacao": "texto técnico do item 5 do LTCAT"}],
   "fotos": [{"numero": "nº da foto na ordem do app (1, 2, 3…), só para fotos já anexadas ao caso", "legenda": "o que a foto mostra, em uma frase"}],
-  "ppp": {"pppEmitente": "Empresa (empregador) | Cooperativa de trabalho | Próprio segurado (contribuinte individual)", "pppEmitenteNome": "", "pppEmitenteCnpj": "", "pppCnae": "", "pppEndereco": "", "pppNit": "", "pppSexo": "Masculino | Feminino", "pppRepresentante": "", "pppRepresentanteNit": "", "pppObs": ""},
+  "ppp": {"pppEmitente": "Empresa (empregador) | Cooperativa de trabalho | Próprio segurado (contribuinte individual)", "pppEmitenteNome": "", "pppEmitenteCnpj": "", "pppCnae": "", "pppEndereco": "", "pppNit": "", "pppSexo": "Masculino | Feminino", "pppRepresentante": "", "pppRepresentanteNit": "", "pppObs": "", "art": "nº da ART"},
   "documentos": [{"tipo": "PPP | LTCAT | PGR / PPRA | Laudo pericial | Ficha de EPI | CTPS / CNIS | Outro", "identificacao": "", "analise": ""}],
   "epis": [{"descricao": "", "ca": "", "dataEntrega": "", "obs": ""}],
   "quesitos": [{"origem": "Juízo | Autor / Reclamante | Réu / Reclamada | INSS | Complementares", "numero": "1", "texto": "", "resposta": "resposta dada no laudo, se já houver"}],
@@ -256,7 +256,7 @@ const CAMPOS_CASO = {
   partes: ['autorNome', 'autorCpf', 'autorNascimento', 'reuNome', 'reuCnpj'],
   sintese: ['funcoes', 'atividadesAlegadas', 'agentesAlegados', 'pedidos', 'defesa', 'preliminares', 'analiseEpi', 'roteiro', 'observacoes'],
   acidente: CAMPOS_ACIDENTE.map(([k]) => k),
-  ppp: CAMPOS_PPP.map(([k]) => k),
+  ppp: [...CAMPOS_PPP.map(([k]) => k), 'art'],
 };
 
 export function lerJsonIA(texto) {
@@ -307,7 +307,7 @@ export function lerJsonIA(texto) {
   const limparPeriodo = (p) => Object.fromEntries(Object.entries(p).map(([k, val]) => [k, typeof val === 'string' && !['inicio', 'fim', 'cnpj'].includes(k) ? limpar(val) : val]));
   return {
     caso,
-    periodos: lista(obj.periodos).map((x) => limparPeriodo({ empresa: s(x.empresa), cnpj: s(x.cnpj), inicio: dataIso(s(x.inicio)) || s(x.inicio), fim: dataIso(s(x.fim)) || s(x.fim), cargo: s(x.cargo), setor: s(x.setor), atividades: s(x.atividades), agentes: s(x.agentes), fonte: s(x.fonte), categoriaSegurado: categoriaOk(x.categoriaSegurado), local: s(x.local), cbo: s(x.cbo), afastamentos: s(x.afastamentos),
+    periodos: lista(obj.periodos).map((x) => limparPeriodo({ empresa: s(x.empresa), cnpj: s(x.cnpj), inicio: dataIso(s(x.inicio)) || s(x.inicio), fim: dataIso(s(x.fim)) || s(x.fim), cargo: s(x.cargo), setor: s(x.setor), atividades: s(x.atividades), agentes: s(x.agentes), fonte: s(x.fonte), categoriaSegurado: categoriaOk(x.categoriaSegurado), local: s(x.local), cbo: s(x.cbo), profissiografia: s(x.profissiografia), afastamentos: s(x.afastamentos),
       ...Object.fromEntries(['tipoTransporte', 'jornadaSemanal', 'noturnoPernoite', 'cargaDescarga', 'vias', 'riscoAcidente', 'cabine', 'pausas', 'pressao', 'fisiologicas', 'grupoVeiculo', 'veiculoTipo', 'veiculoMarca', 'veiculoModelo', 'veiculoAno', 'conducaoH', 'conducaoBase', 'carroceria', 'tipoCarga', 'carregaDescarrega', 'abastecimento', 'acidenteVinculo', 'assaltoVinculo'].map((k) => [k, s(x[k])]).filter(([, val]) => val)) })),
     documentos: lista(obj.documentos).map((x) => ({ tipo: s(x.tipo), identificacao: s(x.identificacao), analise: s(x.analise) })),
     // legendas das fotos já anexadas ao caso, pelo número (ordem das fotos no app)
@@ -416,6 +416,11 @@ export async function aplicarIA(caseId, dados, { substituir = false, criarPeriod
         posto = await createRecord('posto', caseId, { ...p, ordem });
         porNome.set(normTxt(p.nome), posto);
         cont.postos += 1;
+      } else {
+        // posto já existente: completa o vazio ou, com "substituir", corrige o texto
+        const novos = Object.fromEntries(Object.entries(p).filter(([k, val]) => k !== 'nome' && String(val ?? '').trim()
+          && (substituir ? String(val).trim() !== String(posto.data[k] ?? '').trim() : !String(posto.data[k] ?? '').trim())));
+        if (Object.keys(novos).length) { await updateFields(posto.id, novos); cont.postos += 1; }
       }
       const meds = (await caseChildren(caseId, 'medicao')).filter((m) => m.data.postoId === posto.id);
       const chaveM = (m) => JSON.stringify([m.agente, m.lavg, m.aren, m.tbn, m.valor, m.dataMedicao].map((v) => String(v || '')));

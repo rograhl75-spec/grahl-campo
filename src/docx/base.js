@@ -866,7 +866,7 @@ export function fluxoAvaliacao(d, dados, tipo) {
 
 export function quadroFormaEnquadramento(d, dados) {
   // sem ruído ou vibração no caso (medição, paradigma ou motorista), os marcos não falam em dB(A)
-  const ruido = !dados?.agentes?.length || dados.medicoes?.some((m) => /Ru[ií]do|Vibra/.test(m.data.agente || ''))
+  const ruido = dados.medicoes?.some((m) => /Ru[ií]do|Vibra/.test(m.data.agente || ''))
     || dados.periodos?.some((r) => r.data.paradigmaRuido || r.data.paradigmaVibracao || /motorista|caminh|ônibus|cobrador|tratorist/i.test(`${r.data.cargo || ''}`));
   if (dados?.periodos?.length) linhaDoTempo(d, dados.periodos, { ruido });
   return d.quadro('Forma de enquadramento, prova e medidas de controle', [['Período', 'Enquadramento', 'Documentos', 'Permanência', 'EPC / EPI'],

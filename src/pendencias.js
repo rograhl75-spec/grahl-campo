@@ -111,6 +111,16 @@ export async function pendenciasDoCaso(caseId) {
       itens.push({ id: 'pppEmitente', grupo: g, rec: caseId, campo: 'pppEmitente', tipo: 'escolha', valor: '', opcoes: EMITENTE_PPP.map((x) => ({ valor: x, rotulo: x })),
         titulo: 'Quem emite o PPP', explicacao: 'Cooperativa: o PPP sai só com os vínculos de cooperado. Próprio segurado: contribuinte individual sem empresa.' });
     }
+    const txt = (id, rec, campo, titulo, explicacao) => itens.push({ id, grupo: g, rec, campo, tipo: 'texto', valor: '', titulo, explicacao });
+    if (!String(c.art || '').trim()) txt('art', caseId, 'art', 'Nº da ART', 'Sai na capa, no item 1.4 e na assinatura do LTCAT.');
+    if (!String(c.pppNit || '').trim()) txt('pppNit', caseId, 'pppNit', 'NIT do segurado', 'Campo 6 do PPP.');
+    if (!String(c.pppSexo || '').trim()) {
+      itens.push({ id: 'pppSexo', grupo: g, rec: caseId, campo: 'pppSexo', tipo: 'escolha', valor: '', opcoes: [{ valor: 'Masculino', rotulo: 'Masculino' }, { valor: 'Feminino', rotulo: 'Feminino' }],
+        titulo: 'Sexo do segurado', explicacao: 'Campo 8 do PPP.' });
+    }
+    dados.periodos.forEach((r, i) => {
+      if (!String(r.data.cbo || '').trim()) txt(`cbo-${r.id}`, r.id, 'cbo', `CBO – ${nomeVinculo(r, i)}`, 'Campo 13 do PPP (ex.: 2232-08 – cirurgião-dentista clínico geral).');
+    });
     dados.periodos.forEach((r, i) => {
       if (String(r.data.categoriaSegurado || '').trim()) return;
       itens.push({ id: `cat-${r.id}`, grupo: g, rec: r.id, campo: 'categoriaSegurado', tipo: 'escolha', valor: '', opcoes: CATEGORIAS_SEGURADO.map((x) => ({ valor: x, rotulo: x })),

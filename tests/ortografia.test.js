@@ -37,7 +37,7 @@ describe('revisão do texto digitado', () => {
 describe('crase e notas de trabalho', () => {
   it('crase só entre horários; notas "confirmar com o segurado" saem', async () => {
     const { acentuar, revisarCampo } = await import('../src/ortografia.js');
-    expect(acentuar('jornada de 05h00 as 20h00 menos as 5 h de carga')).toBe('jornada de 05h00 às 20h00 menos as 5 h de carga');
+    expect(acentuar('jornada de 05h00 as 20h00 menos as 5 h de carga')).toBe('jornada das 05h00 às 20h00 menos as 5 h de carga');
     expect(acentuar('das 5 as 18 horas')).toBe('das 5 às 18 horas');
     expect(revisarCampo('conducaoBase', 'jornada de 15 h menos 5 h de carga. Confirmar com o segurado.')).toBe('jornada de 15 h menos 5 h de carga.');
   });
@@ -55,5 +55,25 @@ describe('idioma no Word', () => {
     const x = rich('ACGIH. {{en:TLVs and BEIs: threshold limit values}}. Cincinnati: ACGIH, edição vigente.');
     expect(x).toMatch(/w:val="en-US"\/><\/w:rPr><w:t xml:space="preserve">TLVs and BEIs: threshold limit values</);
     expect(x).toContain('w:val="pt-BR"');
+  });
+});
+
+describe('gramática apontada pelo Word', () => {
+  it('"das HH às HH", "à noite", "pré-", estados e termos jurídicos', async () => {
+    const { acentuar } = await import('../src/ortografia.js');
+    expect(acentuar('jornada de 05h00 às 20h00')).toBe('jornada das 05h00 às 20h00');
+    expect(acentuar('jornada de 05h00 as 20h00')).toBe('jornada das 05h00 às 20h00');
+    expect(acentuar('sai na segunda e volta quinta a noite')).toBe('sai na segunda e volta quinta à noite');
+    expect(acentuar('pre-mistura; presente')).toBe('pré-mistura; presente');
+    expect(acentuar('Grandes Rios (UFs não informadas)')).toBe('Grandes Rios (estados não informados)');
+    expect(acentuar('a noite toda')).toBe('a noite toda');
+  });
+});
+
+describe('mais apontamentos do Word', () => {
+  it('data com mês ilegível e ar-condicionado', async () => {
+    const { acentuar } = await import('../src/ortografia.js');
+    expect(acentuar("saída em '06/[mês ilegível]/2019'; CTPS")).toBe('saída em dia 06 de mês ilegível de 2019; CTPS');
+    expect(acentuar('cabine com ar condicionado')).toBe('cabine com ar-condicionado');
   });
 });

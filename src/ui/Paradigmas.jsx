@@ -565,6 +565,30 @@ function LaudosEmLote() {
   const [itens, setItens] = useState([]); // { file, r, marcados: Set, erro }
   const [estado, setEstado] = useState('');
   const porId = new Map(lista.map((p) => [p.id, p]));
+  // grava um arquivo e o liga aos paradigmas (laudo: um por paradigma; relatórios: somam-se); devolve quantos ligou
+  const ligarArquivo = async (file, r, ids) => {
+    const cods = ids.map((id) => porId.get(id)?.data.codigo).filter(Boolean).join(', ');
+    const id = await guardarAnexo(file, `${r.tipo === 'laudo' ? 'Laudo de origem' : 'Relatórios de medição'} – paradigmas ${cods}`);
+    for (const pid of ids) {
+      if (r.tipo === 'laudo') await updateFields(pid, { anexoId: id, paginasRelatorios: r.paginas || '' });
+      else {
+        // relatórios: o 1º arquivo é o principal; os seguintes vão para a lista de extras (ruído, VCI, VMB…)
+        const d = (await db.records.get(pid))?.data || {};
+        if (!d.relatoriosAnexoId) await updateFields(pid, { relatoriosAnexoId: id, relatoriosNome: file.name });
+        else await updateFields(pid, { relatoriosExtras: [...String(d.relatoriosExtras || '').split(/[\s,;]+/).filter(Boolean), id].join(' '), relatoriosNomesExtras: [d.relatoriosNomesExtras, file.name].filter(Boolean).join(' | ') });
+      }
+    }
+    return ids.length;
+  };
+  // situação atual no banco (não a da lista em tela): o arquivo anterior do mesmo lote já conta
+  const livres = async (r, nome) => {
+    const out = [];
+    for (const id of r.ids) {
+      const d = (await db.records.get(id))?.data || {};
+      if (r.tipo === 'laudo' ? !d.anexoId : !jaLigado(d, nome)) out.push(id);
+    }
+    return out;
+  };
   const ler = async (e) => {
     const files = [...e.currentTarget.files];
     e.currentTarget.value = '';
@@ -572,18 +596,28 @@ function LaudosEmLote() {
     const { textosDoPdf } = await import('../apendices.js');
     const { casarArquivo } = await import('../laudosLote.js');
     const out = [];
+    let arq = 0, n = 0, pulados = 0;
     for (const [i, f] of files.entries()) {
-      setEstado(`Lendo ${i + 1} de ${files.length}: ${f.name}`);
       try {
+        // código no nome do arquivo: liga na hora, sem ler o PDF (as páginas do laudo são achadas ao gerar o documento)
+        const r0 = casarArquivo({ nome: f.name, textos: [] }, lista);
+        if (r0.certo && r0.como.startsWith('código')) {
+          setEstado(`Ligando ${i + 1} de ${files.length}: ${f.name}`);
+          const ids = await livres(r0, f.name);
+          if (ids.length) { n += await ligarArquivo(f, r0, ids); arq++; } else pulados++;
+          continue;
+        }
+        setEstado(`Lendo ${i + 1} de ${files.length}: ${f.name}`);
         const textos = /pdf/i.test(f.type || f.name) ? await textosDoPdf(f) : [];
         const r = casarArquivo({ nome: f.name, textos }, lista);
-        // já ligado a outro laudo: fica desmarcado (o perito decide se troca)
-        // laudo: um por paradigma (o que já tem fica desmarcado); relatórios: vários arquivos somam-se ao paradigma
-        const marcados = new Set(r.ids.filter((id) => { const d = porId.get(id)?.data || {}; return r.certo && (r.tipo === 'laudo' ? !d.anexoId : !jaLigado(d, f.name)); }));
+        const marcados = new Set(r.certo ? await livres(r, f.name) : []);
         out.push({ file: f, r, marcados, semTexto: textos.join('').trim().length < 200 });
       } catch (err) { out.push({ file: f, r: { ids: [] }, marcados: new Set(), erro: err.message }); }
     }
-    setItens(out); setEstado('');
+    if (arq || pulados) avisarAlteracao();
+    setItens(out);
+    setEstado([arq && `✓ ${arq} arquivo(s) com o código no nome ligado(s) a ${n} paradigma(s).`, pulados && `${pulados} já estavam ligados (pulados).`,
+      out.length && `Confira abaixo os ${out.length} arquivo(s) sem código no nome e toque em "Ligar".`].filter(Boolean).join(' ') || 'Nenhum arquivo novo.');
   };
   const alternar = (i, id) => setItens(itens.map((x, k) => {
     if (k !== i) return x;
@@ -595,19 +629,8 @@ function LaudosEmLote() {
     for (const x of itens) {
       if (!x.marcados.size) continue;
       setEstado(`Guardando ${x.file.name}…`);
-      const cods = [...x.marcados].map((id) => porId.get(id)?.data.codigo).filter(Boolean).join(', ');
-      const id = await guardarAnexo(x.file, `${x.r.tipo === 'laudo' ? 'Laudo de origem' : 'Relatórios de medição'} – paradigmas ${cods}`);
+      n += await ligarArquivo(x.file, x.r, [...x.marcados]);
       arq++;
-      for (const pid of x.marcados) {
-        if (x.r.tipo === 'laudo') await updateFields(pid, { anexoId: id, paginasRelatorios: x.r.paginas || '' });
-        else {
-          // relatórios: o 1º arquivo é o principal; os seguintes vão para a lista de extras (ruído, VCI, VMB…)
-          const d = (await db.records.get(pid))?.data || {};
-          if (!d.relatoriosAnexoId) await updateFields(pid, { relatoriosAnexoId: id, relatoriosNome: x.file.name });
-          else await updateFields(pid, { relatoriosExtras: [...String(d.relatoriosExtras || '').split(/[\s,;]+/).filter(Boolean), id].join(' '), relatoriosNomesExtras: [d.relatoriosNomesExtras, x.file.name].filter(Boolean).join(' | ') });
-        }
-        n++;
-      }
     }
     avisarAlteracao();
     setItens([]); setEstado(`✓ ${arq} arquivo(s) guardado(s) e ligado(s) a ${n} paradigma(s). Os relatórios saem como apêndice nos documentos que usam esses paradigmas.`);
@@ -617,7 +640,7 @@ function LaudosEmLote() {
   return (
     <section class="bloco largo">
       <h3>Anexar laudos de origem em lote</h3>
-      <p>Selecione de uma vez os PDFs dos laudos (e dos relatórios avulsos). O app liga cada arquivo ao paradigma pelo código no nome do arquivo (ex.: <code>M07_M61 - Laudo.pdf</code>), pelo número do processo no cabeçalho do laudo ou pela data da medição com o modelo do veículo, e acha as páginas dos relatórios do medidor.</p>
+      <p>Selecione de uma vez todos os PDFs (pode ser a pasta inteira). Arquivos com o código no nome (ex.: <code>M07_M61 - Laudo.pdf</code>) são ligados na hora, sem leitura, e o que já estiver ligado é pulado; as páginas dos relatórios dentro do laudo são achadas ao gerar o documento. Os demais o app liga pelo número do processo no cabeçalho do laudo ou pela data da medição com o modelo do veículo, para você conferir.</p>
       <p class="dica">{semLaudo.length ? `Sem laudo nem relatórios anexados: ${semLaudo.join(', ')}.` : 'Todos os paradigmas têm laudo ou relatórios anexados.'}</p>
       <label class="botao-arquivo">Escolher PDFs<input type="file" accept="application/pdf" multiple hidden onChange={ler} /></label>
       {estado && <p class={estado.startsWith('✓') ? 'ok-msg' : 'dica'}>{estado}</p>}

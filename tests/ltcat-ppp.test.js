@@ -109,3 +109,11 @@ describe('PPP emitido pelo próprio segurado e legendas das fotos', () => {
     expect((await db.records.get('d2f2')).data.legenda).toBe('já tinha');
   });
 });
+
+describe('CRQ no perfil', () => {
+  it('registros do CRQ-IV e CRQ-IX', async () => {
+    const { registrosCrq } = await import('../src/docx/base.js');
+    expect(registrosCrq({ crqSp: '04123456', crqPr: 'CRQ nº 09200001' })).toBe('CRQ-IV nº 04123456 – CRQ-IX nº 09200001');
+    expect(registrosCrq({})).toBe('');
+  });
+});

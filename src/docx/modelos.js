@@ -6,7 +6,7 @@
 import { ORIGEM_QUESITO, ehSuplementar, FORMAS_PAGAMENTO, localVistoria, ehAcidente, datasDasVistorias, variasVistorias, vistoriasDoCaso } from '../schema.js';
 import {
   Doc, carregar, finalizar, dataBR, menosCincoAnos, ou, partes, papelAssinatura, enderecamentoTexto, linhasProcesso,
-  qualificacaoCurta, qualificacaoCompleta, blocoAssinatura, credencial, equipamentosUsados, quadroEquipamentos, quadroDiligencia,
+  qualificacaoCurta, qualificacaoCompleta, blocoAssinatura, credencial, registrosCrq, equipamentosUsados, quadroEquipamentos, quadroDiligencia,
   quadroPeriodos, quadroEpis, quadroDocumentos, quadroCriteriosRuido, quadroConfrontoRuido, quadroMedicoesRuido,
   quadroMedicoesGenerico, medicoesPorAgente, nomePostoFn, profissiografia, figurasDoCaso, respostasQuesitos, capaTecnica,
   quadroCriteriosCalor, quadroCriteriosVibracao, documentosARequerer, quadrosParadigmasMetodologia, memoriasParadigmas, usaParadigmas, fluxoAvaliacao,
@@ -493,7 +493,7 @@ export async function ltcatPpp(caseId) {
   d.h2('1.3', 'Períodos avaliados');
   quadroVinculosLtcat(d, dados);
   d.h2('1.4', 'Responsável técnico');
-  d.identificacao([['Nome', perfil.nome], ['Formação', perfil.titulos], ['Registro', credencial(perfil)], ['ART', art]]);
+  d.identificacao([['Nome', perfil.nome], ['Formação', perfil.titulos], ['Registro', [credencial(perfil), registrosCrq(perfil)].filter(Boolean).join(' – ')], ['NIT', perfil.nit], ['ART', art]]);
 
   d.h1('2', 'Condições da avaliação');
   d.h2('2.1', 'Objeto e natureza');

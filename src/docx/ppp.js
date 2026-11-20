@@ -40,6 +40,7 @@ export async function ppp(caseId, dadosProntos) {
   const emit = emitenteDoPpp(dados);
   const { dentro, fora } = vinculosDoPpp(dados);
   const av = avaliarPeriodos(dados);
+  const proprio = /Pr[oó]prio/.test(c.pppEmitente || '');
 
   d.add(p([run('PERFIL PROFISSIOGRÁFICO PREVIDENCIÁRIO – PPP', { b: true, size: 14, color: '1B365D', tit: true })], { align: 'center', after: 60 }));
   d.add(p([run('Art. 58, § 4º, da Lei nº 8.213/1991 – emitido com base no LTCAT do signatário dos registros ambientais', { size: 10, color: '475569' })], { align: 'center', after: 240 }));
@@ -69,7 +70,7 @@ export async function ppp(caseId, dadosProntos) {
     return '04 (25 anos)';
   };
   d.quadro('13 – Lotação e atribuição', [['Período', 'CNPJ / CAEPF', 'Setor', 'Cargo', 'Função', 'CBO', 'Cód. GFIP'],
-    ...dentro.map(({ r, idx }) => [`${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`, v(r.data.cnpj) || emit.doc || '—',
+    ...dentro.map(({ r, idx }) => [`${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`, (proprio ? emit.doc : v(r.data.cnpj) || emit.doc) || '—',
       v(r.data.setor) || '—', v(r.data.cargo) || '[[cargo]]', v(r.data.cargo) || '—', v(r.data.cbo) || '[[CBO]]', gfip(idx)])],
   { larguras: [0.16, 0.16, 0.16, 0.15, 0.15, 0.09, 0.13], tam: 8, alinhar: 'left', semNumero: true, fonte: 'Registros administrativos do emitente e LTCAT do signatário. Código GFIP 04: exposição a agente nocivo com aposentadoria especial aos 25 anos.' });
   d.quadro('14 – Profissiografia', [['Período', 'Descrição das atividades'],

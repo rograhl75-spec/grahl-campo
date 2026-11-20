@@ -603,8 +603,9 @@ function textoCategoriaSegurado(d, dados) {
   const sem = lista((x) => !x.cat);
   const jur = comJurisprudencia(dados);
   if (emp) d.texto(`Nos períodos como empregado (${emp}), o PPP é emitido pelo empregador com base no LTCAT (art. 58, § 1º, da Lei nº 8.213/1991).`);
-  if (coop) d.texto(`Nos períodos como cooperado de cooperativa de trabalho (${coop}), as regras da aposentadoria especial aplicam-se ao cooperado filiado que trabalha sujeito a condições especiais (art. 1º da Lei nº 10.666/2003), e cabe à cooperativa emitir o PPP com base neste laudo.`);
-  if (ci) d.texto(`Nos períodos como contribuinte individual (${ci}), não há empresa obrigada a emitir o PPP; este LTCAT é o documento técnico que demonstra as condições de trabalho e a exposição a agentes nocivos nesses períodos${jur ? ', sem exigência de formulário emitido por empresa (STJ, Tema 1291)' : ''}.`);
+  const proprio = /Pr[oó]prio/.test(dados.c.pppEmitente || '');
+  if (coop) d.texto(`Nos períodos como cooperado de cooperativa de trabalho (${coop}), as regras da aposentadoria especial aplicam-se ao cooperado filiado que trabalha sujeito a condições especiais (art. 1º da Lei nº 10.666/2003)${proprio ? '. Como o segurado presta os serviços em consultório próprio, também a outros contratantes, e não exclusivamente pela cooperativa, o PPP é emitido em seu próprio nome, com base neste laudo, para todos os períodos' : ', e cabe à cooperativa emitir o PPP com base neste laudo'}.`);
+  if (ci) d.texto(`Nos períodos como contribuinte individual (${ci}), não há empresa obrigada a emitir o PPP${proprio ? ', que é emitido pelo próprio segurado' : ''}; este LTCAT é o documento técnico que demonstra as condições de trabalho e a exposição a agentes nocivos nesses períodos${jur ? ', sem exigência de formulário emitido por empresa (STJ, Tema 1291)' : ''}.`);
   if (sem) d.texto(`[[Informe a categoria do segurado nos vínculos ${sem} (etapa 2. Autos).]]`);
   if (dados.periodos.some((r) => !r.data.fim || r.data.fim > '2019-11-13')) d.texto('A partir de 14/11/2019, data de entrada em vigor da Emenda Constitucional nº 103/2019, o tempo especial não pode ser convertido em tempo comum (art. 25, § 2º); por isso, os subperíodos posteriores são indicados separadamente na síntese do item 6.');
   const afs = dados.periodos.flatMap((r) => lerAfastamentos(r.data.afastamentos));

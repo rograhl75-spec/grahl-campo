@@ -88,3 +88,24 @@ describe('LTCAT + PPP (dentista)', () => {
     expect(tp).not.toContain('Ácido fosfórico');
   });
 });
+
+describe('PPP emitido pelo próprio segurado e legendas das fotos', () => {
+  it('lotação com o CPF do segurado e todos os vínculos; legendas pelo número da foto', async () => {
+    await caso('d2', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'], autorNome: 'Segurado Dois', autorCpf: '000.000.000-00', pppEmitente: 'Próprio segurado (contribuinte individual)' });
+    await filho('d2v1', 'periodo', 'd2', { empresa: 'Consultório', inicio: '1990-01-01', fim: '1995-12-31', cargo: 'Cirurgião-dentista', categoriaSegurado: 'Contribuinte individual' });
+    await filho('d2v2', 'periodo', 'd2', { empresa: 'Cooperativa Fictícia', cnpj: '11.111.111/0001-11', inicio: '2003-04-01', fim: '2010-12-31', cargo: 'Cirurgião-dentista', categoriaSegurado: 'Cooperado (cooperativa de trabalho)' });
+    await filho('d2a', 'agenteAvaliado', 'd2', { nome: 'Biológico', tipo: 'Biológico', resAte97: 'Caracteriza', resDesde97: 'Caracteriza' });
+    const r = await ltcatPpp('d2');
+    const t = await texto(r); const tp = await texto(r.extras[0]);
+    expect(t).toContain('emitido em seu próprio nome');
+    expect(tp).toContain('01/01/1990 a 31/12/1995');
+    expect(tp).not.toContain('11.111.111/0001-11');
+    expect(tp).not.toContain('Não constam deste PPP');
+    const { aplicarIA } = await import('../src/aiimport.js');
+    await filho('d2f1', 'foto', 'd2', { ordem: 1 }); await filho('d2f2', 'foto', 'd2', { ordem: 2, legenda: 'já tinha' });
+    const res = await aplicarIA('d2', lerJsonIA(JSON.stringify({ fotos: [{ numero: 1, legenda: 'Sala clínica' }, { numero: 2, legenda: 'outra' }] })));
+    expect(res.fotos).toBe(1);
+    expect((await db.records.get('d2f1')).data.legenda).toBe('Sala clínica');
+    expect((await db.records.get('d2f2')).data.legenda).toBe('já tinha');
+  });
+});

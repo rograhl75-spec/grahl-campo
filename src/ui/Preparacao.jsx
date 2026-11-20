@@ -133,7 +133,7 @@ function ImportarIA({ rec, abertoInicial = false }) {
   const aplicar = async () => {
     const r = await aplicarIA(rec.id, previa, { substituir });
     avisarAlteracao();
-    setMsg(`Aplicado: ${r.campos} campo(s), ${r.periodos} período(s), ${r.documentos} documento(s), ${r.epis} EPI(s), ${r.agentesAvaliados ? `${r.agentesAvaliados} agente(s) avaliado(s), ` : ''}${r.quesitos} quesito(s)`
+    setMsg(`Aplicado: ${r.campos} campo(s), ${r.periodos} período(s), ${r.documentos} documento(s), ${r.epis} EPI(s), ${r.agentesAvaliados ? `${r.agentesAvaliados} agente(s) avaliado(s), ` : ''}${r.fotos ? `${r.fotos} legenda(s) de foto, ` : ''}${r.quesitos} quesito(s)`
       + (r.respostas ? `, ${r.respostas} resposta(s) do laudo` : '') + (r.postos || r.medicoes ? `, ${r.postos} posto(s) e ${r.medicoes} medição(ões) da diligência (veja em 4. Campo)` : '') + '.');
     setPrevia(null); setTexto('');
   };

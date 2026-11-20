@@ -374,9 +374,17 @@ export function citacaoDe(p) {
   return [proc && `Proc. ${proc}`, String(d.vara || '').replace(/\s*\(.*\)\s*$/, '').trim(), d.dataMedicao].filter(Boolean).join(' – ');
 }
 
+// texto do cadastro sem as anotações de trabalho: parênteses ("(pelas fotos…)", "(modelo n/i)", "(confirmar)") e "n/i"
+export function semNotas(t) {
+  let s = String(t ?? '');
+  for (let i = 0; i < 3; i++) s = s.replace(/\s*\([^()]*\)/g, '');
+  return s.replace(/\b(modelo\s+)?n\/i\b/gi, '').replace(/\s*[–-]\s*$/, '').replace(/\s{2,}/g, ' ').trim();
+}
 export function rotuloParadigma(p) {
   const d = p.data || p;
-  return [d.codigo, [d.marca, d.modelo].filter(Boolean).join(' '), d.ano && d.ano !== 'n/i' ? `(${d.ano})` : ''].filter(Boolean).join(' – ').replace(' – (', ' (');
+  const ano = /^\d{4}(\/\d{2,4})?$/.test(String(d.ano || '').trim()) ? `(${String(d.ano).trim()})` : '';
+  const nome = [semNotas(d.marca), semNotas(d.modelo)].filter(Boolean).join(' ') || semNotas(d.tipo);
+  return [d.codigo, nome, ano].filter(Boolean).join(' – ').replace(' – (', ' (');
 }
 
 // ---------- Instrução para o Claude extrair dados de laudos antigos ----------

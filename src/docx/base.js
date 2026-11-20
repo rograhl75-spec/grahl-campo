@@ -1,12 +1,13 @@
 import { db, caseChildren } from '../db.js';
 import { revisarCampo } from '../ortografia.js';
+import { empresaLimpa } from '../nomes.js';
 import { herdarDoAnterior } from '../heranca.js';
 import { resumoMedicao, calculados } from '../medicoes.js';
 import { nen, num, fmt, fatorQ, doseJornada, horasDia, fmtHoras } from '../calc.js';
 import { ORIGEM_QUESITO, contextoLegal, ehSuplementar , reuEhInss, localVistoria, vistoriasDoCaso, datasDasVistorias, variasVistorias } from '../schema.js';
 import { tempoConducao } from './penosidade.js';
 import { Doc, p, run, rich, montarDocx, ordinalDia1, FONTES_EMBUTIDAS, M, semRevisao } from './ooxml.js';
-import { nenParaJornada, certificadoVencido, rotuloParadigma, citacaoDe, num as numP, vibracaoDoParadigma } from '../paradigmas.js';
+import { nenParaJornada, certificadoVencido, rotuloParadigma, citacaoDe, num as numP, vibracaoDoParadigma, semNotas } from '../paradigmas.js';
 
 export const PERFIL_ID = 'perfil';
 
@@ -700,7 +701,7 @@ export { Doc, calculados };
 // ======================================================================
 
 const f2 = (x) => (isFinite(x) ? x.toFixed(2).replace('.', ',') : '—');
-const vinculoNome = (r, i) => `V${i + 1} – ${r.data.empresa || ''}`.trim();
+const vinculoNome = (r, i) => `V${i + 1} – ${empresaLimpa(r.data.empresa)}`.trim();
 const per = (r) => `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`;
 
 export function usaParadigmas(dados) {
@@ -731,7 +732,7 @@ export function quadrosParadigmasMetodologia(d, dados) {
   { larguras: [0.35, 0.65], fonte: 'Manual de Aposentadoria Especial do INSS (2017); NHO-09. T: tempo diário de condução (h); T laudo: jornada do laudo de origem (h).' });
   d.texto('Até 18/11/2003 o valor comparado ao limite é o Lavg, pois a legislação remetia integralmente ao Anexo 1 da NR-15; a partir de 19/11/2003, somente o NEN, normalizado para a jornada.');
   d.quadro('Tempo de condução adotado por vínculo', [['Vínculo', 'Período', 'T (h/dia)', 'Base da informação'],
-    ...dados.periodos.map((r, i) => [vinculoNome(r, i), per(r), isFinite(tempoConducao(r, dados).T) ? fmtHoras(tempoConducao(r, dados).T) : r.data.conducaoH ? `[[T: "${r.data.conducaoH}" – informe um número de horas]]` : '[[T]]', tempoConducao(r, dados).base || r.data.conducaoBase || '[[base da informação]]'])],
+    ...dados.periodos.map((r, i) => (r.data.fim && r.data.fim <= '1995-04-28' ? [vinculoNome(r, i), per(r), 'não se aplica', 'categoria profissional (até 28/04/1995): o tempo de condução não interfere no enquadramento'] : [vinculoNome(r, i), per(r), isFinite(tempoConducao(r, dados).T) ? fmtHoras(tempoConducao(r, dados).T) : r.data.conducaoH ? `[[T: "${r.data.conducaoH}" – informe um número de horas]]` : '[[T]]', tempoConducao(r, dados).base || r.data.conducaoBase || '[[base da informação]]']))],
   { larguras: [0.22, 0.2, 0.13, 0.45], alinhar: 'left' });
   const usados = [...new Set(dados.periodos.flatMap((r) => [r.data.paradigmaRuido, r.data.paradigmaVibracao]).filter(Boolean))].map((c) => P.get(c)).filter(Boolean);
   if (usados.length) {
@@ -739,9 +740,9 @@ export function quadrosParadigmasMetodologia(d, dados) {
       ...usados.map((p) => {
         const x = p.data;
         const partes = [];
-        if (x.ruidoEquip) partes.push(`${x.ruidoEquip}, SN ${x.ruidoSerie || '?'}, certificado ${x.ruidoCert || 'n/i'} (${x.ruidoCertData || '?'})${certificadoVencido(x.ruidoCertData, x.dataMedicao, dados.regraCertMeses) ? ` [[VERIFICAR: certificado com mais de ${dados.regraCertMeses} meses na data da medição]]` : ''}`);
-        if (x.calibEquip) partes.push(`${/^calibrador/i.test(x.calibEquip) ? '' : 'calibrador '}${x.calibEquip}, SN ${x.calibSerie || '?'}${x.calibCertData ? ` (${x.calibCertData})` : ''}`);
-        if (x.vibEquip) partes.push(`${x.vibEquip}, série ${x.vibSerie || '?'}${x.vibCertData ? ` (calibrado em ${x.vibCertData})` : ''}${certificadoVencido(x.vibCertData, x.dataMedicao, dados.regraCertMeses) ? ` [[VERIFICAR: certificado com mais de ${dados.regraCertMeses} meses]]` : ''}`);
+        if (x.ruidoEquip) partes.push(`${x.ruidoEquip}${x.ruidoSerie ? `, SN ${x.ruidoSerie}` : ''}${x.ruidoCert ? `, certificado ${x.ruidoCert}` : ''}${x.ruidoCertData ? ` (${x.ruidoCertData})` : ''}${certificadoVencido(x.ruidoCertData, x.dataMedicao, dados.regraCertMeses) ? ` [[VERIFICAR: certificado com mais de ${dados.regraCertMeses} meses na data da medição]]` : ''}`);
+        if (x.calibEquip) partes.push(`${/^calibrador/i.test(x.calibEquip) ? '' : 'calibrador '}${x.calibEquip}${x.calibSerie ? `, SN ${x.calibSerie}` : ''}${x.calibCertData ? ` (${x.calibCertData})` : ''}`);
+        if (x.vibEquip) partes.push(`${x.vibEquip}${x.vibSerie ? `, série ${x.vibSerie}` : ''}${x.vibCertData ? ` (calibrado em ${x.vibCertData})` : ''}${certificadoVencido(x.vibCertData, x.dataMedicao, dados.regraCertMeses) ? ` [[VERIFICAR: certificado com mais de ${dados.regraCertMeses} meses]]` : ''}`);
         return [rotuloParadigma(p), citacaoDe(p) || '', partes.join('; ') || '[[instrumentação]]'];
       })], { larguras: [0.22, 0.28, 0.5], tam: 8.5, alinhar: 'left', semRevisao: true, fonte: 'Relatórios de medição dos laudos de origem.' });
   }
@@ -775,7 +776,7 @@ export function memoriasParadigmas(d, dados, { numero = '' } = {}) {
       const nen = sp.janela.crit === 'NEN' && isFinite(T) ? nenParaJornada(lavg, T) : NaN;
       const valor = sp.janela.crit === 'Lavg' ? lavg : nen;
       const supera = isFinite(valor) ? (superaLimite(valor, sp.janela.lim) ? 'SIM' : 'NÃO') : '[[?]]';
-      linhasR.push([`V${i + 1} – ${dataBR(sp.ini)} a ${!r.data.fim && sp.fim === hojeLocal() ? "atual" : dataBR(sp.fim)}`, p ? `${p.data.marca} ${p.data.modelo}`.trim() : `[[${r.data.paradigmaRuido}?]]`,
+      linhasR.push([`V${i + 1} – ${dataBR(sp.ini)} a ${!r.data.fim && sp.fim === hojeLocal() ? "atual" : dataBR(sp.fim)}`, p ? [semNotas(p.data.marca), semNotas(p.data.modelo)].filter(Boolean).join(' ') : `[[${r.data.paradigmaRuido}?]]`,
         f2(lavg), isFinite(T) ? fmtHoras(T) : '[[T]]', sp.janela.crit === 'NEN' ? f2(nen) : '—',
         `${sp.janela.crit} > ${sp.janela.lim}`, f2(valor), supera]);
     }
@@ -804,7 +805,7 @@ export function memoriasParadigmas(d, dados, { numero = '' } = {}) {
         crit = 'NR-15, Anexo 8';
         res = !isFinite(aren) ? 'Sem dados' : (superaLimite(aren, LIM_NR15_AREN, 2) || superaLimite(vdv, LIM_NR15_VDV, 2)) ? 'Acima do LE' : 'Abaixo do LE';
       }
-      linhasV.push([`V${i + 1} – ${dataBR(sp.ini)} a ${!r.data.fim && sp.fim === hojeLocal() ? "atual" : dataBR(sp.fim)}`, p ? `${p.data.marca} ${p.data.modelo}`.trim() : 'Sem dados',
+      linhasV.push([`V${i + 1} – ${dataBR(sp.ini)} a ${!r.data.fim && sp.fim === hojeLocal() ? "atual" : dataBR(sp.fim)}`, p ? [semNotas(p.data.marca), semNotas(p.data.modelo)].filter(Boolean).join(' ') : 'Sem dados',
         vb.temArep ? f2(arep) : `${f2(arep)} (aren, ${String(vb.tLaudo).replace('.', ',')} h)`, isFinite(T) ? fmtHoras(T) : '[[T]]', f2(aren), f2(vdv), crit, res]);
     }
   });
@@ -831,7 +832,7 @@ export function linhaDoTempo(d, periodos) {
   const ps = (periodos || []).filter((r) => r.data.inicio);
   if (!ps.length) return d;
   const hoje = new Date().toISOString().slice(0, 10);
-  const lin = ps.map((r, i) => [`V${i + 1} – ${String(r.data.empresa || '').split(/\s+[–-]\s+|,|\(/)[0].trim().slice(0, 40) || 'vínculo'}`, ...MARCOS_PREV.map(([, , a, b]) => {
+  const lin = ps.map((r, i) => [`V${i + 1} – ${empresaLimpa(r.data.empresa).slice(0, 45) || 'vínculo'}`, ...MARCOS_PREV.map(([, , a, b]) => {
     const ini = r.data.inicio > a ? r.data.inicio : a;
     const fimV = r.data.fim || hoje;
     const fim = fimV < b ? fimV : b;
@@ -1005,25 +1006,30 @@ export function paradigmasUsados(dados) {
 // ficha de um paradigma: tudo o que a base tem da medição, para o leitor conferir a origem dos valores
 export function fichaParadigma(d, p, dados) {
   const x = p.data;
-  const n = (t) => String(t ?? '').trim();
-  const num = (t, u) => (n(t) ? `${String(t).replace('.', ',')}${u ? ` ${u}` : ''}` : '');
+  const n = (t) => semNotas(t);
+  const num = (t, dec = 2) => { const k = Number(String(t ?? '').replace(',', '.')); return isFinite(k) && String(t ?? '').trim() !== '' ? fmt(k, dec) : ''; };
+  const ano = /^\d{4}/.test(String(x.ano || '')) ? String(x.ano).trim() : '';
+  const epoca = n(x.epocaFabricacao);
+  const ruido = [num(x.lavg) && `Lavg de ${num(x.lavg)} dB(A) (dosimetria com q = 5)`, num(x.leq) && `Leq de ${num(x.leq)} dB(A) (q = 3)`,
+    num(x.nenLaudo, 1) && `NEN de ${num(x.nenLaudo, 1)} dB(A)${num(x.jornadaLaudo, 0) ? ` para a jornada de ${num(x.jornadaLaudo, 0)} h do laudo de origem` : ''}`,
+    num(x.duracaoRuidoMin, 1) && `amostra de ${num(x.duracaoRuidoMin, 1)} min`].filter(Boolean);
+  const vci = [num(x.arep) && `aceleração (arep) de ${num(x.arep)} m/s²`, num(x.arenLaudo) && `aren de ${num(x.arenLaudo)} m/s²`, num(x.vdvrLaudo) && `VDVR de ${num(x.vdvrLaudo)} m/s^1,75`,
+    n(x.eixoDominante) && `eixo dominante ${n(x.eixoDominante)}`, n(x.tempoVibracao) && `amostra de ${n(x.tempoVibracao)}`].filter(Boolean);
   const linhas = [
-    ['Veículo', [x.tipo, x.marca, x.modelo].map(n).filter(Boolean).join(' – ')],
-    ['Ano / época', [n(x.ano), n(x.epocaFabricacao) && `época ${x.epocaFabricacao}`, n(x.anoFonte) && `(fonte: ${x.anoFonte})`].filter(Boolean).join(' ')],
+    ['Veículo ou máquina', [n(x.tipo), [n(x.marca), n(x.modelo)].filter(Boolean).join(' ')].filter(Boolean).join(' – ')],
+    ['Ano de fabricação', ano || (epoca ? `não informado no laudo de origem (modelo fabricado em ${epoca})` : 'não informado no laudo de origem')],
     ['Família técnica', n(x.familia)],
-    ['Cabine e configuração', [n(x.cabine), n(x.arCondicionado) && `ar-condicionado: ${x.arCondicionado}`, n(x.configuracao), n(x.via) && `via: ${x.via}`].filter(Boolean).join('; ')],
+    ['Cabine e configuração', [n(x.cabine), n(x.arCondicionado) && `ar-condicionado: ${n(x.arCondicionado).toLowerCase()}`, n(x.configuracao), n(x.via) && `via: ${n(x.via)}`].filter(Boolean).join('; ')],
     ['Fonte da medição', citacaoDe(p)],
-    ['Ruído', [num(x.lavg, 'dB(A) (Lavg, q = 5)'), num(x.leq, 'dB(A) (Leq, q = 3)'), num(x.nenLaudo, 'dB(A) (NEN do laudo)'), num(x.duracaoRuidoMin, 'min de amostragem'), num(x.jornadaLaudo, 'h de jornada no laudo')].filter(Boolean).join('; ')],
-    ['Vibração de corpo inteiro', [num(x.arep, 'm/s² (arep)'), num(x.arenLaudo, 'm/s² (aren do laudo)'), num(x.vdvrLaudo, 'm/s^1,75 (VDVR)'), n(x.eixoDominante) && `eixo ${x.eixoDominante}`, n(x.tempoVibracao) && `amostragem ${x.tempoVibracao}`].filter(Boolean).join('; ')],
-    ['Mãos e braços (VMB)', num(x.arenVmb, 'm/s² (aren)')],
-    ['Instrumentação', [n(x.ruidoEquip) && `${x.ruidoEquip}, SN ${x.ruidoSerie || '?'}${n(x.ruidoCert) ? `, certificado ${x.ruidoCert}` : ''}${n(x.ruidoCertData) ? ` (${x.ruidoCertData})` : ''}`,
-      n(x.vibEquip) && `${x.vibEquip}, série ${x.vibSerie || '?'}${n(x.vibCertData) ? ` (${x.vibCertData})` : ''}`].filter(Boolean).join('\n')],
-    ['Situação na base', n(x.situacao) || 'OK'],
-    // extrajudicial: as observações podem ter nomes do cliente – ficam só no banco (LGPD)
-    ['Observações', /extrajudicial/i.test(x.fonteTipo || '') ? '' : n(x.observacoes)],
-  ].filter(([, v]) => n(v));
+    ['Ruído', ruido.join('; ')],
+    ['Vibração de corpo inteiro', vci.join('; ')],
+    ['Vibração de mãos e braços', num(x.arenVmb) && `aren de ${num(x.arenVmb)} m/s²`],
+    ['Instrumentos', [n(x.ruidoEquip) && `${n(x.ruidoEquip)}${x.ruidoSerie ? `, série ${x.ruidoSerie}` : ''}${n(x.ruidoCert) ? `, certificado ${n(x.ruidoCert)}` : ''}${n(x.ruidoCertData) ? ` de ${n(x.ruidoCertData)}` : ''}`,
+      n(x.vibEquip) && `${n(x.vibEquip)}${x.vibSerie ? `, série ${x.vibSerie}` : ''}${n(x.vibCertData) ? `, certificado de ${n(x.vibCertData)}` : ''}`].filter(Boolean).join('\n')],
+  ].filter(([, v]) => String(v || '').trim());
   return d.quadro(`Ficha do paradigma ${rotuloParadigma(p)}`, [['Item', 'Registro'], ...linhas],
-    { larguras: [0.26, 0.74], tam: 9, alinhar: 'left', semRevisao: true, fonte: 'Banco de paradigmas do signatário (medição de origem citada na ficha).' });
+    { larguras: [0.26, 0.74], tam: 9, alinhar: 'left', semRevisao: true,
+      fonte: 'Banco de paradigmas do signatário. Valores normalizados (NEN, aren, VDVR) referem-se à jornada do laudo de origem; a aplicação a este caso está na memória de cálculo.' });
 }
 
 // "Integram o presente laudo o Anexo I – ... e os Apêndices A a C – ..."

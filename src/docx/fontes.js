@@ -116,15 +116,15 @@ export function referencias(dados, { prev, judicial = true } = {}) {
     r.push('FUNDACENTRO. NHO 09: avaliação da exposição ocupacional a vibrações de corpo inteiro. São Paulo: FUNDACENTRO, 2013.');
     if (prev) r.push('ASSOCIAÇÃO DOS PERITOS JUDICIAIS, ÁRBITROS, CONCILIADORES E MEDIADORES DE MINAS GERAIS (ASPEJUDI). Nota Técnica nº 001/2013: avaliação de vibração de corpo inteiro (VCI). Belo Horizonte: ASPEJUDI, 5 dez. 2013.');
     r.push('BRASIL. Ministério do Trabalho e Emprego. Portaria MTE nº 1.297, de 13 de agosto de 2014. Diário Oficial da União, Brasília, DF, 14 ago. 2014.');
-    r.push('INTERNATIONAL ORGANIZATION FOR STANDARDIZATION. ISO 2631-1: mechanical vibration and shock – evaluation of human exposure to whole-body vibration – part 1: general requirements. Geneva: ISO, 1997.');
+    r.push('INTERNATIONAL ORGANIZATION FOR STANDARDIZATION. ISO 2631-1: {{en:mechanical vibration and shock – evaluation of human exposure to whole-body vibration – part 1: general requirements}}. Geneva: ISO, 1997.');
   }
   if (vmb) {
     r.push('FUNDACENTRO. NHO 10: avaliação da exposição ocupacional a vibração de mãos e braços. São Paulo: FUNDACENTRO, 2013.');
-    r.push('INTERNATIONAL ORGANIZATION FOR STANDARDIZATION. ISO 5349-1: mechanical vibration – measurement and evaluation of human exposure to hand-transmitted vibration – part 1: general requirements. Geneva: ISO, 2001.');
+    r.push('INTERNATIONAL ORGANIZATION FOR STANDARDIZATION. ISO 5349-1: {{en:mechanical vibration – measurement and evaluation of human exposure to hand-transmitted vibration – part 1: general requirements}}. Geneva: ISO, 2001.');
   }
   if (quimico) {
     if (/poeira|s[ií]lica|particulad|fumos? met|asbesto|amianto|carv[ãa]o/i.test(`${dados.c.agentesAlegados || ''} ${dados.medicoes.map((m) => `${m.data.descricao || ''} ${m.data.metodo || ''}`).join(' ')}`)) r.push('FUNDACENTRO. NHO 08: coleta de material particulado sólido suspenso no ar de ambientes de trabalho. São Paulo: FUNDACENTRO, 2009.');
-    r.push('AMERICAN CONFERENCE OF GOVERNMENTAL INDUSTRIAL HYGIENISTS (ACGIH). TLVs and BEIs: threshold limit values for chemical substances and physical agents. Cincinnati: ACGIH, edição vigente. (Referência técnica complementar; NR-9, item 9.6.1.1.)');
+    r.push('AMERICAN CONFERENCE OF GOVERNMENTAL INDUSTRIAL HYGIENISTS (ACGIH). {{en:TLVs and BEIs: threshold limit values for chemical substances and physical agents}}. Cincinnati: ACGIH, edição vigente. (Referência técnica complementar; NR-9, item 9.6.1.1.)');
   }
   // ABNT: ordem alfabética por autor; do mesmo autor, ordem cronológica (ordem de inserção)
   const autor = (t) => t.split('.')[0];

@@ -46,7 +46,9 @@ export const CAMPOS_PARADIGMA = {
   ],
   'Fonte (laudo extrajudicial: sem nome do segurado)': [
     ['fonteTipo', 'Tipo de fonte', 'select', ['Judicial', 'Judicial trabalhista', 'Judicial (perita terceira)', 'Extrajudicial', 'Literatura', 'Fabricante']],
-    ['processo', 'Processo', 'text'], ['vara', 'Vara', 'text'], ['dataMedicao', 'Data da medição (DD/MM/AAAA)', 'text'], ['citacao', 'Como citar no laudo', 'text'],
+    ['processo', 'Processo', 'text'], ['vara', 'Vara', 'text'], ['dataMedicao', 'Data da medição (DD/MM/AAAA)', 'text'], ['citacao', 'Como citar no laudo (extrajudicial: sempre "Medição extrajudicial – data")', 'text'],
+    ['clienteOrigem', 'Cliente / contratante (controle interno – não sai nos documentos)', 'text'],
+    ['relatoriosSemNomes', 'Relatórios sem nomes de pessoas e empresas (extrajudicial: só assim vão como apêndice)', 'select', ['Não', 'Sim']],
   ],
   'Instrumentação': [
     ['ruidoEquip', 'Dosímetro', 'text'], ['ruidoSerie', 'Série', 'text'], ['ruidoCert', 'Certificado', 'text'], ['ruidoCertData', 'Data do certificado', 'text'],

@@ -938,7 +938,7 @@ export async function apendicesDoCaso(dados) {
   const { apendicesRegistros, paginasDoArquivo, LETRAS, lerFaixaPaginas, paginasDeRelatorio, textosDoPdf } = await import('../apendices.js');
   const { obterAnexo } = await import('../sync.js');
   const regs = await apendicesRegistros(dados.id);
-  const out = []; let falhas = 0; const semRelatorios = [];
+  const out = []; let falhas = 0; const semRelatorios = []; const semRelatoriosLgpd = [];
   for (const r of regs) {
     try {
       const blob = await obterAnexo(r.id);
@@ -956,6 +956,8 @@ export async function apendicesDoCaso(dados) {
     for (const p of usados) {
       const idArq = p.data.relatoriosAnexoId || p.data.anexoId;
       if (!idArq) { semRelatorios.push(p.data.codigo); continue; }
+      // extrajudicial: os relatórios do medidor trazem trabalhador e empresa avaliada; só vão se marcados "sem nomes" (LGPD)
+      if (/extrajudicial/i.test(p.data.fonteTipo || '') && !/^sim/i.test(String(p.data.relatoriosSemNomes || ''))) { semRelatoriosLgpd.push(p.data.codigo); continue; }
       const chave = `${idArq}|${p.data.relatoriosAnexoId ? '' : p.data.paginasRelatorios || ''}`;
       if (vistos.has(chave)) {
         const ap = vistos.get(chave);
@@ -981,7 +983,7 @@ export async function apendicesDoCaso(dados) {
       } catch (e) { falhas++; semRelatorios.push(p.data.codigo); }
     }
   }
-  return { apendices: out, falhasApendice: falhas, semRelatorios };
+  return { apendices: out, falhasApendice: falhas, semRelatorios, semRelatoriosLgpd };
 }
 
 // paradigmas citados nos vínculos (ruído e vibração), na ordem dos vínculos
@@ -1007,7 +1009,8 @@ export function fichaParadigma(d, p, dados) {
     ['Instrumentação', [n(x.ruidoEquip) && `${x.ruidoEquip}, SN ${x.ruidoSerie || '?'}${n(x.ruidoCert) ? `, certificado ${x.ruidoCert}` : ''}${n(x.ruidoCertData) ? ` (${x.ruidoCertData})` : ''}`,
       n(x.vibEquip) && `${x.vibEquip}, série ${x.vibSerie || '?'}${n(x.vibCertData) ? ` (${x.vibCertData})` : ''}`].filter(Boolean).join('\n')],
     ['Situação na base', n(x.situacao) || 'OK'],
-    ['Observações', n(x.observacoes)],
+    // extrajudicial: as observações podem ter nomes do cliente – ficam só no banco (LGPD)
+    ['Observações', /extrajudicial/i.test(x.fonteTipo || '') ? '' : n(x.observacoes)],
   ].filter(([, v]) => n(v));
   return d.quadro(`Ficha do paradigma ${rotuloParadigma(p)}`, [['Item', 'Registro'], ...linhas],
     { larguras: [0.26, 0.74], tam: 9, alinhar: 'left', semRevisao: true, fonte: 'Banco de paradigmas do signatário (medição de origem citada na ficha).' });

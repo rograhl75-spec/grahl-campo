@@ -46,6 +46,8 @@ export function veiculoParaDados(v) {
     eixoDominante: s(r.eixo_dominante), arenVmb: n(r.aren_vmb), ibutg: n(r.ibutg),
     fonteTipo,
     processo: extra ? '' : s(f.processo), vara: extra ? '' : s(f.vara), dataMedicao: s(f.data),
+    // cliente/contratante da medição extrajudicial: só controle interno, nunca vai para os documentos
+    clienteOrigem: s(f.cliente), relatoriosSemNomes: f.relatorios_sem_nomes === true ? 'Sim' : s(f.relatorios_sem_nomes),
     citacao: extra ? `Extrajudicial – ${s(f.data)}` : (literatura && s(mq.referencia)) || s(f.citacao),
     ruidoEquip: s(ir.equipamento), ruidoSerie: s(ir.serie), ruidoCert: s(ir.certificado), ruidoCertData: s(ir.data_certificado),
     calibEquip: s(ic.equipamento), calibSerie: s(ic.serie), calibCertData: s(ic.data_certificado),
@@ -69,7 +71,7 @@ export function dadosParaVeiculo(d, { anexoNome = '' } = {}) {
       suspensao_cabine: tx(d.suspensaoCabine), suspensao_assento: tx(d.suspensaoAssento), configuracao: tx(d.configuracao), via_predominante: tx(d.via) },
     resultados: { duracao_ruido_min: nb(d.duracaoRuidoMin), lavg_q5: nb(d.lavg), leq_q3: nb(d.leq), jornada_laudo_h: nb(d.jornadaLaudo), nen_laudo: nb(d.nenLaudo),
       tempo_vibracao: tx(d.tempoVibracao), arep: nb(d.arep), aren_laudo: nb(d.arenLaudo), vdvr_laudo: nb(d.vdvrLaudo), eixo_dominante: tx(d.eixoDominante), aren_vmb: nb(d.arenVmb), ibutg: nb(d.ibutg) },
-    fonte: { tipo: tx(d.fonteTipo), processo: tx(d.processo), vara: tx(d.vara), data: tx(d.dataMedicao), citacao: tx(d.citacao) },
+    fonte: { tipo: tx(d.fonteTipo), processo: tx(d.processo), vara: tx(d.vara), data: tx(d.dataMedicao), citacao: tx(d.citacao), cliente: tx(d.clienteOrigem), relatorios_sem_nomes: tx(d.relatoriosSemNomes) },
     instrumentacao: {
       ruido: { equipamento: tx(d.ruidoEquip), serie: tx(d.ruidoSerie), certificado: tx(d.ruidoCert), data_certificado: tx(d.ruidoCertData) },
       calibrador: { equipamento: tx(d.calibEquip), serie: tx(d.calibSerie), data_certificado: tx(d.calibCertData) },
@@ -360,11 +362,14 @@ export function certificadoVencido(dataCert, dataMedicao, meses = REGRA_CERT_MES
 }
 
 // citação do paradigma; sem ela (ex.: paradigma incluído a partir de laudo), monta com processo, vara e data
+export const ehExtrajudicial = (p) => /extrajudicial/i.test((p.data || p).fonteTipo || '');
+
 export function citacaoDe(p) {
   const d = p.data || p;
+  // medição extrajudicial: só o tipo e a data (LGPD) – nunca cliente, empresa ou trabalhador, nem citação livre
+  if (ehExtrajudicial(d)) return d.dataMedicao ? `Medição extrajudicial – ${d.dataMedicao}` : 'Medição extrajudicial';
   const c = String(d.citacao || '').trim();
   if (c) return c;
-  if (/extrajudicial/i.test(d.fonteTipo || '')) return d.dataMedicao ? `Extrajudicial – ${d.dataMedicao}` : '';
   const proc = String(d.processo || '').trim().replace(/\/[A-Z]{2}$/, '');
   return [proc && `Proc. ${proc}`, String(d.vara || '').replace(/\s*\(.*\)\s*$/, '').trim(), d.dataMedicao].filter(Boolean).join(' – ');
 }

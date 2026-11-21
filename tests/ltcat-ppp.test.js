@@ -172,13 +172,15 @@ describe('banco de profissões', () => {
 describe('vínculo em aberto no LTCAT e no PPP', () => {
   it('a data de emissão substitui "atual"', async () => {
     await caso('d4', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'], autorNome: 'Segurado Quatro', pppEmitente: 'Próprio segurado (contribuinte individual)' });
-    await filho('d4v', 'periodo', 'd4', { empresa: 'Consultório', inicio: '2000-01-01', fim: '', cargo: 'Cirurgião-dentista', categoriaSegurado: 'Contribuinte individual' });
+    await filho('d4v', 'periodo', 'd4', { empresa: 'Consultório', inicio: '1989-01-01', fim: 'atual', cargo: 'Cirurgião-dentista', categoriaSegurado: 'Contribuinte individual', afastamentos: '13/11/2025 a 11/01/2026 – B31 (auxílio por incapacidade temporária)' });
     await filho('d4a', 'agenteAvaliado', 'd4', { nome: 'Biológico', tipo: 'Biológico', resAte97: 'Caracteriza', resDesde97: 'Caracteriza' });
+    await filho('d4b', 'agenteAvaliado', 'd4', { nome: 'Ácido fosfórico', tipo: 'Químico', resAte97: 'Caracteriza', resDesde97: 'Caracteriza', codDesde97: '1.0.12 do Anexo IV' });
+    await filho('d4c', 'agenteAvaliado', 'd4', { nome: 'Mercúrio', tipo: 'Químico', resAte97: 'Caracteriza', resDesde97: 'Não caracteriza' });
     const r = await ltcatPpp('d4');
     const hoje = new Date().toISOString().slice(0, 10).split('-').reverse().join('/');
     for (const t of [await texto(r), await texto(r.extras[0])]) {
       expect(t).not.toMatch(/a atual\b/);
-      expect(t).toContain(`01/01/2000 a ${hoje}`);
+      expect(t).toContain(`a ${hoje}`);
     }
   });
 });

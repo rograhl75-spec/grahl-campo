@@ -28,8 +28,30 @@ export function codigosDoAgente(a) {
   return {
     ate97: v(x.codAte97) || (bio ? BIO_ATE97 : ''),
     desde97: v(x.codDesde97) || (bio ? BIO_DESDE97 : ''),
-    tecnica: v(x.tecnica) || (bio ? 'Qualitativa' : ''),
+    tecnica: tecnicaDoAgente(a, false),
   };
+}
+
+// Técnica de avaliação (campo 15.6 do PPP), pelo critério do Manual de Aposentadoria Especial do INSS (2018):
+// biológicos – qualitativa; químicos até 05/03/1997 – qualitativa, por presunção; a partir de 06/03/1997 –
+// quantitativa (NR-15, Anexo 11) ou qualitativa (Anexos 13 e 13-A), conforme o agente; radiação ionizante –
+// qualitativa até 05/03/1997 e quantitativa depois (NR-15, Anexo 5); demais físicos – quantitativa.
+// O que o perito digitou no agente prevalece.
+export function tecnicaDoAgente(a, ate97) {
+  const x = a.data || a;
+  if (v(x.tecnica)) return x.tecnica;
+  const cod = `${ate97 ? x.codAte97 || '' : x.codDesde97 || ''} ${x.nome || ''}`;
+  if (x.tipo === 'Biológico') return 'Qualitativa';
+  if (x.tipo === 'Físico') {
+    if (/radia/i.test(cod)) return ate97 ? 'Qualitativa' : 'Quantitativa – NR-15, Anexo 5 (CNEN)';
+    if (/ru[ií]do/i.test(cod)) return ate97 ? 'Quantitativa – NR-15, Anexo 1' : 'Quantitativa – NHO-01';
+    return 'Quantitativa';
+  }
+  if (ate97) return 'Qualitativa (presunção de exposição)';
+  if (/13-A/i.test(cod)) return 'Qualitativa – NR-15, Anexo 13-A';
+  if (/quantitativ|Anexo 11/i.test(cod)) return 'Quantitativa – NR-15, Anexo 11';
+  if (/qualitativ|Anexo 13/i.test(cod)) return 'Qualitativa – NR-15, Anexo 13';
+  return 'Qualitativa';
 }
 
 // o agente vale para o vínculo? "V1, V3" (pela ordem cronológica) ou em branco = todos
@@ -51,16 +73,31 @@ export function resultadoNoSegmento(a, fim) {
 
 // itens do subperíodo: os que caracterizam e os pendentes, um a um; os que não caracterizam, numa linha só
 export function itensAgentes(agentes, idx, ini, fim) {
-  const itens = []; const nao = []; const fora = [];
+  const itens = []; const nao = []; const fora = []; const sim = new Map();
+  const curto = (n) => n.replace(/\s*\(.*$/, '');
+  // só o código, sem a descrição: "1.0.9 do Anexo IV (cloro…) – avaliação…" → "1.0.9 do Anexo IV"
+  const codCurto = (c) => String(c || '').split(/\s+\(|\s+–\s+/)[0].trim();
   for (const a of agentes) {
     if (!agenteNoVinculo(a, idx)) continue;
     const nome = v(a.data.nome) || 'Agente';
     const { res, cod } = resultadoNoSegmento(a, fim);
-    if (res === 'Caracteriza') itens.push({ t: `${nome}: caracteriza (${codigosDoAgente(a).tecnica.toLowerCase() || 'avaliação'})`, cod: cod || '[[código]]', sup: true, agente: true });
-    else if (res === 'Não caracteriza') nao.push(nome);
-    else if (res === 'Não enquadrável') fora.push(nome);
-    else itens.push({ t: `${nome}: [[resultado a confirmar]]`, cod, sup: false, pendente: true, agente: true });
+    if (res === 'Caracteriza') {
+      const k = `${a.data.tipo || 'Químico'}|${tecnicaDoAgente(a, fim <= '1997-03-05').split(' ')[0].toLowerCase()}`;
+      if (!sim.has(k)) sim.set(k, []);
+      sim.get(k).push({ nome, cod: codCurto(cod) || '[[código]]' });
+    } else if (res === 'Não caracteriza') nao.push(curto(nome));
+    else if (res === 'Não enquadrável') fora.push(curto(nome));
+    else itens.push({ t: `${curto(nome)}: [[resultado a confirmar]]`, cod: codCurto(cod), sup: false, pendente: true, agente: true });
   }
+  // os que caracterizam, um item por tipo (vários químicos numa linha só; o detalhe está no item 5)
+  const plural = { 'Biológico': 'Agentes biológicos', 'Químico': 'Agentes químicos', 'Físico': 'Agentes físicos' };
+  const grupos = [...sim.entries()].map(([k, l]) => {
+    const [tipo, tec] = k.split('|');
+    const cods = [...new Set(l.map((x) => x.cod))].join('; ');
+    if (l.length === 1) return { t: `${l[0].nome}: caracteriza (${tec})`, cod: cods, sup: true, agente: true };
+    return { t: `${plural[tipo] || 'Agentes'} (${tec}): ${l.map((x) => curto(x.nome).replace(/^./, (c) => c.toLowerCase())).join(', ')} – caracterizam`, cod: cods, sup: true, agente: true };
+  });
+  itens.unshift(...grupos);
   // lista longa vira contagem: o detalhe de cada agente está no item 5
   const resumo = (l) => (l.length > 2 ? `${l.length} agentes (item 5)` : l.join('; '));
   if (nao.length) itens.push({ t: `Não caracteriza${nao.length > 1 ? 'm' : ''}: ${resumo(nao)}`, cod: '', sup: false, agente: true });
@@ -124,21 +161,27 @@ export function categoriaDoVinculo(r) {
 }
 
 // Exposição para o PPP: por vínculo, os intervalos em que cada agente caracteriza (até 05/03/1997 e a partir de
-// 06/03/1997, unidos quando caracteriza nas duas épocas)
-export function exposicaoNoVinculo(r, idx, agentes, hoje = new Date().toISOString().slice(0, 10)) {
+// 06/03/1997, em linhas separadas, porque o código e a técnica mudam). presentes: também os agentes do rol que não
+// caracterizam (presentes no ambiente, sem quantificação ou abaixo do limite) – no PPP o fator de risco consta
+// com a intensidade "não quantificada"; os não enquadráveis (fora do rol) e os "a confirmar" não entram.
+export function exposicaoNoVinculo(r, idx, agentes, { presentes = false, hoje = new Date().toISOString().slice(0, 10) } = {}) {
   const ini = (r.data || r).inicio; const fim = (r.data || r).fim || hoje;
   if (!ini) return [];
+  // "não caracteriza" só entra quando o agente é do rol e de avaliação quantitativa sem medição (ex.: mercúrio após
+  // 05/03/1997); o que não caracteriza na avaliação qualitativa não vai ao PPP
+  const conta = (res, a, ate) => res === 'Caracteriza' || (presentes && res === 'Não caracteriza' && /^Quantitativa/.test(tecnicaDoAgente(a, ate)));
   const out = [];
   for (const a of agentes) {
     if (!agenteNoVinculo(a, idx)) continue;
     const x = a.data || a;
     const jan = [];
-    if (ini <= '1997-03-05' && x.resAte97 === 'Caracteriza') jan.push([ini, fim < '1997-03-05' ? fim : '1997-03-05']);
-    if (fim >= '1997-03-06' && x.resDesde97 === 'Caracteriza') {
+    if (ini <= '1997-03-05' && conta(x.resAte97, a, true)) jan.push([ini, fim < '1997-03-05' ? fim : '1997-03-05', x.resAte97 === 'Caracteriza']);
+    if (fim >= '1997-03-06' && conta(x.resDesde97, a, false)) {
       const a0 = ini > '1997-03-06' ? ini : '1997-03-06';
-      if (jan.length && jan[0][1] === '1997-03-05') jan[0][1] = fim; else jan.push([a0, fim]);
+      const car = x.resDesde97 === 'Caracteriza';
+      jan.push([a0, fim, car]); // épocas separadas: o código e a técnica mudam em 06/03/1997
     }
-    for (const [p, q] of jan) out.push({ ini: p, fim: q, agente: a });
+    for (const [p, q, car] of jan) out.push({ ini: p, fim: q, agente: a, caracteriza: car });
   }
   return out;
 }

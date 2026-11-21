@@ -97,7 +97,8 @@ describe('PPP emitido pelo próprio segurado e legendas das fotos', () => {
     await filho('d2a', 'agenteAvaliado', 'd2', { nome: 'Biológico', tipo: 'Biológico', resAte97: 'Caracteriza', resDesde97: 'Caracteriza' });
     const r = await ltcatPpp('d2');
     const t = await texto(r); const tp = await texto(r.extras[0]);
-    expect(t).toContain('emitido em seu próprio nome');
+    expect(t).toContain('o PPP é emitido pelo próprio segurado');
+    expect(t).not.toMatch(/sem conversão|convertido/);
     expect(tp).toContain('01/01/1990 a 31/12/1995');
     expect(tp).not.toContain('11.111.111/0001-11');
     expect(tp).not.toContain('Não constam deste PPP');
@@ -115,5 +116,54 @@ describe('CRQ no perfil', () => {
     const { registrosCrq } = await import('../src/docx/base.js');
     expect(registrosCrq({ crqSp: '04123456', crqPr: 'CRQ nº 09200001' })).toBe('CRQ-IV nº 04123456 – CRQ-IX nº 09200001');
     expect(registrosCrq({})).toBe('');
+  });
+});
+
+describe('técnica pelo Manual de Aposentadoria Especial e quadros dos agentes', () => {
+  it('técnica por tipo e época; características com o banco', async () => {
+    const { tecnicaDoAgente } = await import('../src/enquadramento.js');
+    const { bancoDoAgente, orgaosEmPortugues } = await import('../src/docx/agentesQuadros.js');
+    expect(tecnicaDoAgente({ data: { tipo: 'Biológico' } }, false)).toBe('Qualitativa');
+    expect(tecnicaDoAgente({ data: { tipo: 'Químico', codDesde97: '1.0.9 – avaliação quantitativa (NR-15, Anexo 11)' } }, false)).toBe('Quantitativa – NR-15, Anexo 11');
+    expect(tecnicaDoAgente({ data: { tipo: 'Químico' } }, true)).toMatch(/presunção/);
+    expect(tecnicaDoAgente({ data: { tipo: 'Físico', nome: 'Radiações ionizantes' } }, false)).toMatch(/Anexo 5/);
+    expect(tecnicaDoAgente({ data: { tipo: 'Químico', tecnica: 'Digitada' } }, false)).toBe('Digitada');
+    const banco = [{ id: 'q1', data: { nome: 'Ácido fosfórico', sinonimos: 'Phosphoric acid', cas: '0000-00-0' } }, { id: 'q2', data: { nome: 'Mercúrio (elementar)', sinonimos: 'Hg' } }];
+    expect(bancoDoAgente({ data: { nome: 'Ácido fosfórico 37% (gel)' } }, banco).id).toBe('q1');
+    expect(bancoDoAgente({ data: { nome: 'Mercúrio (amálgama)' } }, banco).id).toBe('q2');
+    expect(orgaosEmPortugues('Eyes, skin, respiratory system, kidneys')).toBe('olhos, pele, sistema respiratório, rins');
+  });
+});
+
+describe('vínculos sequenciais unidos num só', () => {
+  it('mesma empresa e início: atualiza o vínculo; "fim": "atual" limpa a data com substituir', async () => {
+    const { aplicarIA } = await import('../src/aiimport.js');
+    const { caseChildren } = await import('../src/db.js');
+    await caso('d3', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'] });
+    await filho('d3v', 'periodo', 'd3', { empresa: 'Consultório Fictício', inicio: '1990-01-01', fim: '1991-12-31' });
+    await aplicarIA('d3', lerJsonIA(JSON.stringify({ periodos: [{ empresa: 'Consultório Fictício', inicio: '1990-01-01', fim: 'atual', cbo: '2232-08' }] })), { substituir: true });
+    const ps = await caseChildren('d3', 'periodo');
+    expect(ps).toHaveLength(1);
+    expect(ps[0].data.fim).toBe('');
+    expect(ps[0].data.cbo).toBe('2232-08');
+    expect(ps[0].data.fimAberto).toBeUndefined();
+  });
+});
+
+describe('banco de profissões', () => {
+  it('reconhece a profissão e leva a referência para a instrução do Claude', async () => {
+    const { profissaoDoCaso, PROFISSOES } = await import('../src/data/profissoes.js');
+    const { montarPrompt } = await import('../src/aiimport.js');
+    expect(profissaoDoCaso({ funcoes: 'Cirurgião-dentista clínico geral' }).id).toBe('dentista');
+    expect(profissaoDoCaso({ profissao: 'Cirurgião-dentista' }).id).toBe('dentista');
+    expect(profissaoDoCaso({}, [{ data: { cargo: 'Técnica de enfermagem' } }]).id).toBe('enfermagem');
+    expect(profissaoDoCaso({ funcoes: 'Soldador' })).toBeNull();
+    const dent = PROFISSOES.find((p) => p.id === 'dentista');
+    expect(dent.agentes.length).toBeGreaterThan(10);
+    expect(JSON.stringify(dent)).not.toMatch(/Toffolo|Uniodonto|Spectro|8 pacientes/);
+    const p = montarPrompt('extra-ltcat', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'], profissao: 'Cirurgião-dentista' });
+    expect(p).toContain('REFERÊNCIA DA PROFISSÃO – CIRURGIÃO-DENTISTA');
+    expect(p).toContain('é UM vínculo só');
+    expect(montarPrompt('perito-trab', { profissao: 'Cirurgião-dentista' })).not.toContain('REFERÊNCIA DA PROFISSÃO');
   });
 });

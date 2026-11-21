@@ -49,7 +49,10 @@ const TERMOS_TECNICOS = ['aren', 'arep', 'areq', 'Lavg', 'Leq', 'NEN', 'VDVR', '
   'Ltda', 'LTDA', 'EIRELI', 'fl.', 'fls.', 'cód.', 'Cód.', 'seq.', 'últ.', 'remun.', 'veic.', 'Proc.', 'subperíodo', 'subperíodos', 'Subperíodo', 'Subperíodos',
   'semiavançada', 'semiavançado', 'Semiavançada', 'art.', 'arts.', 'Art.', 'Dec.', 'rel.', 'inc.', 'ii', 'iii', 'iv', 'vi', 'vii', 'app', 'decidendi', 'ratio', 'stare', 'decisis', 'tempus', 'regit', 'actum', 'DJe', 'DJEN', 'REsp', 'AREsp', 'AgRg', 'AgInt', 'EDcl', 'PEDILEF', 'Pet', 'RE', 'ARE', 'IAC', 'IRDR', 'TLVs', 'BEIs', 'ACGIH', 'Fundacentro', 'FUNDACENTRO', 'ASPEJUDI',
   'Grahl', 'Benz', 'Mercedes', 'Volkswagen', 'Volvo', 'Scania', 'Agrale', 'Atego', 'Iveco', 'Perkins', 'Chevrolet', 'Constellation', 'Worker', 'Delivery',
-  'Sonus', 'Criffer', 'Chrompack', 'SmartVib', 'Instrutherm', 'Inlite', 'Rodofrio', 'Jumper', 'Ducato', 'Boxer', 'Cincinnati', 'UFs', 'CNIS', 'CTPS', 'CBO', 'PPP', 'LTCAT'];
+  'Sonus', 'Criffer', 'Chrompack', 'SmartVib', 'Instrutherm', 'Inlite', 'Rodofrio', 'Jumper', 'Ducato', 'Boxer', 'Cincinnati', 'UFs', 'CNIS', 'CTPS', 'CBO', 'PPP', 'LTCAT',
+  'NIT', 'EPC', 'TNU', 'GFIP', 'CAEPF', 'RPS', 'LINACH', 'CRO', 'CRQ', 'CNAE', 'SST', 'MTE', 'PRES', 'PREC', 'PDH', 'SEPRT', 'eSocial', 'CNEN', 'FDS', 'PGRSS', 'ASB', 'TSB',
+  'glutaraldeído', 'formocresol', 'Formocresol', 'paramonoclorofenol', 'Paramonoclorofenol', 'tricresol', 'Tricresol', 'TEGDMA', 'Bis-GMA', 'HEMA', 'GMA',
+  'metilmercúrio', 'etilmercúrio', 'ésteres', 'metilmetacrilato', 'Metilmetacrilato', 'metacrilatos', 'metacrílicos', 'fotopolimerizador', 'amalgamador', 'Spectro', 'Dabi', 'Atlante', 'Villevie', 'Uniodonto'];
 const extras = new Set();
 let reTec = null;
 // nomes do caso (empresas, pessoas, cidades): acrescentados ao carregar os dados

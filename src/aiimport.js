@@ -5,6 +5,7 @@ import { ORIGEM_QUESITO, contextoLegal, ehSuplementar, FASE, CAMPOS_DILIGENCIA, 
 import { resumoMedicao } from './medicoes.js';
 import { dataIso } from './migrate.js';
 import { citacaoDe } from './paradigmas.js';
+import { profissaoDoCaso, referenciaProfissao } from './data/profissoes.js';
 
 // Origem do quesito por sinônimos (o Claude escreve "Reclamante", "Requerido", "Juiz"…); vazio = "Outro"
 export function origemQuesito(o) {
@@ -71,6 +72,8 @@ export const CRITERIOS_PREV = `FINALIDADE PREVIDENCIÁRIA (tempo especial – Le
 - Agentes químicos (art. 297 da IN 128/2022): até 05/03/1997, qualitativo, por presunção de exposição, nos códigos 1.2.x dos Decretos 53.831/64 e 83.080/79; a partir de 06/03/1997, somente agentes do Anexo IV (rol exaustivo), avaliados conforme os Anexos 11 e 12 (quantitativos) e 13 e 13-A (qualitativos) da NR-15; a partir de 01/01/2004, metodologia das NHO-02, 03, 04 e 07 (facultativa desde 19/11/2003). Óleos minerais: cód. 1.0.7, b, do Anexo IV (extração, produção e utilização de óleos minerais e parafinas); óleo diesel e demais derivados de petróleo: cód. 1.0.17.
 - Medidas de controle: EPC (art. 290) e EPI somente a partir de 03/12/1998, com os requisitos cumulativos do art. 291 da IN 128/2022.
 - Penosidade (motorista de ônibus/caminhão e cobrador): até 28/04/1995, categoria profissional (cód. 2.4.4 do Decreto 53.831/64; cód. 2.4.2 do Anexo II do Decreto 83.080/79); depois, só em juízo, com perícia técnica individualizada que demonstre exposição habitual e permanente a condições concretas de desgaste (jornada e tempo de direção – CLT art. 235-C e CTB art. 67-C –, trabalho noturno, pernoites, carga/descarga, vias, cabine, ruído e vibração mesmo abaixo do limite, risco de acidente e de violência, pressão de prazos). Não vai para o PPP nem altera o código GFIP. Avaliação pela matriz do IAC nº 5 do TRF4 (veículo, trajetos, jornadas) acrescida das cargas, com base na entrevista do autor, sem remissão a limites de jornada da CLT ou do CTB; a convergência cumulativa dos fatores caracteriza trabalho excepcionalmente penoso; jornada de 12 h/dia ou mais pressupõe pressão de prazos e metas.
+- Vínculos: a mesma atividade, no mesmo local e sem interrupção é UM vínculo só, ainda que a categoria no CNIS mude (autônomo, cooperado, contribuinte individual) ou haja lacunas de contribuição – divida apenas por empregador diferente. A divisão pelos marcos legais e pelos afastamentos é feita pelo app. Vínculo que continua: "fim": "atual". Afastamentos por benefício do CNIS: no campo "afastamentos" do vínculo. Em "empresa", só o nome (notas e ressalvas vão para "preliminares").
+- Resultado dos agentes avaliados: até 05/03/1997, químicos por presunção nos códigos 1.2.x; a partir de 06/03/1997, agente fora do Anexo IV = "Não enquadrável"; agente do Anexo IV de avaliação quantitativa sem medição = "Não caracteriza" (consta do PPP como "não quantificada"); uso não confirmado = "A confirmar". Textos técnicos sem juízo sobre conversão de tempo especial em comum ou contagem de tempo (questões de direito).
 - Marcos: 28/04/1995 (fim do enquadramento por categoria), 05/03/1997, 03/12/1998, 18/11/2003, 14/08/2014, 13/11/2019 (EC 103/2019).
 - Datas de vínculo: a CTPS prevalece sobre o CNIS. PPP: código GFIP 04 quando houver enquadramento; o PPP em papel vai só até a entrada do eSocial (SST). Laudo de outro segurado usado como paradigma: não citar o nome desse segurado.`;
 
@@ -113,7 +116,7 @@ Responda SOMENTE com um bloco JSON válido, sem texto antes ou depois, neste for
     "observacoes": ""
   },
   "acidente": {"acidenteData": "só em caso de acidente do trabalho", "acidenteHora": "", "acidenteLocal": "", "acidenteAtividade": "", "acidenteMaquina": "", "acidenteRelato": "versão do acidentado", "acidenteRelatoEmpresa": "versão da empresa e das testemunhas", "acidenteLesao": "", "acidenteCat": "", "acidenteAlteracoes": ""},
-  "periodos": [{"empresa": "", "cnpj": "", "inicio": "", "fim": "", "cargo": "", "setor": "", "atividades": "", "agentes": "", "fonte": "", "categoriaSegurado": "Empregado | Contribuinte individual | Cooperado (cooperativa de trabalho) | Avulso", "local": "endereço/cidade do local de trabalho no período", "cbo": "", "profissiografia": "descrição das atividades para o PPP, sem anotações de trabalho", "afastamentos": "um por linha: dd/mm/aaaa a dd/mm/aaaa – B31 ou B91", "tipoTransporte": "só motorista/cobrador", "jornadaSemanal": "", "noturnoPernoite": "", "cargaDescarga": "", "vias": "", "riscoAcidente": "", "cabine": "", "pausas": "", "pressao": "", "fisiologicas": "acesso a sanitários, alimentação e descanso", "veiculoTipo": "", "veiculoMarca": "", "veiculoModelo": "", "veiculoAno": "", "grupoVeiculo": "só motorista – um dos grupos da instrução", "carroceria": "", "tipoCarga": "", "carregaDescarrega": "Não | Carregava | Descarregava | Carregava e descarregava", "conducaoH": "horas de direção por dia (número)", "conducaoBase": "de onde veio a informação", "abastecimento": "", "acidenteVinculo": "Não, ou descrição", "assaltoVinculo": "Não, ou descrição"}],
+  "periodos": [{"empresa": "", "cnpj": "", "inicio": "", "fim": "dd/mm/aaaa, ou \"atual\" se o vínculo continua", "cargo": "", "setor": "", "atividades": "", "agentes": "", "fonte": "", "categoriaSegurado": "Empregado | Contribuinte individual | Cooperado (cooperativa de trabalho) | Avulso", "local": "endereço/cidade do local de trabalho no período", "cbo": "", "profissiografia": "descrição das atividades para o PPP, sem anotações de trabalho", "afastamentos": "um por linha: dd/mm/aaaa a dd/mm/aaaa – B31 ou B91", "tipoTransporte": "só motorista/cobrador", "jornadaSemanal": "", "noturnoPernoite": "", "cargaDescarga": "", "vias": "", "riscoAcidente": "", "cabine": "", "pausas": "", "pressao": "", "fisiologicas": "acesso a sanitários, alimentação e descanso", "veiculoTipo": "", "veiculoMarca": "", "veiculoModelo": "", "veiculoAno": "", "grupoVeiculo": "só motorista – um dos grupos da instrução", "carroceria": "", "tipoCarga": "", "carregaDescarrega": "Não | Carregava | Descarregava | Carregava e descarregava", "conducaoH": "horas de direção por dia (número)", "conducaoBase": "de onde veio a informação", "abastecimento": "", "acidenteVinculo": "Não, ou descrição", "assaltoVinculo": "Não, ou descrição"}],
   "agentesAvaliados": [{"nome": "agente avaliado sem medição (biológico, químico ou físico)", "tipo": "Biológico | Químico | Físico", "vinculos": "V1, V2… pela ordem cronológica dos períodos; vazio = todos", "fonte": "fonte geradora / atividade com exposição", "codAte97": "código do Dec. 53.831/64 e do Dec. 83.080/79", "resAte97": "Caracteriza | Não caracteriza | Não enquadrável | A confirmar", "codDesde97": "código do Anexo IV", "resDesde97": "Caracteriza | Não caracteriza | Não enquadrável | A confirmar", "intensidade": "", "tecnica": "Qualitativa ou a norma da medição", "epcEficaz": "Sim | Não | Não se aplica", "epiEficaz": "Sim | Não | Não se aplica", "ca": "", "fundamentacao": "texto técnico do item 5 do LTCAT"}],
   "fotos": [{"numero": "nº da foto na ordem do app (1, 2, 3…), só para fotos já anexadas ao caso", "legenda": "o que a foto mostra, em uma frase"}],
   "ppp": {"pppEmitente": "Empresa (empregador) | Cooperativa de trabalho | Próprio segurado (contribuinte individual)", "pppEmitenteNome": "", "pppEmitenteCnpj": "", "pppCnae": "", "pppEndereco": "", "pppNit": "", "pppSexo": "Masculino | Feminino", "pppRepresentante": "", "pppRepresentanteNit": "", "pppObs": "", "art": "nº da ART"},
@@ -127,7 +130,9 @@ Responda SOMENTE com um bloco JSON válido, sem texto antes ou depois, neste for
       "tempoAmostragem": "", "jornada": "", "dose": "", "lavg": "", "lmax": "", "calibInicial": "", "calibFinal": "", "posicao": "",
       "tbn": "", "tbs": "", "tg": "", "ibutgLido": "", "atividade": "", "regime": "",
       "veiculo": "", "aren": "", "vdv": "", "eixo": "", "tempoExposicao": "",
-      "descricao": "", "metodo": "", "valor": "", "unidade": "", "limite": "", "obs": ""}]}]
+      "descricao": "", "metodo": "", "valor": "", "unidade": "", "limite": "", "obs": ""}]}],
+  "agentesAvaliados": [{"nome": "", "tipo": "Biológico | Químico | Físico", "cas": "", "circunstancias": "", "fonte": "", "vias": "", "frequencia": "", "efeitos": "", "codAte97": "", "resAte97": "Caracteriza | Não caracteriza | Não enquadrável | A confirmar", "codDesde97": "", "resDesde97": "Caracteriza | Não caracteriza | Não enquadrável | A confirmar", "epcEficaz": "", "epiEficaz": "", "fundamentacao": ""}],
+  "fotos": [{"numero": "nº da foto na ordem das anotações", "legenda": "o que a foto mostra, em uma frase"}]
 }`;
 
 // Anotações de diligência já realizada (aba Campo): só os blocos que a diligência alimenta
@@ -245,7 +250,9 @@ export function situacaoDoCaso(c) {
 export function montarPrompt(situacaoId, c = {}, perfil = {}) {
   const s = SITUACOES.find((x) => x.id === situacaoId) || SITUACOES[0];
   const ctx = [c.papel && `Minha atuação neste caso: ${c.papel}.`, c.numero && `Processo: ${c.numero}.`].filter(Boolean).join(' ');
-  return [s.foco, ctx, criteriosPara(c, s.id, perfil), REGRAS_EXTRACAO, FORMATO].filter(Boolean).join('\n\n');
+  // previdenciário: a referência da profissão (agentes e critérios já adotados pelo signatário)
+  const prof = ['perito-prev', 'extra-ltcat', 'parecer-prev'].includes(s.id) || contextoLegal(c).prev === true ? referenciaProfissao(profissaoDoCaso(c)) : '';
+  return [s.foco, ctx, criteriosPara(c, s.id, perfil), prof, REGRAS_EXTRACAO, FORMATO].filter(Boolean).join('\n\n');
 }
 
 // compatibilidade
@@ -307,7 +314,7 @@ export function lerJsonIA(texto) {
   const limparPeriodo = (p) => Object.fromEntries(Object.entries(p).map(([k, val]) => [k, typeof val === 'string' && !['inicio', 'fim', 'cnpj'].includes(k) ? limpar(val) : val]));
   return {
     caso,
-    periodos: lista(obj.periodos).map((x) => limparPeriodo({ empresa: s(x.empresa), cnpj: s(x.cnpj), inicio: dataIso(s(x.inicio)) || s(x.inicio), fim: dataIso(s(x.fim)) || s(x.fim), cargo: s(x.cargo), setor: s(x.setor), atividades: s(x.atividades), agentes: s(x.agentes), fonte: s(x.fonte), categoriaSegurado: categoriaOk(x.categoriaSegurado), local: s(x.local), cbo: s(x.cbo), profissiografia: s(x.profissiografia), afastamentos: s(x.afastamentos),
+    periodos: lista(obj.periodos).map((x) => limparPeriodo({ empresa: s(x.empresa), cnpj: s(x.cnpj), inicio: dataIso(s(x.inicio)) || s(x.inicio), fim: /^(atual|em aberto|ativo)/i.test(s(x.fim)) ? '' : dataIso(s(x.fim)) || s(x.fim), ...(/^(atual|em aberto|ativo)/i.test(s(x.fim)) ? { fimAberto: true } : {}), cargo: s(x.cargo), setor: s(x.setor), atividades: s(x.atividades), agentes: s(x.agentes), fonte: s(x.fonte), categoriaSegurado: categoriaOk(x.categoriaSegurado), local: s(x.local), cbo: s(x.cbo), profissiografia: s(x.profissiografia), afastamentos: s(x.afastamentos),
       ...Object.fromEntries(['tipoTransporte', 'jornadaSemanal', 'noturnoPernoite', 'cargaDescarga', 'vias', 'riscoAcidente', 'cabine', 'pausas', 'pressao', 'fisiologicas', 'grupoVeiculo', 'veiculoTipo', 'veiculoMarca', 'veiculoModelo', 'veiculoAno', 'conducaoH', 'conducaoBase', 'carroceria', 'tipoCarga', 'carregaDescarrega', 'abastecimento', 'acidenteVinculo', 'assaltoVinculo'].map((k) => [k, s(x[k])]).filter(([, val]) => val)) })),
     documentos: lista(obj.documentos).map((x) => ({ tipo: s(x.tipo), identificacao: s(x.identificacao), analise: s(x.analise) })),
     // legendas das fotos já anexadas ao caso, pelo número (ordem das fotos no app)
@@ -356,17 +363,24 @@ export async function aplicarIA(caseId, dados, { substituir = false, criarPeriod
     const vistos = new Map(existentes.map((r) => [chave(r.data), r]));
     // vínculo com o nome da empresa escrito de outro jeito: reconhece pelas datas
     const porDatas = new Map(lista === 'periodos' ? existentes.filter((r) => r.data.inicio).map((r) => [`${r.data.inicio}|${r.data.fim || ''}`, r]) : []);
+    // mesma empresa e mesmo início: é o mesmo vínculo com outra data de fim (vínculos sequenciais unidos num só)
+    const porInicio = new Map(lista === 'periodos' ? existentes.filter((r) => r.data.inicio).map((r) => [`${normTxt(r.data.empresa).slice(0, 30)}|${r.data.inicio}`, r]) : []);
     let ordem = existentes.length;
     for (const item of dados[lista]) {
-      const ja = vistos.get(chave(item)) || (lista === 'periodos' && item.inicio ? porDatas.get(`${item.inicio}|${item.fim || ''}`) : undefined);
+      const ja = vistos.get(chave(item)) || (lista === 'periodos' && item.inicio
+        ? porDatas.get(`${item.inicio}|${item.fim || ''}`) || porInicio.get(`${normTxt(item.empresa).slice(0, 30)}|${item.inicio}`) : undefined);
       if (!ja && lista === 'periodos' && !criarPeriodos) continue;
       if (ja) {
         // "substituir": o que vier preenchido corrige o registro existente; senão, só completa o que está vazio
         const novos = Object.fromEntries(Object.entries(item).filter(([k, val]) => String(val ?? '').trim()
           && (substituir ? String(val).trim() !== String(ja.data[k] ?? '').trim() : !String(ja.data[k] ?? '').trim())));
+        delete novos.fimAberto;
+        // vínculo em aberto ("fim": "atual"): com "substituir", limpa a data de fim antiga
+        if (item.fimAberto && substituir && String(ja.data.fim || '').trim()) novos.fim = '';
         if (Object.keys(novos).length) await updateFields(ja.id, novos);
         continue;
       }
+      delete item.fimAberto;
       vistos.set(chave(item), { data: item });
       ordem += 1;
       await createRecord(kind, caseId, { ...item, ordem });

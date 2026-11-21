@@ -3,6 +3,8 @@
 import { db } from './db.js';
 
 export const DESC_APENDICE = 'apendice';
+// documentos de terceiros que acompanham o laudo (ART, CNIS, certidões, declarações): saem como Anexo A, B, C…
+export const DESC_ANEXO_DOC = 'anexoDoc';
 export const LETRAS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 async function carregarPdfjs() {
@@ -117,9 +119,9 @@ export async function paginasDoArquivo(blob, mime = '', { paginas = null } = {})
   return [await canvasParaPagina(c)];
 }
 
-export async function apendicesRegistros(caseId) {
+export async function apendicesRegistros(caseId, desc = DESC_APENDICE) {
   return (await db.records.where('[caseId+kind]').equals([caseId, 'anexo']).toArray())
-    .filter((r) => !r.deleted && r.data.descricao === DESC_APENDICE)
+    .filter((r) => !r.deleted && r.data.descricao === desc)
     .sort((a, b) => (Number(a.data.ordem) || 0) - (Number(b.data.ordem) || 0) || a.createdAt - b.createdAt);
 }
 

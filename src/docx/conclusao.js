@@ -171,7 +171,7 @@ export function conclusaoPrevidenciaria(d, dados, { tituloQuadro = 'Conclusão p
   const av = avaliarPeriodos(dados);
   if (!av.length) { d.redigir('cadastre os vínculos na etapa 2. Autos.'); return; }
   const penDe = (r) => (penosidade ? penosidade(r) : null);
-  d.quadro(tituloQuadro, [['Vínculo / período', 'Avaliação pericial', 'Código', 'Caracteriza'],
+  d.quadro(tituloQuadro, [['Vínculo / período', dados.c.tipoAtuacao === 'Extrajudicial' ? 'Avaliação' : 'Avaliação pericial', 'Código', 'Caracteriza'],
     ...av.flatMap(({ r, segs }) => segs.map((s) => [`${empresaCurta(r)}\n${dataBR(s.ini)} a ${fimSeg(r, s)}`,
       [s.itens.length ? s.itens.map((i) => i.t).join('\n') : '[[sem avaliação quantitativa para o período]]', penDe(r) === true && s.fim > '1995-04-28' ? 'Penosidade: caracterizada na matriz de fatores (item 3)' : ''].filter(Boolean).join('\n'),
       [s.codigos, penDe(r) === true && s.fim > '1995-04-28' && s.caracteriza !== 'SIM' ? 'penosidade (IAC nº 5 do TRF4; Tema 1307 do STJ)' : ''].filter((x) => x && x !== '—').join('; ') || '—',
@@ -188,12 +188,12 @@ export function conclusaoPrevidenciaria(d, dados, { tituloQuadro = 'Conclusão p
     const sim = segs.filter((s) => s.caracteriza === 'SIM');
     const nao = segs.filter((s) => s.caracteriza === 'NÃO');
     // subperíodos contíguos com o mesmo resultado viram um só intervalo no texto
-    const pl = (lst, um, varios) => (p(lst).includes(', ') ? varios : um);
+    const pl = (lst, um, varios) => (/, | e \d/.test(p(lst)) ? varios : um);
     const p = (lst) => lst.reduce((acc, s) => {
       const u = acc[acc.length - 1];
       if (u && dia(u.fim, 1) === s.ini) u.fim = s.fim; else acc.push({ ini: s.ini, fim: s.fim });
       return acc;
-    }, []).map((s) => `${dataBR(s.ini)} a ${fimSeg(r, s)}`).join(', ');
+    }, []).map((s) => `${dataBR(s.ini)} a ${fimSeg(r, s)}`).join(', ').replace(/, ([^,]*)$/, ' e $1');
     const partes = [];
     // enquadramento só por categoria (até 28/04/1995) é presunção legal, não exposição avaliada
     const soCat = (s) => s.itens.filter((i) => i.sup).every((i) => i.categoria);
@@ -209,14 +209,16 @@ export function conclusaoPrevidenciaria(d, dados, { tituloQuadro = 'Conclusão p
     if (naoSo.length) partes.push(`não caracteriza ${pl(naoSo, 'no período', 'nos períodos')} de ${p(naoSo)}, em que os valores avaliados não superam os limites da época`);
     const base = [val.fonteR && `ruído pelo ${val.fonteR}`, val.fonteV && `vibração pelo ${val.fonteV}`, isFinite(val.T) && `condução de ${fmtHoras(val.T)}/dia`].filter(Boolean).join(', ');
     if (!partes.length && segs.some((sg) => sg.caracteriza === '[[pendente]]')) { pendentes.push(`${r.data.empresa || 'Vínculo'} (tempo diário de condução)`); continue; }
-    if (partes.length) d.texto(`**${empresaCurta(r)} (${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}):** a avaliação pericial${base ? ` (${base})` : ''} ${partes.join('; e ')}.`);
+    if (partes.length) d.texto(`**${empresaCurta(r)} (${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}):** a avaliação${dados.c.tipoAtuacao === 'Extrajudicial' ? '' : ' pericial'}${base ? ` (${base})` : ''} ${partes.join('; e ')}.`);
     else pendentes.push(`${r.data.empresa || 'Vínculo'}${isFinite(val.T) || !RE_MOT.test(`${r.data.cargo || ''} ${r.data.atividades || ''}`) ? '' : ' (e o tempo diário de condução)'}`);
   }
   // um aviso só para todos os vínculos ainda sem valores (antes, um "Redigir" por vínculo)
   if (pendentes.length) d.redigir(`conclusão ${pendentes.length === 1 ? 'do vínculo' : 'dos vínculos'} ${pendentes.join('; ')} – sem valores avaliados (${(dados.agentes || []).length ? 'complete o resultado dos agentes avaliados na etapa 2. Autos' : 'cadastre os agentes avaliados na etapa 2. Autos, ou vincule o paradigma ou a medição do veículo/posto'}).`);
   const ruidoSup = av.some(({ segs }) => segs.some((s) => s.itens.some((i) => i.ruido && i.sup)));
   if (ruidoSup && !semEpi && comJurisprudencia(dados)) d.texto('Quanto ao ruído, a eventual declaração de eficácia do EPI (protetor auricular) não descaracteriza o tempo especial (STF, Tema 555 – ARE 664.335).');
-  if (semEpi) d.texto('Não foram apresentados registros de fornecimento de EPI nem dos demais requisitos de responsabilidade do empregador (art. 291 da IN 128/2022); assim, não se considera neutralizada a exposição em nenhum dos períodos.');
+  if (semEpi) d.texto(/Pr[oó]prio/.test(dados.c.pppEmitente || '')
+    ? 'Sem a comprovação dos requisitos cumulativos do art. 291 da IN 128/2022, o EPI informado pelo segurado não é considerado eficaz, e não se considera neutralizada a exposição em nenhum dos períodos.'
+    : 'Não foram apresentados registros de fornecimento de EPI nem dos demais requisitos de responsabilidade do empregador (art. 291 da IN 128/2022); assim, não se considera neutralizada a exposição em nenhum dos períodos.');
 
   if (resumoPenosidade && avaliaPenosidade(dados)) {
     const jur = comJurisprudencia(dados);

@@ -3,6 +3,7 @@ import { avisarAlteracao } from '../sync.js';
 import {
   TIPO_ATUACAO, JUSTICA, MATERIA, PAPEL, OBJETO, FASE, CONTRATADO_POR, CAMPOS_ACIDENTE, ehAcidente, CAMPOS_PROCESSO, CAMPOS_PARTES, CAMPOS_PRAZOS, CAMPOS_HONORARIOS, CAMPOS_PPP, tituloCaso, contextoLegal, ehParecerTecnico, FINALIDADE_PARECER } from '../schema.js';
 import { useLive, ir } from './hooks.js';
+import { PROFISSOES } from '../data/profissoes.js';
 import { siglaTipo, FASE_COR } from './Casos.jsx';
 import { Campos, Chips, Opcoes, Sel, TF } from './fields.jsx';
 import { Preparacao } from './Preparacao.jsx';
@@ -111,6 +112,7 @@ function Resumo({ rec }) {
         <Chips rec={rec} k="objeto" label="Objeto da perícia (azul = marcado; toque para marcar ou desmarcar)" opcoes={OBJETO} />
         <Sel rec={rec} k="fase" label="Fase" opcoes={FASE} vazio={false} />
         <Sel rec={rec} k="jurisprudencia" label="Súmulas e jurisprudência nos documentos deste caso" opcoes={['Padrão (Meus dados)', 'Incluir', 'Não incluir']} vazio={false} />
+        {contextoLegal(rec.data).prev && <Sel rec={rec} k="profissao" label="Profissão (banco de profissões: agentes e critérios já estudados)" opcoes={PROFISSOES.map((p) => p.nome)} />}
         {contextoLegal(rec.data).prev && <Sel rec={rec} k="penosidade" label="Avaliação de penosidade (motorista / cobrador)" opcoes={['Automático', 'Sim', 'Não']} vazio={false} />}
         {rec.data.tipoAtuacao === 'Extrajudicial' && <>
           <Sel rec={rec} k="contratadoPor" label="Quem contratou" opcoes={CONTRATADO_POR} />

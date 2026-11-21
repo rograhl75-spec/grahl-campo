@@ -20,7 +20,7 @@ import { ehParecerTecnico, chaveVistoria, qtdVistorias, vistoriasDoCaso, CAMPOS_
 import { dataBR } from '../docx/reports.js';
 import { guardarAnexo, LIMITE_NUVEM } from '../paradigmas.js';
 import { obterAnexo } from '../sync.js';
-import { DESC_APENDICE, LETRAS, tituloSugerido } from '../apendices.js';
+import { DESC_APENDICE, DESC_ANEXO_DOC, LETRAS, tituloSugerido } from '../apendices.js';
 import { lerAnotacao, promptAnotacoes } from '../notas.js';
 import { lerJsonIA, aplicarIA, faseAvanca } from '../aiimport.js';
 import { BotoesFoto, Miniaturas } from './Fotos.jsx';
@@ -141,8 +141,11 @@ export function Campo({ rec }) {
       </section>
 
       <details class="bloco largo recolhido">
-        <summary><b>No escritório</b> <small class="dica">relatórios dos medidores (apêndices) e importação das anotações</small></summary>
+        <summary><b>No escritório</b> <small class="dica">relatórios dos medidores (apêndices), anexos do documento (ART, CNIS…) e importação das anotações</small></summary>
         <RelatoriosMedicao rec={rec} />
+        <RelatoriosMedicao rec={rec} desc={DESC_ANEXO_DOC} rotulo="Anexo" titulo="Anexos do documento (ART, CNIS, certidões, declarações)"
+          dica="Documentos de terceiros que acompanham o LTCAT: ART, CNIS, certidões, declarações assinadas, fichas de dados de segurança. Cada arquivo sai no fim como Anexo A, B, C…, com todas as páginas."
+          botao="＋ Anexar documento (PDF ou imagem)" />
         <AnotacoesDiligencia rec={rec} />
       </details>
     </div>
@@ -573,9 +576,10 @@ function HorariosPelasEvidencias({ rec }) {
 }
 
 // Relatórios das medições (dosimetria, vibração, IBUTG, certificados): saem como apêndices do laudo
-function RelatoriosMedicao({ rec }) {
+function RelatoriosMedicao({ rec, desc = DESC_APENDICE, rotulo = 'Apêndice', titulo = 'Relatórios das medições (apêndices do laudo)', botao = '＋ Anexar relatório (PDF ou imagem)',
+  dica = 'Anexe os relatórios exportados dos medidores (ruído, vibração, IBUTG) e os certificados de calibração, em PDF ou imagem. Cada arquivo sai no fim do laudo, do parecer ou do LTCAT como Apêndice A, B, C…, com todas as páginas.' }) {
   const lista = useLive(async () => (await db.records.where('[caseId+kind]').equals([rec.id, 'anexo']).toArray())
-    .filter((r) => !r.deleted && r.data.descricao === DESC_APENDICE)
+    .filter((r) => !r.deleted && r.data.descricao === desc)
     .sort((a, b) => (Number(a.data.ordem) || 0) - (Number(b.data.ordem) || 0) || a.createdAt - b.createdAt), [rec.id], []);
   const [msg, setMsg] = useState('');
   const anexar = async (e) => {
@@ -583,12 +587,12 @@ function RelatoriosMedicao({ rec }) {
     e.currentTarget.value = '';
     let ordem = lista.length;
     for (const f of arqs) {
-      const id = await guardarAnexo(f, DESC_APENDICE, rec.id);
+      const id = await guardarAnexo(f, desc, rec.id);
       ordem += 1;
-      await updateFields(id, { titulo: tituloSugerido(f.name), ordem });
+      await updateFields(id, { titulo: desc === DESC_APENDICE ? tituloSugerido(f.name) : f.name.replace(/\.[a-z0-9]+$/i, '').replace(/[_-]+/g, ' ').trim(), ordem });
     }
     avisarAlteracao();
-    setMsg(arqs.some((f) => f.size > LIMITE_NUVEM) ? 'Arquivo com mais de 39 MB: fica só neste aparelho.' : `${arqs.length} relatório(s) anexado(s). Ajuste o título de cada apêndice.`);
+    setMsg(arqs.some((f) => f.size > LIMITE_NUVEM) ? 'Arquivo com mais de 39 MB: fica só neste aparelho.' : `${arqs.length} arquivo(s) anexado(s). Ajuste o título de cada ${rotulo.toLowerCase()}.`);
   };
   const abrir = async (r) => { try { window.open(URL.createObjectURL(await obterAnexo(r.id)), '_blank'); } catch (err) { setMsg(err.message); } };
   const remover = async (r) => { if (await confirmar(`Remover "${r.data.nome}"?`)) { await softDelete(r.id); avisarAlteracao(); } };
@@ -601,11 +605,11 @@ function RelatoriosMedicao({ rec }) {
   };
   return (
     <section class="bloco largo">
-      <h3>Relatórios das medições (apêndices do laudo)</h3>
-      <p class="dica">Anexe os relatórios exportados dos medidores (ruído, vibração, IBUTG) e os certificados de calibração, em PDF ou imagem. Cada arquivo sai no fim do laudo, do parecer ou do LTCAT como Apêndice A, B, C…, com todas as páginas.</p>
+      <h3>{titulo}</h3>
+      <p class="dica">{dica}</p>
       {lista.map((r, i) => (
         <div class="linha-arquivo quebra">
-          <b>Apêndice {LETRAS[i]}</b>
+          <b>{rotulo} {LETRAS[i]}</b>
           <input type="text" class="cresce" value={r.data.titulo || r.data.nome}
             onChange={async (e) => { await updateFields(r.id, { titulo: e.currentTarget.value }); avisarAlteracao(); }} />
           <small>{r.data.nome}{r.data.soLocal ? ' · só neste aparelho' : ''}</small>
@@ -617,7 +621,7 @@ function RelatoriosMedicao({ rec }) {
           </span>
         </div>
       ))}
-      <label class="botao-arquivo">＋ Anexar relatório (PDF ou imagem)<input type="file" accept="application/pdf,.pdf,image/*" multiple hidden onChange={anexar} /></label>
+      <label class="botao-arquivo">{botao}<input type="file" accept="application/pdf,.pdf,image/*" multiple hidden onChange={anexar} /></label>
       {msg && <p class="alerta-txt">{msg}</p>}
     </section>
   );

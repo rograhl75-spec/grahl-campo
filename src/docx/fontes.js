@@ -102,6 +102,7 @@ export function referencias(dados, { prev, judicial = true } = {}) {
       'BRASIL. [Constituição (1988)]. Emenda Constitucional nº 103, de 12 de novembro de 2019. Brasília, DF: Presidência da República, 2019.',
       'BRASIL. Ministério do Trabalho. Norma Regulamentadora nº 15 (NR-15): Atividades e Operações Insalubres. Brasília, DF, redação vigente em cada período.',
       'INSTITUTO NACIONAL DO SEGURO SOCIAL (Brasil). Instrução Normativa PRES/INSS nº 128, de 28 de março de 2022. Brasília, DF: INSS, 2022.',
+      'INSTITUTO NACIONAL DO SEGURO SOCIAL (Brasil). Manual de Aposentadoria Especial. Brasília, DF: INSS, 2018.',
     );
   } else {
     r.push(
@@ -128,8 +129,8 @@ export function referencias(dados, { prev, judicial = true } = {}) {
     r.push('INTERNATIONAL ORGANIZATION FOR STANDARDIZATION. ISO 5349-1: {{en:mechanical vibration – measurement and evaluation of human exposure to hand-transmitted vibration – part 1: general requirements}}. Geneva: ISO, 2001.');
   }
   if (quimico) {
-    if (/poeira|s[ií]lica|particulad|fumos? met|asbesto|amianto|carv[ãa]o/i.test(`${dados.c.agentesAlegados || ''} ${dados.medicoes.map((m) => `${m.data.descricao || ''} ${m.data.metodo || ''}`).join(' ')}`)) r.push('FUNDACENTRO. NHO 08: coleta de material particulado sólido suspenso no ar de ambientes de trabalho. São Paulo: FUNDACENTRO, 2009.');
-    r.push('AMERICAN CONFERENCE OF GOVERNMENTAL INDUSTRIAL HYGIENISTS (ACGIH). {{en:TLVs and BEIs: threshold limit values for chemical substances and physical agents}}. Cincinnati: ACGIH, edição vigente. (Referência técnica complementar; NR-9, item 9.6.1.1.)');
+    if (/poeira|s[ií]lica|particulad|fumos? met|asbesto|amianto|carv[ãa]o/i.test(`${(dados.agentes || []).length ? dados.agentes.map((a) => a.data.nome).join(' ') : dados.c.agentesAlegados || ''} ${dados.medicoes.map((m) => `${m.data.descricao || ''} ${m.data.metodo || ''}`).join(' ')}`)) r.push('FUNDACENTRO. NHO 08: coleta de material particulado sólido suspenso no ar de ambientes de trabalho. São Paulo: FUNDACENTRO, 2009.');
+    r.push('{{en:AMERICAN CONFERENCE OF GOVERNMENTAL INDUSTRIAL HYGIENISTS}} (ACGIH). {{en:TLVs and BEIs: threshold limit values for chemical substances and physical agents}}. Cincinnati: ACGIH, edição vigente. (Referência técnica complementar; NR-9, item 9.6.1.1.)');
   }
   // ABNT: ordem alfabética por autor; do mesmo autor, ordem cronológica (ordem de inserção)
   const autor = (t) => t.split('.')[0];

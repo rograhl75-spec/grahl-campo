@@ -18,6 +18,45 @@ import { guardarAnexo, LIMITE_NUVEM } from '../paradigmas.js';
 import { obterAnexo } from '../sync.js';
 import { Icone } from './Icone.jsx';
 import { confirmar } from './dialogo.jsx';
+import { profissaoDoCaso, PROFISSOES } from '../data/profissoes.js';
+import { createRecord, caseChildren } from '../db.js';
+
+// Banco de profissões: carrega no caso os agentes avaliados, o CBO e a profissiografia já estudados
+const chaveAgente = (n) => String(n || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s*\(.*$/, '').replace(/[^a-z0-9]+/g, ' ').trim();
+function CarregarProfissao({ rec }) {
+  const periodos = useLive(async () => caseChildren(rec.id, 'periodo'), [rec.id], []);
+  const [msg, setMsg] = useState('');
+  const prof = profissaoDoCaso(rec.data, periodos);
+  if (!prof) return <p class="dica largo">Banco de profissões: escolha a profissão no cadastro (etapa 1) para carregar os agentes e a profissiografia já estudados ({PROFISSOES.map((p) => p.nome).join(', ')}).</p>;
+  const carregar = async () => {
+    if (!(await confirmar(`Carregar os ${prof.agentes.length} agentes avaliados e a profissiografia padrão de ${prof.nome}? Os agentes que já estão no caso não são repetidos; os campos já preenchidos dos vínculos não mudam. Depois, exclua os agentes que o segurado não usa.`))) return;
+    const existentes = new Set((await caseChildren(rec.id, 'agenteAvaliado')).map((a) => chaveAgente(a.data.nome)));
+    let n = 0; let ordem = existentes.size;
+    for (const a of prof.agentes) {
+      if (existentes.has(chaveAgente(a.nome))) continue;
+      ordem += 1; n += 1;
+      await createRecord('agenteAvaliado', rec.id, { ...a, ordem });
+    }
+    let nv = 0;
+    for (const r of await caseChildren(rec.id, 'periodo')) {
+      const novos = {};
+      if (!String(r.data.cbo || '').trim()) novos.cbo = prof.cbo;
+      if (!String(r.data.profissiografia || '').trim()) novos.profissiografia = prof.profissiografia;
+      if (Object.keys(novos).length) { await updateFields(r.id, novos); nv += 1; }
+    }
+    if (!String(rec.data.analiseEpi || '').trim()) await updateFields(rec.id, { analiseEpi: prof.epi });
+    avisarAlteracao();
+    setMsg(`${n} agente(s) carregado(s); ${nv} vínculo(s) completado(s) com CBO e profissiografia. Revise os resultados e exclua o que não se aplica.`);
+  };
+  return (
+    <section class="bloco largo">
+      <h3>Banco de profissões – {prof.nome}</h3>
+      <p class="dica">Agentes avaliados ({prof.agentes.length}), CBO {prof.cbo}, profissiografia e análise de EPI já estudados em laudos anteriores. Os resultados são os seus critérios: revise em cada caso. Roteiro de entrevista: {prof.roteiro.length} itens; documentos a pedir: {prof.documentos.join(', ')}.</p>
+      <button type="button" class="sec" onClick={carregar}>Carregar agentes e profissiografia de {prof.nome}</button>
+      {msg && <p class="ok-msg">{msg}</p>}
+    </section>
+  );
+}
 
 export function Preparacao({ rec }) {
   const sintese = CAMPOS_SINTESE.filter(([k]) => k !== 'roteiro' && k !== 'analiseEpi');
@@ -37,6 +76,7 @@ export function Preparacao({ rec }) {
           (r.data.paradigmaRuido || r.data.paradigmaVibracao) && `paradigmas ${[r.data.paradigmaRuido, r.data.paradigmaVibracao].filter(Boolean).join('/')}`].filter(Boolean).join(' · ')}
         extra={(r) => <VeiculoDoPeriodo r={r} />} />
       <ParadigmasDosVinculos rec={rec} />
+      {contextoLegal(rec.data).prev && <CarregarProfissao rec={rec} />}
       {contextoLegal(rec.data).prev && (
         <RecordList kind="agenteAvaliado" caseId={rec.id} campos={CAMPOS_AGENTE_AVALIADO} titulo="Agentes avaliados (sem medição: biológicos, químicos e físicos)" novo="Adicionar agente"
           inicial={{ tipo: 'Químico' }}

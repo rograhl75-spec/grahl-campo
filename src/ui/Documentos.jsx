@@ -339,7 +339,7 @@ function ItemPendencia({ it, responder }) {
       {it.tipo === 'numero' && String(txt).trim() && (isFinite(h)
         ? <small class="dica">O app entendeu: <b>{fmtHoras(h)}</b>{it.campo === 'foraDirecaoH' ? ' por dia fora da direção' : ' por dia'}.</small>
         : <small class="erro-msg">Não entendi um número de horas. Digite só o número (ex.: 5 ou 8,5).</small>)}
-      {it.tipo === 'aviso' && it.link && <div class="linha-botoes"><a class="botao sec mini" href={it.link}>Ir para Paradigmas</a></div>}
+      {it.tipo === 'aviso' && it.link && <div class="linha-botoes"><a class="botao sec mini" href={it.link}>{it.rotuloLink || 'Ir para Paradigmas'}</a></div>}
       {it.tipo === 'simnao' && (
         <div class="linha-botoes">
           <button type="button" class="mini" onClick={() => escolherSimNao('Sim – caracteriza')}>Sim – caracteriza</button>

@@ -6,7 +6,7 @@ import { comJurisprudencia } from './fontes.js';
 import { avaliaPenosidade, vinculosMotorista, matrizIAC, tempoConducao } from './penosidade.js';
 import { nenParaJornada, vibracaoDoParadigma } from '../paradigmas.js';
 import { num, fmt, nen, fatorQ, horasDia, fmtHoras, lavgDaDose } from '../calc.js';
-import { categoriaSaude, itensAgentes, lerAfastamentos, recortarAfastamentos } from '../enquadramento.js';
+import { categoriaSaude, itensAgentes, lerAfastamentos, recortarAfastamentos, agenteNoVinculo, resultadoNoSegmento } from '../enquadramento.js';
 
 const CORTES = ['1995-04-28', '1997-03-05', '2003-11-18', '2014-08-13', '2019-11-13'];
 const dia = (iso, n) => { const d = new Date(`${iso}T12:00:00`); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
@@ -62,6 +62,32 @@ export function valores(r, dados) {
 }
 
 const empresaCurta = (r) => String(r.data.empresa || 'vínculo').replace(/\s*\([^)]*\)/g, '').trim();
+// células da síntese de um subperíodo: [período, categoria, biológicos, químicos, físicos, resultado]
+const codCurto = (c) => String(c || '').split(/\s+\(|\s+–\s+/)[0].trim();
+const nomeMin = (n) => String(n || '').replace(/\s*\(.*$/, '').replace(/^\p{Lu}(?=\p{Ll})/u, (c) => c.toLowerCase());
+const lista = (l) => l.join(', ').replace(/, ([^,]*)$/, ' e $1');
+function celulasSintese(s, r, idx, dados, penoso, penosidade) {
+  const cat = s.itens.filter((i) => i.categoria && i.sup).map((i) => `${i.t.replace(/^Categoria profissional de /, '').replace(/ – enquadramento por presunção$/, '')} (cód. ${i.cod})`);
+  const col = { 'Biológico': new Map(), 'Químico': new Map(), 'Físico': new Map() };
+  const pend = { 'Biológico': [], 'Químico': [], 'Físico': [] };
+  for (const a of dados.agentes || []) {
+    if (!agenteNoVinculo(a, idx)) continue;
+    const tipo = a.data.tipo || 'Químico';
+    const { res, cod } = resultadoNoSegmento(a, s.fim);
+    if (res === 'Caracteriza') { const k = codCurto(cod) || 'código a definir'; if (!col[tipo].has(k)) col[tipo].set(k, []); col[tipo].get(k).push(nomeMin(a.data.nome)); }
+    else if (!res || res === 'A confirmar') pend[tipo].push(nomeMin(a.data.nome));
+  }
+  const texto = (tipo, extra = []) => {
+    const l = [...extra, ...[...col[tipo].entries()].map(([k, ns]) => (tipo === 'Biológico' && ns.length === 1 ? `cód. ${k}` : `${lista(ns)} (cód. ${k})`))];
+    if (pend[tipo].length) l.push(`[[a confirmar: ${lista(pend[tipo])}]]`);
+    return l.length ? l.join('\n') : '—';
+  };
+  // medições (ruído, vibração, calor) e itens que não vêm do cadastro de agentes
+  const fis = s.itens.filter((i) => !i.categoria && !i.agente).map((i) => i.t);
+  const res = penosidade ? resultadoSubperiodo(s, penoso) : s.caracteriza;
+  const pen = penoso === true && s.fim > '1995-04-28' ? '\npenosidade (matriz do item 3)' : '';
+  return [`${empresaCurta(r)}\n${dataBR(s.ini)} a ${fimSeg(r, s)}`, cat.length ? cat.join('\n') : '—', texto('Biológico'), texto('Químico'), texto('Físico', fis), `${res}${pen}`];
+}
 // nota de rodapé da síntese: só fala de ruído e vibração quando houver
 function fonteSintese(dados, av) {
   const ruido = av.some(({ segs }) => segs.some((s) => s.itens.some((i) => i.ruido)));
@@ -70,7 +96,7 @@ function fonteSintese(dados, av) {
   const partes = ['Elaborado pelo signatário.'];
   if (ruido) partes.push('Ruído com o fator de duplicação de cada medição (q = 5, salvo indicação de q = 3).');
   if (ruido || vib) partes.push(`NEN${vib ? ' e aren' : ''} normalizados para o tempo diário de exposição${/motorista|caminh|ônibus|carreteir/i.test(`${dados.c.funcoes || ''} ${dados.periodos.map((r) => r.data.cargo || '').join(' ')}`) ? ' (condução)' : ''} de cada vínculo, quando informado.`);
-  if (quali) partes.push('Agentes sem medição: resultado da avaliação qualitativa do item 5, pelo código vigente em cada época.');
+  if (quali) partes.push('Constam os agentes que caracterizam em cada período, agrupados pelo código vigente na época; os que não caracterizam ou não constam do rol do período estão no item 5.');
   return partes.join(' ');
 }
 
@@ -171,16 +197,16 @@ export function conclusaoPrevidenciaria(d, dados, { tituloQuadro = 'Conclusão p
   const av = avaliarPeriodos(dados);
   if (!av.length) { d.redigir('cadastre os vínculos na etapa 2. Autos.'); return; }
   const penDe = (r) => (penosidade ? penosidade(r) : null);
-  // uma linha por item avaliado, com o código ao lado do próprio item; período e resultado só na primeira linha
-  const linhasSintese = av.flatMap(({ r, segs }) => segs.flatMap((s) => {
-    const its = s.itens.length ? s.itens.map((i) => [i.t, i.sup ? (i.cod || '—') : '—']) : [['[[sem avaliação quantitativa para o período]]', '—']];
-    if (penDe(r) === true && s.fim > '1995-04-28') its.push(['Penosidade: caracterizada na matriz de fatores (item 3)', s.caracteriza !== 'SIM' ? 'penosidade (IAC nº 5 do TRF4; Tema 1307 do STJ)' : '—']);
-    const res = penosidade ? resultadoSubperiodo(s, penDe(r)) : s.caracteriza;
-    return its.map(([t, cod], k) => [k ? '' : `${empresaCurta(r)}\n${dataBR(s.ini)} a ${fimSeg(r, s)}`, t, cod, k ? '' : res]);
-  }));
-  d.quadro(tituloQuadro, [['Vínculo / período', dados.c.tipoAtuacao === 'Extrajudicial' ? 'Avaliação' : 'Avaliação pericial', 'Código', 'Caracteriza'], ...linhasSintese],
-  { larguras: [0.19, 0.43, 0.23, 0.15], tam: 9, alinhar: 'left',
-    fonte: fonteSintese(dados, av) });
+  // uma linha por período; uma coluna por tipo (categoria, biológicos, químicos, físicos), com os agentes que
+  // caracterizam agrupados pelo código; os que não caracterizam ficam no item de avaliação (fonte do quadro)
+  const linhasSintese = av.map(({ r, segs }, idx) => segs.map((s) => celulasSintese(s, r, idx, dados, penDe(r), penosidade))).flat();
+  const temCol = [1, 2, 3, 4].map((k) => linhasSintese.some((l) => l[k] !== '—'));
+  const cab = ['Vínculo / período', 'Categoria profissional', 'Agentes biológicos', 'Agentes químicos', 'Agentes físicos', 'Resultado'];
+  const pesos = [0.16, 0.16, 0.18, 0.32, 0.18, 0.12];
+  const usar = [true, ...temCol, true];
+  const larg = pesos.filter((_, i) => usar[i]); const soma = larg.reduce((x, y) => x + y, 0);
+  d.quadro(tituloQuadro, [cab.filter((_, i) => usar[i]), ...linhasSintese.map((l) => l.filter((_, i) => usar[i]))],
+    { larguras: larg.map((x) => x / soma), tam: 8.5, alinhar: 'left', fonte: fonteSintese(dados, av) });
   // afastamentos que não contam como tempo especial
   const excl = av.flatMap(({ r, excluidos }) => (excluidos || []).map(([a, b, x]) => `${dataBR(a)} a ${dataBR(b)} (${empresaCurta(r)})`));
   if (excl.length) d.texto(`Não ${excl.length > 1 ? 'são computados' : 'é computado'} como tempo especial o afastamento por benefício por incapacidade temporária de natureza previdenciária – ${excl.join('; ')} –, pois, a partir do Decreto nº 10.410/2020, somente o afastamento decorrente de benefício acidentário é considerado tempo de trabalho permanente (art. 65, parágrafo único, do Decreto nº 3.048/1999).`);

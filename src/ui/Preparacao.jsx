@@ -57,11 +57,35 @@ function CarregarProfissao({ rec }) {
     setMsg([n ? `${n} agente(s) carregado(s)` : 'Nenhum agente novo', ja ? `${ja} já estava(m) no caso (não repetidos${completados ? `; ${completados} completado(s) nos campos vazios` : ''})` : '',
       nv ? `${nv} vínculo(s) completado(s) com CBO e profissiografia` : 'vínculos já com CBO e profissiografia'].filter(Boolean).join('; ') + (n ? '. Revise os resultados e exclua o que não se aplica.' : '.'));
   };
+  // aplica os critérios do banco aos agentes que já estão no caso: códigos, resultados, fundamentação e textos;
+  // resultado "a confirmar" no banco não substitui a resposta já dada no caso (ex.: mercúrio, raios X)
+  const aplicar = async () => {
+    if (!(await confirmar(`Aplicar aos agentes que já estão no caso os critérios atuais do banco de ${prof.nome}? Substitui códigos, resultados, fundamentação e textos do art. 68 pelos do banco; as respostas que você deu aos agentes "a confirmar" no banco (ex.: mercúrio, raios X) são mantidas.`))) return;
+    const lista = await caseChildren(rec.id, 'agenteAvaliado');
+    const mesmo = (x, y) => { const a = chaveAgente(x), b = chaveAgente(y); return a === b || (a.length >= 6 && b.startsWith(a)) || (b.length >= 6 && a.startsWith(b)); };
+    let n = 0;
+    for (const a of prof.agentes) {
+      const ja = lista.find((r) => mesmo(r.data.nome, a.nome));
+      if (!ja) continue;
+      const novos = {};
+      for (const [k, val] of Object.entries(a)) {
+        if (['nome', 'tipo', 'vinculos'].includes(k) || !String(val ?? '').trim()) continue;
+        if (/^res/.test(k) && val === 'A confirmar' && String(ja.data[k] || '').trim()) continue;
+        if (String(ja.data[k] ?? '') !== String(val)) novos[k] = val;
+      }
+      if (Object.keys(novos).length) { await updateFields(ja.id, novos); n += 1; }
+    }
+    avisarAlteracao();
+    setMsg(n ? `${n} agente(s) atualizado(s) pelos critérios do banco.` : 'Os agentes do caso já seguem os critérios do banco.');
+  };
   return (
     <section class="bloco largo">
       <h3>Banco de profissões – {prof.nome}</h3>
       <p class="dica">Agentes avaliados ({prof.agentes.length}), CBO {prof.cbo}, profissiografia e análise de EPI já estudados em laudos anteriores. Os resultados são os seus critérios: revise em cada caso. Roteiro de entrevista: {prof.roteiro.length} itens; documentos a pedir: {prof.documentos.join(', ')}.</p>
-      <button type="button" class="sec" onClick={carregar}>Carregar agentes e profissiografia de {prof.nome}</button>
+      <div class="linha-botoes">
+        <button type="button" class="sec" onClick={carregar}>Carregar agentes e profissiografia de {prof.nome}</button>
+        <button type="button" class="sec" onClick={aplicar}>Aplicar os critérios atuais do banco aos agentes do caso</button>
+      </div>
       {msg && <p class="ok-msg">{msg}</p>}
     </section>
   );

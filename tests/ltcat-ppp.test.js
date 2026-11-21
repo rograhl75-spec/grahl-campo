@@ -72,7 +72,7 @@ describe('LTCAT + PPP (dentista)', () => {
     const t = await texto(r);
     const tp = await texto(r.extras[0]);
     if (process.env.SALVAR_DOCS) { await writeFile(`${process.env.SALVAR_DOCS}/ltcat.docx`, Buffer.from(await r.blob.arrayBuffer())); await writeFile(`${process.env.SALVAR_DOCS}/ppp.docx`, Buffer.from(await r.extras[0].blob.arrayBuffer())); }
-    expect(t).toContain('Categoria profissional de cirurgião-dentista');
+    expect(t).toContain('cirurgião-dentista (cód. 2.1.3');
     expect(t).toContain('3.0.1, a');
     expect(t).toContain('art. 1º da Lei nº 10.666/2003');
     expect(t).toContain('13/11/2025 a 30/11/2025');
@@ -125,7 +125,8 @@ describe('técnica pelo Manual de Aposentadoria Especial e quadros dos agentes',
     const { bancoDoAgente, orgaosEmPortugues } = await import('../src/docx/agentesQuadros.js');
     expect(tecnicaDoAgente({ data: { tipo: 'Biológico' } }, false)).toBe('Qualitativa');
     expect(tecnicaDoAgente({ data: { tipo: 'Químico', codDesde97: '1.0.9 – avaliação quantitativa (NR-15, Anexo 11)' } }, false)).toBe('Quantitativa – NR-15, Anexo 11');
-    expect(tecnicaDoAgente({ data: { tipo: 'Químico' } }, true)).toMatch(/presunção/);
+    expect(tecnicaDoAgente({ data: { tipo: 'Químico' } }, true)).toBe('Qualitativa');
+    expect(tecnicaDoAgente({ data: { tipo: 'Químico', codDesde97: '1.0.3 – avaliação qualitativa' } }, false)).toBe('Qualitativa – NR-15, Anexo 13');
     expect(tecnicaDoAgente({ data: { tipo: 'Físico', nome: 'Radiações ionizantes' } }, false)).toMatch(/Anexo 5/);
     expect(tecnicaDoAgente({ data: { tipo: 'Químico', tecnica: 'Digitada' } }, false)).toBe('Digitada');
     const banco = [{ id: 'q1', data: { nome: 'Ácido fosfórico', sinonimos: 'Phosphoric acid', cas: '0000-00-0' } }, { id: 'q2', data: { nome: 'Mercúrio (elementar)', sinonimos: 'Hg' } }];

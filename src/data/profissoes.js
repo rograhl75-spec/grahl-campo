@@ -33,7 +33,6 @@ export const PROFISSOES = [
     "fonte": "Atendimento clínico odontológico: sangue, saliva, aerossóis da alta rotação e perfurocortantes contaminados",
     "resAte97": "Caracteriza",
     "resDesde97": "Caracteriza",
-    "intensidade": "Não se aplica",
     "epcEficaz": "Não",
     "epiEficaz": "Não",
     "fundamentacao": "Na clínica odontológica, o cirurgião-dentista mantém contato direto e habitual com sangue, saliva e secreções dos pacientes, com aerossóis gerados pela caneta de alta rotação e pelo ultrassom e com instrumental perfurocortante contaminado (anestesia, exodontia, raspagem, endodontia, cirurgias e implantes), em todos os atendimentos da jornada. A exposição é inerente à atividade e não depende de tempo mínimo diário. O consultório odontológico é estabelecimento de saúde, e a atividade corresponde ao cód. 1.3.2 do Decreto 53.831/1964 (assistência odontológica) e ao cód. 1.3.4 do Anexo I do Decreto 83.080/1979 (dentistas) até 05/03/1997, e ao cód. 3.0.1, alínea \"a\", do Anexo IV dos Decretos 2.172/1997 e 3.048/1999 a partir de 06/03/1997. Luvas, máscara e óculos reduzem, mas não eliminam, o contato com material biológico e o risco de acidente perfurocortante.",

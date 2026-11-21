@@ -555,6 +555,7 @@ export async function ltcatPpp(caseId) {
   d.h2('5.2', 'Medidas de controle');
   d.texto('Considera-se adotado o EPC que elimina ou neutraliza a nocividade, desde que asseguradas as condições de funcionamento ao longo do tempo, conforme especificação técnica do fabricante e plano de manutenção, devidamente registradas pela empresa (art. 290 da IN 128/2022). O EPI só é considerado em demonstrações ambientais a partir de 03/12/1998, quando elimina ou neutraliza a nocividade, observa a NR-6, consta do PPP e atende, cumulativamente, aos requisitos do art. 291 da IN 128/2022.');
   if (dados.epis.length) quadroEpis(d, dados.epis);
+  else if (v(c.analiseEpi)) d.texto(c.analiseEpi);
   else d.texto(/Pr[oó]prio/.test(c.pppEmitente || '') ? 'Não há registros de fornecimento de EPI (fichas de entrega com CA, periodicidade de troca, treinamento e higienização); o segurado, que trabalha por conta própria, não mantém esses registros.' : 'Não foram apresentados registros de fornecimento de EPI (fichas de entrega com CA, periodicidade de troca, treinamento e higienização), cuja guarda é de responsabilidade do empregador.');
   quadroRequisitosEpi(d, dados);
   let ini5 = 2;

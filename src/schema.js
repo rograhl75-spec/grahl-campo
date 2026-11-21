@@ -305,6 +305,7 @@ export const CAMPOS_AGENTE_AVALIADO = [
   ['vias', 'Meios de contato e vias de absorção (art. 68, § 2º, III)', 'area'],
   ['frequencia', 'Intensidade, frequência e duração do contato (art. 68, § 2º, III)', 'area'],
   ['efeitos', 'Efeitos à saúde / toxicologia (quadro de características dos químicos)', 'area'],
+  ['limites', 'Limites e classificação (NR-15, LINACH, IARC) – em branco: banco de químicos', 'text'],
   ['codAte97', 'Código até 05/03/1997 (Dec. 53.831/64 e 83.080/79)', 'text'],
   ['resAte97', 'Resultado até 05/03/1997', 'select', RESULTADO_AGENTE],
   ['codDesde97', 'Código a partir de 06/03/1997 (Anexo IV)', 'text'],

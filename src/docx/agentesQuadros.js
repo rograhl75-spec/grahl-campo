@@ -51,7 +51,7 @@ function linhaQuimico(nome, x = {}, q = null) {
     v(b.linach) && `LINACH ${b.linach}`, v(b.iarc) && `IARC ${b.iarc}`,
   ].filter(Boolean).join('; ');
   return [`${nome}${cas ? `\nCAS ${cas}` : ''}`, [vias && `Vias: ${vias}`, orgaos && `Órgãos-alvo: ${orgaos}`].filter(Boolean).join('\n') || '[[vias de absorção]]',
-    efeitos || '[[efeitos à saúde]]', lim || 'Sem limite de tolerância na NR-15'];
+    efeitos || '[[efeitos à saúde]]', v(x.limites) || lim || 'Sem limite de tolerância na NR-15'];
 }
 
 // itens: [{ nome, dados (campos do agente avaliado ou da medição), banco }]

@@ -73,16 +73,31 @@ export function resultadoNoSegmento(a, fim) {
 
 // itens do subperíodo: os que caracterizam e os pendentes, um a um; os que não caracterizam, numa linha só
 export function itensAgentes(agentes, idx, ini, fim) {
-  const itens = []; const nao = []; const fora = [];
+  const itens = []; const nao = []; const fora = []; const sim = new Map();
+  const curto = (n) => n.replace(/\s*\(.*$/, '');
+  // só o código, sem a descrição: "1.0.9 do Anexo IV (cloro…) – avaliação…" → "1.0.9 do Anexo IV"
+  const codCurto = (c) => String(c || '').split(/\s+\(|\s+–\s+/)[0].trim();
   for (const a of agentes) {
     if (!agenteNoVinculo(a, idx)) continue;
     const nome = v(a.data.nome) || 'Agente';
     const { res, cod } = resultadoNoSegmento(a, fim);
-    if (res === 'Caracteriza') itens.push({ t: `${nome}: caracteriza (${tecnicaDoAgente(a, fim <= '1997-03-05').split(' ')[0].toLowerCase()})`, cod: cod || '[[código]]', sup: true, agente: true });
-    else if (res === 'Não caracteriza') nao.push(nome);
-    else if (res === 'Não enquadrável') fora.push(nome);
-    else itens.push({ t: `${nome}: [[resultado a confirmar]]`, cod, sup: false, pendente: true, agente: true });
+    if (res === 'Caracteriza') {
+      const k = `${a.data.tipo || 'Químico'}|${tecnicaDoAgente(a, fim <= '1997-03-05').split(' ')[0].toLowerCase()}`;
+      if (!sim.has(k)) sim.set(k, []);
+      sim.get(k).push({ nome, cod: codCurto(cod) || '[[código]]' });
+    } else if (res === 'Não caracteriza') nao.push(curto(nome));
+    else if (res === 'Não enquadrável') fora.push(curto(nome));
+    else itens.push({ t: `${curto(nome)}: [[resultado a confirmar]]`, cod: codCurto(cod), sup: false, pendente: true, agente: true });
   }
+  // os que caracterizam, um item por tipo (vários químicos numa linha só; o detalhe está no item 5)
+  const plural = { 'Biológico': 'Agentes biológicos', 'Químico': 'Agentes químicos', 'Físico': 'Agentes físicos' };
+  const grupos = [...sim.entries()].map(([k, l]) => {
+    const [tipo, tec] = k.split('|');
+    const cods = [...new Set(l.map((x) => x.cod))].join('; ');
+    if (l.length === 1) return { t: `${l[0].nome}: caracteriza (${tec})`, cod: cods, sup: true, agente: true };
+    return { t: `${plural[tipo] || 'Agentes'} (${tec}): ${l.map((x) => curto(x.nome).replace(/^./, (c) => c.toLowerCase())).join(', ')} – caracterizam`, cod: cods, sup: true, agente: true };
+  });
+  itens.unshift(...grupos);
   // lista longa vira contagem: o detalhe de cada agente está no item 5
   const resumo = (l) => (l.length > 2 ? `${l.length} agentes (item 5)` : l.join('; '));
   if (nao.length) itens.push({ t: `Não caracteriza${nao.length > 1 ? 'm' : ''}: ${resumo(nao)}`, cod: '', sup: false, agente: true });

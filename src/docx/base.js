@@ -1079,7 +1079,9 @@ export function inserirAnexos(d, anexos) {
 // LTCAT e PPP: vínculo em aberto termina na data de emissão do documento (em vez de "atual")
 export function fimNaEmissao(dados) {
   const hoje = hojeLocal();
-  return { ...dados, periodos: dados.periodos.map((r) => (r.data.fim ? r : { ...r, data: { ...r.data, fim: hoje, fimNaEmissao: true } })) };
+  // em aberto: fim vazio ou texto ("atual", "atualmente", "até a presente data"…) em vez de data
+  const aberto = (f) => !/^\d{4}-\d{2}-\d{2}$/.test(String(f || '').trim());
+  return { ...dados, periodos: dados.periodos.map((r) => (aberto(r.data.fim) ? { ...r, data: { ...r.data, fim: hoje, fimNaEmissao: true } } : r)) };
 }
 
 export function inserirApendices(d, apendices, dados) {

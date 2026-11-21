@@ -83,8 +83,11 @@ function runTexto(t, opts, br) {
   if (last < t.length || primeiro) r(t.slice(last), false);
   return out.join('');
 }
+// grafias que o Word marca mesmo corretas ou que mudaram: corrigidas em qualquer texto (inclusive o gravado no caso)
+const GRAFIAS = [[/cut[âa]neo-mucos/gi, (m) => (/^C/.test(m) ? 'Cutaneomucos' : 'cutaneomucos')], [/\bBis-GMA\b/g, 'BIS-GMA'], [/\b(\p{L}{2,}) e também\b/gu, '$1 e']];
+export const grafia = (t) => GRAFIAS.reduce((s, [re, sub]) => s.replace(re, sub), String(t ?? ''));
 export function run(text, opts = {}) {
-  return String(text ?? '').split(/\r?\n/).map((t, i) => {
+  return grafia(text).split(/\r?\n/).map((t, i) => {
     const br = i ? '<w:br/>' : '';
     if (!RE_VDV.test(t)) return runTexto(t, opts, br);
     RE_VDV.lastIndex = 0;
@@ -266,15 +269,24 @@ export class Doc {
   paginasInteiras(paginas, { nota = '', semLegenda = false } = {}) {
     const largMax = (LARGURA / 1440) * 2.54; // cm
     const altMax = 21.5;
+    const medida = (pg) => { let lg = largMax; let alt = (lg * pg.h) / pg.w; if (alt > altMax) { alt = altMax; lg = (altMax * pg.w) / pg.h; } return { lg, alt }; };
+    // páginas baixas (paisagem, como o CNIS, ou com o branco recortado) vão duas por folha, levemente reduzidas se preciso
+    const meia = (altMax - 0.6) / 2;
+    let naFolha = 0; let usada = 0;
     paginas.forEach((pg, i) => {
       this.nImgAp = (this.nImgAp || 0) + 1;
       const n = 5000 + this.nImgAp;
       const rId = `rIdAp${this.nImgAp}`;
       this.imagens.push({ rId, nome: `apendice${this.nImgAp}.jpg`, bytes: pg.bytes });
-      let lg = largMax; let alt = (lg * pg.h) / pg.w;
-      if (alt > altMax) { alt = altMax; lg = (altMax * pg.w) / pg.h; }
-      if (i > 0) this.quebra();
+      let { lg, alt } = medida(pg);
+      const baixa = alt <= altMax * 0.6;
+      if (baixa && alt > meia) { lg = (lg * meia) / alt; alt = meia; }
+      if (i > 0) {
+        if (baixa && naFolha === 1 && usada + alt <= altMax) this.add(p('', { after: 0, line: 240 }));
+        else { this.quebra(); naFolha = 0; usada = 0; }
+      }
       this.add(imagemXml(rId, n, lg, alt));
+      naFolha = baixa ? naFolha + 1 : 2; usada += alt + 0.6;
       if (!semLegenda) this.add(p([run(`${nota ? `${nota} – ` : ''}página ${i + 1} de ${paginas.length}`, { size: 8, color: CINZA })], { align: 'center', after: 0, line: 240 }));
     });
     return this;

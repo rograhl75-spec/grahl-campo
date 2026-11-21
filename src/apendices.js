@@ -16,7 +16,27 @@ async function carregarPdfjs() {
 
 const paraJpeg = (canvas, q = 0.72) => new Promise((res) => canvas.toBlob((b) => res(b), 'image/jpeg', q));
 
-async function canvasParaPagina(canvas) {
+// recorta o branco abaixo do conteúdo (páginas com meia folha preenchida, como as do CNIS)
+function recortarBranco(canvas) {
+  const ctx = canvas.getContext('2d');
+  const { width: w, height: h } = canvas;
+  const dados = ctx.getImageData(0, 0, w, h).data;
+  let fim = h - 1;
+  for (; fim > 0; fim--) {
+    let escuro = 0;
+    for (let x = 0, i = fim * w * 4; x < w; x++, i += 4) if (dados[i] < 200 || dados[i + 1] < 200 || dados[i + 2] < 200) escuro++;
+    if (escuro > 2) break;
+  }
+  const alt = Math.min(h, fim + Math.round(h * 0.02));
+  if (alt > h * 0.9) return canvas;
+  const c = document.createElement('canvas');
+  c.width = w; c.height = alt;
+  c.getContext('2d').drawImage(canvas, 0, 0, w, alt, 0, 0, w, alt);
+  return c;
+}
+
+async function canvasParaPagina(canvas, { recortar = false } = {}) {
+  if (recortar) { try { canvas = recortarBranco(canvas); } catch { /* sem recorte */ } }
   const b = await paraJpeg(canvas);
   return { bytes: new Uint8Array(await b.arrayBuffer()), w: canvas.width, h: canvas.height };
 }
@@ -88,7 +108,7 @@ export async function textosDoPdf(blob) {
 }
 
 // páginas de um arquivo (PDF ou imagem) como JPEG; paginas: só essas (números a partir de 1)
-export async function paginasDoArquivo(blob, mime = '', { paginas = null } = {}) {
+export async function paginasDoArquivo(blob, mime = '', { paginas = null, recortar = false } = {}) {
   const tipo = mime || blob.type || '';
   if (/pdf/i.test(tipo)) {
     const pdfjs = await carregarPdfjs();
@@ -103,7 +123,7 @@ export async function paginasDoArquivo(blob, mime = '', { paginas = null } = {})
       const ctx = c.getContext('2d');
       ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
       await page.render({ canvasContext: ctx, viewport: vp }).promise;
-      out.push(await canvasParaPagina(c));
+      out.push(await canvasParaPagina(c, { recortar }));
       page.cleanup();
     }
     await pdf.destroy();

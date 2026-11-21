@@ -51,7 +51,7 @@ const TERMOS_TECNICOS = ['aren', 'arep', 'areq', 'Lavg', 'Leq', 'NEN', 'VDVR', '
   'Grahl', 'Benz', 'Mercedes', 'Volkswagen', 'Volvo', 'Scania', 'Agrale', 'Atego', 'Iveco', 'Perkins', 'Chevrolet', 'Constellation', 'Worker', 'Delivery',
   'Sonus', 'Criffer', 'Chrompack', 'SmartVib', 'Instrutherm', 'Inlite', 'Rodofrio', 'Jumper', 'Ducato', 'Boxer', 'Cincinnati', 'UFs', 'CNIS', 'CTPS', 'CBO', 'PPP', 'LTCAT',
   'NIT', 'EPC', 'TNU', 'GFIP', 'CAEPF', 'RPS', 'LINACH', 'CRO', 'CRQ', 'CNAE', 'SST', 'MTE', 'PRES', 'PREC', 'PDH', 'SEPRT', 'eSocial', 'CNEN', 'FDS', 'PGRSS', 'ASB', 'TSB',
-  'glutaraldeído', 'formocresol', 'Formocresol', 'paramonoclorofenol', 'Paramonoclorofenol', 'tricresol', 'Tricresol', 'TEGDMA', 'Bis-GMA', 'HEMA', 'GMA',
+  'IARC', 'NIOSH', 'Pocket', 'Guide', 'EDTA', 'PVPI', 'glutaraldeído', 'formocresol', 'Formocresol', 'paramonoclorofenol', 'Paramonoclorofenol', 'tricresol', 'Tricresol', 'TEGDMA', 'Bis-GMA', 'HEMA', 'GMA',
   'metilmercúrio', 'etilmercúrio', 'ésteres', 'metilmetacrilato', 'Metilmetacrilato', 'metacrilatos', 'metacrílicos', 'fotopolimerizador', 'amalgamador', 'Spectro', 'Dabi', 'Atlante', 'Villevie', 'Uniodonto'];
 const extras = new Set();
 let reTec = null;
@@ -457,7 +457,8 @@ export function tabela(linhas, { larguras, header = true, tam = 10, alinhar = 'a
   tam = Math.max(tam, 8);
   const ncol = Math.max(...linhas.map((l) => l.length));
   const ws = larguras ? larguras.map((f) => Math.round(f * LARGURA)) : Array(ncol).fill(Math.round(LARGURA / ncol));
-  const al = ws.map((w, ci) => (alinhar === 'center' ? 'center' : alinhamentoColuna(linhas, ci, w, header)));
+  // 'left' pedido no quadro: texto à esquerda (sem justificar, que abre espaços nas colunas estreitas); colunas curtas seguem centralizadas
+  const al = ws.map((w, ci) => (alinhar === 'center' ? 'center' : alinhar === 'left' ? (alinhamentoColuna(linhas, ci, w, header) === 'center' ? 'center' : 'left') : alinhamentoColuna(linhas, ci, w, header)));
   const grid = `<w:tblGrid>${ws.map((w) => `<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>`;
   const rows = linhas.map((l, ri) => {
     const isH = header && ri === 0;

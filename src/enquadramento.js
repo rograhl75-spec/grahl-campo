@@ -106,7 +106,7 @@ export function itensAgentes(agentes, idx, ini, fim) {
     const [tipo, tec] = k.split('|');
     const cods = [...new Set(l.map((x) => x.cod))].join('; ');
     if (l.length === 1) return { t: `${l[0].nome}: caracteriza (${tec})`, cod: cods, sup: true, agente: true };
-    return { t: `${plural[tipo] || 'Agentes'} (${tec}): ${l.map((x) => curto(x.nome).replace(/^./, (c) => c.toLowerCase())).join(', ')} – caracterizam`, cod: cods, sup: true, agente: true };
+    return { t: `${plural[tipo] || 'Agentes'} (${tec}): ${l.map((x) => curto(x.nome).replace(/^\p{Lu}(?=\p{Ll})/u, (c) => c.toLowerCase())).join(', ')} – caracterizam`, cod: cods, sup: true, agente: true };
   });
   itens.unshift(...grupos);
   // lista longa vira contagem: o detalhe de cada agente está no item 5
@@ -180,10 +180,11 @@ export function categoriaDoVinculo(r) {
 export function exposicaoNoVinculo(r, idx, agentes, { presentes = false, quantitativo = () => false, hoje = new Date().toISOString().slice(0, 10) } = {}) {
   const ini = (r.data || r).inicio; const fim = (r.data || r).fim || hoje;
   if (!ini) return [];
-  // "não caracteriza" e "não enquadrável" só entram quando o agente é de avaliação quantitativa sem medição (ex.:
-  // mercúrio após 05/03/1997; agentes dos Anexos 11 e 12); o que não caracteriza na avaliação qualitativa não vai ao PPP
+  // "não caracteriza" só entra quando o agente é do Anexo IV e de avaliação quantitativa sem medição (ex.: mercúrio
+  // ou ácido clorídrico após 05/03/1997); o que não caracteriza na avaliação qualitativa não vai ao PPP
   const quant = (a, ate) => /^Quantitativa/.test(tecnicaDoAgente(a, ate)) || (!ate && quantitativo(a));
-  const conta = (res, a, ate) => res === 'Caracteriza' || (presentes && (res === 'Não caracteriza' || (!ate && res === 'Não enquadrável')) && quant(a, ate));
+  // agente fora do Anexo IV ("não enquadrável") não vai ao PPP, ainda que tenha limite na NR-15
+  const conta = (res, a, ate) => res === 'Caracteriza' || (presentes && res === 'Não caracteriza' && quant(a, ate));
   const out = [];
   for (const a of agentes) {
     if (!agenteNoVinculo(a, idx)) continue;

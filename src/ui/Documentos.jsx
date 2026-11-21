@@ -4,6 +4,8 @@ import { horasDia, horasForaTexto, fmtHoras } from '../calc.js';
 import { avisarAlteracao } from '../sync.js';
 import { confirmar } from './dialogo.jsx';
 import { softDelete } from '../db.js';
+import { RelatoriosMedicao } from './Campo.jsx';
+import { DESC_ANEXO_DOC } from '../apendices.js';
 import { CATALOGO, HONORARIOS, situacaoHonorarios, PETICOES_PERITO, PETICOES_AT, POSICOES_AT } from '../docx/reports.js';
 import { exportarBackup, baixarArquivo, carimbo } from '../backup.js';
 import { exportarParaClaude } from '../aiimport.js';
@@ -108,6 +110,14 @@ function CartaoDoc({ d, ocupado, gerar, contas = [], contaSel, recId, rec }) {
         </label>
       ) : <p class="alerta-txt">Cadastre as contas em Configurações → Meus dados.</p>)}
       {d.id === 'agenda' && rec && <DadosAgendamento rec={rec} />}
+      {['ltcat', 'laudoprev', 'parprev'].includes(d.id) && rec && (
+        <details class="anexos-doc">
+          <summary>Anexos do documento (ART, CNIS, certidões, declarações)</summary>
+          <RelatoriosMedicao rec={rec} desc={DESC_ANEXO_DOC} rotulo="Anexo" titulo="Anexos do documento"
+            dica="Anexe aqui a ART e os documentos de terceiros (PDF ou imagem). Cada arquivo sai no fim do documento, com todas as páginas, como Anexo A, B, C… (no laudo judicial, Anexo II, III…, depois do relatório fotográfico)."
+            botao="＋ Anexar documento (PDF ou imagem)" />
+        </details>
+      )}
       {d.id === 'honorarios' && rec && <>
         <label class="campo"><span class="rotulo">Situação</span>
           <select value={situacaoHonorarios(rec.data)} onChange={(e) => salvar(rec.id, 'honorariosSituacao', e.currentTarget.value)}>

@@ -1,3 +1,4 @@
+import { efeitosDoBanco } from './efeitosQuimicos.js';
 // Quadros dos agentes usados em qualquer documento:
 //  - características dos agentes químicos (identificação, vias, órgãos-alvo, efeitos, limites e classificação),
 //    independentemente da caracterização – dados do próprio cadastro do agente e, na falta, do banco de químicos;
@@ -43,7 +44,7 @@ function linhaQuimico(nome, x = {}, q = null) {
   const cas = v(x.cas) || v(b.cas);
   const vias = (v(x.vias) || viasEmPortugues(b.vias)).replace(/^\p{Lu}(?=\p{Ll})/u, (c) => c.toLowerCase()).replace(/\.$/, '');
   const orgaos = orgaosEmPortugues(b.orgaosAlvo);
-  const efeitos = v(x.efeitos);
+  const efeitos = v(x.efeitos) || efeitosDoBanco(q);
   const lim = [
     v(b.nr15Mgm3) || v(b.nr15Ppm) ? `NR-15, Anexo 11: ${[v(b.nr15Ppm) && `${b.nr15Ppm} ppm`, v(b.nr15Mgm3) && `${b.nr15Mgm3} mg/m³`].filter(Boolean).join(' – ')}${b.nr15Teto === 'Sim' ? ' (valor teto)' : ''}${b.nr15Grau ? `, grau ${b.nr15Grau}` : ''}` : '',
     !/^Nenhum/i.test(v(b.nr15Anexos)) && /Anexo 13(?!-)/.test(v(b.nr15Anexos)) ? 'NR-15, Anexo 13' : '',

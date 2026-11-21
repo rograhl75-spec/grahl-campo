@@ -415,7 +415,7 @@ export async function laudoPrevidenciario(caseId) {
   d.h2('1.3', 'Data, hora e local da vistoria');
   quadroDiligencia(d, c);
   d.h2('1.4', 'Instrumentos utilizados');
-  quadroEquipamentos(d, equipamentosUsados(dados));
+  instrumentosOuQualitativa(d, dados);
   d.h2('1.5', 'Síntese da conclusão');
   const sint = avaliarPeriodos(dados).flatMap(({ r, segs }) => segs.map((s) => [r.data.empresa || '', `${dataBR(s.ini)} a ${dataBR(s.fim)}`, s.caracteriza || '[[preencher]]']));
   if (sint.length) d.quadro('Síntese da conclusão por período', [['Vínculo', 'Período', 'Caracteriza tempo especial'], ...sint], { larguras: [0.45, 0.3, 0.25], tam: 9, alinhar: 'left', fonte: 'Elaborado pelo signatário. Fundamentação e conclusão detalhadas nos itens 3 a 7.' });
@@ -468,14 +468,17 @@ export async function laudoPrevidenciario(caseId) {
   d.texto('Nada mais havendo a relatar no âmbito da Engenharia de Segurança do Trabalho, este Perito dá por encerrados os trabalhos periciais, colocando-se à disposição do Juízo e das partes para os esclarecimentos que se fizerem necessários.');
   const { lista, faltando } = await figurasDoCaso(dados);
   const { apendices, falhasApendice, semRelatorios, semRelatoriosLgpd } = await apendicesDoCaso(dados);
+  // anexos do documento (ART, CNIS…): depois do Anexo I (fotos), em algarismos romanos
+  const { anexos, falhasAnexo } = await anexosDoCaso(dados, { romanos: true, inicio: lista.length ? 1 : 0 });
   quadroRequisitos473(d, { objeto: '2.1', analise: '3 a 7', metodo: '2.2', quesitos: '8' });
-  textoIntegram(d, { fotos: lista.length > 0, apendices });
+  textoIntegram(d, { fotos: lista.length > 0, anexos, apendices });
   blocoAssinatura(d, dados, 'Perito do Juízo');
   secaoReferencias(d, dados, { prev: true });
   if (lista.length) { d.h1('', 'Anexo I – Relatório fotográfico da diligência'); d.figuras(lista); }
+  inserirAnexos(d, anexos);
   inserirApendices(d, apendices, dados);
   const r = await finalizar(d, { titulo: 'Laudo técnico pericial previdenciário', arquivo: 'Laudo_pericial_previdenciario', c });
-  return { ...r, faltando, falhasApendice, semRelatorios, semRelatoriosLgpd };
+  return { ...r, faltando, falhasApendice: (falhasApendice || 0) + (falhasAnexo || 0), semRelatorios, semRelatoriosLgpd };
 }
 
 // ======================================================================
@@ -523,8 +526,7 @@ export async function ltcatPpp(caseId) {
   d.h2('2.3', 'Declarações');
   d.texto(`Integram este laudo, como anexos, a autorização para o levantamento e a declaração ${/Pr[oó]prio/.test(c.pppEmitente || '') || !c.reuNome ? 'do segurado' : 'do responsável legal'} sobre o histórico dos locais de trabalho, das atividades, dos equipamentos e dos produtos utilizados em cada período, assinadas. As condições dos períodos anteriores à vistoria foram reconstituídas com base nessas declarações e nos documentos do item 1.3.`);
   d.h2('2.4', 'Instrumentos e calibração');
-  if (equipamentosUsados(dados).length || dados.medicoes.length) quadroEquipamentos(d, equipamentosUsados(dados));
-  else d.texto('Os agentes deste laudo foram avaliados de forma qualitativa, pela atividade e pelas condições observadas na vistoria; não houve medição instrumental.');
+  instrumentosOuQualitativa(d, dados);
   d.h2('2.5', 'Valor probatório');
   d.texto(`O laudo extrajudicial é meio de prova lícito (arts. 369 e 371 do CPC) e pode dispensar a perícia judicial quando suficiente (art. 472). Sua estrutura atende ao art. 473 do CPC – objeto, análise técnica, método e conclusão${comJurisprudencia(dados) ? ' – e a extemporaneidade não lhe retira a eficácia (Súmula 68 da TNU)' : ''}.`);
   if (c.similaridade === 'Sim' || usaParadigmas(dados)) {
@@ -610,6 +612,33 @@ function quadroVinculosLtcat(d, dados) {
   { larguras: [0.24, 0.15, 0.24, 0.14, 0.23], tam: 9, alinhar: 'left' });
 }
 
+// sem medição: a avaliação foi qualitativa (em vez do quadro vazio de instrumentos)
+function instrumentosOuQualitativa(d, dados) {
+  if (equipamentosUsados(dados).length || dados.medicoes.length) return quadroEquipamentos(d, equipamentosUsados(dados));
+  return d.texto(`Os agentes ${dados.c.tipoAtuacao === 'Extrajudicial' ? 'deste documento' : 'avaliados nesta perícia'} foram avaliados de forma qualitativa, pela atividade e pelas condições observadas na vistoria; não houve medição instrumental.`);
+}
+// metodologia do parecer previdenciário (o que foi feito, por tipo de agente)
+function metodologiaPrev(dados) {
+  const { c } = dados;
+  const vist = datasDasVistorias(c);
+  const par = usaParadigmas(dados);
+  const partes = [`A avaliação compreendeu a análise dos documentos dos vínculos (item 3), a entrevista do segurado${vist ? `, a vistoria de ${vist} no local de trabalho` : ''} e a avaliação de cada agente pela legislação de cada época: qualitativa para os agentes biológicos e, até 05/03/1997, para os químicos, por presunção de exposição; a partir de 06/03/1997, conforme o Anexo IV do Decreto 3.048/1999 e os Anexos da NR-15, com a técnica do Manual de Aposentadoria Especial do INSS (2018).`];
+  if (par) partes.push('Nos vínculos avaliados por similaridade, os valores medidos nos paradigmas foram normalizados para a jornada efetiva de cada vínculo (item 7).');
+  return partes.join(' ');
+}
+// limitações do parecer: o que depende de declaração, similaridade e documentos ausentes
+function limitacoesPrev(dados) {
+  const { c } = dados;
+  const out = [];
+  if (c.vistoriaData && dados.periodos.some((r) => (r.data.inicio || '') < c.vistoriaData)) out.push('As condições dos períodos anteriores à vistoria foram reconstituídas pelas declarações do segurado e pelos documentos apresentados, e a conclusão depende da veracidade dessas informações.');
+  if (usaParadigmas(dados)) out.push('Os vínculos avaliados por similaridade dependem da equivalência entre o paradigma e o veículo ou posto do segurado, descrita no item 7.');
+  const pend = (dados.agentes || []).filter((a) => [a.data.resAte97, a.data.resDesde97].some((x) => !x || x === 'A confirmar')).map((a) => a.data.nome.replace(/\s*\(.*$/, ''));
+  if (pend.length) out.push(`Dependem de confirmação do segurado: ${pend.join(', ')}.`);
+  if (!dados.epis.length) out.push('Não foram apresentados registros de fornecimento de EPI.');
+  out.push('Este parecer não substitui o LTCAT e o PPP de responsabilidade da empresa e não aprecia a contagem de tempo de contribuição, que cabe à autoridade administrativa ou judicial.');
+  return out.join(' ');
+}
+
 // cargos sem a condição do segurado ("cirurgião-dentista cooperado" e "cirurgião-dentista" são a mesma função)
 const cargosDoCaso = (dados) => [...new Map(dados.periodos.map((r) => v(r.data.cargo).replace(/\s+(cooperad[oa]|aut[oô]nom[oa]|s[oó]ci[oa])$/i, ''))
   .filter(Boolean).map((x) => [x.toLowerCase(), x])).values()];
@@ -667,24 +696,24 @@ export async function parecerPrevidenciario(caseId) {
   d.h1('1', 'Responsabilidade técnica e natureza do documento');
   d.texto(`Este parecer foi elaborado por ${perfil.nome}, ${perfil.titulos}, ${credencial(perfil)}, a pedido do requerente. Trata-se de parecer técnico de engenharia de segurança do trabalho, sem caráter de laudo oficial da empresa, destinado a fornecer parâmetros técnicos objetivos.`);
   d.h1('2', 'Objeto e finalidade');
-  d.texto(c.pedidos || '');
-  d.redigir('objeto e finalidade (agentes e vínculos avaliados; princípio tempus regit actum).');
+  const cargosP = cargosDoCaso(dados).map((x) => x.toLowerCase()).join(' e ');
+  d.texto(`Este parecer avalia se as atividades ${cargosP ? `de ${cargosP} ` : ''}exercidas por ${c.autorNome || '[[segurado]]'}, nos períodos do item 3, expuseram o segurado a agentes nocivos (biológicos, químicos e físicos), com o enquadramento pela legislação vigente à época de cada período (*tempus regit actum*), para subsidiar requerimento administrativo ou ação judicial de aposentadoria especial.`);
   d.h1('3', 'Identificação do requerente e dos vínculos');
   d.identificacao([['Segurado', c.autorNome], ['CPF / NIT', c.autorCpf], ['Nascimento', dataBR(c.autorNascimento)]]);
   quadroPeriodos(d, dados.periodos, 'Vínculos avaliados');
   d.h1('4', comJurisprudencia(dados) ? 'Fundamentação legal e registro jurisprudencial' : 'Fundamentação legal');
   d.h2('4.1', 'Enquadramento por período (tempus regit actum)');
   d.texto('O enquadramento observa a legislação previdenciária vigente à época da prestação do serviço: por categoria profissional até 28/04/1995 e por exposição a agentes nocivos a partir de 29/04/1995. Os critérios de cada agente, por período, constam do item 7.');
-  d.redigir('ajustes específicos do caso (categoria do segurado, EC 103/2019).');
+  textoCategoriaSegurado(d, dados);
   quadroFormaEnquadramento(d, dados);
   registroJurisprudencia(d, dados, { numero: '4.2', nivel: 'h2', prev: true, tipo: 'parecer' });
   d.h1('5', 'Metodologia');
   fluxoAvaliacao(d, dados, 'prev');
-  d.redigir('etapas; avaliação por similaridade (quando aplicável); normalização pela jornada efetiva; instrumentação.');
-  if (!quadrosParadigmasMetodologia(d, dados)) quadroEquipamentos(d, equipamentosUsados(dados));
+  d.texto(metodologiaPrev(dados));
+  if (!quadrosParadigmasMetodologia(d, dados)) instrumentosOuQualitativa(d, dados);
   d.h1('6', 'Descrição das atividades por vínculo');
   dados.periodos.forEach((r, i) => {
-    d.h2(`6.${i + 1}`, tituloVinculo(r, { prefixo: `V${i + 1} – ` }));
+    d.h2(`6.${i + 1}`, tituloVinculo(r, { prefixo: dados.periodos.length > 1 ? `V${i + 1} – ` : '' }));
     descricaoVinculo(d, r, dados, { refVistoria: `6.${dados.periodos.length + 1}` });
   });
   if (!dados.periodos.length) d.redigir('cadastre os vínculos na aba Preparação.');
@@ -694,22 +723,26 @@ export async function parecerPrevidenciario(caseId) {
   if (memoriasParadigmas(d, dados, { numero: `7.${n7 + 1}` })) n7 += 1;
   if (secaoPenosidade(d, dados, { numero: `7.${n7 + 1}`, tipo: 'parecer' })) n7 += 1;
   d.h2(`7.${n7 + 1}`, 'EPI e EPC');
-  quadroEpis(d, dados.epis);
+  if (dados.epis.length) quadroEpis(d, dados.epis);
+  else if (v(c.analiseEpi)) d.texto(c.analiseEpi);
+  else quadroEpis(d, dados.epis, { extra: c.tipoAtuacao === 'Extrajudicial' });
   d.h1('8', 'Quadro conclusivo');
   conclusaoPrevidenciaria(d, dados, { tituloQuadro: 'Quadro conclusivo por vínculo e período' });
   d.h1('9', 'Limitações e ressalvas');
-  d.redigir('limitações (similaridade, informações do requerente, documentos não apresentados).');
+  d.texto(limitacoesPrev(dados));
   d.h1('10', 'Termo de encerramento');
   d.texto('Nada mais havendo a acrescentar, encerra-se o presente parecer técnico, elaborado com imparcialidade e sob responsabilidade do signatário.');
   const { lista, faltando } = await figurasDoCaso(dados);
   const { apendices, falhasApendice, semRelatorios, semRelatoriosLgpd } = await apendicesDoCaso(dados);
-  textoIntegram(d, { fotos: lista.length > 0, rotuloFotos: 'Anexo – Registro fotográfico', apendices, doc: 'parecer' });
+  const { anexos, falhasAnexo } = await anexosDoCaso(dados);
+  textoIntegram(d, { fotos: lista.length > 0, rotuloFotos: 'Anexo – Registro fotográfico', anexos, apendices, doc: 'parecer' });
   blocoAssinatura(d, dados, 'Responsável técnico');
   secaoReferencias(d, dados, { prev: true, judicial: false });
   if (lista.length) { d.h1('', 'Anexo – Registro fotográfico'); d.figuras(lista); }
+  inserirAnexos(d, anexos);
   inserirApendices(d, apendices, dados);
   const r = await finalizar(d, { titulo: 'Parecer técnico previdenciário', arquivo: 'Parecer_previdenciario', c });
-  return { ...r, faltando, falhasApendice, semRelatorios, semRelatoriosLgpd };
+  return { ...r, faltando, falhasApendice: (falhasApendice || 0) + (falhasAnexo || 0), semRelatorios, semRelatoriosLgpd };
 }
 
 // ======================================================================

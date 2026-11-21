@@ -46,7 +46,9 @@ function CarregarProfissao({ rec }) {
     }
     if (!String(rec.data.analiseEpi || '').trim()) await updateFields(rec.id, { analiseEpi: prof.epi });
     avisarAlteracao();
-    setMsg(`${n} agente(s) carregado(s); ${nv} vínculo(s) completado(s) com CBO e profissiografia. Revise os resultados e exclua o que não se aplica.`);
+    const ja = prof.agentes.length - n;
+    setMsg([n ? `${n} agente(s) carregado(s)` : 'Nenhum agente novo', ja ? `${ja} já estava(m) no caso (não repetidos)` : '',
+      nv ? `${nv} vínculo(s) completado(s) com CBO e profissiografia` : 'vínculos já com CBO e profissiografia'].filter(Boolean).join('; ') + (n ? '. Revise os resultados e exclua o que não se aplica.' : '.'));
   };
   return (
     <section class="bloco largo">

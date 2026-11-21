@@ -1,13 +1,14 @@
 {
   "name": "grahl-campo",
-  "version": "2.48.0",
+  "version": "2.49.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "vitest run",
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "importar-normas": "node scripts/importar-caracterizador.mjs"
   },
   "keywords": [],
   "author": "",

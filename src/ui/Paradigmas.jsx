@@ -16,6 +16,7 @@ import { useLive } from './hooks.js';
 import { Campos } from './fields.jsx';
 import { RecordList } from './RecordList.jsx';
 import { Icone } from './Icone.jsx';
+import { ConsultaNormas, ProfissoesBanco } from './Normas.jsx';
 import { confirmar } from './dialogo.jsx';
 import { Quimicos } from './Quimicos.jsx';
 
@@ -67,6 +68,7 @@ const SECOES = [
     abas: [['veiculos', 'Veículos medidos'], ['similares', 'Similares'], ['familias', 'Famílias'], ['buscar', 'Buscar paradigma'], ['importar', 'Importar / exportar']] },
   { id: 'maq', titulo: 'Máquinas', sub: 'Tratores, máquinas agrícolas e de construção, ferramentas', icone: 'regua', abas: [['maquinas', 'Máquinas – ruído e vibração']] },
   { id: 'qui', titulo: 'Agentes químicos', sub: 'Limites (NR-15, Anexo 11), LINACH e códigos dos decretos', icone: 'nota', abas: [['quimicos', 'Agentes químicos']] },
+  { id: 'nor', titulo: 'Normas e profissões', sub: 'Decretos, Manual do INSS, IN 128, NR-15, NR-16 e banco de profissões', icone: 'nota', abas: [['normas', 'Consulta normativa'], ['profissoes', 'Profissões']] },
 ];
 
 export function Paradigmas({ aba = 'veiculos' }) {
@@ -92,6 +94,8 @@ export function Paradigmas({ aba = 'veiculos' }) {
       {aba === 'familias' && <Familias />}
       {aba === 'buscar' && <Buscar />}
       {aba === 'importar' && <Importar />}
+      {aba === 'normas' && <ConsultaNormas />}
+      {aba === 'profissoes' && <ProfissoesBanco />}
     </div>
   );
 }

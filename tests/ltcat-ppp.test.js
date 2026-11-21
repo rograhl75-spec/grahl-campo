@@ -97,7 +97,8 @@ describe('PPP emitido pelo próprio segurado e legendas das fotos', () => {
     await filho('d2a', 'agenteAvaliado', 'd2', { nome: 'Biológico', tipo: 'Biológico', resAte97: 'Caracteriza', resDesde97: 'Caracteriza' });
     const r = await ltcatPpp('d2');
     const t = await texto(r); const tp = await texto(r.extras[0]);
-    expect(t).toContain('emitido em seu próprio nome');
+    expect(t).toContain('o PPP é emitido pelo próprio segurado');
+    expect(t).not.toMatch(/sem conversão|convertido/);
     expect(tp).toContain('01/01/1990 a 31/12/1995');
     expect(tp).not.toContain('11.111.111/0001-11');
     expect(tp).not.toContain('Não constam deste PPP');

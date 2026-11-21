@@ -106,6 +106,8 @@ export async function carregar(caseId) {
     .filter(Boolean).join(' ').match(/[A-ZÀ-Ý][\p{L}'’-]+/gu) || [];
   // a mesma palavra como sai nos quadros: "CLOPAN" → "Clopan"
   semRevisao([...nomes, ...nomes.map((w) => w.charAt(0) + w.slice(1).toLowerCase())]);
+  // nomes de produtos e substâncias dos agentes avaliados (formocresol, TEGDMA…): o dicionário do Word não os tem
+  semRevisao(dados.agentes.flatMap((a) => String(a.data.nome || '').match(/[\p{L}][\p{L}-]{3,}/gu) || []).filter((w) => /[A-Z]{2,}|[a-z]{9,}/.test(w)));
   // ordem cronológica: cada posto/veículo vai para a posição do primeiro vínculo que representa
   const ordemP = new Map(dados.postos.map((ps) => [ps.id, (periodosDoPosto(ps, dados)[0] || {}).data?.inicio || '9999']));
   dados.postos.sort((a, b) => ordemP.get(a.id).localeCompare(ordemP.get(b.id)) || (a.data.ordem ?? a.createdAt) - (b.data.ordem ?? b.createdAt));
@@ -834,14 +836,15 @@ const MARCOS_PREV = [
   ['29/04/1995 a 05/03/1997', 'Exposição efetiva; ruído > 80 dB(A)', '1995-04-29', '1997-03-05'],
   ['06/03/1997 a 18/11/2003', 'Dec. 2.172/1997; ruído > 90 dB(A)', '1997-03-06', '2003-11-18'],
   ['19/11/2003 a 13/11/2019', 'Dec. 4.882/2003; NEN > 85 dB(A)', '2003-11-19', '2019-11-13'],
-  ['A partir de 14/11/2019', 'EC 103/2019: sem conversão', '2019-11-14', '2999-12-31'],
+  ['A partir de 14/11/2019', 'EC nº 103/2019', '2019-11-14', '2999-12-31'],
 ];
-const MARCOS_SEM_RUIDO = ['Categoria profissional ou agente nocivo', 'Agente nocivo (Dec. 53.831/64 e 83.080/79)', 'Anexo IV (Dec. 2.172/97 e 3.048/99)', 'Anexo IV; NHO a partir de 01/01/2004', 'EC 103/2019: sem conversão'];
+const cortaNaPalavra = (t, n) => (t.length <= n ? t : `${t.slice(0, n).replace(/\s+\S*$/, '')}…`);
+const MARCOS_SEM_RUIDO = ['Categoria profissional ou agente nocivo', 'Agente nocivo (Dec. 53.831/64 e 83.080/79)', 'Anexo IV (Dec. 2.172/97 e 3.048/99)', 'Anexo IV; NHO a partir de 01/01/2004', 'EC nº 103/2019'];
 export function linhaDoTempo(d, periodos, { ruido = true } = {}) {
   const ps = (periodos || []).filter((r) => r.data.inicio);
   if (!ps.length) return d;
   const hoje = new Date().toISOString().slice(0, 10);
-  const lin = ps.map((r, i) => [`V${i + 1} – ${empresaLimpa(r.data.empresa).slice(0, 45) || 'vínculo'}`, ...MARCOS_PREV.map(([, , a, b]) => {
+  const lin = ps.map((r, i) => [`V${i + 1} – ${cortaNaPalavra(empresaLimpa(r.data.empresa), 60) || 'vínculo'}`, ...MARCOS_PREV.map(([, , a, b]) => {
     const ini = r.data.inicio > a ? r.data.inicio : a;
     const fimV = r.data.fim || hoje;
     const fim = fimV < b ? fimV : b;
@@ -887,18 +890,19 @@ export function quadroFormaEnquadramento(d, dados) {
 
 // Requisitos cumulativos do EPI (art. 291 da IN 128/2022), para preencher por período
 export function quadroRequisitosEpi(d, dados) {
+  const extra = dados?.c?.tipoAtuacao === 'Extrajudicial';
   if (dados && !dados.epis.length) {
     d.quadro('Requisitos do EPI – art. 291 da IN 128/2022', [['Requisito', 'Situação', 'Evidência'],
-      ...['I – hierarquia: medidas coletivas e administrativas antes do EPI', 'II – funcionamento e uso ininterrupto, conforme o fabricante', 'III – Certificado de Aprovação válido', 'IV – periodicidade de troca comprovada por recibo', 'V – higienização'].map((t) => [t, 'Não comprovado', 'Sem registros nos autos'])],
+      ...['I – Hierarquia: medidas coletivas e administrativas antes do EPI', 'II – Funcionamento e uso ininterrupto, conforme o fabricante', 'III – Certificado de Aprovação válido', 'IV – Periodicidade de troca comprovada por recibo', 'V – Higienização'].map((t) => [t, 'Não comprovado', extra ? 'Sem registros' : 'Sem registros nos autos'])],
     { larguras: [0.5, 0.18, 0.32], tam: 9, fonte: 'Elaborado pelo signatário com base em Brasil (2022, art. 291). Os requisitos são cumulativos.' });
     return d.texto('Não comprovados os requisitos cumulativos do art. 291, não se considera neutralizada a exposição pelo uso de EPI.');
   }
   return d.quadro('Requisitos do EPI – art. 291 da IN 128/2022', [['Requisito', 'Atendido?', 'Evidência'],
-    ['I – hierarquia: medidas coletivas e administrativas antes do EPI', '[[S/N]]', '[[PGR/PPRA, inventário de riscos]]'],
-    ['II – funcionamento e uso ininterrupto, conforme o fabricante', '[[S/N]]', '[[observação / ordens de serviço]]'],
+    ['I – Hierarquia: medidas coletivas e administrativas antes do EPI', '[[S/N]]', '[[PGR/PPRA, inventário de riscos]]'],
+    ['II – Funcionamento e uso ininterrupto, conforme o fabricante', '[[S/N]]', '[[observação / ordens de serviço]]'],
     ['III – Certificado de Aprovação válido', '[[S/N]]', '[[nº do CA e validade]]'],
-    ['IV – periodicidade de troca comprovada por recibo', '[[S/N]]', '[[fichas de entrega]]'],
-    ['V – higienização', '[[S/N]]', '[[procedimento / registros]]']],
+    ['IV – Periodicidade de troca comprovada por recibo', '[[S/N]]', '[[fichas de entrega]]'],
+    ['V – Higienização', '[[S/N]]', '[[procedimento / registros]]']],
   { larguras: [0.5, 0.14, 0.36], tam: 9, alinhar: 'left', fonte: 'Elaborado pelo signatário com base em Brasil (2022, art. 291). Os requisitos são cumulativos e só se aplicam a partir de 03/12/1998.' });
 }
 

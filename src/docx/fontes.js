@@ -129,7 +129,7 @@ export function referencias(dados, { prev, judicial = true } = {}) {
   }
   if (quimico) {
     if (/poeira|s[ií]lica|particulad|fumos? met|asbesto|amianto|carv[ãa]o/i.test(`${dados.c.agentesAlegados || ''} ${dados.medicoes.map((m) => `${m.data.descricao || ''} ${m.data.metodo || ''}`).join(' ')}`)) r.push('FUNDACENTRO. NHO 08: coleta de material particulado sólido suspenso no ar de ambientes de trabalho. São Paulo: FUNDACENTRO, 2009.');
-    r.push('AMERICAN CONFERENCE OF GOVERNMENTAL INDUSTRIAL HYGIENISTS (ACGIH). {{en:TLVs and BEIs: threshold limit values for chemical substances and physical agents}}. Cincinnati: ACGIH, edição vigente. (Referência técnica complementar; NR-9, item 9.6.1.1.)');
+    r.push('{{en:AMERICAN CONFERENCE OF GOVERNMENTAL INDUSTRIAL HYGIENISTS}} (ACGIH). {{en:TLVs and BEIs: threshold limit values for chemical substances and physical agents}}. Cincinnati: ACGIH, edição vigente. (Referência técnica complementar; NR-9, item 9.6.1.1.)');
   }
   // ABNT: ordem alfabética por autor; do mesmo autor, ordem cronológica (ordem de inserção)
   const autor = (t) => t.split('.')[0];

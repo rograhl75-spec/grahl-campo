@@ -142,7 +142,7 @@ function avaliacaoTrabalhista(d, dados, base) {
 // com o código e o resultado de cada época; o texto de fundamentação é o digitado no cadastro
 const TIT_TIPO = { 'Biológico': 'Agentes biológicos', 'Químico': 'Agentes químicos – avaliação qualitativa e enquadramento', 'Físico': 'Agentes físicos sem medição' };
 const TXT_TIPO = {
-  'Biológico': 'Os agentes biológicos são avaliados de forma qualitativa, pela atividade exercida. Até 05/03/1997, o enquadramento se dá pelo cód. 1.3.2 do Decreto 53.831/1964 (assistência médica, odontológica, hospitalar e outras atividades afins, com contato com germes infecciosos ou parasitários) e pelo cód. 1.3.4 do Anexo I do Decreto 83.080/1979 (trabalhos com contato permanente com doentes ou materiais infectocontagiantes). A partir de 06/03/1997, pelo cód. 3.0.1 do Anexo IV dos Decretos 2.172/1997 e 3.048/1999, cujo rol de atividades é exaustivo; não se utiliza o Anexo 14 da NR-15 para fins previdenciários.',
+  'Biológico': 'Os agentes biológicos são avaliados de forma qualitativa, pela atividade exercida. Até 05/03/1997, o enquadramento se dá pelo cód. 1.3.2 do Decreto 53.831/1964 (assistência médica, odontológica, hospitalar e outras atividades afins, com contato com germes infecciosos ou parasitários) e pelo cód. 1.3.4 do Anexo I do Decreto 83.080/1979 (trabalhos com contato permanente com doentes ou com materiais infectocontagiosos). A partir de 06/03/1997, pelo cód. 3.0.1 do Anexo IV dos Decretos 2.172/1997 e 3.048/1999, cujo rol de atividades é exaustivo; não se utiliza o Anexo 14 da NR-15 para fins previdenciários.',
   'Químico': 'Até 05/03/1997, os agentes químicos são enquadrados de forma qualitativa, por presunção de exposição, nos códigos 1.2.x dos Decretos 53.831/1964 e 83.080/1979. A partir de 06/03/1997, somente os agentes do Anexo IV dos Decretos 2.172/1997 e 3.048/1999 são considerados, avaliados conforme os Anexos 11 e 12 (quantitativos) e 13 e 13-A (qualitativos) da NR-15, e, a partir de 01/01/2004, pela metodologia das NHO da FUNDACENTRO. Agente que não consta do Anexo IV não é enquadrável, ainda que presente no ambiente.',
   'Físico': 'Ruído, calor e vibração só caracterizam a condição especial com a demonstração, por medição, da intensidade acima do limite de tolerância de cada época.',
 };
@@ -535,7 +535,8 @@ export async function ltcatPpp(caseId) {
   d.texto('As avaliações seguem as NHO da FUNDACENTRO e os limites de tolerância do Anexo IV do RPS ou, na falta destes, da NR-15 (art. 288 da IN 128/2022), com as normas vigentes na data da avaliação (art. 289). A caracterização considera a exposição acima dos limites de tolerância, por critério quantitativo ou qualitativo (art. 287). As atividades do Anexo IV do RPS são exaustivas, ressalvadas as relacionadas exclusivamente a agentes químicos, que são exemplificativas, observada a relação obrigatória com os agentes do Anexo IV (art. 287, § 4º).');
   d.h2('5.2', 'Medidas de controle');
   d.texto('Considera-se adotado o EPC que elimina ou neutraliza a nocividade, desde que asseguradas as condições de funcionamento ao longo do tempo, conforme especificação técnica do fabricante e plano de manutenção, devidamente registradas pela empresa (art. 290 da IN 128/2022). O EPI só é considerado em demonstrações ambientais a partir de 03/12/1998, quando elimina ou neutraliza a nocividade, observa a NR-6, consta do PPP e atende, cumulativamente, aos requisitos do art. 291 da IN 128/2022.');
-  quadroEpis(d, dados.epis);
+  if (dados.epis.length) quadroEpis(d, dados.epis);
+  else d.texto(/Pr[oó]prio/.test(c.pppEmitente || '') ? 'Não há registros de fornecimento de EPI (fichas de entrega com CA, periodicidade de troca, treinamento e higienização); o segurado, que trabalha por conta própria, não mantém esses registros.' : 'Não foram apresentados registros de fornecimento de EPI (fichas de entrega com CA, periodicidade de troca, treinamento e higienização), cuja guarda é de responsabilidade do empregador.');
   quadroRequisitosEpi(d, dados);
   let ini5 = 2;
   if (usaParadigmas(dados)) { d.h2('5.3', 'Avaliação por similaridade (paradigmas)'); quadrosParadigmasMetodologia(d, dados); ini5 = 3; }
@@ -605,23 +606,22 @@ function naturezaLtcat(dados, seg) {
   return partes.join(' ');
 }
 
-// categoria de segurado por vínculo, emitente do PPP e EC 103/2019
+// categoria de segurado por vínculo, emitente do PPP e EC 103/2019 – texto técnico, sem juízo sobre conversão
+// ou contagem de tempo (questões de direito, para a autoridade que decide)
 function textoCategoriaSegurado(d, dados) {
   const per = dados.periodos.map((r, i) => ({ r, i, cat: categoriaDoVinculo(r) }));
-  const lista = (f) => per.filter(f).map(({ i }) => `V${i + 1}`).join(', ');
-  const ci = lista((x) => /individual/i.test(x.cat));
-  const coop = lista((x) => /cooperad/i.test(x.cat));
-  const emp = lista((x) => /Empregado|Avulso/i.test(x.cat));
-  const sem = lista((x) => !x.cat);
-  const jur = comJurisprudencia(dados);
-  if (emp) d.texto(`Nos períodos como empregado (${emp}), o PPP é emitido pelo empregador com base no LTCAT (art. 58, § 1º, da Lei nº 8.213/1991).`);
+  const lista = (f) => per.filter(f).map(({ i }) => `V${i + 1}`).join(', ').replace(/, ([^,]*)$/, ' e $1');
+  const qtd = (f) => per.filter(f).length;
+  const ci = (x) => /individual/i.test(x.cat), coop = (x) => /cooperad/i.test(x.cat), emp = (x) => /Empregado|Avulso/i.test(x.cat);
   const proprio = /Pr[oó]prio/.test(dados.c.pppEmitente || '');
-  if (coop) d.texto(`Nos períodos como cooperado de cooperativa de trabalho (${coop}), as regras da aposentadoria especial aplicam-se ao cooperado filiado que trabalha sujeito a condições especiais (art. 1º da Lei nº 10.666/2003)${proprio ? '. Como o segurado presta os serviços em consultório próprio, também a outros contratantes, e não exclusivamente pela cooperativa, o PPP é emitido em seu próprio nome, com base neste laudo, para todos os períodos' : ', e cabe à cooperativa emitir o PPP com base neste laudo'}.`);
-  if (ci) d.texto(`Nos períodos como contribuinte individual (${ci}), não há empresa obrigada a emitir o PPP${proprio ? ', que é emitido pelo próprio segurado' : ''}; este LTCAT é o documento técnico que demonstra as condições de trabalho e a exposição a agentes nocivos nesses períodos${jur ? ', sem exigência de formulário emitido por empresa (STJ, Tema 1291)' : ''}.`);
-  if (sem) d.texto(`[[Informe a categoria do segurado nos vínculos ${sem} (etapa 2. Autos).]]`);
-  if (dados.periodos.some((r) => !r.data.fim || r.data.fim > '2019-11-13')) d.texto('A partir de 14/11/2019, data de entrada em vigor da Emenda Constitucional nº 103/2019, o tempo especial não pode ser convertido em tempo comum (art. 25, § 2º); por isso, os subperíodos posteriores são indicados separadamente na síntese do item 6.');
+  const pl = (f, um, varios) => (qtd(f) > 1 ? varios : um);
+  if (qtd(emp)) d.texto(`${pl(emp, 'No vínculo', 'Nos vínculos')} ${lista(emp)}, o segurado era empregado; o PPP é emitido pelo empregador com base no LTCAT (art. 58, § 1º, da Lei nº 8.213/1991).`);
+  if (qtd(ci)) d.texto(`${pl(ci, 'No vínculo', 'Nos vínculos')} ${lista(ci)}, o segurado exerceu a atividade como contribuinte individual${proprio ? ', em consultório próprio' : ''}. Não há empresa que mantenha registros ambientais desse período; este laudo é a demonstração ambiental que o descreve${proprio ? ' e fundamenta o PPP emitido pelo próprio segurado' : ''}.`);
+  if (qtd(coop)) d.texto(`${pl(coop, 'No vínculo', 'Nos vínculos')} ${lista(coop)}, o segurado era cooperado de cooperativa de trabalho, categoria à qual se aplicam as regras da aposentadoria especial (art. 1º da Lei nº 10.666/2003). ${proprio ? 'Como presta os serviços em consultório próprio, não exclusivamente pela cooperativa, o PPP é emitido pelo próprio segurado, com base neste laudo.' : 'O PPP desse período cabe à cooperativa, com base neste laudo.'}`);
+  if (per.some((x) => !x.cat)) d.texto(`[[Informe a categoria do segurado nos vínculos ${lista((x) => !x.cat)} (etapa 2. Autos).]]`);
+  if (dados.periodos.some((r) => !r.data.fim || r.data.fim > '2019-11-13')) d.texto('Os subperíodos a partir de 14/11/2019, data de entrada em vigor da Emenda Constitucional nº 103/2019, são indicados separadamente na síntese do item 6.');
   const afs = dados.periodos.flatMap((r) => lerAfastamentos(r.data.afastamentos));
-  if (afs.some((x) => x.excluido)) d.texto('Os afastamentos por benefício por incapacidade temporária previdenciário posteriores ao Decreto nº 10.410/2020 não são computados como tempo especial (art. 65, parágrafo único, do Decreto nº 3.048/1999) e são indicados no item 6 e nas observações do PPP.');
+  if (afs.some((x) => x.excluido)) d.texto('Os afastamentos por benefício por incapacidade temporária de natureza previdenciária são indicados separadamente no item 6 e nas observações do PPP (art. 65, parágrafo único, do Decreto nº 3.048/1999).');
 }
 
 // ======================================================================

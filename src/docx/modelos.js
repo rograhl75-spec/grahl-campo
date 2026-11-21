@@ -192,7 +192,7 @@ function agentesAvaliados(d, dados, sub, n) {
       fonte: 'Elaborado pelo signatário com base nos Decretos 53.831/1964, 83.080/1979, 2.172/1997 e 3.048/1999 e na IN PRES/INSS nº 128/2022.' });
     if (tipo === 'Químico') {
       quadroCaracteristicasQuimicos(d, lst.map((a) => ({ nome: a.data.nome, dados: a.data, banco: bancoDoAgente(a, dados.quimicos) })));
-      const quant = lst.filter((a) => anexoQuantitativo(a, dados.quimicos) && ['Não caracteriza', 'Não enquadrável'].includes(a.data.resDesde97))
+      const quant = lst.filter((a) => anexoQuantitativo(a, dados.quimicos) && a.data.resDesde97 === 'Não caracteriza')
         .map((a) => a.data.nome.replace(/\s*\(.*$/, '').replace(/^\p{Lu}(?=\p{Ll})/u, (c) => c.toLowerCase()));
       const lq = quant.join(', ').replace(/, ([^,]*)$/, ' e $1').replace(/^./, (c) => c.toUpperCase());
       if (quant.length) d.texto(`${lq} ${quant.length > 1 ? 'têm' : 'tem'} limite de tolerância nos Anexos 11 ou 12 da NR-15 (avaliação quantitativa). Sem medição da concentração no ambiente, a exposição não é caracterizada, e ${quant.length > 1 ? 'os agentes constam' : 'o agente consta'} do PPP como presente${quant.length > 1 ? 's' : ''}, com a intensidade "não quantificada".`);
@@ -585,10 +585,10 @@ export async function ltcatPpp(caseId) {
   d.h1('8', 'Encerramento');
   d.texto('Este laudo foi elaborado com imparcialidade técnica, sob responsabilidade civil e criminal do signatário, e é assinado digitalmente. A validade dos dados pretéritos depende da veracidade das declarações do item 2.3.');
   d.quadro('Elementos do LTCAT – art. 276 da IN 128/2022', [['Elemento', 'Item deste laudo'],
-    ['I – se individual ou coletivo', '2.1'], ['II – identificação da empresa', '1.1'], ['III – identificação do setor e da função', '1.3 e 4'],
-    ['IV – descrição da atividade', '4'], ['V – agente prejudicial arrolado na legislação previdenciária', '5'], ['VI – localização das possíveis fontes geradoras', '4 e 5'],
-    ['VII – via e periodicidade de exposição', '4 e 5'], ['VIII – metodologia e procedimentos de avaliação', '5.1'], ['IX – medidas de controle existentes', '5.2'],
-    ['X – conclusão', '6'], ['XI – assinatura e identificação do médico do trabalho ou engenheiro de segurança do trabalho', 'Encerramento'], ['XII – data da avaliação ambiental', '2.2']],
+    ['I – Se individual ou coletivo', '2.1'], ['II – Identificação da empresa', '1.1'], ['III – Identificação do setor e da função', '1.3 e 4'],
+    ['IV – Descrição da atividade', '4'], ['V – Agente prejudicial arrolado na legislação previdenciária', '5'], ['VI – Localização das possíveis fontes geradoras', '4 e 5'],
+    ['VII – Via e periodicidade de exposição', '4 e 5'], ['VIII – Metodologia e procedimentos de avaliação', '5.1'], ['IX – Medidas de controle existentes', '5.2'],
+    ['X – Conclusão', '6'], ['XI – Assinatura e identificação do médico do trabalho ou engenheiro de segurança do trabalho', 'Encerramento'], ['XII – Data da avaliação ambiental', '2.2']],
   { larguras: [0.65, 0.35], tam: 9, alinhar: 'left', fonte: 'Elaborado pelo signatário com base em Brasil (2022, art. 276).' });
   if ((!dados.postos.some((x) => v(x.data.fontes)) && !dados.agentes.some((a) => v(a.data.fonte))) || (!dados.postos.some((x) => v(x.data.viaPeriodicidade)) && !dados.agentes.length)) {
     d.texto('[[Preencher, em cada posto da etapa 4. Campo, as fontes geradoras e a via e periodicidade da exposição (art. 276, VI e VII), ou a fonte de cada agente avaliado (etapa 2. Autos).]]');
@@ -601,7 +601,7 @@ export async function ltcatPpp(caseId) {
     d.h1('', 'Anexos e apêndices');
     d.texto([...anexos.map((a) => `- Anexo ${a.letra} – ${a.titulo}`), ...apendices.map((a) => `- Apêndice ${a.letra} – ${a.titulo}`)].join('\n'));
   }
-  if (!anexos.length) d.texto('[[Anexe a ART e os documentos que acompanham o laudo (CNIS, certidões, declarações) em 4. Campo → No escritório → Anexos do documento.]]');
+  if (!anexos.length) d.texto('[[Anexe a ART e os documentos que acompanham o laudo em Documentos → cartão "LTCAT + PPP" → Anexos do documento.]]');
   inserirAnexos(d, anexos);
   inserirApendices(d, apendices, dados);
   const r = await finalizar(d, { titulo: 'LTCAT', arquivo: 'LTCAT', c });

@@ -105,7 +105,7 @@ export async function carregar(caseId) {
   const nomes = [dados.c.autorNome, dados.c.reuNome, perfil.nome, ...dados.periodos.flatMap((r) => [r.data.empresa, empresaLimpa(r.data.empresa), r.data.vias, r.data.cargo])]
     .filter(Boolean).join(' ').match(/[A-ZÀ-Ý][\p{L}'’-]+/gu) || [];
   // a mesma palavra como sai nos quadros: "CLOPAN" → "Clopan"
-  semRevisao([...nomes, ...nomes.map((w) => w.charAt(0) + w.slice(1).toLowerCase())]);
+  semRevisao([...nomes, ...nomes.map((w) => w.charAt(0) + w.slice(1).toLowerCase()), ...nomes.map((w) => w.toUpperCase())]);
   // nomes de produtos e substâncias dos agentes avaliados (formocresol, TEGDMA…): o dicionário do Word não os tem
   semRevisao(dados.agentes.flatMap((a) => String(a.data.nome || '').match(/[\p{L}][\p{L}-]{3,}/gu) || []).filter((w) => /[A-Z]{2,}|[a-z]{9,}/.test(w)));
   // ordem cronológica: cada posto/veículo vai para a posição do primeiro vínculo que representa

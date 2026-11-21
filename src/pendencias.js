@@ -12,7 +12,8 @@ import { sugerirParaVinculo } from './paradigmas.js';
 import { fmtHoras, horasDia, horasForaTexto } from './calc.js';
 import { contextoLegal, ehParecerTecnico, EMITENTE_PPP, CATEGORIAS_SEGURADO, RESULTADO_AGENTE } from './schema.js';
 import { categoriaDoVinculo } from './enquadramento.js';
-import { agentesDoArt68 } from './docx/agentesQuadros.js';
+import { agentesDoArt68, bancoDoAgente } from './docx/agentesQuadros.js';
+import { efeitosDoBanco } from './docx/efeitosQuimicos.js';
 import { profissaoDoCaso } from './data/profissoes.js';
 
 const br = (iso) => String(iso || '').replace(/^(\d{4})-(\d{2})-(\d{2}).*$/, '$3/$2/$1');
@@ -177,7 +178,7 @@ export async function pendenciasDoCaso(caseId) {
             titulo: `${a.data.nome} – ${rot}`, explicacao: 'Campo 15 do PPP: "Sim" só se as fichas comprovarem CA, troca, treinamento e higienização (art. 291 da IN 128/2022).' });
         }
       }
-      if (a.data.tipo === 'Químico' && !String(a.data.efeitos || '').trim() && !profissaoDoCaso(c, dados.periodos)) {
+      if (a.data.tipo === 'Químico' && !String(a.data.efeitos || '').trim() && !efeitosDoBanco(bancoDoAgente(a, dados.quimicos)) && !profissaoDoCaso(c, dados.periodos)) {
         txt(`efeitos-${a.id}`, a.id, 'efeitos', `${a.data.nome} – efeitos à saúde`, 'Vai para o quadro de características dos químicos. Ex.: "Corrosivo: queimaduras de pele, olhos e mucosas; irritação das vias respiratórias."');
       }
     }

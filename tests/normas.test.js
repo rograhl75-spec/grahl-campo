@@ -29,3 +29,17 @@ describe('bases do Caracterizador Pericial', () => {
     expect(buscarNormas(e, 'art. 291', 'IN PRES/INSS 128/2022').length).toBeGreaterThan(0);
   });
 });
+
+describe('efeitos à saúde dos químicos em português', () => {
+  it('todos os agentes do banco têm efeitos (NIOSH traduzido ou fichas oficiais)', async () => {
+    const { readFile } = await import('node:fs/promises');
+    const { efeitosDoBanco, sintomasEmPortugues } = await import('../src/docx/efeitosQuimicos.js');
+    const { agenteParaDados, idDoAgente } = await import('../src/quimicos.js');
+    const base = JSON.parse(await readFile(new URL('../public/bases/quimicos-base.json', import.meta.url), 'utf8'));
+    const sem = base.agentes.filter((a) => !efeitosDoBanco({ id: idDoAgente(a), data: agenteParaDados(a) })).map((a) => a.nome);
+    expect(sem).toEqual([]);
+    const hcl = sintomasEmPortugues('irritation nose, throat, larynx; cough, choking; dermatitis; solution: eye, skin burns');
+    expect(hcl).toContain('Irritação do nariz, da garganta e da laringe');
+    expect(hcl).not.toMatch(/[a-z]+ (and|of|the) /);
+  });
+});

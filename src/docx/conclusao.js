@@ -171,12 +171,15 @@ export function conclusaoPrevidenciaria(d, dados, { tituloQuadro = 'Conclusão p
   const av = avaliarPeriodos(dados);
   if (!av.length) { d.redigir('cadastre os vínculos na etapa 2. Autos.'); return; }
   const penDe = (r) => (penosidade ? penosidade(r) : null);
-  d.quadro(tituloQuadro, [['Vínculo / período', dados.c.tipoAtuacao === 'Extrajudicial' ? 'Avaliação' : 'Avaliação pericial', 'Código', 'Caracteriza'],
-    ...av.flatMap(({ r, segs }) => segs.map((s) => [`${empresaCurta(r)}\n${dataBR(s.ini)} a ${fimSeg(r, s)}`,
-      [s.itens.length ? s.itens.map((i) => i.t).join('\n') : '[[sem avaliação quantitativa para o período]]', penDe(r) === true && s.fim > '1995-04-28' ? 'Penosidade: caracterizada na matriz de fatores (item 3)' : ''].filter(Boolean).join('\n'),
-      [s.codigos, penDe(r) === true && s.fim > '1995-04-28' && s.caracteriza !== 'SIM' ? 'penosidade (IAC nº 5 do TRF4; Tema 1307 do STJ)' : ''].filter((x) => x && x !== '—').join('; ') || '—',
-      penosidade ? resultadoSubperiodo(s, penDe(r)) : s.caracteriza]))],
-  { larguras: [0.22, 0.44, 0.2, 0.14], tam: 9, alinhar: 'left',
+  // uma linha por item avaliado, com o código ao lado do próprio item; período e resultado só na primeira linha
+  const linhasSintese = av.flatMap(({ r, segs }) => segs.flatMap((s) => {
+    const its = s.itens.length ? s.itens.map((i) => [i.t, i.sup ? (i.cod || '—') : '—']) : [['[[sem avaliação quantitativa para o período]]', '—']];
+    if (penDe(r) === true && s.fim > '1995-04-28') its.push(['Penosidade: caracterizada na matriz de fatores (item 3)', s.caracteriza !== 'SIM' ? 'penosidade (IAC nº 5 do TRF4; Tema 1307 do STJ)' : '—']);
+    const res = penosidade ? resultadoSubperiodo(s, penDe(r)) : s.caracteriza;
+    return its.map(([t, cod], k) => [k ? '' : `${empresaCurta(r)}\n${dataBR(s.ini)} a ${fimSeg(r, s)}`, t, cod, k ? '' : res]);
+  }));
+  d.quadro(tituloQuadro, [['Vínculo / período', dados.c.tipoAtuacao === 'Extrajudicial' ? 'Avaliação' : 'Avaliação pericial', 'Código', 'Caracteriza'], ...linhasSintese],
+  { larguras: [0.19, 0.43, 0.23, 0.15], tam: 9, alinhar: 'left',
     fonte: fonteSintese(dados, av) });
   // afastamentos que não contam como tempo especial
   const excl = av.flatMap(({ r, excluidos }) => (excluidos || []).map(([a, b, x]) => `${dataBR(a)} a ${dataBR(b)} (${empresaCurta(r)})`));

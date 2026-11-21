@@ -576,7 +576,7 @@ function HorariosPelasEvidencias({ rec }) {
 }
 
 // Relatórios das medições (dosimetria, vibração, IBUTG, certificados): saem como apêndices do laudo
-function RelatoriosMedicao({ rec, desc = DESC_APENDICE, rotulo = 'Apêndice', titulo = 'Relatórios das medições (apêndices do laudo)', botao = '＋ Anexar relatório (PDF ou imagem)',
+export function RelatoriosMedicao({ rec, desc = DESC_APENDICE, rotulo = 'Apêndice', titulo = 'Relatórios das medições (apêndices do laudo)', botao = '＋ Anexar relatório (PDF ou imagem)',
   dica = 'Anexe os relatórios exportados dos medidores (ruído, vibração, IBUTG) e os certificados de calibração, em PDF ou imagem. Cada arquivo sai no fim do laudo, do parecer ou do LTCAT como Apêndice A, B, C…, com todas as páginas.' }) {
   const lista = useLive(async () => (await db.records.where('[caseId+kind]').equals([rec.id, 'anexo']).toArray())
     .filter((r) => !r.deleted && r.data.descricao === desc)

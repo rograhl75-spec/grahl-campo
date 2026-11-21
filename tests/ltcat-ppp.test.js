@@ -168,3 +168,17 @@ describe('banco de profissões', () => {
     expect(montarPrompt('perito-trab', { profissao: 'Cirurgião-dentista' })).not.toContain('REFERÊNCIA DA PROFISSÃO');
   });
 });
+
+describe('vínculo em aberto no LTCAT e no PPP', () => {
+  it('a data de emissão substitui "atual"', async () => {
+    await caso('d4', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'], autorNome: 'Segurado Quatro', pppEmitente: 'Próprio segurado (contribuinte individual)' });
+    await filho('d4v', 'periodo', 'd4', { empresa: 'Consultório', inicio: '2000-01-01', fim: '', cargo: 'Cirurgião-dentista', categoriaSegurado: 'Contribuinte individual' });
+    await filho('d4a', 'agenteAvaliado', 'd4', { nome: 'Biológico', tipo: 'Biológico', resAte97: 'Caracteriza', resDesde97: 'Caracteriza' });
+    const r = await ltcatPpp('d4');
+    const hoje = new Date().toISOString().slice(0, 10).split('-').reverse().join('/');
+    for (const t of [await texto(r), await texto(r.extras[0])]) {
+      expect(t).not.toMatch(/a atual\b/);
+      expect(t).toContain(`01/01/2000 a ${hoje}`);
+    }
+  });
+});

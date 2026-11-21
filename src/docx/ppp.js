@@ -4,7 +4,7 @@
 // II – registros ambientais (exposição a fatores de risco e responsável); III – monitoração biológica;
 // IV – responsáveis pelas informações. Quem emite: empresa, cooperativa de trabalho ou o próprio segurado.
 // ======================================================================
-import { Doc, dataBR, credencial, finalizar, carregar } from './base.js';
+import { Doc, dataBR, credencial, finalizar, carregar, fimNaEmissao } from './base.js';
 import { p, run } from './ooxml.js';
 import { avaliarPeriodos } from './conclusao.js';
 import { exposicaoNoVinculo, codigosDoAgente, tecnicaDoAgente, categoriaDoVinculo, lerAfastamentos } from '../enquadramento.js';
@@ -36,7 +36,7 @@ export function emitenteDoPpp(dados) {
 }
 
 export async function ppp(caseId, dadosProntos) {
-  const dados = dadosProntos || await carregar(caseId);
+  const dados = fimNaEmissao(dadosProntos || await carregar(caseId));
   const { c, perfil } = dados;
   const d = new Doc();
   d.h1NovaPagina = false;

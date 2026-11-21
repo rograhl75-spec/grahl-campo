@@ -37,7 +37,7 @@ export const PROFISSOES = [
     "epiEficaz": "Não",
     "fundamentacao": "Na clínica odontológica, o cirurgião-dentista mantém contato direto e habitual com sangue, saliva e secreções dos pacientes, com aerossóis gerados pela caneta de alta rotação e pelo ultrassom e com instrumental perfurocortante contaminado (anestesia, exodontia, raspagem, endodontia, cirurgias e implantes), em todos os atendimentos da jornada. A exposição é inerente à atividade e não depende de tempo mínimo diário. O consultório odontológico é estabelecimento de saúde, e a atividade corresponde ao cód. 1.3.2 do Decreto 53.831/1964 (assistência odontológica) e ao cód. 1.3.4 do Anexo I do Decreto 83.080/1979 (dentistas) até 05/03/1997, e ao cód. 3.0.1, alínea \"a\", do Anexo IV dos Decretos 2.172/1997 e 3.048/1999 a partir de 06/03/1997. Luvas, máscara e óculos reduzem, mas não eliminam, o contato com material biológico e o risco de acidente perfurocortante.",
     "circunstancias": "Atendimento clínico de todos os pacientes da jornada, com procedimentos invasivos (anestesia, exodontia, raspagem, endodontia, cirurgias e implantes) e preparo com alta rotação.",
-    "vias": "Contato cutâneo-mucoso com sangue, saliva e secreções; inalação de aerossóis; via percutânea em acidentes com perfurocortantes.",
+    "vias": "Contato cutaneomucoso com sangue, saliva e secreções; inalação de aerossóis; via percutânea em acidentes com perfurocortantes.",
     "frequencia": "Habitual e permanente: em todos os atendimentos, durante toda a jornada clínica."
   },
   {
@@ -110,7 +110,7 @@ export const PROFISSOES = [
     "limites": "NR-15, Anexo 13 – operações diversas: manuseio de álcalis cáusticos (grau médio); IARC Grupo 3"
   },
   {
-    "nome": "Resinas e adesivos metacrílicos (Bis-GMA, TEGDMA, HEMA)",
+    "nome": "Resinas e adesivos metacrílicos (BIS-GMA, TEGDMA, HEMA)",
     "tipo": "Químico",
     "fonte": "Restaurações em resina composta e sistemas adesivos",
     "codAte97": "1.2.11 do Dec. 53.831/64 (tóxicos orgânicos – ésteres)",
@@ -118,7 +118,7 @@ export const PROFISSOES = [
     "codDesde97": "não constam do Anexo IV",
     "resDesde97": "Não enquadrável",
     "fundamentacao": "Até 05/03/1997, enquadramento qualitativo, por presunção de exposição, no cód. 1.2.11 do Decreto 53.831/1964 (tóxicos orgânicos – ésteres), pela manipulação habitual do produto na rotina clínica. A partir de 06/03/1997, os metacrilatos não constam do Anexo IV.",
-    "cas": "1565-94-2 (Bis-GMA); 109-16-0 (TEGDMA); 868-77-9 (HEMA)",
+    "cas": "1565-94-2 (BIS-GMA); 109-16-0 (TEGDMA); 868-77-9 (HEMA)",
     "circunstancias": "Uso na rotina clínica do consultório, durante os atendimentos da jornada, nas restaurações em resina composta e na aplicação de sistemas adesivos.",
     "vias": "Contato com a pele (mãos) e as mucosas; inalação de vapores de monômeros e solventes.",
     "frequencia": "Habitual, em cada restauração em resina.",
@@ -328,7 +328,7 @@ export const PROFISSOES = [
   "tipo": "Biológico",
   "fonte": "Atendimento de pacientes e manuseio de materiais contaminados",
   "circunstancias": "Atendimento clínico e procedimentos em todos os pacientes da jornada.",
-  "vias": "Contato cutâneo-mucoso com sangue e secreções; inalação de aerossóis; via percutânea em acidentes com perfurocortantes.",
+  "vias": "Contato cutaneomucoso com sangue e secreções; inalação de aerossóis; via percutânea em acidentes com perfurocortantes.",
   "frequencia": "Habitual e permanente: em todos os atendimentos da jornada.",
   "resAte97": "Caracteriza",
   "resDesde97": "Caracteriza",
@@ -352,7 +352,7 @@ export const PROFISSOES = [
   "tipo": "Biológico",
   "fonte": "Assistência direta a pacientes e manuseio de materiais contaminados",
   "circunstancias": "Assistência direta aos pacientes durante toda a jornada.",
-  "vias": "Contato cutâneo-mucoso com sangue e secreções; inalação de aerossóis; via percutânea em acidentes com perfurocortantes.",
+  "vias": "Contato cutaneomucoso com sangue e secreções; inalação de aerossóis; via percutânea em acidentes com perfurocortantes.",
   "frequencia": "Habitual e permanente: em todos os atendimentos da jornada.",
   "resAte97": "Caracteriza",
   "resDesde97": "Caracteriza",

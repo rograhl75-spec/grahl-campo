@@ -59,7 +59,7 @@ describe('documentos (itens pendentes)', () => {
       postos: [{ id: 't2p', data: { nome: 'Pintura' } }], quimicos: [{ id: 'qui-x', data: AG }] };
     expect(linhasRecomendacoes(dados)).toHaveLength(1); // ruído abaixo de 50% não entra
     const t = await texto(await laudoPericial('t2', { extra: true }));
-    expect(t).toContain('Recomendações por agente');
+    expect(t).toContain('Medidas de controle recomendadas');
     expect(t).toContain('64% do LT (nível de ação: 50%)');
     expect(t).not.toContain('art. 473 do CPC');
   });

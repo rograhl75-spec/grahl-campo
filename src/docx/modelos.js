@@ -192,8 +192,10 @@ function agentesAvaliados(d, dados, sub, n) {
       fonte: 'Elaborado pelo signatário com base nos Decretos 53.831/1964, 83.080/1979, 2.172/1997 e 3.048/1999 e na IN PRES/INSS nº 128/2022.' });
     if (tipo === 'Químico') {
       quadroCaracteristicasQuimicos(d, lst.map((a) => ({ nome: a.data.nome, dados: a.data, banco: bancoDoAgente(a, dados.quimicos) })));
-      const quant = lst.filter((a) => anexoQuantitativo(a, dados.quimicos) && a.data.resDesde97 !== 'Caracteriza').map((a) => a.data.nome.replace(/\s*\(.*$/, ''));
-      if (quant.length) d.texto(`${quant.join(', ')} ${quant.length > 1 ? 'têm' : 'tem'} limite de tolerância nos Anexos 11 ou 12 da NR-15 (avaliação quantitativa). Sem medição da concentração no ambiente, a exposição não é caracterizada, e ${quant.length > 1 ? 'os agentes constam' : 'o agente consta'} do PPP como presente${quant.length > 1 ? 's' : ''}, com a intensidade "não quantificada".`);
+      const quant = lst.filter((a) => anexoQuantitativo(a, dados.quimicos) && ['Não caracteriza', 'Não enquadrável'].includes(a.data.resDesde97))
+        .map((a) => a.data.nome.replace(/\s*\(.*$/, '').replace(/^\p{Lu}(?=\p{Ll})/u, (c) => c.toLowerCase()));
+      const lq = quant.join(', ').replace(/, ([^,]*)$/, ' e $1').replace(/^./, (c) => c.toUpperCase());
+      if (quant.length) d.texto(`${lq} ${quant.length > 1 ? 'têm' : 'tem'} limite de tolerância nos Anexos 11 ou 12 da NR-15 (avaliação quantitativa). Sem medição da concentração no ambiente, a exposição não é caracterizada, e ${quant.length > 1 ? 'os agentes constam' : 'o agente consta'} do PPP como presente${quant.length > 1 ? 's' : ''}, com a intensidade "não quantificada".`);
     }
     for (const a of lst) {
       const partes = [v(a.data.fundamentacao)].filter(Boolean);

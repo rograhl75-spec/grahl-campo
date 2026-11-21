@@ -140,7 +140,9 @@ export async function ppp(caseId, dadosProntos) {
   }
   if (fora.length) obs.push(`Não constam deste PPP, por não serem de responsabilidade do emitente, ${fora.length > 1 ? 'os períodos' : 'o período'} ${fora.map(({ r }) => `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`).join(', ').replace(/, ([^,]*)$/, ' e $1')}, ${fora.length > 1 ? 'demonstrados' : 'demonstrado'} pelo LTCAT do signatário.`);
   if (v(c.pppObs)) obs.push(c.pppObs);
-  d.texto(obs.length ? obs.map((o) => `- ${o}`).join('\n') : 'Sem observações.');
+  // a mesma observação em vários vínculos (ex.: afastamento repetido) sai uma vez só
+  const obsU = [...new Set(obs)];
+  d.texto(obsU.length ? obsU.map((o) => `- ${o}`).join('\n') : 'Sem observações.');
   const r = await finalizar(d, { titulo: 'PPP', arquivo: 'PPP', c });
   return r;
 }

@@ -145,6 +145,16 @@ export async function pendenciasDoCaso(caseId) {
       vias: 'Como o agente chega ao trabalhador (pele, mucosas, inalação, via percutânea). Ex.: "Contato com a pele e as mucosas; inalação de aerossóis."',
       frequencia: 'Quantas vezes e por quanto tempo, e se é habitual e permanente. Ex.: "Habitual e permanente, em todos os atendimentos da jornada."',
     };
+    // agente repetido (o mesmo agente com outro detalhe no nome): sai duas vezes no laudo e no PPP
+    const chaveAg = (n) => String(n || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s*\(.*$/, '').replace(/[^a-z0-9]+/g, ' ').trim();
+    dados.agentes.forEach((a, i) => {
+      const k = chaveAg(a.data.nome);
+      const outro = dados.agentes.find((b, j) => j !== i && (() => { const kb = chaveAg(b.data.nome); return kb === k ? j < i : (k.length >= 6 && kb.startsWith(k) && kb !== k); })());
+      if (!outro) return;
+      itens.push({ id: `agdup-${a.id}`, grupo: g, tipo: 'aviso', rec: a.id, respondido: false, excluir: `Excluir "${a.data.nome}"`,
+        titulo: `Agente repetido: "${a.data.nome}" e "${outro.data.nome}"`,
+        explicacao: 'O mesmo agente cadastrado duas vezes sai duas vezes no laudo e no PPP. Exclua o que ficou desatualizado (este, com o nome mais curto, costuma ser o antigo).' });
+    });
     const semDescricao = agentesDoArt68(dados.agentes).filter((a) => ['circunstancias', 'fonte', 'vias', 'frequencia'].some((k) => !String(a.data[k] || '').trim()));
     if (semDescricao.length && profissaoDoCaso(c, dados.periodos)) {
       itens.push({ id: 'art68-banco', grupo: g, tipo: 'aviso', rec: caseId, respondido: false, link: `#/caso/${encodeURIComponent(caseId)}/preparacao`, rotuloLink: 'Ir para o banco de profissões',

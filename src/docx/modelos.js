@@ -7,7 +7,7 @@ import { ORIGEM_QUESITO, ehSuplementar, FORMAS_PAGAMENTO, localVistoria, ehAcide
 import {
   Doc, carregar, finalizar, dataBR, menosCincoAnos, ou, partes, papelAssinatura, enderecamentoTexto, linhasProcesso,
   qualificacaoCurta, qualificacaoCompleta, blocoAssinatura, credencial, registrosCrq, equipamentosUsados, quadroEquipamentos, quadroDiligencia,
-  anexosDoCaso, inserirAnexos, quadroPeriodos, quadroEpis, quadroDocumentos, quadroCriteriosRuido, quadroConfrontoRuido, quadroMedicoesRuido,
+  anexosDoCaso, inserirAnexos, fimNaEmissao, quadroPeriodos, quadroEpis, quadroDocumentos, quadroCriteriosRuido, quadroConfrontoRuido, quadroMedicoesRuido,
   quadroMedicoesGenerico, medicoesPorAgente, nomePostoFn, profissiografia, figurasDoCaso, respostasQuesitos, capaTecnica,
   quadroCriteriosCalor, quadroCriteriosVibracao, documentosARequerer, quadrosParadigmasMetodologia, memoriasParadigmas, usaParadigmas, fluxoAvaliacao,
   art, dadosDaConta, dataPorExtenso, horaPorExtenso, reaisPorExtenso, numeroPorExtenso, moeda, lerValor, nomeOrigemQuesito,
@@ -492,7 +492,8 @@ export async function laudoPrevidenciario(caseId) {
 // LTCAT + PPP (extrajudicial, inclusive extemporâneo / por similaridade)
 // ======================================================================
 export async function ltcatPpp(caseId) {
-  const dados = await carregar(caseId);
+  // vínculo em aberto: a data de emissão no lugar de "atual" (LTCAT e PPP)
+  const dados = fimNaEmissao(await carregar(caseId));
   const { c, perfil } = dados;
   const d = new Doc();
   const seg = c.autorNome || '[[segurado]]';

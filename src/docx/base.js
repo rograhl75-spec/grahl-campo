@@ -2,6 +2,7 @@ import { db, caseChildren } from '../db.js';
 import { revisarCampo } from '../ortografia.js';
 import { empresaLimpa } from '../nomes.js';
 import { herdarDoAnterior } from '../heranca.js';
+import { acentuar } from '../ortografia.js';
 import { resumoMedicao, calculados } from '../medicoes.js';
 import { nen, num, fmt, fatorQ, doseJornada, horasDia, fmtHoras } from '../calc.js';
 import { ORIGEM_QUESITO, contextoLegal, ehSuplementar , reuEhInss, localVistoria, vistoriasDoCaso, datasDasVistorias, variasVistorias } from '../schema.js';
@@ -1067,12 +1068,18 @@ export async function anexosDoCaso(dados, { romanos = false, inicio = 0 } = {}) 
   const { obterAnexo } = await import('../sync.js');
   const out = []; let falhas = 0;
   for (const r of await apendicesRegistros(dados.id, DESC_ANEXO_DOC)) {
-    try { out.push({ letra: (romanos ? ROMANOS : LETRAS)[inicio + out.length] || String(inicio + out.length + 1), titulo: r.data.titulo || r.data.nome, paginas: await paginasDoArquivo(await obterAnexo(r.id), r.data.mime) }); } catch (e) { falhas++; }
+    try { out.push({ letra: (romanos ? ROMANOS : LETRAS)[inicio + out.length] || String(inicio + out.length + 1), titulo: acentuar(r.data.titulo || r.data.nome), paginas: await paginasDoArquivo(await obterAnexo(r.id), r.data.mime) }); } catch (e) { falhas++; }
   }
   return { anexos: out, falhasAnexo: falhas };
 }
 export function inserirAnexos(d, anexos) {
-  for (const a of anexos) { d.h1('', `Anexo ${a.letra} – ${a.titulo}`); d.paginasInteiras(a.paginas, { nota: `Anexo ${a.letra}` }); }
+  for (const a of anexos) { d.h1('', `Anexo ${a.letra} – ${a.titulo}`); d.paginasInteiras(a.paginas, { semLegenda: true }); }
+}
+
+// LTCAT e PPP: vínculo em aberto termina na data de emissão do documento (em vez de "atual")
+export function fimNaEmissao(dados) {
+  const hoje = hojeLocal();
+  return { ...dados, periodos: dados.periodos.map((r) => (r.data.fim ? r : { ...r, data: { ...r.data, fim: hoje, fimNaEmissao: true } })) };
 }
 
 export function inserirApendices(d, apendices, dados) {

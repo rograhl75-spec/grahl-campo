@@ -414,7 +414,7 @@ export function linhasRecomendacoes(dados) {
 export function quadroRecomendacoes(d, dados) {
   const rows = linhasRecomendacoes(dados);
   const soQuali = rows.length && !dados.medicoes?.length;
-  d.quadro('Recomendações por agente', [['Posto', 'Agente', 'Situação', 'Medidas recomendadas (ordem da NR-1)'],
+  d.quadro('Medidas de controle recomendadas', [['Posto', 'Agente', 'Situação', 'Medidas recomendadas (ordem da NR-1)'],
     ...(rows.length ? rows : [['[[posto]]', '[[agente]]', '[[situação]]', '[[medidas]]']])],
   { larguras: [0.18, 0.17, 0.2, 0.45], tam: 9, alinhar: 'left', fonte: soQuali ? 'Elaborado pelo signatário. Agentes com exposição caracterizada na avaliação qualitativa (item 5).' : 'Elaborado pelo signatário. Agentes no nível de ação ou acima (NR-9: ruído – dose de 50%; VCI – aren 0,5 m/s² ou VDVR 9,1 m/s^1,75; VMB – aren 2,5 m/s²; químicos – metade do limite de exposição).' });
   return rows.length;

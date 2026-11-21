@@ -51,7 +51,7 @@ const TERMOS_TECNICOS = ['aren', 'arep', 'areq', 'Lavg', 'Leq', 'NEN', 'VDVR', '
   'Grahl', 'Benz', 'Mercedes', 'Volkswagen', 'Volvo', 'Scania', 'Agrale', 'Atego', 'Iveco', 'Perkins', 'Chevrolet', 'Constellation', 'Worker', 'Delivery',
   'Sonus', 'Criffer', 'Chrompack', 'SmartVib', 'Instrutherm', 'Inlite', 'Rodofrio', 'Jumper', 'Ducato', 'Boxer', 'Cincinnati', 'UFs', 'CNIS', 'CTPS', 'CBO', 'PPP', 'LTCAT',
   'NIT', 'EPC', 'TNU', 'GFIP', 'CAEPF', 'RPS', 'LINACH', 'CRO', 'CRQ', 'CNAE', 'SST', 'MTE', 'PRES', 'PREC', 'PDH', 'SEPRT', 'eSocial', 'CNEN', 'FDS', 'PGRSS', 'ASB', 'TSB',
-  'IARC', 'NIOSH', 'Acid', 'Gel', 'Pocket', 'Guide', 'EDTA', 'PVPI', 'glutaraldeído', 'formocresol', 'Formocresol', 'paramonoclorofenol', 'Paramonoclorofenol', 'tricresol', 'Tricresol', 'TEGDMA', 'Bis-GMA', 'HEMA', 'GMA',
+  'IARC', 'NIOSH', 'Acid', 'Gel', 'Bis', 'Bis-GMA', 'Pocket', 'Guide', 'EDTA', 'PVPI', 'glutaraldeído', 'formocresol', 'Formocresol', 'paramonoclorofenol', 'Paramonoclorofenol', 'tricresol', 'Tricresol', 'TEGDMA', 'Bis-GMA', 'HEMA', 'GMA',
   'metilmercúrio', 'etilmercúrio', 'ésteres', 'metilmetacrilato', 'Metilmetacrilato', 'metacrilatos', 'metacrílicos', 'fotopolimerizador', 'amalgamador', 'Spectro', 'Dabi', 'Atlante', 'Villevie', 'Uniodonto'];
 const extras = new Set();
 let reTec = null;
@@ -263,7 +263,7 @@ export class Doc {
     return this;
   }
   // Páginas inteiras de um apêndice (relatório de medição): uma imagem por página, largura útil
-  paginasInteiras(paginas, { nota = '' } = {}) {
+  paginasInteiras(paginas, { nota = '', semLegenda = false } = {}) {
     const largMax = (LARGURA / 1440) * 2.54; // cm
     const altMax = 21.5;
     paginas.forEach((pg, i) => {
@@ -275,7 +275,7 @@ export class Doc {
       if (alt > altMax) { alt = altMax; lg = (altMax * pg.w) / pg.h; }
       if (i > 0) this.quebra();
       this.add(imagemXml(rId, n, lg, alt));
-      this.add(p([run(`${nota ? `${nota} – ` : ''}página ${i + 1} de ${paginas.length}`, { size: 8, color: CINZA })], { align: 'center', after: 0, line: 240 }));
+      if (!semLegenda) this.add(p([run(`${nota ? `${nota} – ` : ''}página ${i + 1} de ${paginas.length}`, { size: 8, color: CINZA })], { align: 'center', after: 0, line: 240 }));
     });
     return this;
   }

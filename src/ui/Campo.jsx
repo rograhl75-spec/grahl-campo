@@ -144,7 +144,7 @@ export function Campo({ rec }) {
         <summary><b>No escritório</b> <small class="dica">relatórios dos medidores (apêndices), anexos do documento (ART, CNIS…) e importação das anotações</small></summary>
         <RelatoriosMedicao rec={rec} />
         <RelatoriosMedicao rec={rec} desc={DESC_ANEXO_DOC} rotulo="Anexo" titulo="Anexos do documento (ART, CNIS, certidões, declarações)"
-          dica="Documentos de terceiros que acompanham o LTCAT: ART, CNIS, certidões, declarações assinadas, fichas de dados de segurança. Cada arquivo sai no fim como Anexo A, B, C…, com todas as páginas."
+          dica="Documentos de terceiros que acompanham o LTCAT, o laudo previdenciário e o parecer previdenciário: ART, CNIS, certidões, declarações assinadas, fichas de dados de segurança. Cada arquivo sai no fim, com todas as páginas, como Anexo A, B, C… (no laudo judicial, Anexo II, III…, depois do relatório fotográfico)."
           botao="＋ Anexar documento (PDF ou imagem)" />
         <AnotacoesDiligencia rec={rec} />
       </details>

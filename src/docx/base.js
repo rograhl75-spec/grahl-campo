@@ -1049,9 +1049,10 @@ export function fichaParadigma(d, p, dados) {
 }
 
 // "Integram o presente laudo o Anexo I – ... e os Apêndices A a C – ..."
-export function textoIntegram(d, { fotos = false, rotuloFotos = 'Anexo I – Relatório fotográfico da diligência', apendices = [], doc = 'laudo' }) {
+export function textoIntegram(d, { fotos = false, rotuloFotos = 'Anexo I – Relatório fotográfico da diligência', apendices = [], anexos = [], doc = 'laudo' }) {
   const itens = [];
   if (fotos) itens.push(`o ${rotuloFotos}`);
+  for (const a of anexos) itens.push(`o Anexo ${a.letra} – ${a.titulo}`);
   for (const a of apendices) itens.push(`o Apêndice ${a.letra} – ${a.titulo}`);
   if (!itens.length) return;
   const lista = itens.length > 1 ? `${itens.slice(0, -1).join('; ')}; e ${itens[itens.length - 1]}` : itens[0];
@@ -1059,12 +1060,14 @@ export function textoIntegram(d, { fotos = false, rotuloFotos = 'Anexo I – Rel
 }
 
 // Anexos do documento (ART, CNIS, certidões): arquivos anexados ao caso, com todas as páginas
-export async function anexosDoCaso(dados) {
+// romanos: no laudo judicial, o Anexo I é o relatório fotográfico e os demais seguem II, III…
+const ROMANOS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV'];
+export async function anexosDoCaso(dados, { romanos = false, inicio = 0 } = {}) {
   const { apendicesRegistros, paginasDoArquivo, LETRAS, DESC_ANEXO_DOC } = await import('../apendices.js');
   const { obterAnexo } = await import('../sync.js');
   const out = []; let falhas = 0;
   for (const r of await apendicesRegistros(dados.id, DESC_ANEXO_DOC)) {
-    try { out.push({ letra: LETRAS[out.length] || String(out.length + 1), titulo: r.data.titulo || r.data.nome, paginas: await paginasDoArquivo(await obterAnexo(r.id), r.data.mime) }); } catch (e) { falhas++; }
+    try { out.push({ letra: (romanos ? ROMANOS : LETRAS)[inicio + out.length] || String(inicio + out.length + 1), titulo: r.data.titulo || r.data.nome, paginas: await paginasDoArquivo(await obterAnexo(r.id), r.data.mime) }); } catch (e) { falhas++; }
   }
   return { anexos: out, falhasAnexo: falhas };
 }

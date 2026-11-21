@@ -160,6 +160,11 @@ export const PERFIL_PADRAO = {
 export function credencial(perfil) {
   return [perfil.crea, perfil.vistoCrea].filter(Boolean).join(' – ');
 }
+// registros no Conselho Regional de Química (engenheiro químico): sai abaixo do CREA na capa e na assinatura
+export function registrosCrq(perfil = {}) {
+  const n = (x) => String(x || '').trim().replace(/^(CRQ[^\d]*)?(n[º°o.]\s*)?/i, '');
+  return [perfil.crqSp && `CRQ-IV nº ${n(perfil.crqSp)}`, perfil.crqPr && `CRQ-IX nº ${n(perfil.crqPr)}`].filter(Boolean).join(' – ');
+}
 
 // Rótulos das partes conforme a matéria
 export function partes(c) {
@@ -233,7 +238,8 @@ export function linhasProcesso(c, extra = []) {
 
 export function qualificacaoCurta(perfil) {
   const visto = perfil.vistoCrea ? ` (${perfil.vistoCrea})` : '';
-  return `**${perfil.nome}**, ${perfil.titulos}, ${perfil.crea}${visto}`;
+  const crq = registrosCrq(perfil);
+  return `**${perfil.nome}**, ${perfil.titulos}, ${perfil.crea}${visto}${crq ? `, ${crq}` : ''}`;
 }
 
 // ---------- contas bancárias (duas, escolhidas a cada petição) ----------
@@ -325,7 +331,7 @@ export function blocoAssinatura(d, { c, perfil }, papel, { linha = false, data }
     local: perfil.cidade || 'Londrina – PR',
     nome: perfil.nome,
     linha,
-    linhas: [perfil.titulos, credencial(perfil).replace(' – visto', ' – Visto'), papel || papelAssinatura(c)],
+    linhas: [perfil.titulos, credencial(perfil).replace(' – visto', ' – Visto'), registrosCrq(perfil), papel || papelAssinatura(c)].filter(Boolean),
   });
 }
 
@@ -679,7 +685,8 @@ const filete = (cor = 'C9A44C', after = 240) => `<w:p><w:pPr><w:pBdr><w:bottom w
 export function capaTecnica(d, { titulo, subtitulo, linha2, pares, perfil, data = new Date(), orgao = '' }) {
   d.add(p([run(perfil.nome, { b: true, color: '1B365D', size: 12, tit: true })], { align: 'center', after: 0 }));
   d.add(p([run(perfil.titulos, { size: 10, color: '475569' })], { align: 'center', after: 0 }));
-  d.add(p([run(credencial(perfil), { size: 10, color: '475569' })], { align: 'center', after: orgao ? 600 : 1400 }));
+  d.add(p([run(credencial(perfil), { size: 10, color: '475569' })], { align: 'center', after: registrosCrq(perfil) ? 0 : orgao ? 600 : 1400 }));
+  if (registrosCrq(perfil)) d.add(p([run(registrosCrq(perfil), { size: 10, color: '475569' })], { align: 'center', after: orgao ? 600 : 1400 }));
   if (orgao) d.add(p([run(orgao.toUpperCase(), { b: true, size: 10, color: '475569' })], { align: 'center', after: 600, line: 276 }));
   d.add(filete('C9A44C', 360));
   d.add(p([run(titulo, { b: true, size: 21, color: '1B365D', tit: true })], { align: 'center', after: 120, line: 276 }));
@@ -866,7 +873,7 @@ export function fluxoAvaliacao(d, dados, tipo) {
 
 export function quadroFormaEnquadramento(d, dados) {
   // sem ruído ou vibração no caso (medição, paradigma ou motorista), os marcos não falam em dB(A)
-  const ruido = !dados?.agentes?.length || dados.medicoes?.some((m) => /Ru[ií]do|Vibra/.test(m.data.agente || ''))
+  const ruido = dados.medicoes?.some((m) => /Ru[ií]do|Vibra/.test(m.data.agente || ''))
     || dados.periodos?.some((r) => r.data.paradigmaRuido || r.data.paradigmaVibracao || /motorista|caminh|ônibus|cobrador|tratorist/i.test(`${r.data.cargo || ''}`));
   if (dados?.periodos?.length) linhaDoTempo(d, dados.periodos, { ruido });
   return d.quadro('Forma de enquadramento, prova e medidas de controle', [['Período', 'Enquadramento', 'Documentos', 'Permanência', 'EPC / EPI'],

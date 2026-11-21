@@ -6,7 +6,7 @@
 import { ORIGEM_QUESITO, ehSuplementar, FORMAS_PAGAMENTO, localVistoria, ehAcidente, datasDasVistorias, variasVistorias, vistoriasDoCaso } from '../schema.js';
 import {
   Doc, carregar, finalizar, dataBR, menosCincoAnos, ou, partes, papelAssinatura, enderecamentoTexto, linhasProcesso,
-  qualificacaoCurta, qualificacaoCompleta, blocoAssinatura, credencial, equipamentosUsados, quadroEquipamentos, quadroDiligencia,
+  qualificacaoCurta, qualificacaoCompleta, blocoAssinatura, credencial, registrosCrq, equipamentosUsados, quadroEquipamentos, quadroDiligencia,
   quadroPeriodos, quadroEpis, quadroDocumentos, quadroCriteriosRuido, quadroConfrontoRuido, quadroMedicoesRuido,
   quadroMedicoesGenerico, medicoesPorAgente, nomePostoFn, profissiografia, figurasDoCaso, respostasQuesitos, capaTecnica,
   quadroCriteriosCalor, quadroCriteriosVibracao, documentosARequerer, quadrosParadigmasMetodologia, memoriasParadigmas, usaParadigmas, fluxoAvaliacao,
@@ -144,9 +144,12 @@ const TIT_TIPO = { 'Biológico': 'Agentes biológicos', 'Químico': 'Agentes qu�
 const TXT_TIPO = {
   'Biológico': 'Os agentes biológicos são avaliados de forma qualitativa, pela atividade exercida. Até 05/03/1997, o enquadramento se dá pelo cód. 1.3.2 do Decreto 53.831/1964 (assistência médica, odontológica, hospitalar e outras atividades afins, com contato com germes infecciosos ou parasitários) e pelo cód. 1.3.4 do Anexo I do Decreto 83.080/1979 (trabalhos com contato permanente com doentes ou materiais infectocontagiantes). A partir de 06/03/1997, pelo cód. 3.0.1 do Anexo IV dos Decretos 2.172/1997 e 3.048/1999, cujo rol de atividades é exaustivo; não se utiliza o Anexo 14 da NR-15 para fins previdenciários.',
   'Químico': 'Até 05/03/1997, os agentes químicos são enquadrados de forma qualitativa, por presunção de exposição, nos códigos 1.2.x dos Decretos 53.831/1964 e 83.080/1979. A partir de 06/03/1997, somente os agentes do Anexo IV dos Decretos 2.172/1997 e 3.048/1999 são considerados, avaliados conforme os Anexos 11 e 12 (quantitativos) e 13 e 13-A (qualitativos) da NR-15, e, a partir de 01/01/2004, pela metodologia das NHO da FUNDACENTRO. Agente que não consta do Anexo IV não é enquadrável, ainda que presente no ambiente.',
-  'Físico': 'Agentes físicos de avaliação quantitativa (ruído, calor, vibração, radiação ionizante) só caracterizam a condição especial com a demonstração da intensidade acima do limite de tolerância de cada época.',
+  'Físico': 'Ruído, calor e vibração só caracterizam a condição especial com a demonstração, por medição, da intensidade acima do limite de tolerância de cada época.',
 };
+const TXT_RADIACAO = 'As radiações ionizantes, até 05/03/1997, enquadram-se pelo cód. 1.1.4 do Decreto 53.831/1964 e pelo cód. 1.1.3 do Anexo I do Decreto 83.080/1979 (trabalhos com exposição a radiações para fins diagnósticos e terapêuticos); a partir de 06/03/1997, pelo cód. 2.0.3 do Anexo IV, com avaliação conforme o Anexo 5 da NR-15, que remete aos limites da CNEN.';
 const RES_TXT = (r) => ({ 'Caracteriza': 'caracteriza', 'Não caracteriza': 'não caracteriza', 'Não enquadrável': 'não enquadrável', 'A confirmar': '[[a confirmar]]' }[r] || '[[resultado]]');
+// "1.2.9 (…)" vira "cód. 1.2.9 (…)"; texto livre ("não consta do Anexo IV") fica como está
+const codTxt = (k) => (/^\d/.test(k) ? `cód. ${k}` : k.charAt(0).toUpperCase() + k.slice(1));
 function agentesAvaliados(d, dados, sub, n) {
   const ags = dados.agentes || [];
   if (!ags.length) return n;
@@ -161,15 +164,15 @@ function agentesAvaliados(d, dados, sub, n) {
     const lst = ags.filter((a) => (a.data.tipo || 'Químico') === tipo);
     if (!lst.length) continue;
     sub(TIT_TIPO[tipo]); n += 1;
-    d.texto(TXT_TIPO[tipo]);
+    d.texto(tipo === 'Físico' && lst.some((a) => /radia/i.test(a.data.nome || '')) ? `${TXT_TIPO[tipo]} ${TXT_RADIACAO}` : TXT_TIPO[tipo]);
     const cab = ['Agente', 'Vínculos'];
     if (temAte97) cab.push('Até 05/03/1997');
     if (temDesde97) cab.push('A partir de 06/03/1997');
     d.quadro(`${TIT_TIPO[tipo].split(' – ')[0]} – enquadramento por época`, [cab, ...lst.map((a) => {
       const k = codigosDoAgente(a);
       const lin = [a.data.nome, alcance(a)];
-      if (temAte97) lin.push(`${RES_TXT(a.data.resAte97)}${k.ate97 ? `\ncód. ${k.ate97}` : ''}`);
-      if (temDesde97) lin.push(`${RES_TXT(a.data.resDesde97)}${k.desde97 ? `\ncód. ${k.desde97}` : ''}`);
+      if (temAte97) lin.push(`${RES_TXT(a.data.resAte97)}${k.ate97 ? `\n${codTxt(k.ate97)}` : ''}`);
+      if (temDesde97) lin.push(`${RES_TXT(a.data.resDesde97)}${k.desde97 ? `\n${codTxt(k.desde97)}` : ''}`);
       return lin;
     })], { larguras: temAte97 && temDesde97 ? [0.3, 0.16, 0.27, 0.27] : [0.4, 0.2, 0.4], tam: 9, alinhar: 'left',
       fonte: 'Elaborado pelo signatário com base nos Decretos 53.831/1964, 83.080/1979, 2.172/1997 e 3.048/1999 e na IN PRES/INSS nº 128/2022.' });
@@ -466,7 +469,7 @@ export async function ltcatPpp(caseId) {
   const seg = c.autorNome || '[[segurado]]';
   const emit = emitenteDoPpp(dados);
   const emp = emit.nome || '[[empresa]]';
-  const cargos = [...new Set(dados.periodos.map((r) => v(r.data.cargo)).filter(Boolean))].join('; ');
+  const cargos = cargosDoCaso(dados).join('; ');
   const art = v(c.art) || '[[nº da ART]]';
   capaTecnica(d, {
     titulo: 'LAUDO TÉCNICO DAS CONDIÇÕES AMBIENTAIS DO TRABALHO (LTCAT)',
@@ -490,7 +493,7 @@ export async function ltcatPpp(caseId) {
   d.h2('1.3', 'Períodos avaliados');
   quadroVinculosLtcat(d, dados);
   d.h2('1.4', 'Responsável técnico');
-  d.identificacao([['Nome', perfil.nome], ['Formação', perfil.titulos], ['Registro', credencial(perfil)], ['ART', art]]);
+  d.identificacao([['Nome', perfil.nome], ['Formação', perfil.titulos], ['Registro', [credencial(perfil), registrosCrq(perfil)].filter(Boolean).join(' – ')], ['NIT', perfil.nit], ['ART', art]]);
 
   d.h1('2', 'Condições da avaliação');
   d.h2('2.1', 'Objeto e natureza');
@@ -518,9 +521,14 @@ export async function ltcatPpp(caseId) {
   registroJurisprudencia(d, dados, { numero: '3.3', nivel: 'h2', prev: true, tipo: 'ltcat' });
 
   d.h1('4', 'Ambiente de trabalho e profissiografia');
-  profissiografia(d, dados.postos, dados, { numero: '4.1' });
+  d.h2('4.1', 'Profissiografia por vínculo');
+  d.quadro('Profissiografia por vínculo', [['Vínculo / período', 'Atividades'],
+    ...dados.periodos.map((r, i) => [`V${i + 1} – ${empresaLimpa(r.data.empresa) || 'vínculo'}\n${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}${v(r.data.local) ? `\n${r.data.local}` : ''}`,
+      [v(r.data.atividades), v(r.data.profissiografia)].filter(Boolean).join(' ') || '[[atividades do vínculo]]'])],
+  { larguras: [0.28, 0.72], tam: 9, alinhar: 'left', fonte: 'Declarações do segurado (item 2.3), documentos do item 1.3 e vistoria.' });
+  profissiografia(d, dados.postos, dados, { numero: '4.2' });
   const { lista, faltando } = await figurasDoCaso(dados);
-  if (lista.length) { d.h2('4.2', 'Registro fotográfico'); d.figuras(lista); }
+  if (lista.length) { d.h2('4.3', 'Registro fotográfico'); d.figuras(lista); }
 
   d.h1('5', 'Avaliação dos agentes e das condições especiais');
   d.h2('5.1', 'Critérios gerais');
@@ -579,6 +587,10 @@ function quadroVinculosLtcat(d, dados) {
   { larguras: [0.24, 0.15, 0.24, 0.14, 0.23], tam: 9, alinhar: 'left' });
 }
 
+// cargos sem a condição do segurado ("cirurgião-dentista cooperado" e "cirurgião-dentista" são a mesma função)
+const cargosDoCaso = (dados) => [...new Map(dados.periodos.map((r) => v(r.data.cargo).replace(/\s+(cooperad[oa]|aut[oô]nom[oa]|s[oó]ci[oa])$/i, ''))
+  .filter(Boolean).map((x) => [x.toLowerCase(), x])).values()];
+
 // natureza da avaliação: individual; contemporânea na vistoria e extemporânea para os períodos anteriores
 function naturezaLtcat(dados, seg) {
   const { c } = dados;
@@ -586,8 +598,8 @@ function naturezaLtcat(dados, seg) {
   const end = v(c.vistoriaEndereco);
   const anteriores = dados.periodos.some((r) => c.vistoriaData && (r.data.inicio || '') < c.vistoriaData);
   const locais = [...new Set(dados.periodos.map((r) => v(r.data.local)).filter(Boolean))];
-  const partes = [`Este laudo avalia, de forma individual (art. 276, I, da IN 128/2022), a exposição de ${seg} a agentes nocivos nas atividades de ${[...new Set(dados.periodos.map((r) => v(r.data.cargo).toLowerCase()).filter(Boolean))].join(' e ') || '[[cargo]]'}, nos períodos do item 1.3, e fundamenta o Perfil Profissiográfico Previdenciário (PPP) emitido com ele.`];
-  if (vist) partes.push(`A avaliação é contemporânea quanto às condições observadas na vistoria de ${vist}${end ? `, em ${end}` : ''}${anteriores ? ', e extemporânea quanto aos períodos anteriores, cujas condições foram reconstituídas pelas declarações do item 2.3, pelos documentos do item 1.3 e pela permanência da atividade, com as alterações registradas no item 4' : ''}.`);
+  const partes = [`Este laudo avalia, de forma individual (art. 276, I, da IN 128/2022), a exposição de ${seg} a agentes nocivos nas atividades de ${cargosDoCaso(dados).map((x) => x.toLowerCase()).join(' e ') || '[[cargo]]'}, nos períodos do item 1.3, e fundamenta o Perfil Profissiográfico Previdenciário (PPP) emitido com ele.`];
+  if (vist) partes.push(`A avaliação é contemporânea quanto às condições observadas na vistoria de ${vist}${end ? `, realizada no local de trabalho (${end})` : ''}${anteriores ? ', e extemporânea quanto aos períodos anteriores, cujas condições foram reconstituídas pelas declarações do item 2.3, pelos documentos do item 1.3 e pela permanência da atividade, com as alterações registradas no item 4' : ''}.`);
   else partes.push('[[Informe a data da vistoria (etapa 4. Campo).]]');
   if (locais.length > 1 || (locais.length === 1 && end && !end.includes(locais[0]))) partes.push('Nos vínculos com local de trabalho diverso do vistoriado (item 1.3), a avaliação considera a mesma atividade profissional, conforme as declarações do item 2.3.');
   return partes.join(' ');

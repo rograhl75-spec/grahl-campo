@@ -77,3 +77,10 @@ describe('mais apontamentos do Word', () => {
     expect(acentuar('cabine com ar condicionado')).toBe('cabine com ar-condicionado');
   });
 });
+
+describe('notas "a confirmar com o segurado" no meio do texto', () => {
+  it('sai a nota inteira, sem deixar "uso a"', async () => {
+    const { semInstrucoes } = await import('../src/ortografia.js');
+    expect(semInstrucoes('Manipulação de amálgama – uso a confirmar com o segurado.')).not.toMatch(/uso a|confirmar/);
+  });
+});

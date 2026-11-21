@@ -65,7 +65,7 @@ export function acentuar(texto) {
 const RE_INSTRUCAO = /^\s*(sempre\s+)?(utilizar|utilize|usar|use|adotar|adote|considerar|considere|aplicar|aplique|manter|mantenha|repetir|repita|copiar|copie|seguir|siga|colocar|coloque|incluir|inclua|desconsiderar|desconsidere|ignorar|ignore|ver o|vide o)\b/i;
 export const ehInstrucao = (linha) => RE_INSTRUCAO.test(String(linha || ''));
 // notas de trabalho que não vão para o documento ("Confirmar com o segurado.", "(conferir)")
-const RE_NOTA = /\s*\(?\b(confirmar|conferir|verificar)\s+com\s+o\s+(segurado|autor|periciado|reclamante)\b[^.()]*[.)]?/gi;
+const RE_NOTA = /\s*(?:[–-]\s*)?(?:\b\p{L}+\s+a\s+)?\(?\b(confirmar|conferir|verificar)\s+com\s+o\s+(segurado|autor|periciado|reclamante)\b[^.()]*[.)]?/giu;
 export function semInstrucoes(texto) {
   const s = String(texto ?? '').replace(RE_NOTA, '').replace(/\(\s*\)/g, '').replace(/\s{2,}/g, ' ');
   if (!s.includes('\n') && !ehInstrucao(s)) return s;

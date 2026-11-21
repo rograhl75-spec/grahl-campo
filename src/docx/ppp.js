@@ -75,7 +75,7 @@ export async function ppp(caseId, dadosProntos) {
   { larguras: [0.16, 0.16, 0.16, 0.15, 0.15, 0.09, 0.13], tam: 8, alinhar: 'left', semNumero: true, fonte: 'Registros administrativos do emitente e LTCAT do signatário. Código GFIP 04: exposição a agente nocivo com aposentadoria especial aos 25 anos.' });
   d.quadro('14 – Profissiografia', [['Período', 'Descrição das atividades'],
     ...dentro.map(({ r }) => [`${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`,
-      [v(r.data.atividades) || '[[descrição das atividades]]', v(r.data.local) && `Local: ${r.data.local}.`].filter(Boolean).join(' ')])],
+      [v(r.data.profissiografia) || v(r.data.atividades) || '[[descrição das atividades]]', v(r.data.local) && `Local: ${r.data.local}.`].filter(Boolean).join(' ')])],
   { larguras: [0.2, 0.8], tam: 8.5, alinhar: 'left', semNumero: true, fonte: 'LTCAT do signatário, item 4.' });
 
   // ---------------- Seção II ----------------
@@ -93,7 +93,7 @@ export async function ppp(caseId, dadosProntos) {
     ...linhasMed,
   ].sort((a, b) => a[0].split('/').reverse().join('').localeCompare(b[0].split('/').reverse().join('')));
   d.quadro('15 – Exposição a fatores de riscos', [['Período', 'Tipo', 'Fator de risco', 'Intensidade', 'Técnica utilizada', 'EPC eficaz', 'EPI eficaz', 'CA EPI'],
-    ...(linhasExp.length ? linhasExp : [['[[período]]', '', 'Ausência de fator de risco nocivo', '', '', '', '', '']])],
+    ...(linhasExp.length ? linhasExp : [['[[período]]', '', (dados.agentes || []).length ? 'Ausência de fator de risco nocivo' : '[[cadastre os agentes avaliados na etapa 2. Autos]]', '', '', '', '', '']])],
   { larguras: [0.14, 0.07, 0.23, 0.13, 0.12, 0.09, 0.11, 0.11], tam: 8, alinhar: 'left', semNumero: true,
     fonte: 'LTCAT do signatário, itens 5 e 6. Tipo: F – físico; Q – químico; B – biológico. EPI só considerado a partir de 03/12/1998.' });
   const comEpi = exps.some((e) => e.agente.data.epiEficaz === 'Sim');

@@ -4,6 +4,8 @@
 //    com o resultado até 05/03/1997 e a partir de 06/03/1997;
 //  - afastamentos por benefício que não contam como tempo especial.
 
+import { avaliacaoPeloManual, cancerigenoAnexoIV, codigosNosDecretos } from './normas.js';
+
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 const dia = (iso, n) => { const d = new Date(`${iso}T12:00:00`); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
 
@@ -26,8 +28,9 @@ export function codigosDoAgente(a) {
   const x = a.data || a;
   const bio = x.tipo === 'Biológico';
   return {
-    ate97: v(x.codAte97) || (bio ? BIO_ATE97 : ''),
-    desde97: v(x.codDesde97) || (bio ? BIO_DESDE97 : ''),
+    // em branco: biológico pelos códigos da área da saúde; demais, pela tabela de agentes dos decretos
+    ate97: v(x.codAte97) || (bio ? BIO_ATE97 : (codigosNosDecretos(x.nome) || {}).ate97 || ''),
+    desde97: v(x.codDesde97) || (bio ? BIO_DESDE97 : (codigosNosDecretos(x.nome) || {}).desde97 || ''),
     tecnica: tecnicaDoAgente(a, false),
   };
 }
@@ -48,9 +51,17 @@ export function tecnicaDoAgente(a, ate97) {
     return 'Quantitativa';
   }
   if (ate97) return 'Qualitativa (presunção de exposição)';
+  // 1) o critério escrito no código pelo signatário prevalece
   if (/13-A/i.test(cod)) return 'Qualitativa – NR-15, Anexo 13-A';
-  if (/quantitativ|Anexo 11/i.test(cod)) return 'Quantitativa – NR-15, Anexo 11';
-  if (/qualitativ|Anexo 13/i.test(cod)) return 'Qualitativa – NR-15, Anexo 13';
+  if (/quantitativ/i.test(cod)) return 'Quantitativa – NR-15, Anexo 11';
+  if (/qualitativ/i.test(cod)) return /Anexo 13/i.test(cod) ? 'Qualitativa – NR-15, Anexo 13' : 'Qualitativa';
+  // 2) quadros do Manual de Aposentadoria Especial do INSS (2018), pelo nome do agente
+  if (cancerigenoAnexoIV(x.nome)) return 'Qualitativa – LINACH Grupo 1';
+  const m = avaliacaoPeloManual(x.nome);
+  if (m) return m.forma === 'Quantitativa' ? 'Quantitativa – NR-15, Anexo 11' : 'Qualitativa – NR-15, Anexo 13';
+  // 3) o anexo citado no código
+  if (/Anexo 11/i.test(cod)) return 'Quantitativa – NR-15, Anexo 11';
+  if (/Anexo 13/i.test(cod)) return 'Qualitativa – NR-15, Anexo 13';
   return 'Qualitativa';
 }
 

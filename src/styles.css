@@ -394,3 +394,11 @@ details.recolhido[open] > summary { margin-bottom: 12px; }
 .pend-marcas ul { margin: 6px 0 0; padding-left: 18px; font-size: .9rem; }
 .regra-caso { max-width: 560px; }
 .grade-docs .doc-aberto { grid-column: 1 / -1; }
+
+/* Consulta normativa */
+.norma-item { border-top: 1px solid var(--borda, #dfe5ee); padding: 10px 0; display: grid; gap: 4px; }
+.norma-item small { color: var(--cinza, #5b6b80); }
+.norma-item p { margin: 0; font-size: 0.92em; }
+.norma-item .mini { justify-self: start; }
+.tabela-simples { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+.tabela-simples th, .tabela-simples td { border-bottom: 1px solid var(--borda, #dfe5ee); padding: 4px 6px; text-align: left; vertical-align: top; }

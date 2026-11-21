@@ -167,14 +167,16 @@ export function categoriaDoVinculo(r) {
 export function exposicaoNoVinculo(r, idx, agentes, { presentes = false, hoje = new Date().toISOString().slice(0, 10) } = {}) {
   const ini = (r.data || r).inicio; const fim = (r.data || r).fim || hoje;
   if (!ini) return [];
-  const conta = (res) => res === 'Caracteriza' || (presentes && res === 'Não caracteriza');
+  // "não caracteriza" só entra quando o agente é do rol e de avaliação quantitativa sem medição (ex.: mercúrio após
+  // 05/03/1997); o que não caracteriza na avaliação qualitativa não vai ao PPP
+  const conta = (res, a, ate) => res === 'Caracteriza' || (presentes && res === 'Não caracteriza' && /^Quantitativa/.test(tecnicaDoAgente(a, ate)));
   const out = [];
   for (const a of agentes) {
     if (!agenteNoVinculo(a, idx)) continue;
     const x = a.data || a;
     const jan = [];
-    if (ini <= '1997-03-05' && conta(x.resAte97)) jan.push([ini, fim < '1997-03-05' ? fim : '1997-03-05', x.resAte97 === 'Caracteriza']);
-    if (fim >= '1997-03-06' && conta(x.resDesde97)) {
+    if (ini <= '1997-03-05' && conta(x.resAte97, a, true)) jan.push([ini, fim < '1997-03-05' ? fim : '1997-03-05', x.resAte97 === 'Caracteriza']);
+    if (fim >= '1997-03-06' && conta(x.resDesde97, a, false)) {
       const a0 = ini > '1997-03-06' ? ini : '1997-03-06';
       const car = x.resDesde97 === 'Caracteriza';
       jan.push([a0, fim, car]); // épocas separadas: o código e a técnica mudam em 06/03/1997

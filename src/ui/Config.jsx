@@ -5,7 +5,7 @@ import { exportarBackup, importarBackup, baixarArquivo, carimbo } from '../backu
 import { migrarDoFirebase, migrarDeZip } from '../migrate.js';
 import { CAMPOS_EQUIP, CAMPOS_PERFIL, tituloCaso } from '../schema.js';
 import { listarSugestoes, aplicarSugestoes } from '../organizar.js';
-import { PERFIL_ID, credencial } from '../docx/base.js';
+import { PERFIL_ID, credencial, registrosCrq } from '../docx/base.js';
 import { Icone } from './Icone.jsx';
 import { Campos } from './fields.jsx';
 import { dataBR } from '../docx/reports.js';
@@ -262,7 +262,7 @@ function Aparelho() {
 
 // Meus dados: cartão de visita (como sai nos documentos) e os dados em cartões por assunto
 const GRUPOS_PERFIL = [
-  { id: 'prof', icone: 'pessoa', titulo: 'Identificação profissional', dica: 'Sai na capa, na qualificação das petições e na assinatura.', campos: ['nome', 'titulos', 'crea', 'vistoCrea', 'curriculoUrl'] },
+  { id: 'prof', icone: 'pessoa', titulo: 'Identificação profissional', dica: 'Sai na capa, na qualificação das petições e na assinatura.', campos: ['nome', 'titulos', 'crea', 'vistoCrea', 'crqSp', 'crqPr', 'nit', 'curriculoUrl'] },
   { id: 'contato', icone: 'contato', titulo: 'Contato e local da assinatura', dica: 'Endereço profissional, telefone e e-mail saem na qualificação completa.', campos: ['endereco', 'telefone', 'email', 'cidade'] },
   { id: 'pessoal', icone: 'cadeado', titulo: 'Documentos pessoais', dica: 'Só na petição de indicação e no aceite do encargo. Ficam neste aparelho e na sua nuvem.', campos: ['cpf', 'rg'] },
   { id: 'docs', icone: 'ajuste', titulo: 'Preferências dos documentos', dica: 'Padrão para os casos novos; cada caso pode mudar.', campos: ['jurisprudenciaPadrao', 'penosidadeTextoSim', 'penosidadeTextoNao'] },
@@ -286,6 +286,7 @@ function MeusDados() {
           <b class="cv-nome">{p.nome || 'Seu nome'}</b>
           <span class="cv-formacao">{p.titulos || 'Formação'}</span>
           <span class="cv-registro">{credencial(p) || 'Registro profissional'}</span>
+          {registrosCrq(p) && <span class="cv-registro">{registrosCrq(p)}</span>}
           <span class="cv-contato">{[p.cidade, p.telefone, p.email].filter(Boolean).join('  ·  ')}</span>
         </div>
         {faltam.length > 0 && <small class="cv-falta">Falta preencher: {faltam.join(', ')}.</small>}

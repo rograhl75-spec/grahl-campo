@@ -4,6 +4,8 @@ import { vistoriasDoCaso } from './schema.js';
 import JSZip from 'jszip';
 import { caseChildren } from './db.js';
 import { FORMATO_DILIGENCIA } from './aiimport.js';
+import { contextoLegal } from './schema.js';
+import { profissaoDoCaso, referenciaProfissao } from './data/profissoes.js';
 
 const ent = (t) => t.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;|&#39;/g, "'").replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&');
 
@@ -98,6 +100,12 @@ Fidelidade: use só o que está nas anotações e nos relatórios anexados. Não
   if (periodos.length) L.push(`VÍNCULOS CADASTRADOS (empresa | início | fim | cargo):\n${periodos.map((r) => `- ${r.data.empresa || ''} | ${r.data.inicio || ''} | ${r.data.fim || ''} | ${r.data.cargo || ''}`).join('\n')}`);
   if (postos.length) L.push(`POSTOS / VEÍCULOS JÁ CADASTRADOS:\n${postos.map((p) => `- ${p.data.nome || ''}`).join('\n')}`);
   if (quesitos.length) L.push(`QUESITOS CADASTRADOS (origem | número | texto):\n${quesitos.map((q) => `- ${q.data.origem || ''} | ${q.data.numero || ''} | ${String(q.data.texto || '').slice(0, 160)}`).join('\n')}`);
+  // previdenciário: agentes avaliados sem medição e a referência da profissão (critérios do signatário)
+  if (contextoLegal(c).prev === true) {
+    L.push('AGENTES AVALIADOS ("agentesAvaliados"): para cada agente que o segurado usa ou usou (biológico, químico ou físico sem medição), preencha os elementos do art. 68, § 2º, do Decreto 3.048/1999 – circunstâncias da exposição durante a jornada, fontes e possibilidades de liberação, meios de contato e vias de absorção, intensidade, frequência e duração –, o CAS, os efeitos à saúde e o resultado de cada época. Agente que o segurado diz não usar fica de fora. FOTOS ("fotos"): uma legenda por foto, na ordem das anotações.');
+    const ref = referenciaProfissao(profissaoDoCaso(c, periodos));
+    if (ref) L.push(ref);
+  }
   L.push(FORMATO_DILIGENCIA);
   L.push(`ANOTAÇÕES DA DILIGÊNCIA:\n${textos.map((t) => `===== ${t.nome} =====\n${t.texto || '(sem texto extraído – arquivo anexado à conversa)'}`).join('\n\n')}`);
   return L.join('\n\n');

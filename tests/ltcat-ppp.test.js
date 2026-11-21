@@ -149,3 +149,21 @@ describe('vínculos sequenciais unidos num só', () => {
     expect(ps[0].data.fimAberto).toBeUndefined();
   });
 });
+
+describe('banco de profissões', () => {
+  it('reconhece a profissão e leva a referência para a instrução do Claude', async () => {
+    const { profissaoDoCaso, PROFISSOES } = await import('../src/data/profissoes.js');
+    const { montarPrompt } = await import('../src/aiimport.js');
+    expect(profissaoDoCaso({ funcoes: 'Cirurgião-dentista clínico geral' }).id).toBe('dentista');
+    expect(profissaoDoCaso({ profissao: 'Cirurgião-dentista' }).id).toBe('dentista');
+    expect(profissaoDoCaso({}, [{ data: { cargo: 'Técnica de enfermagem' } }]).id).toBe('enfermagem');
+    expect(profissaoDoCaso({ funcoes: 'Soldador' })).toBeNull();
+    const dent = PROFISSOES.find((p) => p.id === 'dentista');
+    expect(dent.agentes.length).toBeGreaterThan(10);
+    expect(JSON.stringify(dent)).not.toMatch(/Toffolo|Uniodonto|Spectro|8 pacientes/);
+    const p = montarPrompt('extra-ltcat', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'], profissao: 'Cirurgião-dentista' });
+    expect(p).toContain('REFERÊNCIA DA PROFISSÃO – CIRURGIÃO-DENTISTA');
+    expect(p).toContain('é UM vínculo só');
+    expect(montarPrompt('perito-trab', { profissao: 'Cirurgião-dentista' })).not.toContain('REFERÊNCIA DA PROFISSÃO');
+  });
+});

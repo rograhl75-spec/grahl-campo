@@ -402,3 +402,6 @@ details.recolhido[open] > summary { margin-bottom: 12px; }
 .norma-item .mini { justify-self: start; }
 .tabela-simples { width: 100%; border-collapse: collapse; font-size: 0.9em; }
 .tabela-simples th, .tabela-simples td { border-bottom: 1px solid var(--borda, #dfe5ee); padding: 4px 6px; text-align: left; vertical-align: top; }
+/* etapa concluída: o número continua visível (as instruções citam "etapa 2", "etapa 4"…) e o ✓ vai ao lado do nome */
+.abas.etapas .feita-ok { color: #2E7D4F; font-weight: 700; margin-left: 4px; }
+.abas.etapas a.ativo .feita-ok { color: #9BE3B5; }

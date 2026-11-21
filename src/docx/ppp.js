@@ -93,7 +93,7 @@ export async function ppp(caseId, dadosProntos) {
     ...exps.map((e) => {
       const x = e.agente.data; const k = codigosDoAgente(e.agente);
       const anexo = anexoQuantitativo(e.agente, dados.quimicos) || 'Anexo 11';
-      return [`${dataBR(e.ini)} a ${fimTxt(e.r, e.fim)}`, (x.tipo || 'Q')[0], x.nome, v(x.intensidade) || (e.caracteriza ? 'Não se aplica' : 'Não quantificada'),
+      return [`${dataBR(e.ini)} a ${fimTxt(e.r, e.fim)}`, (x.tipo || 'Q')[0], x.nome, (/^n[ãa]o se aplica$/i.test(v(x.intensidade)) ? '' : v(x.intensidade)) || (e.caracteriza ? 'Qualitativa' : 'Não quantificada'),
         e.naoQuantificado && !/^Quantitativa/.test(tecnicaDoAgente(e.agente, false)) ? `Quantitativa – NR-15, ${anexo}` : tecnicaDoAgente(e.agente, e.fim <= '1997-03-05') || '[[técnica]]',
         x.epcEficaz || (semEpi ? 'Não' : '[[S/N]]'), e.fim < '1998-12-03' ? 'Não se aplica' : x.epiEficaz || (semEpi ? 'Não' : '[[S/N]]'), v(x.ca) || '—'];
     }),

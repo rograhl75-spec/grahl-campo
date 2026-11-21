@@ -50,11 +50,11 @@ export function tecnicaDoAgente(a, ate97) {
     if (/ru[ií]do/i.test(cod)) return ate97 ? 'Quantitativa – NR-15, Anexo 1' : 'Quantitativa – NHO-01';
     return 'Quantitativa';
   }
-  if (ate97) return 'Qualitativa (presunção de exposição)';
+  if (ate97) return 'Qualitativa';
   // 1) o critério escrito no código pelo signatário prevalece
   if (/13-A/i.test(cod)) return 'Qualitativa – NR-15, Anexo 13-A';
   if (/quantitativ/i.test(cod)) return 'Quantitativa – NR-15, Anexo 11';
-  if (/qualitativ/i.test(cod)) return /Anexo 13/i.test(cod) ? 'Qualitativa – NR-15, Anexo 13' : 'Qualitativa';
+  if (/qualitativ/i.test(cod)) return 'Qualitativa – NR-15, Anexo 13';
   // 2) quadros do Manual de Aposentadoria Especial do INSS (2018), pelo nome do agente
   if (cancerigenoAnexoIV(x.nome)) return 'Qualitativa – LINACH Grupo 1';
   const m = avaliacaoPeloManual(x.nome);
@@ -62,7 +62,7 @@ export function tecnicaDoAgente(a, ate97) {
   // 3) o anexo citado no código
   if (/Anexo 11/i.test(cod)) return 'Quantitativa – NR-15, Anexo 11';
   if (/Anexo 13/i.test(cod)) return 'Qualitativa – NR-15, Anexo 13';
-  return 'Qualitativa';
+  return 'Qualitativa – NR-15, Anexo 13';
 }
 
 // o agente vale para o vínculo? "V1, V3" (pela ordem cronológica) ou em branco = todos

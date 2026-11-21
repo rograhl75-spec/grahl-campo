@@ -73,8 +73,8 @@ export function Caso({ id, aba }) {
       </div>
       <nav class="abas etapas">
         {ETAPAS.map((e) => (
-          <a href={`#/caso/${id}/${e.k}`} class={`${aba === e.k ? 'ativo' : ''} ${feitas[e.k] ? 'feita' : ''}`}>
-            <span class="num">{feitas[e.k] ? '✓' : e.n}</span>{e.rot}{n[e.k] ? <span class="contador">{n[e.k]}</span> : null}
+          <a href={`#/caso/${id}/${e.k}`} class={`${aba === e.k ? 'ativo' : ''} ${feitas[e.k] ? 'feita' : ''}`} title={feitas[e.k] ? `Etapa ${e.n} – concluída` : `Etapa ${e.n}`}>
+            <span class="num">{e.n}</span>{e.rot}{feitas[e.k] ? <span class="feita-ok" aria-label="concluída">✓</span> : null}{n[e.k] ? <span class="contador">{n[e.k]}</span> : null}
           </a>
         ))}
         {rec.data.legado && <a href={`#/caso/${id}/antigo`} class={`extra ${aba === 'antigo' ? 'ativo' : ''}`}><Icone nome="pasta" /> App antigo</a>}

@@ -134,3 +134,18 @@ describe('técnica pelo Manual de Aposentadoria Especial e quadros dos agentes',
     expect(orgaosEmPortugues('Eyes, skin, respiratory system, kidneys')).toBe('olhos, pele, sistema respiratório, rins');
   });
 });
+
+describe('vínculos sequenciais unidos num só', () => {
+  it('mesma empresa e início: atualiza o vínculo; "fim": "atual" limpa a data com substituir', async () => {
+    const { aplicarIA } = await import('../src/aiimport.js');
+    const { caseChildren } = await import('../src/db.js');
+    await caso('d3', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'] });
+    await filho('d3v', 'periodo', 'd3', { empresa: 'Consultório Fictício', inicio: '1990-01-01', fim: '1991-12-31' });
+    await aplicarIA('d3', lerJsonIA(JSON.stringify({ periodos: [{ empresa: 'Consultório Fictício', inicio: '1990-01-01', fim: 'atual', cbo: '2232-08' }] })), { substituir: true });
+    const ps = await caseChildren('d3', 'periodo');
+    expect(ps).toHaveLength(1);
+    expect(ps[0].data.fim).toBe('');
+    expect(ps[0].data.cbo).toBe('2232-08');
+    expect(ps[0].data.fimAberto).toBeUndefined();
+  });
+});

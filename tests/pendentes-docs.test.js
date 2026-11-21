@@ -73,9 +73,11 @@ describe('documentos (itens pendentes)', () => {
     expect(t).toContain('1.0.3 (Dec. 3.048/1999)');
     expect(t).toContain('Grupo 1 da LINACH');
     await db.records.update('t3', { 'data.tipoAtuacao': 'Extrajudicial', 'data.objeto': ['LTCAT'] });
-    t = await texto(await ltcatPpp('t3'));
-    expect(t).toContain('Dados para o PPP – exposição a fatores de risco');
+    const r3 = await ltcatPpp('t3');
+    t = await texto(r3);
     expect(t).toContain('01/01/2005 a 31/12/2010');
+    expect(t).not.toContain('Dados para o PPP'); // o PPP sai em arquivo próprio
+    expect(await texto(r3.extras[0])).toContain('PERFIL PROFISSIOGRÁFICO PREVIDENCIÁRIO');
   });
   it('resposta aos suplementares: esclarecimentos ponto a ponto sobre o parecer do assistente', async () => {
     await caso('t4', { papel: 'Perito do Juízo', justica: 'Justiça Federal', esclParecerATRef: 'parecer do INSS, evento 60', esclParecerAT: 'Medição pontual :: A dosimetria cobriu 6 h da jornada.' });

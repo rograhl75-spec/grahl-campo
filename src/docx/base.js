@@ -844,7 +844,7 @@ export function linhaDoTempo(d, periodos, { ruido = true } = {}) {
   const ps = (periodos || []).filter((r) => r.data.inicio);
   if (!ps.length) return d;
   const hoje = new Date().toISOString().slice(0, 10);
-  const lin = ps.map((r, i) => [`V${i + 1} – ${cortaNaPalavra(empresaLimpa(r.data.empresa), 60) || 'vínculo'}`, ...MARCOS_PREV.map(([, , a, b]) => {
+  const lin = ps.map((r, i) => [`${ps.length > 1 ? `V${i + 1} – ` : ''}${cortaNaPalavra(empresaLimpa(r.data.empresa), 60) || 'vínculo'}`, ...MARCOS_PREV.map(([, , a, b]) => {
     const ini = r.data.inicio > a ? r.data.inicio : a;
     const fimV = r.data.fim || hoje;
     const fim = fimV < b ? fimV : b;
@@ -1056,6 +1056,20 @@ export function textoIntegram(d, { fotos = false, rotuloFotos = 'Anexo I – Rel
   if (!itens.length) return;
   const lista = itens.length > 1 ? `${itens.slice(0, -1).join('; ')}; e ${itens[itens.length - 1]}` : itens[0];
   d.texto(`${itens.length > 1 ? 'Integram' : 'Integra'} o presente ${doc} ${lista}.`);
+}
+
+// Anexos do documento (ART, CNIS, certidões): arquivos anexados ao caso, com todas as páginas
+export async function anexosDoCaso(dados) {
+  const { apendicesRegistros, paginasDoArquivo, LETRAS, DESC_ANEXO_DOC } = await import('../apendices.js');
+  const { obterAnexo } = await import('../sync.js');
+  const out = []; let falhas = 0;
+  for (const r of await apendicesRegistros(dados.id, DESC_ANEXO_DOC)) {
+    try { out.push({ letra: LETRAS[out.length] || String(out.length + 1), titulo: r.data.titulo || r.data.nome, paginas: await paginasDoArquivo(await obterAnexo(r.id), r.data.mime) }); } catch (e) { falhas++; }
+  }
+  return { anexos: out, falhasAnexo: falhas };
+}
+export function inserirAnexos(d, anexos) {
+  for (const a of anexos) { d.h1('', `Anexo ${a.letra} – ${a.titulo}`); d.paginasInteiras(a.paginas, { nota: `Anexo ${a.letra}` }); }
 }
 
 export function inserirApendices(d, apendices, dados) {

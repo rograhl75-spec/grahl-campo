@@ -188,12 +188,12 @@ export function conclusaoPrevidenciaria(d, dados, { tituloQuadro = 'Conclusão p
     const sim = segs.filter((s) => s.caracteriza === 'SIM');
     const nao = segs.filter((s) => s.caracteriza === 'NÃO');
     // subperíodos contíguos com o mesmo resultado viram um só intervalo no texto
-    const pl = (lst, um, varios) => (p(lst).includes(', ') ? varios : um);
+    const pl = (lst, um, varios) => (/, | e \d/.test(p(lst)) ? varios : um);
     const p = (lst) => lst.reduce((acc, s) => {
       const u = acc[acc.length - 1];
       if (u && dia(u.fim, 1) === s.ini) u.fim = s.fim; else acc.push({ ini: s.ini, fim: s.fim });
       return acc;
-    }, []).map((s) => `${dataBR(s.ini)} a ${fimSeg(r, s)}`).join(', ');
+    }, []).map((s) => `${dataBR(s.ini)} a ${fimSeg(r, s)}`).join(', ').replace(/, ([^,]*)$/, ' e $1');
     const partes = [];
     // enquadramento só por categoria (até 28/04/1995) é presunção legal, não exposição avaliada
     const soCat = (s) => s.itens.filter((i) => i.sup).every((i) => i.categoria);

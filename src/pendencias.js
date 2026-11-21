@@ -112,6 +112,15 @@ export async function pendenciasDoCaso(caseId) {
         titulo: 'Quem emite o PPP', explicacao: 'Cooperativa: o PPP sai só com os vínculos de cooperado. Próprio segurado: contribuinte individual sem empresa.' });
     }
     const txt = (id, rec, campo, titulo, explicacao) => itens.push({ id, grupo: g, rec, campo, tipo: 'texto', valor: '', titulo, explicacao });
+    // vínculo contido em outro (ex.: vínculos sequenciais já unidos num só pela importação): sai duplicado no laudo
+    dados.periodos.forEach((r, i) => {
+      const dentro = dados.periodos.findIndex((o, j) => j !== i && o.data.inicio && r.data.inicio && o.data.inicio <= r.data.inicio
+        && (!o.data.fim || (r.data.fim && r.data.fim <= o.data.fim)) && !(o.data.inicio === r.data.inicio && o.data.fim === r.data.fim && j > i));
+      if (dentro < 0) return;
+      itens.push({ id: `sobrepoe-${r.id}`, grupo: g, tipo: 'aviso', rec: r.id, respondido: false, link: `#/caso/${encodeURIComponent(caseId)}/preparacao`, rotuloLink: 'Ir para os vínculos',
+        titulo: `${nomeVinculo(r, i)} está dentro do período de ${nomeVinculo(dados.periodos[dentro], dentro)}`,
+        explicacao: 'Se for o mesmo trabalho (vínculos sequenciais unidos num só), exclua este vínculo na etapa 2. Autos; senão, ele sai duplicado no laudo e no PPP.' });
+    });
     if (!String(c.art || '').trim()) txt('art', caseId, 'art', 'Nº da ART', 'Sai na capa, no item 1.4 e na assinatura do LTCAT.');
     if (!String(c.pppNit || '').trim()) txt('pppNit', caseId, 'pppNit', 'NIT do segurado', 'Campo 6 do PPP.');
     if (!String(c.pppSexo || '').trim()) {

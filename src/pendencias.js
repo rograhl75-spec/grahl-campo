@@ -126,6 +126,22 @@ export async function pendenciasDoCaso(caseId) {
       itens.push({ id: `cat-${r.id}`, grupo: g, rec: r.id, campo: 'categoriaSegurado', tipo: 'escolha', valor: '', opcoes: CATEGORIAS_SEGURADO.map((x) => ({ valor: x, rotulo: x })),
         titulo: `Categoria do segurado – ${nomeVinculo(r, i)}`, explicacao: categoriaDoVinculo(r) ? `Pelo texto do vínculo, o app adota "${categoriaDoVinculo(r)}".` : 'Sem a categoria, o item 3.2 do LTCAT fica para completar.' });
     });
+    // elementos da avaliação qualitativa (art. 68, § 2º, do Decreto 3.048/1999) que ainda saem em amarelo
+    for (const a of dados.agentes) {
+      for (const [campo, rot] of [['circunstancias', 'circunstâncias da exposição'], ['fonte', 'fontes e possibilidades de liberação'], ['vias', 'meios de contato e vias de absorção'], ['frequencia', 'intensidade, frequência e duração']]) {
+        if (String(a.data[campo] || '').trim()) continue;
+        txt(`${campo}-${a.id}`, a.id, campo, `${a.data.nome} – ${rot}`, 'Art. 68, § 2º, do Decreto 3.048/1999 (quadro da avaliação qualitativa).');
+      }
+      // EPC e EPI eficazes: saem no PPP para os agentes presentes (caracteriza ou não quantificado)
+      if ([a.data.resAte97, a.data.resDesde97].some((x) => x === 'Caracteriza' || x === 'Não caracteriza')) {
+        for (const [campo, rot] of [['epcEficaz', 'EPC eficaz'], ['epiEficaz', 'EPI eficaz']]) {
+          if (String(a.data[campo] || '').trim()) continue;
+          itens.push({ id: `${campo}-${a.id}`, grupo: g, rec: a.id, campo, tipo: 'escolha', valor: '', opcoes: ['Sim', 'Não', 'Não se aplica'].map((x) => ({ valor: x, rotulo: x })),
+            titulo: `${a.data.nome} – ${rot}`, explicacao: 'Campo 15 do PPP.' });
+        }
+      }
+      if (a.data.tipo === 'Químico' && !String(a.data.efeitos || '').trim()) txt(`efeitos-${a.id}`, a.id, 'efeitos', `${a.data.nome} – efeitos à saúde`, 'Quadro de características dos agentes químicos.');
+    }
     const temAte97 = dados.periodos.some((r) => (r.data.inicio || '9999') <= '1997-03-05');
     for (const a of dados.agentes) {
       for (const [campo, rot, vale] of [['resAte97', 'até 05/03/1997', temAte97], ['resDesde97', 'a partir de 06/03/1997', true]]) {

@@ -118,3 +118,19 @@ describe('CRQ no perfil', () => {
     expect(registrosCrq({})).toBe('');
   });
 });
+
+describe('técnica pelo Manual de Aposentadoria Especial e quadros dos agentes', () => {
+  it('técnica por tipo e época; características com o banco', async () => {
+    const { tecnicaDoAgente } = await import('../src/enquadramento.js');
+    const { bancoDoAgente, orgaosEmPortugues } = await import('../src/docx/agentesQuadros.js');
+    expect(tecnicaDoAgente({ data: { tipo: 'Biológico' } }, false)).toBe('Qualitativa');
+    expect(tecnicaDoAgente({ data: { tipo: 'Químico', codDesde97: '1.0.9 – avaliação quantitativa (NR-15, Anexo 11)' } }, false)).toBe('Quantitativa – NR-15, Anexo 11');
+    expect(tecnicaDoAgente({ data: { tipo: 'Químico' } }, true)).toMatch(/presunção/);
+    expect(tecnicaDoAgente({ data: { tipo: 'Físico', nome: 'Radiações ionizantes' } }, false)).toMatch(/Anexo 5/);
+    expect(tecnicaDoAgente({ data: { tipo: 'Químico', tecnica: 'Digitada' } }, false)).toBe('Digitada');
+    const banco = [{ id: 'q1', data: { nome: 'Ácido fosfórico', sinonimos: 'Phosphoric acid', cas: '0000-00-0' } }, { id: 'q2', data: { nome: 'Mercúrio (elementar)', sinonimos: 'Hg' } }];
+    expect(bancoDoAgente({ data: { nome: 'Ácido fosfórico 37% (gel)' } }, banco).id).toBe('q1');
+    expect(bancoDoAgente({ data: { nome: 'Mercúrio (amálgama)' } }, banco).id).toBe('q2');
+    expect(orgaosEmPortugues('Eyes, skin, respiratory system, kidneys')).toBe('olhos, pele, sistema respiratório, rins');
+  });
+});

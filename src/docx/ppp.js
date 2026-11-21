@@ -7,12 +7,14 @@
 import { Doc, dataBR, credencial, finalizar, carregar } from './base.js';
 import { p, run } from './ooxml.js';
 import { avaliarPeriodos } from './conclusao.js';
-import { exposicaoNoVinculo, codigosDoAgente, categoriaDoVinculo, lerAfastamentos } from '../enquadramento.js';
+import { exposicaoNoVinculo, codigosDoAgente, tecnicaDoAgente, categoriaDoVinculo, lerAfastamentos } from '../enquadramento.js';
 import { empresaLimpa } from '../nomes.js';
 
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 const hoje = () => new Date().toISOString().slice(0, 10);
 const fimTxt = (r, f) => (!r.data.fim && f === hoje() ? 'atual' : dataBR(f));
+// "01/05/1991 a …" → "1991-05-01" (ordem cronológica das linhas)
+const isoIni = (t) => String(t).replace(/^(\d{2})\/(\d{2})\/(\d{4}).*$/, '$3-$2-$1');
 const cooperado = (r) => /cooperad/i.test(categoriaDoVinculo(r));
 
 // vínculos que entram no PPP: a cooperativa emite só os períodos de cooperado; empresa e segurado, todos
@@ -80,23 +82,23 @@ export async function ppp(caseId, dadosProntos) {
 
   // ---------------- Seção II ----------------
   d.h1('', 'Seção II – Registros ambientais');
-  const exps = dentro.flatMap(({ r, idx }) => exposicaoNoVinculo(r, idx, dados.agentes || []).map((e) => ({ ...e, r })));
+  const exps = dentro.flatMap(({ r, idx }) => exposicaoNoVinculo(r, idx, dados.agentes || [], { presentes: true }).map((e) => ({ ...e, r })));
   // medições (ruído, calor, vibração, químicos) dos postos do vínculo que superam o limite entram pela síntese
   const linhasMed = dentro.flatMap(({ r, idx }) => (av[idx]?.segs || []).flatMap((s) => s.itens.filter((i) => i.sup && !i.categoria && !i.agente)
     .map((i) => [`${dataBR(s.ini)} a ${fimTxt(r, s.fim)}`, 'F', i.t.split(':')[0], i.t.replace(/^[^:]+:\s*/, '').replace(/\s[>≤].*$/, ''), /Ruído/.test(i.t) ? (s.fim <= '2003-11-18' ? 'NR-15, Anexo 1' : 'NHO-01') : 'NHO', '[[S/N]]', s.fim < '1998-12-03' ? 'Não se aplica' : '[[S/N]]', '—'])));
   const linhasExp = [
     ...exps.map((e) => {
       const x = e.agente.data; const k = codigosDoAgente(e.agente);
-      return [`${dataBR(e.ini)} a ${fimTxt(e.r, e.fim)}`, (x.tipo || 'Q')[0], x.nome, v(x.intensidade) || 'Não se aplica', k.tecnica || '[[técnica]]',
+      return [`${dataBR(e.ini)} a ${fimTxt(e.r, e.fim)}`, (x.tipo || 'Q')[0], x.nome, v(x.intensidade) || (e.caracteriza ? 'Não se aplica' : 'Não quantificada'), tecnicaDoAgente(e.agente, e.fim <= '1997-03-05') || '[[técnica]]',
         x.epcEficaz || '[[S/N]]', e.fim < '1998-12-03' ? 'Não se aplica' : x.epiEficaz || '[[S/N]]', v(x.ca) || '—'];
     }),
     ...linhasMed,
-  ].sort((a, b) => a[0].split('/').reverse().join('').localeCompare(b[0].split('/').reverse().join('')));
+  ].sort((a, b) => isoIni(a[0]).localeCompare(isoIni(b[0])));
   d.quadro('15 – Exposição a fatores de riscos', [['Período', 'Tipo', 'Fator de risco', 'Intensidade', 'Técnica utilizada', 'EPC eficaz', 'EPI eficaz', 'CA EPI'],
     ...(linhasExp.length ? linhasExp : [['[[período]]', '', (dados.agentes || []).length ? 'Ausência de fator de risco nocivo' : '[[cadastre os agentes avaliados na etapa 2. Autos]]', '', '', '', '', '']])],
   { larguras: [0.14, 0.07, 0.23, 0.13, 0.12, 0.09, 0.11, 0.11], tam: 8, alinhar: 'left', semNumero: true,
-    fonte: 'LTCAT do signatário, itens 5 e 6. Tipo: F – físico; Q – químico; B – biológico. EPI só considerado a partir de 03/12/1998.' });
-  const comEpi = exps.some((e) => e.agente.data.epiEficaz === 'Sim');
+    fonte: `LTCAT do signatário, itens 5 e 6. Tipo: F – físico; Q – químico; B – biológico. EPI só considerado a partir de 03/12/1998.${exps.some((e) => !e.caracteriza) ? ' "Não quantificada": agente presente no ambiente, sem avaliação quantitativa que caracterize a exposição (item 6 do LTCAT).' : ''}` });
+  const comEpi = exps.some((e) => e.caracteriza && e.agente.data.epiEficaz === 'Sim');
   d.quadro('15.9 – Atendimento aos requisitos das NR-06 e NR-09 (EPI)', [['Requisito', 'S/N'],
     ...['Foi tentada a implementação de medidas de proteção coletiva, de caráter administrativo ou de organização, optando-se pelo EPI por inviabilidade técnica, insuficiência ou interinidade, ou ainda em caráter complementar ou emergencial?',
       'Foram observadas as condições de funcionamento e do uso ininterrupto do EPI ao longo do tempo, conforme especificação técnica do fabricante, ajustada às condições de campo?',

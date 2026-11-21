@@ -102,6 +102,7 @@ export function referencias(dados, { prev, judicial = true } = {}) {
       'BRASIL. [Constituição (1988)]. Emenda Constitucional nº 103, de 12 de novembro de 2019. Brasília, DF: Presidência da República, 2019.',
       'BRASIL. Ministério do Trabalho. Norma Regulamentadora nº 15 (NR-15): Atividades e Operações Insalubres. Brasília, DF, redação vigente em cada período.',
       'INSTITUTO NACIONAL DO SEGURO SOCIAL (Brasil). Instrução Normativa PRES/INSS nº 128, de 28 de março de 2022. Brasília, DF: INSS, 2022.',
+      'INSTITUTO NACIONAL DO SEGURO SOCIAL (Brasil). Manual de Aposentadoria Especial. Brasília, DF: INSS, 2018.',
     );
   } else {
     r.push(

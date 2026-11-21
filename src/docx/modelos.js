@@ -22,6 +22,7 @@ import { quadroQuimicosAnexo11, quadroConclusivoTrab, conclusaoAT, POSICOES_AT, 
 import { formaAvaliacaoPrev } from '../quimicos.js';
 import { codigosDoAgente, agenteNoVinculo, categoriaDoVinculo, lerAfastamentos } from '../enquadramento.js';
 import { ppp, emitenteDoPpp } from './ppp.js';
+import { quadroCaracteristicasQuimicos, quadroArt68, bancoDoAgente } from './agentesQuadros.js';
 import { empresaLimpa } from '../nomes.js';
 
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
@@ -89,6 +90,18 @@ export function avaliacaoAgentes(d, dados, base, { previdenciario, inicio = 0 })
   return previdenciario ? avaliacaoPrevidenciaria(d, dados, base, inicio) : avaliacaoTrabalhista(d, dados, base);
 }
 
+// características dos químicos medidos (um por agente do banco; sem banco, pela descrição da medição)
+function caracteristicasDasMedicoes(d, ms, dados) {
+  const vistos = new Map();
+  for (const m of ms) {
+    const q = agenteDaMedicao(m, dados);
+    const k = q ? q.id : v(m.data.descricao).toLowerCase();
+    if (!k || vistos.has(k)) continue;
+    vistos.set(k, { nome: q ? q.data.nome : m.data.descricao, dados: {}, banco: q });
+  }
+  quadroCaracteristicasQuimicos(d, [...vistos.values()]);
+}
+
 function avaliacaoTrabalhista(d, dados, base) {
   const ctx = { prev: false };
   const g = medicoesPorAgente(dados);
@@ -119,6 +132,7 @@ function avaliacaoTrabalhista(d, dados, base) {
     sub('Agentes químicos (NR-15, Anexos 11, 12, 13 e 13-A)');
     d.texto('No Anexo 11, a insalubridade se caracteriza quando a média aritmética das concentrações supera o limite de tolerância do Quadro 1 (itens 1 e 8) ou, para os agentes com valor teto, quando qualquer amostra o supera (item 9). Os limites valem para absorção pela via respiratória e para jornadas de até 48 horas semanais (itens 2 e 10). Os agentes dos Anexos 13 e 13-A são avaliados qualitativamente, pela atividade ou operação descrita no anexo.');
     quadroQuimicosAnexo11(d, g['Agente químico'], dados, nome);
+    caracteristicasDasMedicoes(d, g['Agente químico'], dados);
     if (g['Agente químico'].some((m) => !agenteDaMedicao(m, dados))) d.redigir('enquadramento dos agentes sem limite no banco (Anexo 11 ou 12, ou avaliação qualitativa pelo Anexo 13 / 13-A; álcali cáustico: referência pH ≥ 11,5 (NBR 14725:2023, item 5.3.2.2.2.5: corrosivo à pele, Categoria 1, salvo se a reserva alcalina indicar o contrário)).');
     d.redigir('neutralização pelo EPI (respirador e filtro adequados ao agente; luvas quando há absorção pela pele – item 5 do Anexo 11).');
   }
@@ -176,12 +190,16 @@ function agentesAvaliados(d, dados, sub, n) {
       return lin;
     })], { larguras: temAte97 && temDesde97 ? [0.3, 0.16, 0.27, 0.27] : [0.4, 0.2, 0.4], tam: 9, alinhar: 'left',
       fonte: 'Elaborado pelo signatário com base nos Decretos 53.831/1964, 83.080/1979, 2.172/1997 e 3.048/1999 e na IN PRES/INSS nº 128/2022.' });
+    if (tipo === 'Químico') quadroCaracteristicasQuimicos(d, lst.map((a) => ({ nome: a.data.nome, dados: a.data, banco: bancoDoAgente(a, dados.quimicos) })));
     for (const a of lst) {
-      const partes = [v(a.data.fonte) && `Fonte e atividade: ${v(a.data.fonte).replace(/\.?$/, '.')}`, v(a.data.fundamentacao)].filter(Boolean);
+      const partes = [v(a.data.fundamentacao)].filter(Boolean);
       if (partes.length) d.texto(`**${a.data.nome}.** ${partes.join(' ')}`);
-      else d.redigir(`fundamentação de ${a.data.nome} (fonte, via e frequência da exposição e código de cada época).`);
+      else d.redigir(`fundamentação de ${a.data.nome} (código de cada época e conclusão).`);
     }
   }
+  sub('Avaliação qualitativa (art. 68, § 2º, do Decreto 3.048/1999)'); n += 1;
+  quadroArt68(d, ags);
+  d.texto('A técnica de avaliação de cada agente, informada no PPP, segue o Manual de Aposentadoria Especial do INSS (2018): qualitativa para os agentes biológicos e, até 05/03/1997, para os químicos, por presunção de exposição; a partir de 06/03/1997, quantitativa para os agentes químicos do Anexo 11 da NR-15 e qualitativa para os dos Anexos 13 e 13-A; quantitativa para os agentes físicos, exceto a radiação ionizante até 05/03/1997.');
   return n;
 }
 const agenteVinculos = (a, per) => per.map((r, i) => i).filter((i) => agenteNoVinculo(a, i));
@@ -230,6 +248,7 @@ function avaliacaoPrevidenciaria(d, dados, base, inicio = 0) {
     if (k === 'Agente químico') {
       const linach = [...new Set(g[k].map((m) => agenteDaMedicao(m, dados)).filter((a) => a && a.data.linach === 'Grupo 1').map((a) => a.data.nome))];
       const ags = [...new Map(g[k].map((m) => agenteDaMedicao(m, dados)).filter(Boolean).map((a) => [a.id, a])).values()];
+      caracteristicasDasMedicoes(d, g[k], dados);
       if (ags.length) d.quadro('Agentes químicos – referências previdenciárias', [['Agente', 'LINACH', 'Códigos nos decretos'],
         ...ags.map((a) => [`${a.data.nome}${a.data.cas ? `\nCAS ${a.data.cas}` : ''}`, a.data.linach || '—', a.data.codDecretos || '[[código por decreto, conforme o período]]'])],
       { larguras: [0.3, 0.15, 0.55], tam: 9, alinhar: 'left', fonte: 'Banco de agentes químicos do signatário; códigos conferidos nos Decretos 53.831/1964, 83.080/1979, 2.172/1997 e 3.048/1999.' });

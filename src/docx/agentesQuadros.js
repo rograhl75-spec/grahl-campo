@@ -78,3 +78,17 @@ export function quadroArt68(d, agentes) {
   { larguras: [0.2, 0.27, 0.25, 0.28], tam: 8.5, alinhar: 'left', fonte: 'Elaborado pelo signatário com base na vistoria e nas declarações do item 2.3.' });
   return true;
 }
+
+// agente com limite de tolerância nos Anexos 11 ou 12 da NR-15 (pelo banco de químicos): "Anexo 11" | "Anexo 12" | ''
+export function anexoQuantitativo(a, quimicos = []) {
+  const x = a.data || a;
+  if (x.tipo && x.tipo !== 'Químico') return '';
+  const q = bancoDoAgente(a, quimicos);
+  if (!q) return '';
+  if (v(q.data.nr15Mgm3) || v(q.data.nr15Ppm)) return 'Anexo 11';
+  if (/Anexo 12/.test(v(q.data.nr15Anexos)) && !/^Nenhum/i.test(v(q.data.nr15Anexos))) return 'Anexo 12';
+  return '';
+}
+
+// agentes do quadro do art. 68: os que caracterizam em alguma época ou ainda estão "a confirmar"
+export const agentesDoArt68 = (ags) => ags.filter((a) => [a.data.resAte97, a.data.resDesde97].some((r) => r === 'Caracteriza' || r === 'A confirmar' || !r));

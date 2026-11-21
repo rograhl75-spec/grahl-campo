@@ -22,7 +22,7 @@ import { quadroQuimicosAnexo11, quadroConclusivoTrab, conclusaoAT, POSICOES_AT, 
 import { formaAvaliacaoPrev } from '../quimicos.js';
 import { codigosDoAgente, agenteNoVinculo, categoriaDoVinculo, lerAfastamentos } from '../enquadramento.js';
 import { ppp, emitenteDoPpp } from './ppp.js';
-import { quadroCaracteristicasQuimicos, quadroArt68, bancoDoAgente } from './agentesQuadros.js';
+import { quadroCaracteristicasQuimicos, quadroArt68, bancoDoAgente, anexoQuantitativo, agentesDoArt68 } from './agentesQuadros.js';
 import { empresaLimpa } from '../nomes.js';
 
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
@@ -190,15 +190,20 @@ function agentesAvaliados(d, dados, sub, n) {
       return lin;
     })], { larguras: temAte97 && temDesde97 ? [0.3, 0.16, 0.27, 0.27] : [0.4, 0.2, 0.4], tam: 9, alinhar: 'left',
       fonte: 'Elaborado pelo signatário com base nos Decretos 53.831/1964, 83.080/1979, 2.172/1997 e 3.048/1999 e na IN PRES/INSS nº 128/2022.' });
-    if (tipo === 'Químico') quadroCaracteristicasQuimicos(d, lst.map((a) => ({ nome: a.data.nome, dados: a.data, banco: bancoDoAgente(a, dados.quimicos) })));
+    if (tipo === 'Químico') {
+      quadroCaracteristicasQuimicos(d, lst.map((a) => ({ nome: a.data.nome, dados: a.data, banco: bancoDoAgente(a, dados.quimicos) })));
+      const quant = lst.filter((a) => anexoQuantitativo(a, dados.quimicos) && a.data.resDesde97 !== 'Caracteriza').map((a) => a.data.nome.replace(/\s*\(.*$/, ''));
+      if (quant.length) d.texto(`${quant.join(', ')} ${quant.length > 1 ? 'têm' : 'tem'} limite de tolerância nos Anexos 11 ou 12 da NR-15 (avaliação quantitativa). Sem medição da concentração no ambiente, a exposição não é caracterizada, e ${quant.length > 1 ? 'os agentes constam' : 'o agente consta'} do PPP como presente${quant.length > 1 ? 's' : ''}, com a intensidade "não quantificada".`);
+    }
     for (const a of lst) {
       const partes = [v(a.data.fundamentacao)].filter(Boolean);
       if (partes.length) d.texto(`**${a.data.nome}.** ${partes.join(' ')}`);
       else d.redigir(`fundamentação de ${a.data.nome} (código de cada época e conclusão).`);
     }
   }
-  sub('Avaliação qualitativa (art. 68, § 2º, do Decreto 3.048/1999)'); n += 1;
-  quadroArt68(d, ags);
+  // art. 68, § 2º: a descrição qualitativa só é exigida para os agentes que caracterizam (ou ainda a confirmar)
+  const ags68 = agentesDoArt68(ags);
+  if (ags68.length) { sub('Avaliação qualitativa (art. 68, § 2º, do Decreto 3.048/1999)'); n += 1; quadroArt68(d, ags68); }
   d.texto('A técnica de avaliação de cada agente, informada no PPP, segue o Manual de Aposentadoria Especial do INSS (2018): qualitativa para os agentes biológicos e, até 05/03/1997, para os químicos, por presunção de exposição; a partir de 06/03/1997, quantitativa para os agentes químicos do Anexo 11 da NR-15 e qualitativa para os dos Anexos 13 e 13-A; quantitativa para os agentes físicos, exceto a radiação ionizante até 05/03/1997.');
   return n;
 }

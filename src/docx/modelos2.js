@@ -5,6 +5,7 @@ import { ehSuplementar } from '../schema.js';
 import { doseJornada, fatorQ, fmt, ibutg, nen } from '../calc.js';
 import { confrontoAnexo11, num as numQ } from '../quimicos.js';
 import { exposicaoNoVinculo, codigosDoAgente, medidasDoAgente, tecnicaDoAgente } from '../enquadramento.js';
+import { anexoQuantitativo } from './agentesQuadros.js';
 import {
   Doc, carregar, finalizar, dataBR, partes, art, enderecamentoTexto, linhasProcesso, qualificacaoCurta, credencial,
   equipamentosUsados, quadroEquipamentos, quadroDiligencia, quadroDocumentos, quadroEpis, profissiografia, figurasDoCaso,
@@ -443,7 +444,7 @@ export function quadroDadosPPP(d, dados) {
     const ms = dados.medicoes.filter((m) => ps.includes(m.data.postoId) && m.data.agente !== 'Outro');
     const per = `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`;
     const idx = dados.periodos.indexOf(r);
-    const exps = exposicaoNoVinculo(r, idx, dados.agentes || [], { presentes: true });
+    const exps = exposicaoNoVinculo(r, idx, dados.agentes || [], { presentes: true, quantitativo: (a) => !!anexoQuantitativo(a, dados.quimicos) });
     for (const e of exps) {
       const x = e.agente.data; const k = codigosDoAgente(e.agente);
       linhas.push([`${dataBR(e.ini)} a ${!r.data.fim && e.fim === new Date().toISOString().slice(0, 10) ? 'atual' : dataBR(e.fim)}`, (x.tipo || 'Q')[0], x.nome, v(x.intensidade) || (e.caracteriza ? 'Não se aplica (avaliação qualitativa)' : 'Não quantificada'), tecnicaDoAgente(e.agente, e.fim <= '1997-03-05'),

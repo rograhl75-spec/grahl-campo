@@ -29,11 +29,18 @@ function CarregarProfissao({ rec }) {
   const prof = profissaoDoCaso(rec.data, periodos);
   if (!prof) return <p class="dica largo">Banco de profissões: escolha a profissão no cadastro (etapa 1) para carregar os agentes e a profissiografia já estudados ({PROFISSOES.map((p) => p.nome).join(', ')}).</p>;
   const carregar = async () => {
-    if (!(await confirmar(`Carregar os ${prof.agentes.length} agentes avaliados e a profissiografia padrão de ${prof.nome}? Os agentes que já estão no caso não são repetidos; os campos já preenchidos dos vínculos não mudam. Depois, exclua os agentes que o segurado não usa.`))) return;
-    const existentes = new Set((await caseChildren(rec.id, 'agenteAvaliado')).map((a) => chaveAgente(a.data.nome)));
-    let n = 0; let ordem = existentes.size;
+    if (!(await confirmar(`Carregar os ${prof.agentes.length} agentes avaliados e a profissiografia padrão de ${prof.nome}? Os agentes que já estão no caso não são repetidos: só os campos vazios deles são completados; o que você já escreveu não muda. Depois, exclua os agentes que o segurado não usa.`))) return;
+    const lista = await caseChildren(rec.id, 'agenteAvaliado');
+    // o mesmo agente com outro detalhe no nome ("Ácido fluorídrico (…)" e "Ácido fluorídrico 5 a 10% (…)")
+    const mesmo = (x, y) => { const a = chaveAgente(x), b = chaveAgente(y); return a === b || (a.length >= 6 && b.startsWith(a)) || (b.length >= 6 && a.startsWith(b)); };
+    let n = 0; let completados = 0; let ordem = lista.length;
     for (const a of prof.agentes) {
-      if (existentes.has(chaveAgente(a.nome))) continue;
+      const ja = lista.find((r) => mesmo(r.data.nome, a.nome));
+      if (ja) {
+        const novos = Object.fromEntries(Object.entries(a).filter(([k, val]) => k !== 'nome' && String(val ?? '').trim() && !String(ja.data[k] ?? '').trim()));
+        if (Object.keys(novos).length) { await updateFields(ja.id, novos); completados += 1; }
+        continue;
+      }
       ordem += 1; n += 1;
       await createRecord('agenteAvaliado', rec.id, { ...a, ordem });
     }
@@ -47,7 +54,7 @@ function CarregarProfissao({ rec }) {
     if (!String(rec.data.analiseEpi || '').trim()) await updateFields(rec.id, { analiseEpi: prof.epi });
     avisarAlteracao();
     const ja = prof.agentes.length - n;
-    setMsg([n ? `${n} agente(s) carregado(s)` : 'Nenhum agente novo', ja ? `${ja} já estava(m) no caso (não repetidos)` : '',
+    setMsg([n ? `${n} agente(s) carregado(s)` : 'Nenhum agente novo', ja ? `${ja} já estava(m) no caso (não repetidos${completados ? `; ${completados} completado(s) nos campos vazios` : ''})` : '',
       nv ? `${nv} vínculo(s) completado(s) com CBO e profissiografia` : 'vínculos já com CBO e profissiografia'].filter(Boolean).join('; ') + (n ? '. Revise os resultados e exclua o que não se aplica.' : '.'));
   };
   return (

@@ -12,6 +12,8 @@ import { sugerirParaVinculo } from './paradigmas.js';
 import { fmtHoras, horasDia, horasForaTexto } from './calc.js';
 import { contextoLegal, ehParecerTecnico, EMITENTE_PPP, CATEGORIAS_SEGURADO, RESULTADO_AGENTE } from './schema.js';
 import { categoriaDoVinculo } from './enquadramento.js';
+import { agentesDoArt68 } from './docx/agentesQuadros.js';
+import { profissaoDoCaso } from './data/profissoes.js';
 
 const br = (iso) => String(iso || '').replace(/^(\d{4})-(\d{2})-(\d{2}).*$/, '$3/$2/$1');
 const nomeVinculo = (r, i) => `V${i + 1} – ${String(r.data.empresa || 'vínculo').split(/\s*\(|,/)[0].trim().slice(0, 45)} (${br(r.data.inicio) || '?'} a ${r.data.fim ? br(r.data.fim) : 'atual'})`;
@@ -117,9 +119,9 @@ export async function pendenciasDoCaso(caseId) {
       const dentro = dados.periodos.findIndex((o, j) => j !== i && o.data.inicio && r.data.inicio && o.data.inicio <= r.data.inicio
         && (!o.data.fim || (r.data.fim && r.data.fim <= o.data.fim)) && !(o.data.inicio === r.data.inicio && o.data.fim === r.data.fim && j > i));
       if (dentro < 0) return;
-      itens.push({ id: `sobrepoe-${r.id}`, grupo: g, tipo: 'aviso', rec: r.id, respondido: false, link: `#/caso/${encodeURIComponent(caseId)}/preparacao`, rotuloLink: 'Ir para os vínculos',
+      itens.push({ id: `sobrepoe-${r.id}`, grupo: g, tipo: 'aviso', rec: r.id, respondido: false, excluir: `Excluir ${nomeVinculo(r, i).split(' (')[0]}`,
         titulo: `${nomeVinculo(r, i)} está dentro do período de ${nomeVinculo(dados.periodos[dentro], dentro)}`,
-        explicacao: 'Se for o mesmo trabalho (vínculos sequenciais unidos num só), exclua este vínculo na etapa 2. Autos; senão, ele sai duplicado no laudo e no PPP.' });
+        explicacao: 'Se for o mesmo trabalho (vínculos sequenciais unidos num só), exclua este vínculo; senão, ele sai duplicado no laudo e no PPP.' });
     });
     if (!String(c.art || '').trim()) txt('art', caseId, 'art', 'Nº da ART', 'Sai na capa, no item 1.4 e na assinatura do LTCAT.');
     if (!String(c.pppNit || '').trim()) txt('pppNit', caseId, 'pppNit', 'NIT do segurado', 'Campo 6 do PPP.');
@@ -135,21 +137,39 @@ export async function pendenciasDoCaso(caseId) {
       itens.push({ id: `cat-${r.id}`, grupo: g, rec: r.id, campo: 'categoriaSegurado', tipo: 'escolha', valor: '', opcoes: CATEGORIAS_SEGURADO.map((x) => ({ valor: x, rotulo: x })),
         titulo: `Categoria do segurado – ${nomeVinculo(r, i)}`, explicacao: categoriaDoVinculo(r) ? `Pelo texto do vínculo, o app adota "${categoriaDoVinculo(r)}".` : 'Sem a categoria, o item 3.2 do LTCAT fica para completar.' });
     });
-    // elementos da avaliação qualitativa (art. 68, § 2º, do Decreto 3.048/1999) que ainda saem em amarelo
-    for (const a of dados.agentes) {
-      for (const [campo, rot] of [['circunstancias', 'circunstâncias da exposição'], ['fonte', 'fontes e possibilidades de liberação'], ['vias', 'meios de contato e vias de absorção'], ['frequencia', 'intensidade, frequência e duração']]) {
-        if (String(a.data[campo] || '').trim()) continue;
-        txt(`${campo}-${a.id}`, a.id, campo, `${a.data.nome} – ${rot}`, 'Art. 68, § 2º, do Decreto 3.048/1999 (quadro da avaliação qualitativa).');
+    // elementos da avaliação qualitativa (art. 68, § 2º, do Decreto 3.048/1999): só dos agentes do quadro (os que
+    // caracterizam ou estão a confirmar); a explicação diz o que escrever, com um exemplo
+    const EXPL = {
+      circunstancias: 'Em que atividade e situação o segurado fica exposto ao agente durante a jornada. Ex.: "Atendimento clínico de todos os pacientes, com procedimentos invasivos e alta rotação."',
+      fonte: 'De onde o agente vem e como se libera no ambiente. Ex.: "Sangue, saliva e aerossóis da alta rotação; instrumental perfurocortante contaminado."',
+      vias: 'Como o agente chega ao trabalhador (pele, mucosas, inalação, via percutânea). Ex.: "Contato com a pele e as mucosas; inalação de aerossóis."',
+      frequencia: 'Quantas vezes e por quanto tempo, e se é habitual e permanente. Ex.: "Habitual e permanente, em todos os atendimentos da jornada."',
+    };
+    const semDescricao = agentesDoArt68(dados.agentes).filter((a) => ['circunstancias', 'fonte', 'vias', 'frequencia'].some((k) => !String(a.data[k] || '').trim()));
+    if (semDescricao.length && profissaoDoCaso(c, dados.periodos)) {
+      itens.push({ id: 'art68-banco', grupo: g, tipo: 'aviso', rec: caseId, respondido: false, link: `#/caso/${encodeURIComponent(caseId)}/preparacao`, rotuloLink: 'Ir para o banco de profissões',
+        titulo: `${semDescricao.length} agente(s) sem a descrição do art. 68 – o banco de profissões completa`,
+        explicacao: 'Na etapa 2. Autos, toque em "Carregar agentes e profissiografia": ele completa os campos vazios dos agentes que já estão no caso (circunstâncias, fontes, vias, frequência, efeitos, CAS e códigos), sem mudar o que você já escreveu. O que sobrar aparece aqui.' });
+    } else {
+      for (const a of semDescricao) {
+        for (const [campo, rot] of [['circunstancias', 'circunstâncias da exposição'], ['fonte', 'fontes e possibilidades de liberação'], ['vias', 'meios de contato e vias de absorção'], ['frequencia', 'intensidade, frequência e duração']]) {
+          if (String(a.data[campo] || '').trim()) continue;
+          txt(`${campo}-${a.id}`, a.id, campo, `${a.data.nome} – ${rot}`, EXPL[campo]);
+        }
       }
-      // EPC e EPI eficazes: saem no PPP para os agentes presentes (caracteriza ou não quantificado)
-      if ([a.data.resAte97, a.data.resDesde97].some((x) => x === 'Caracteriza' || x === 'Não caracteriza')) {
+    }
+    for (const a of dados.agentes) {
+      // EPC e EPI eficazes: só com fichas de EPI no caso (sem elas, o PPP sai com "Não" – art. 291 da IN 128/2022)
+      if (dados.epis.length && [a.data.resAte97, a.data.resDesde97].some((x) => x === 'Caracteriza' || x === 'Não caracteriza')) {
         for (const [campo, rot] of [['epcEficaz', 'EPC eficaz'], ['epiEficaz', 'EPI eficaz']]) {
           if (String(a.data[campo] || '').trim()) continue;
           itens.push({ id: `${campo}-${a.id}`, grupo: g, rec: a.id, campo, tipo: 'escolha', valor: '', opcoes: ['Sim', 'Não', 'Não se aplica'].map((x) => ({ valor: x, rotulo: x })),
-            titulo: `${a.data.nome} – ${rot}`, explicacao: 'Campo 15 do PPP.' });
+            titulo: `${a.data.nome} – ${rot}`, explicacao: 'Campo 15 do PPP: "Sim" só se as fichas comprovarem CA, troca, treinamento e higienização (art. 291 da IN 128/2022).' });
         }
       }
-      if (a.data.tipo === 'Químico' && !String(a.data.efeitos || '').trim()) txt(`efeitos-${a.id}`, a.id, 'efeitos', `${a.data.nome} – efeitos à saúde`, 'Quadro de características dos agentes químicos.');
+      if (a.data.tipo === 'Químico' && !String(a.data.efeitos || '').trim() && !profissaoDoCaso(c, dados.periodos)) {
+        txt(`efeitos-${a.id}`, a.id, 'efeitos', `${a.data.nome} – efeitos à saúde`, 'Vai para o quadro de características dos químicos. Ex.: "Corrosivo: queimaduras de pele, olhos e mucosas; irritação das vias respiratórias."');
+      }
     }
     const temAte97 = dados.periodos.some((r) => (r.data.inicio || '9999') <= '1997-03-05');
     for (const a of dados.agentes) {

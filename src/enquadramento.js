@@ -175,24 +175,27 @@ export function categoriaDoVinculo(r) {
 // 06/03/1997, em linhas separadas, porque o código e a técnica mudam). presentes: também os agentes do rol que não
 // caracterizam (presentes no ambiente, sem quantificação ou abaixo do limite) – no PPP o fator de risco consta
 // com a intensidade "não quantificada"; os não enquadráveis (fora do rol) e os "a confirmar" não entram.
-export function exposicaoNoVinculo(r, idx, agentes, { presentes = false, hoje = new Date().toISOString().slice(0, 10) } = {}) {
+// quantitativo(a): o agente tem limite de tolerância nos Anexos 11 ou 12 da NR-15 (banco de químicos) – presente no
+// ambiente e sem medição, consta do PPP com a intensidade "não quantificada", ainda que não caracterize
+export function exposicaoNoVinculo(r, idx, agentes, { presentes = false, quantitativo = () => false, hoje = new Date().toISOString().slice(0, 10) } = {}) {
   const ini = (r.data || r).inicio; const fim = (r.data || r).fim || hoje;
   if (!ini) return [];
-  // "não caracteriza" só entra quando o agente é do rol e de avaliação quantitativa sem medição (ex.: mercúrio após
-  // 05/03/1997); o que não caracteriza na avaliação qualitativa não vai ao PPP
-  const conta = (res, a, ate) => res === 'Caracteriza' || (presentes && res === 'Não caracteriza' && /^Quantitativa/.test(tecnicaDoAgente(a, ate)));
+  // "não caracteriza" e "não enquadrável" só entram quando o agente é de avaliação quantitativa sem medição (ex.:
+  // mercúrio após 05/03/1997; agentes dos Anexos 11 e 12); o que não caracteriza na avaliação qualitativa não vai ao PPP
+  const quant = (a, ate) => /^Quantitativa/.test(tecnicaDoAgente(a, ate)) || (!ate && quantitativo(a));
+  const conta = (res, a, ate) => res === 'Caracteriza' || (presentes && (res === 'Não caracteriza' || (!ate && res === 'Não enquadrável')) && quant(a, ate));
   const out = [];
   for (const a of agentes) {
     if (!agenteNoVinculo(a, idx)) continue;
     const x = a.data || a;
     const jan = [];
-    if (ini <= '1997-03-05' && conta(x.resAte97, a, true)) jan.push([ini, fim < '1997-03-05' ? fim : '1997-03-05', x.resAte97 === 'Caracteriza']);
+    if (ini <= '1997-03-05' && conta(x.resAte97, a, true)) jan.push([ini, fim < '1997-03-05' ? fim : '1997-03-05', x.resAte97 === 'Caracteriza', true]);
     if (fim >= '1997-03-06' && conta(x.resDesde97, a, false)) {
       const a0 = ini > '1997-03-06' ? ini : '1997-03-06';
       const car = x.resDesde97 === 'Caracteriza';
-      jan.push([a0, fim, car]); // épocas separadas: o código e a técnica mudam em 06/03/1997
+      jan.push([a0, fim, car, false]); // épocas separadas: o código e a técnica mudam em 06/03/1997
     }
-    for (const [p, q, car] of jan) out.push({ ini: p, fim: q, agente: a, caracteriza: car });
+    for (const [p, q, car, ate] of jan) out.push({ ini: p, fim: q, agente: a, caracteriza: car, naoQuantificado: !car && quant(a, ate) });
   }
   return out;
 }

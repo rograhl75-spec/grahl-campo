@@ -9,6 +9,7 @@ import { p, run } from './ooxml.js';
 import { avaliarPeriodos } from './conclusao.js';
 import { exposicaoNoVinculo, codigosDoAgente, tecnicaDoAgente, categoriaDoVinculo, lerAfastamentos } from '../enquadramento.js';
 import { empresaLimpa } from '../nomes.js';
+import { anexoQuantitativo } from './agentesQuadros.js';
 
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 const hoje = () => new Date().toISOString().slice(0, 10);
@@ -82,22 +83,26 @@ export async function ppp(caseId, dadosProntos) {
 
   // ---------------- Seção II ----------------
   d.h1('', 'Seção II – Registros ambientais');
-  const exps = dentro.flatMap(({ r, idx }) => exposicaoNoVinculo(r, idx, dados.agentes || [], { presentes: true }).map((e) => ({ ...e, r })));
+  const exps = dentro.flatMap(({ r, idx }) => exposicaoNoVinculo(r, idx, dados.agentes || [], { presentes: true, quantitativo: (a) => !!anexoQuantitativo(a, dados.quimicos) }).map((e) => ({ ...e, r })));
+  // sem fichas de EPI: EPC e EPI eficazes "Não" (requisitos do art. 291 da IN 128/2022 não comprovados)
+  const semEpi = !dados.epis.length;
   // medições (ruído, calor, vibração, químicos) dos postos do vínculo que superam o limite entram pela síntese
   const linhasMed = dentro.flatMap(({ r, idx }) => (av[idx]?.segs || []).flatMap((s) => s.itens.filter((i) => i.sup && !i.categoria && !i.agente)
     .map((i) => [`${dataBR(s.ini)} a ${fimTxt(r, s.fim)}`, 'F', i.t.split(':')[0], i.t.replace(/^[^:]+:\s*/, '').replace(/\s[>≤].*$/, ''), /Ruído/.test(i.t) ? (s.fim <= '2003-11-18' ? 'NR-15, Anexo 1' : 'NHO-01') : 'NHO', '[[S/N]]', s.fim < '1998-12-03' ? 'Não se aplica' : '[[S/N]]', '—'])));
   const linhasExp = [
     ...exps.map((e) => {
       const x = e.agente.data; const k = codigosDoAgente(e.agente);
-      return [`${dataBR(e.ini)} a ${fimTxt(e.r, e.fim)}`, (x.tipo || 'Q')[0], x.nome, v(x.intensidade) || (e.caracteriza ? 'Não se aplica' : 'Não quantificada'), tecnicaDoAgente(e.agente, e.fim <= '1997-03-05') || '[[técnica]]',
-        x.epcEficaz || '[[S/N]]', e.fim < '1998-12-03' ? 'Não se aplica' : x.epiEficaz || '[[S/N]]', v(x.ca) || '—'];
+      const anexo = anexoQuantitativo(e.agente, dados.quimicos) || 'Anexo 11';
+      return [`${dataBR(e.ini)} a ${fimTxt(e.r, e.fim)}`, (x.tipo || 'Q')[0], x.nome, v(x.intensidade) || (e.caracteriza ? 'Não se aplica' : 'Não quantificada'),
+        e.naoQuantificado && !/^Quantitativa/.test(tecnicaDoAgente(e.agente, false)) ? `Quantitativa – NR-15, ${anexo}` : tecnicaDoAgente(e.agente, e.fim <= '1997-03-05') || '[[técnica]]',
+        x.epcEficaz || (semEpi ? 'Não' : '[[S/N]]'), e.fim < '1998-12-03' ? 'Não se aplica' : x.epiEficaz || (semEpi ? 'Não' : '[[S/N]]'), v(x.ca) || '—'];
     }),
     ...linhasMed,
   ].sort((a, b) => isoIni(a[0]).localeCompare(isoIni(b[0])));
   d.quadro('15 – Exposição a fatores de riscos', [['Período', 'Tipo', 'Fator de risco', 'Intensidade', 'Técnica utilizada', 'EPC eficaz', 'EPI eficaz', 'CA EPI'],
     ...(linhasExp.length ? linhasExp : [['[[período]]', '', (dados.agentes || []).length ? 'Ausência de fator de risco nocivo' : '[[cadastre os agentes avaliados na etapa 2. Autos]]', '', '', '', '', '']])],
   { larguras: [0.14, 0.07, 0.23, 0.13, 0.12, 0.09, 0.11, 0.11], tam: 8, alinhar: 'left', semNumero: true,
-    fonte: `LTCAT do signatário, itens 5 e 6. Tipo: F – físico; Q – químico; B – biológico. EPI só considerado a partir de 03/12/1998.${exps.some((e) => !e.caracteriza) ? ' "Não quantificada": agente presente no ambiente, sem avaliação quantitativa que caracterize a exposição (item 6 do LTCAT).' : ''}` });
+    fonte: `LTCAT do signatário, itens 5 e 6. Tipo: F – físico; Q – químico; B – biológico. EPI só considerado a partir de 03/12/1998.${exps.some((e) => !e.caracteriza) ? ' "Não quantificada": agente de avaliação quantitativa (NR-15, Anexos 11 e 12) presente no ambiente, sem medição da concentração; não caracteriza a exposição (itens 5 e 6 do LTCAT).' : ''}` });
   const comEpi = exps.some((e) => e.caracteriza && e.agente.data.epiEficaz === 'Sim');
   d.quadro('15.9 – Atendimento aos requisitos das NR-06 e NR-09 (EPI)', [['Requisito', 'S/N'],
     ...['Foi tentada a implementação de medidas de proteção coletiva, de caráter administrativo ou de organização, optando-se pelo EPI por inviabilidade técnica, insuficiência ou interinidade, ou ainda em caráter complementar ou emergencial?',
@@ -135,7 +140,9 @@ export async function ppp(caseId, dadosProntos) {
   }
   if (fora.length) obs.push(`Não constam deste PPP, por não serem de responsabilidade do emitente, ${fora.length > 1 ? 'os períodos' : 'o período'} ${fora.map(({ r }) => `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`).join(', ').replace(/, ([^,]*)$/, ' e $1')}, ${fora.length > 1 ? 'demonstrados' : 'demonstrado'} pelo LTCAT do signatário.`);
   if (v(c.pppObs)) obs.push(c.pppObs);
-  d.texto(obs.length ? obs.map((o) => `- ${o}`).join('\n') : 'Sem observações.');
+  // a mesma observação em vários vínculos (ex.: afastamento repetido) sai uma vez só
+  const obsU = [...new Set(obs)];
+  d.texto(obsU.length ? obsU.map((o) => `- ${o}`).join('\n') : 'Sem observações.');
   const r = await finalizar(d, { titulo: 'PPP', arquivo: 'PPP', c });
   return r;
 }

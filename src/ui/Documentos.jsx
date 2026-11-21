@@ -2,6 +2,8 @@ import { useState, useEffect } from 'preact/hooks';
 import { pendenciasDoCaso, marcacoesNoDocumento } from '../pendencias.js';
 import { horasDia, horasForaTexto, fmtHoras } from '../calc.js';
 import { avisarAlteracao } from '../sync.js';
+import { confirmar } from './dialogo.jsx';
+import { softDelete } from '../db.js';
 import { CATALOGO, HONORARIOS, situacaoHonorarios, PETICOES_PERITO, PETICOES_AT, POSICOES_AT } from '../docx/reports.js';
 import { exportarBackup, baixarArquivo, carimbo } from '../backup.js';
 import { exportarParaClaude } from '../aiimport.js';
@@ -276,7 +278,7 @@ function PendenciasDoc({ rec, d, gerar }) {
   const [ver, setVer] = useState(0);
   const [busy, setBusy] = useState(false);
   useEffect(() => { let vivo = true; pendenciasDoCaso(rec.id).then((x) => vivo && setItens(x)).catch((e) => vivo && setItens({ erro: e.message })); return () => { vivo = false; }; }, [rec.id, ver]);
-  const responder = async (alvo, campo, valor) => { await salvar(alvo, campo, valor); avisarAlteracao(); setMarcas(null); setVer((v) => v + 1); };
+  const responder = async (alvo, campo, valor) => { if (alvo) await salvar(alvo, campo, valor); avisarAlteracao(); setMarcas(null); setVer((v) => v + 1); };
   const conferirDoc = async () => { setBusy(true); try { setMarcas(await marcacoesNoDocumento(() => d.fn(rec.id, {}))); } finally { setBusy(false); } };
   if (!itens) return <div class="pendencias"><p class="dica">Conferindo…</p></div>;
   if (itens.erro) return <div class="pendencias"><p class="erro-msg">{itens.erro}</p></div>;
@@ -340,6 +342,7 @@ function ItemPendencia({ it, responder }) {
         ? <small class="dica">O app entendeu: <b>{fmtHoras(h)}</b>{it.campo === 'foraDirecaoH' ? ' por dia fora da direção' : ' por dia'}.</small>
         : <small class="erro-msg">Não entendi um número de horas. Digite só o número (ex.: 5 ou 8,5).</small>)}
       {it.tipo === 'aviso' && it.link && <div class="linha-botoes"><a class="botao sec mini" href={it.link}>{it.rotuloLink || 'Ir para Paradigmas'}</a></div>}
+      {it.tipo === 'aviso' && it.excluir && <div class="linha-botoes"><button type="button" class="mini perigo" onClick={async () => { if (await confirmar(`${it.excluir}? O vínculo vai para a lixeira.`)) { await softDelete(it.rec); responder(null); } }}>{it.excluir}</button></div>}
       {it.tipo === 'simnao' && (
         <div class="linha-botoes">
           <button type="button" class="mini" onClick={() => escolherSimNao('Sim – caracteriza')}>Sim – caracteriza</button>

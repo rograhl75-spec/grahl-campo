@@ -20,6 +20,7 @@ import { Icone } from './Icone.jsx';
 import { confirmar } from './dialogo.jsx';
 import { profissaoDoCaso, PROFISSOES } from '../data/profissoes.js';
 import { createRecord, caseChildren } from '../db.js';
+import { CAMPOS_FDS, promptFds, lerJsonFds, aplicarFds, componentesDoTexto } from '../fds.js';
 
 // Banco de profissões: carrega no caso os agentes avaliados, o CBO e a profissiografia já estudados
 const chaveAgente = (n) => String(n || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s*\(.*$/, '').replace(/[^a-z0-9]+/g, ' ').trim();
@@ -116,6 +117,11 @@ export function Preparacao({ rec }) {
           resumo={(r) => [r.data.tipo, r.data.nome, r.data.vinculos && `vínculos ${r.data.vinculos}`,
             [r.data.resAte97 && `até 1997: ${r.data.resAte97}`, r.data.resDesde97 && `desde 1997: ${r.data.resDesde97}`].filter(Boolean).join(' / ')].filter(Boolean).join(' · ')} />
       )}
+      <RecordList kind="fds" caseId={rec.id} campos={CAMPOS_FDS} titulo="Produtos químicos – fichas das FDS (uma por produto)" novo="Adicionar produto"
+        inicial={{ situacao: 'A conferir' }} vazio="Nenhum produto. Cadastre os produtos químicos do caso ou peça ao Claude a ficha da FDS (abaixo)."
+        resumo={(r) => [r.data.nome, r.data.fabricante, r.data.revisao && `FDS ${r.data.revisao}`, componentesDoTexto(r.data.s3Componentes).length && `${componentesDoTexto(r.data.s3Componentes).length} componente(s)`,
+          r.data.fonteFds, r.data.situacao !== 'Conferido' && 'a conferir'].filter(Boolean).join(' · ')} />
+      <PesquisarFds rec={rec} />
       <RecordList kind="documento" caseId={rec.id} campos={CAMPOS_DOC} titulo="Documentos técnicos analisados" novo="Adicionar documento"
         resumo={(r) => [r.data.tipo, r.data.identificacao].filter(Boolean).join(' – ')} />
       <RecordList kind="epi" caseId={rec.id} campos={CAMPOS_EPI} titulo="Ficha de EPIs" novo="Adicionar EPI"
@@ -206,7 +212,7 @@ function ImportarIA({ rec, abertoInicial = false }) {
   const aplicar = async () => {
     const r = await aplicarIA(rec.id, previa, { substituir });
     avisarAlteracao();
-    setMsg(`Aplicado: ${r.campos} campo(s), ${r.periodos} período(s), ${r.documentos} documento(s), ${r.epis} EPI(s), ${r.agentesAvaliados ? `${r.agentesAvaliados} agente(s) avaliado(s), ` : ''}${r.fotos ? `${r.fotos} legenda(s) de foto, ` : ''}${r.quesitos} quesito(s)`
+    setMsg(`Aplicado: ${r.campos} campo(s), ${r.periodos} período(s), ${r.documentos} documento(s), ${r.epis} EPI(s), ${r.agentesAvaliados ? `${r.agentesAvaliados} agente(s) avaliado(s), ` : ''}${r.fotos ? `${r.fotos} foto(s) com legenda ou identificação, ` : ''}${r.produtos ? `${r.produtos} produto(s) químico(s) com ficha da FDS, ` : ''}${r.quesitos} quesito(s)`
       + (r.respostas ? `, ${r.respostas} resposta(s) do laudo` : '') + (r.postos || r.medicoes ? `, ${r.postos} posto(s) e ${r.medicoes} medição(ões) da diligência (veja em 4. Campo)` : '') + '.');
     setPrevia(null); setTexto('');
   };
@@ -249,7 +255,9 @@ function ImportarIA({ rec, abertoInicial = false }) {
         <div class="previa">
           <p><b>Prévia:</b> {Object.keys(previa.caso).length} campo(s) do caso, {previa.periodos.length} período(s), {previa.documentos.length} documento(s), {previa.epis.length} EPI(s), {previa.quesitos.length} quesito(s)
             {previa.quesitos.some((q) => q.resposta) && `, ${previa.quesitos.filter((q) => q.resposta).length} com resposta do laudo`}
-            {previa.postos.length > 0 && `, ${previa.postos.length} posto(s) e ${previa.postos.reduce((n, p) => n + p.medicoes.length, 0)} medição(ões) da diligência`}.</p>
+            {previa.postos.length > 0 && `, ${previa.postos.length} posto(s) e ${previa.postos.reduce((n, p) => n + p.medicoes.length, 0)} medição(ões) da diligência`}
+            {(previa.produtos || []).length > 0 && `, ${previa.produtos.length} produto(s) químico(s) com ficha da FDS`}
+            {(previa.fotos || []).length > 0 && `, ${previa.fotos.length} foto(s) com legenda ou identificação`}.</p>
           {(previa.caso.laudoRefPerito || previa.caso.vistoriaData) && <p class="ok-msg">Processo em andamento: {previa.caso.laudoRefPerito ? `laudo ${previa.caso.laudoRefPerito}${previa.caso.laudoData ? ` de ${dataBR(previa.caso.laudoData)}` : ''}` : ''}{previa.caso.vistoriaData ? ` · diligência em ${dataBR(previa.caso.vistoriaData)}` : ''}{previa.caso.fase ? ` · fase: ${previa.caso.fase}` : ''}.</p>}
           <ul>{Object.entries(previa.caso).map(([k, v]) => <li><b>{k}</b>: {String(v).slice(0, 140)}{String(v).length > 140 ? '…' : ''}</li>)}</ul>
           <label class="check"><input type="checkbox" checked={substituir} onChange={(e) => setSubstituir(e.currentTarget.checked)} /> Substituir campos que já estão preenchidos</label>
@@ -424,6 +432,47 @@ export function ParadigmasDosVinculos({ rec }) {
             <a class="botao sec" href="#/paradigmas/importar">Incluir paradigma pesquisado</a></div>
         </>
       )}
+      {msg && <p class="ok-msg">{msg}</p>}
+    </section>
+  );
+}
+
+// Ficha da FDS pelo Claude: lê a FDS anexada ou pesquisa a do fabricante na internet
+function PesquisarFds({ rec }) {
+  const produtos = useLive(async () => caseChildren(rec.id, 'fds'), [rec.id], []);
+  const [nomes, setNomes] = useState('');
+  const [json, setJson] = useState('');
+  const [msg, setMsg] = useState('');
+  const [substituir, setSubstituir] = useState(false);
+  // sugestão: produtos já cadastrados ainda sem composição
+  const pendentes = produtos.filter((r) => !String(r.data.s3Componentes || '').trim()).map((r) => [r.data.nome, r.data.fabricante].filter(Boolean).join(' – '));
+  const copiar = async () => {
+    const lista = nomes.split('\n').map((x) => x.trim()).filter(Boolean);
+    const alvo = lista.length ? lista : pendentes;
+    if (!alvo.length) { setMsg('Escreva os produtos (um por linha), com o fabricante quando souber.'); return; }
+    try { await navigator.clipboard.writeText(promptFds(alvo)); setMsg(`✓ Instrução copiada (${alvo.length} produto(s)). Cole no Claude e anexe as FDS que tiver; as que faltarem ele pesquisa e cita o endereço.`); }
+    catch (e) { setMsg('Não foi possível copiar.'); }
+  };
+  const aplicar = async () => {
+    try {
+      const lista = lerJsonFds(json);
+      const r = await aplicarFds(rec.id, lista, { substituir });
+      avisarAlteracao();
+      setMsg(`✓ ${r.novos} produto(s) novo(s) e ${r.completados} completado(s), como "a conferir".`);
+      setJson('');
+    } catch (e) { setMsg(`Erro: ${e.message}`); }
+  };
+  return (
+    <section class="bloco largo">
+      <h3>Ficha da FDS pelo Claude</h3>
+      <p class="dica">Nos documentos, cada produto sai numa ficha própria com as seções 2 (perigos), 3 (composição), 8 (controle de exposição e EPI) e 9 (propriedades) da FDS, além dos quadros obrigatórios de cada tipo de laudo. FDS fornecida pela empresa prevalece sobre a pesquisada; a pesquisada sai com o endereço e o aviso de que a versão pode diferir da usada na época.</p>
+      <label class="campo"><span class="rotulo">Produtos (um por linha, com o fabricante){pendentes.length ? ` – em branco: os ${pendentes.length} cadastrados sem composição` : ''}</span>
+        <textarea rows={2} value={nomes} onInput={(e) => setNomes(e.currentTarget.value)} placeholder={pendentes.join('\n')} /></label>
+      <div class="linha-botoes"><button type="button" class="sec" onClick={copiar}>Copiar instrução (ler ou pesquisar a FDS)</button></div>
+      <label class="campo"><span class="rotulo">Cole aqui o JSON devolvido pelo Claude</span>
+        <textarea rows={3} value={json} onInput={(e) => setJson(e.currentTarget.value)} /></label>
+      <label class="check"><input type="checkbox" checked={substituir} onChange={(e) => setSubstituir(e.currentTarget.checked)} /> Substituir dados já preenchidos</label>
+      <div class="linha-botoes"><button type="button" class="primario" disabled={!json.trim()} onClick={aplicar}>Aplicar</button></div>
       {msg && <p class="ok-msg">{msg}</p>}
     </section>
   );

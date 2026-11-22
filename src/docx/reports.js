@@ -14,6 +14,7 @@ import {
   laudoPericial, laudoPrevidenciario, ltcatPpp, parecerPrevidenciario, parecerAssistente, parecerPreventivo, peticaoIndicacaoAT, peticaoAgendamento, peticaoHonorarios, peticaoMajoracao, peticaoAceiteArbitrados, peticaoPagamento, respostaQuesitosSuplementares,
 } from './modelos.js';
 import { quadroQuimicosAnexo11 } from './modelos2.js';
+import { fichasFds } from './fdsQuadros.js';
 import { laudoAcidente, peticaoPeritoAvulsa, peticaoAssistente, termoPresenca, parecerTrabalhista, propostaServicos, PETICOES_PERITO, PETICOES_AT, POSICOES_AT } from './modelos2.js';
 
 export { PETICOES_PERITO, PETICOES_AT, POSICOES_AT };
@@ -83,6 +84,7 @@ export async function gerarPreRelatorio(caseId) {
   d.h1('5', 'Documentos técnicos analisados');
   quadroDocumentos(d, dados.documentos);
   if (!dados.documentos.length) d.texto('[[Nenhum documento cadastrado.]]');
+  if ((dados.produtos || []).length) { d.h2('5.1', 'Produtos químicos – fichas das FDS'); fichasFds(d, dados); }
 
   d.h1('6', 'Equipamentos de proteção individual');
   quadroEpis(d, dados.epis, { extra });

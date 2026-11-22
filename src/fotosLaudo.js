@@ -4,6 +4,7 @@
 import JSZip from 'jszip';
 import { db, createRecord, caseChildren, updateFields } from './db.js';
 import { processarFoto } from './photos.js';
+import { legendaDoNomeArquivo } from './fotosIA.js';
 
 const RE_LEGENDA = /^\s*(foto(grafia)?|figura|imagem)\s*(n[º°o.]*\s*)?\d+/i;
 
@@ -153,7 +154,7 @@ export async function importarImagens(caseId, itens, { origem = '', postoId = ''
     const { blob, thumb, w, h } = await processarFoto(it.blob);
     ordem += 1;
     const rec = await createRecord('foto', caseId, {
-      postoId, legenda: limparLegenda(it.legenda), ordem, largura: w, altura: h,
+      postoId, legenda: limparLegenda(it.legenda) || (/\.(jpe?g|png|heic|heif|webp)$/i.test(it.nome || '') ? legendaDoNomeArquivo(it.nome) : ''), ordem, largura: w, altura: h,
       tiradaEm: exif.tiradaEm || '', tiradaEmFonte: exif.tiradaEm ? 'foto' : '', gps: exif.gps || '', gpsFonte: exif.gps ? 'foto' : '',
       nomeArquivo: it.nome || '', origem,
     });

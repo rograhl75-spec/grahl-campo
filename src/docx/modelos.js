@@ -22,6 +22,7 @@ import { quadroQuimicosAnexo11, quadroConclusivoTrab, conclusaoAT, POSICOES_AT, 
 import { formaAvaliacaoPrev } from '../quimicos.js';
 import { codigosDoAgente, agenteNoVinculo, categoriaDoVinculo, lerAfastamentos } from '../enquadramento.js';
 import { ppp, emitenteDoPpp } from './ppp.js';
+import { fichasFds } from './fdsQuadros.js';
 import { quadroCaracteristicasQuimicos, quadroArt68, bancoDoAgente, anexoQuantitativo, agentesDoArt68 } from './agentesQuadros.js';
 import { empresaLimpa } from '../nomes.js';
 
@@ -133,8 +134,14 @@ function avaliacaoTrabalhista(d, dados, base) {
     d.texto('No Anexo 11, a insalubridade se caracteriza quando a média aritmética das concentrações supera o limite de tolerância do Quadro 1 (itens 1 e 8) ou, para os agentes com valor teto, quando qualquer amostra o supera (item 9). Os limites valem para absorção pela via respiratória e para jornadas de até 48 horas semanais (itens 2 e 10). Os agentes dos Anexos 13 e 13-A são avaliados qualitativamente, pela atividade ou operação descrita no anexo.');
     quadroQuimicosAnexo11(d, g['Agente químico'], dados, nome);
     caracteristicasDasMedicoes(d, g['Agente químico'], dados);
+    fichasFds(d, dados);
     if (g['Agente químico'].some((m) => !agenteDaMedicao(m, dados))) d.redigir('enquadramento dos agentes sem limite no banco (Anexo 11 ou 12, ou avaliação qualitativa pelo Anexo 13 / 13-A; álcali cáustico: referência pH ≥ 11,5 (NBR 14725:2023, item 5.3.2.2.2.5: corrosivo à pele, Categoria 1, salvo se a reserva alcalina indicar o contrário)).');
     d.redigir('neutralização pelo EPI (respirador e filtro adequados ao agente; luvas quando há absorção pela pele – item 5 do Anexo 11).');
+  }
+  if (!g['Agente químico'] && (dados.produtos || []).length) {
+    sub('Produtos químicos – dados das fichas com dados de segurança (FDS)');
+    fichasFds(d, dados);
+    d.redigir('enquadramento dos agentes químicos dos produtos (NR-15, Anexos 11, 12, 13 e 13-A) ou registro de que não há exposição caracterizável.');
   }
   if (g['Outro']) {
     sub('Outros agentes avaliados');
@@ -166,7 +173,10 @@ const RES_TXT = (r) => ({ 'Caracteriza': 'caracteriza', 'Não caracteriza': 'nã
 const codTxt = (k) => (/^\d/.test(k) ? `cód. ${k}` : k.charAt(0).toUpperCase() + k.slice(1));
 function agentesAvaliados(d, dados, sub, n) {
   const ags = dados.agentes || [];
-  if (!ags.length) return n;
+  if (!ags.length) {
+    if ((dados.produtos || []).length) { sub('Produtos químicos – dados das fichas com dados de segurança (FDS)'); n += 1; fichasFds(d, dados); }
+    return n;
+  }
   const per = dados.periodos;
   const alcance = (a) => {
     const ids = agenteVinculos(a, per);
@@ -192,6 +202,7 @@ function agentesAvaliados(d, dados, sub, n) {
       fonte: 'Elaborado pelo signatário com base nos Decretos 53.831/1964, 83.080/1979, 2.172/1997 e 3.048/1999 e na IN PRES/INSS nº 128/2022.' });
     if (tipo === 'Químico') {
       quadroCaracteristicasQuimicos(d, lst.map((a) => ({ nome: a.data.nome, dados: a.data, banco: bancoDoAgente(a, dados.quimicos) })));
+      fichasFds(d, dados);
       const quant = lst.filter((a) => anexoQuantitativo(a, dados.quimicos) && a.data.resDesde97 === 'Não caracteriza')
         .map((a) => a.data.nome.replace(/\s*\(.*$/, '').replace(/^\p{Lu}(?=\p{Ll})/u, (c) => c.toLowerCase()));
       const lq = quant.join(', ').replace(/, ([^,]*)$/, ' e $1').replace(/^./, (c) => c.toUpperCase());
@@ -203,6 +214,8 @@ function agentesAvaliados(d, dados, sub, n) {
       else d.redigir(`fundamentação de ${a.data.nome} (código de cada época e conclusão).`);
     }
   }
+  // produtos com FDS sem agente químico avaliado: as fichas saem numa seção própria
+  if ((dados.produtos || []).length && !dados._fdsImpressas) { sub('Produtos químicos – dados das fichas com dados de segurança (FDS)'); n += 1; fichasFds(d, dados); }
   // art. 68, § 2º: a descrição qualitativa só é exigida para os agentes que caracterizam (ou ainda a confirmar)
   const ags68 = agentesDoArt68(ags);
   if (ags68.length) { sub('Avaliação qualitativa (art. 68, § 2º, do Decreto 3.048/1999)'); n += 1; quadroArt68(d, ags68); }
@@ -806,6 +819,7 @@ export async function parecerAssistente(caseId) {
         : 'pontos técnicos: premissas não verificadas, enquadramento incompleto, quesitos sem resposta, divergências de narrativa, falta de quantificação de tempo/frequência, falta de delimitação do período.');
     }
   }
+  if ((dados.produtos || []).length) { n += 1; d.h1(String(n), 'Produtos químicos – fichas das FDS'); fichasFds(d, dados); }
   n += 1;
   d.h1(String(n), 'Elementos registrados na diligência');
   quadroDiligencia(d, c, 'Diligência acompanhada');
@@ -854,6 +868,7 @@ export async function parecerPreventivo(caseId) {
   d.h1('3', 'Documentos analisados');
   quadroDocumentos(d, dados.documentos);
   if (!dados.documentos.length) d.redigir('documentos analisados (PGR, PCMSO, LTCAT, laudos, fichas de EPI).');
+  if ((dados.produtos || []).length) { d.h2('3.1', 'Produtos químicos – fichas das FDS'); fichasFds(d, dados); }
   d.h1('4', 'Fundamentação técnica e legal');
   d.redigir(comJurisprudencia(dados) ? 'normas aplicáveis ao agente discutido.' : 'normas aplicáveis ao agente discutido (sem súmulas ou jurisprudência, conforme a opção do caso).');
   registroJurisprudencia(d, dados, { numero: '4.1', nivel: 'h2', prev: pt.prev });

@@ -6,6 +6,8 @@ import { resumoMedicao } from './medicoes.js';
 import { dataIso } from './migrate.js';
 import { citacaoDe } from './paradigmas.js';
 import { profissaoDoCaso, referenciaProfissao } from './data/profissoes.js';
+import { REGRAS_FDS, FORMATO_PRODUTO, produtoParaDados, aplicarFds } from './fds.js';
+import { normalizarIdentFoto } from './fotosIA.js';
 
 // Origem do quesito por sinônimos (o Claude escreve "Reclamante", "Requerido", "Juiz"…); vazio = "Outro"
 export function origemQuesito(o) {
@@ -101,8 +103,11 @@ const REGRAS_EXTRACAO = `REGRAS DE EXTRAÇÃO
 4. EPIs: liste cada item das fichas (descrição, CA, data de entrega, observações sobre periodicidade, assinatura e validade do CA).
 5. Datas no formato AAAA-MM-DD. Não inclua nomes de advogados.
 6. PROCESSO EM ANDAMENTO: se os autos já contêm laudo pericial, parecer, registro ou ata de diligência, preencha também "andamento", "diligencia", "postos" (com as medições de cada posto) e, em cada quesito, a "resposta" dada no laudo, transcrita fielmente (sem resumir). Se não houver laudo nem diligência, deixe esses blocos vazios. Medições: um item por medição, com os valores exatamente como no laudo (número com vírgula ou ponto, sem unidade) e o equipamento (marca, modelo, série, certificado) em "equipamento". Traga a data e os horários de início e fim de cada medição como constam no laudo ou no relatório do equipamento: eles são usados para conferir o horário da diligência.
-7. LOCAL DA PERÍCIA: se o despacho ou os autos indicarem onde será feita a vistoria (a empresa empregadora ou, na perícia por similaridade, a empresa paradigma) e o endereço, preencha "diligencia.vistoriaLocal" (razão social), "diligencia.vistoriaEndereco" (rua, número, bairro, cidade/UF, CEP) e "diligencia.vistoriaCnpj", mesmo que a diligência ainda não tenha ocorrido. Na perícia por similaridade, preencha também "processo.similaridade" = "Sim" e "processo.empresaOriginal" com a empregadora original. Se a vistoria for em bem de pessoa física, sem empresa (por exemplo, veículo paradigma de um particular), deixe "vistoriaLocal" e "vistoriaCnpj" vazios e preencha "diligencia.vistoriaProprietario" com o NOME COMPLETO do proprietário como consta nos autos, "diligencia.vistoriaVeiculo" (marca, modelo, ano) e "diligencia.vistoriaContato" (telefone indicado nos autos).`;
+7. LOCAL DA PERÍCIA: se o despacho ou os autos indicarem onde será feita a vistoria (a empresa empregadora ou, na perícia por similaridade, a empresa paradigma) e o endereço, preencha "diligencia.vistoriaLocal" (razão social), "diligencia.vistoriaEndereco" (rua, número, bairro, cidade/UF, CEP) e "diligencia.vistoriaCnpj", mesmo que a diligência ainda não tenha ocorrido. Na perícia por similaridade, preencha também "processo.similaridade" = "Sim" e "processo.empresaOriginal" com a empregadora original. Se a vistoria for em bem de pessoa física, sem empresa (por exemplo, veículo paradigma de um particular), deixe "vistoriaLocal" e "vistoriaCnpj" vazios e preencha "diligencia.vistoriaProprietario" com o NOME COMPLETO do proprietário como consta nos autos, "diligencia.vistoriaVeiculo" (marca, modelo, ano) e "diligencia.vistoriaContato" (telefone indicado nos autos).
+8. FOTOS: use o nome do arquivo e o conteúdo da imagem para a legenda. Em "identificacao", só o que estiver legível na foto (plaqueta, rótulo, display, CA); leitura de display de equipamento serve apenas para conferência com o relatório do equipamento, nunca como resultado de medição.
+9. ${REGRAS_FDS.replace(/\n- /g, '\n   - ')}`;
 
+const PRODUTO_FDS = FORMATO_PRODUTO.replace(/\s*\n\s*/g, ' ');
 const FORMATO = `FORMATO DA RESPOSTA
 Responda SOMENTE com um bloco JSON válido, sem texto antes ou depois, neste formato:
 {
@@ -117,8 +122,8 @@ Responda SOMENTE com um bloco JSON válido, sem texto antes ou depois, neste for
   },
   "acidente": {"acidenteData": "só em caso de acidente do trabalho", "acidenteHora": "", "acidenteLocal": "", "acidenteAtividade": "", "acidenteMaquina": "", "acidenteRelato": "versão do acidentado", "acidenteRelatoEmpresa": "versão da empresa e das testemunhas", "acidenteLesao": "", "acidenteCat": "", "acidenteAlteracoes": ""},
   "periodos": [{"empresa": "", "cnpj": "", "inicio": "", "fim": "dd/mm/aaaa, ou \"atual\" se o vínculo continua", "cargo": "", "setor": "", "atividades": "", "agentes": "", "fonte": "", "categoriaSegurado": "Empregado | Contribuinte individual | Cooperado (cooperativa de trabalho) | Avulso", "local": "endereço/cidade do local de trabalho no período", "cbo": "", "profissiografia": "descrição das atividades para o PPP, sem anotações de trabalho", "afastamentos": "um por linha: dd/mm/aaaa a dd/mm/aaaa – B31 ou B91", "tipoTransporte": "só motorista/cobrador", "jornadaSemanal": "", "noturnoPernoite": "", "cargaDescarga": "", "vias": "", "riscoAcidente": "", "cabine": "", "pausas": "", "pressao": "", "fisiologicas": "acesso a sanitários, alimentação e descanso", "veiculoTipo": "", "veiculoMarca": "", "veiculoModelo": "", "veiculoAno": "", "grupoVeiculo": "só motorista – um dos grupos da instrução", "carroceria": "", "tipoCarga": "", "carregaDescarrega": "Não | Carregava | Descarregava | Carregava e descarregava", "conducaoH": "horas de direção por dia (número)", "conducaoBase": "de onde veio a informação", "abastecimento": "", "acidenteVinculo": "Não, ou descrição", "assaltoVinculo": "Não, ou descrição"}],
-  "agentesAvaliados": [{"nome": "agente avaliado sem medição (biológico, químico ou físico)", "tipo": "Biológico | Químico | Físico", "vinculos": "V1, V2… pela ordem cronológica dos períodos; vazio = todos", "fonte": "fonte geradora / atividade com exposição", "codAte97": "código do Dec. 53.831/64 e do Dec. 83.080/79", "resAte97": "Caracteriza | Não caracteriza | Não enquadrável | A confirmar", "codDesde97": "código do Anexo IV", "resDesde97": "Caracteriza | Não caracteriza | Não enquadrável | A confirmar", "intensidade": "", "tecnica": "Qualitativa ou a norma da medição", "epcEficaz": "Sim | Não | Não se aplica", "epiEficaz": "Sim | Não | Não se aplica", "ca": "", "fundamentacao": "texto técnico do item 5 do LTCAT"}],
-  "fotos": [{"numero": "nº da foto na ordem do app (1, 2, 3…), só para fotos já anexadas ao caso", "legenda": "o que a foto mostra, em uma frase"}],
+  "agentesAvaliados": [{"nome": "agente avaliado sem medição (biológico, químico ou físico)", "tipo": "Biológico | Químico | Físico", "vinculos": "V1, V2… pela ordem cronológica dos períodos; vazio = todos", "fonte": "fonte geradora / atividade com exposição", "cas": "", "circunstancias": "circunstâncias da exposição na jornada (art. 68, § 2º, I)", "vias": "meios de contato e vias de absorção", "frequencia": "intensidade, frequência e duração do contato", "efeitos": "efeitos à saúde (só se o agente não estiver no banco de químicos do app)", "limites": "limites e classificação (NR-15, LINACH, IARC) – só se o agente não estiver no banco", "codAte97": "código do Dec. 53.831/64 e do Dec. 83.080/79", "resAte97": "Caracteriza | Não caracteriza | Não enquadrável | A confirmar", "codDesde97": "código do Anexo IV", "resDesde97": "Caracteriza | Não caracteriza | Não enquadrável | A confirmar", "intensidade": "", "tecnica": "Qualitativa ou a norma da medição", "epcEficaz": "Sim | Não | Não se aplica", "epiEficaz": "Sim | Não | Não se aplica", "ca": "", "fundamentacao": "texto técnico do item 5 do LTCAT"}],
+  "fotos": [{"numero": "nº da foto na ordem do app (1, 2, 3…), só para fotos já anexadas ao caso", "legenda": "o que a foto mostra, em uma frase (o nome do arquivo costuma trazer a descrição)", "tipo": "Máquina / veículo | Equipamento de medição | Produto químico (rótulo) | EPI | Posto / ambiente | Documento | Outro", "identificacao": "marca, modelo, série, ano, CA, produto ou leitura de display vistos na foto – só o que estiver legível"}],
   "ppp": {"pppEmitente": "Empresa (empregador) | Cooperativa de trabalho | Próprio segurado (contribuinte individual)", "pppEmitenteNome": "", "pppEmitenteCnpj": "", "pppCnae": "", "pppEndereco": "", "pppNit": "", "pppSexo": "Masculino | Feminino", "pppRepresentante": "", "pppRepresentanteNit": "", "pppObs": "", "art": "nº da ART"},
   "documentos": [{"tipo": "PPP | LTCAT | PGR / PPRA | Laudo pericial | Ficha de EPI | CTPS / CNIS | Outro", "identificacao": "", "analise": ""}],
   "epis": [{"descricao": "", "ca": "", "dataEntrega": "", "obs": ""}],
@@ -131,8 +136,7 @@ Responda SOMENTE com um bloco JSON válido, sem texto antes ou depois, neste for
       "tbn": "", "tbs": "", "tg": "", "ibutgLido": "", "atividade": "", "regime": "",
       "veiculo": "", "aren": "", "vdv": "", "eixo": "", "tempoExposicao": "",
       "descricao": "", "metodo": "", "valor": "", "unidade": "", "limite": "", "obs": ""}]}],
-  "agentesAvaliados": [{"nome": "", "tipo": "Biológico | Químico | Físico", "cas": "", "circunstancias": "", "fonte": "", "vias": "", "frequencia": "", "efeitos": "", "codAte97": "", "resAte97": "Caracteriza | Não caracteriza | Não enquadrável | A confirmar", "codDesde97": "", "resDesde97": "Caracteriza | Não caracteriza | Não enquadrável | A confirmar", "epcEficaz": "", "epiEficaz": "", "fundamentacao": ""}],
-  "fotos": [{"numero": "nº da foto na ordem das anotações", "legenda": "o que a foto mostra, em uma frase"}]
+  "produtos": [${PRODUTO_FDS}]
 }`;
 
 // Anotações de diligência já realizada (aba Campo): só os blocos que a diligência alimenta
@@ -318,7 +322,8 @@ export function lerJsonIA(texto) {
       ...Object.fromEntries(['tipoTransporte', 'jornadaSemanal', 'noturnoPernoite', 'cargaDescarga', 'vias', 'riscoAcidente', 'cabine', 'pausas', 'pressao', 'fisiologicas', 'grupoVeiculo', 'veiculoTipo', 'veiculoMarca', 'veiculoModelo', 'veiculoAno', 'conducaoH', 'conducaoBase', 'carroceria', 'tipoCarga', 'carregaDescarrega', 'abastecimento', 'acidenteVinculo', 'assaltoVinculo'].map((k) => [k, s(x[k])]).filter(([, val]) => val)) })),
     documentos: lista(obj.documentos).map((x) => ({ tipo: s(x.tipo), identificacao: s(x.identificacao), analise: s(x.analise) })),
     // legendas das fotos já anexadas ao caso, pelo número (ordem das fotos no app)
-    fotos: lista(obj.fotos).map((x) => ({ numero: parseInt(s(x.numero), 10), legenda: s(x.legenda) })).filter((x) => x.numero > 0 && x.legenda),
+    fotos: lista(obj.fotos).map((x) => ({ numero: parseInt(s(x.numero), 10), legenda: s(x.legenda), ...normalizarIdentFoto(x) })).filter((x) => x.numero > 0 && (x.legenda || x.identificacao)),
+    produtos: lista(obj.produtos).map(produtoParaDados).filter((p) => p.nome),
     agentesAvaliados: lista(obj.agentesAvaliados).map((x) => {
       const r = pegar(x, CAMPOS_AGENTE_AVALIADO.map(([k]) => k));
       r.tipo = ['Biológico', 'Químico', 'Físico'].find((t) => semAc(t) === semAc(r.tipo)) || 'Químico';
@@ -352,7 +357,7 @@ export async function aplicarIA(caseId, dados, { substituir = false, criarPeriod
     if (substituir || !atual || (k === 'fase' && atual === 'A preparar')) mudancas[k] = v;
   }
   if (Object.keys(mudancas).length) await updateFields(caseId, mudancas);
-  const cont = { campos: Object.keys(mudancas).length, periodos: 0, documentos: 0, epis: 0, agentesAvaliados: 0, fotos: 0, quesitos: 0, respostas: 0, postos: 0, medicoes: 0 };
+  const cont = { campos: Object.keys(mudancas).length, periodos: 0, documentos: 0, epis: 0, agentesAvaliados: 0, fotos: 0, produtos: 0, quesitos: 0, respostas: 0, postos: 0, medicoes: 0 };
   const kinds = { periodos: 'periodo', documentos: 'documento', epis: 'epi', agentesAvaliados: 'agenteAvaliado' };
   for (const [lista, kind] of Object.entries(kinds)) {
     if (!(dados[lista] || []).length) continue;
@@ -390,12 +395,21 @@ export async function aplicarIA(caseId, dados, { substituir = false, criarPeriod
   // Legendas das fotos: a foto nº N (ordem do app) recebe a legenda, se ainda não tiver (ou com "substituir")
   if ((dados.fotos || []).length) {
     const fotos = await caseChildren(caseId, 'foto');
-    for (const { numero, legenda } of dados.fotos) {
+    for (const { numero, legenda, ...ident } of dados.fotos) {
       const f = fotos[numero - 1];
-      if (!f || (!substituir && String(f.data.legenda || '').trim())) continue;
-      await updateFields(f.id, { legenda });
+      if (!f) continue;
+      const novos = {};
+      if (legenda && (substituir || !String(f.data.legenda || '').trim())) novos.legenda = legenda;
+      for (const [k, val] of Object.entries(ident)) if (val && (substituir || !String(f.data[k] || '').trim())) novos[k] = val;
+      if (!Object.keys(novos).length) continue;
+      await updateFields(f.id, novos);
       cont.fotos += 1;
     }
+  }
+  // Produtos químicos: uma ficha da FDS por produto, sem duplicar pelo nome comercial
+  if ((dados.produtos || []).length) {
+    const r = await aplicarFds(caseId, dados.produtos, { substituir });
+    cont.produtos = r.novos + r.completados;
   }
   // Quesitos: o mesmo quesito não se repete; a resposta do laudo entra se ainda estiver vazia
   if (dados.quesitos.length) {
@@ -572,6 +586,11 @@ export async function textoDoCaso(caseId) {
   if (documentos.length) { L.push('\n## Documentos analisados'); documentos.forEach((d) => L.push(`- ${d.data.tipo || ''} ${d.data.identificacao || ''}: ${d.data.analise || ''}`)); }
   const agentesAv = await caseChildren(caseId, 'agenteAvaliado');
   if (agentesAv.length) { L.push('\n## Agentes avaliados (sem medição)'); agentesAv.forEach((a) => L.push(`- [${a.data.tipo || ''}] ${a.data.nome || ''}${a.data.vinculos ? ` (vínculos ${a.data.vinculos})` : ''}: até 05/03/1997 ${a.data.resAte97 || '?'}${a.data.codAte97 ? ` (cód. ${a.data.codAte97})` : ''}; a partir de 06/03/1997 ${a.data.resDesde97 || '?'}${a.data.codDesde97 ? ` (cód. ${a.data.codDesde97})` : ''}${a.data.fundamentacao ? ` – ${a.data.fundamentacao}` : ''}`)); }
+  const produtosFds = await caseChildren(caseId, 'fds');
+  if (produtosFds.length) {
+    L.push('\n## Produtos químicos – fichas das FDS (o app imprime uma ficha por produto; não repita a ficha no texto)');
+    produtosFds.forEach((p) => L.push(`- ${p.data.nome || ''}${p.data.fabricante ? ` (${p.data.fabricante})` : ''}${p.data.revisao ? `, FDS ${p.data.revisao}` : ''}${p.data.fonteFds ? `, ${p.data.fonteFds}` : ''}; componentes: ${String(p.data.s3Componentes || '?').replace(/\n/g, ' | ')}; perigos: ${String(p.data.s2FrasesH || p.data.s2Classificacao || '?').replace(/\n/g, ' | ')}`));
+  }
   if (epis.length) { L.push('\n## EPIs'); epis.forEach((e) => L.push(`- ${e.data.descricao || ''} – CA ${e.data.ca || '?'} – ${e.data.dataEntrega || ''} ${e.data.obs || ''}`)); }
   L.push('\n## Diligência');
   for (const [k, r] of [['vistoriaProprietario', 'Proprietário (pessoa física)'], ['vistoriaVeiculo', 'Veículo paradigma'], ['vistoriaIntimacao', 'Comunicação às partes'], ['vistoriaNotas', 'Anotações gerais']]) campo(r, c[k]);
@@ -608,7 +627,7 @@ export async function textoDoCaso(caseId) {
       ['prazoEsclarecimentos', 'Prazo'], ['esclRetificacoes', 'Retificações já identificadas'], ['esclObservacoes', 'Considerações']]) campo(r, c[k]);
     qSup.forEach((q) => L.push(`- [SUPLEMENTAR – ${q.data.origem || ''} ${q.data.numero || ''}${q.data.refPeticao ? ` – ${q.data.refPeticao}` : ''}] ${q.data.texto || ''}${q.data.resposta ? `\n  RESPOSTA / ANOTAÇÃO: ${q.data.resposta}` : ''}`));
   }
-  if (fotos.length) { L.push('\n## Fotos registradas'); fotos.forEach((f, i) => L.push(`- Foto ${i + 1}: ${f.data.legenda || '(sem legenda)'}${f.data.postoId ? ` – posto ${nomePosto.get(f.data.postoId) || ''}` : ''}`)); }
+  if (fotos.length) { L.push('\n## Fotos registradas'); fotos.forEach((f, i) => L.push(`- Foto ${i + 1}: ${f.data.legenda || '(sem legenda)'}${f.data.postoId ? ` – posto ${nomePosto.get(f.data.postoId) || ''}` : ''}${f.data.identificacao ? ` – identificação (${f.data.identSituacao === 'Conferido' ? 'conferida' : 'a conferir'}): ${f.data.identificacao}` : ''}`)); }
 
   return { c, texto: L.join('\n') };
 }

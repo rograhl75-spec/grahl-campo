@@ -74,8 +74,8 @@ const limpaDados = (o) => {
 export async function carregar(caseId) {
   const caso = await db.records.get(caseId);
   if (!caso) throw new Error('Caso não encontrado.');
-  const kinds = ['quesito', 'periodo', 'documento', 'epi', 'posto', 'medicao', 'foto', 'agenteAvaliado'];
-  const [quesitos, periodos, documentos, epis, postos, medicoes, fotos, agentes] = await Promise.all(kinds.map((k) => caseChildren(caseId, k)));
+  const kinds = ['quesito', 'periodo', 'documento', 'epi', 'posto', 'medicao', 'foto', 'agenteAvaliado', 'fds'];
+  const [quesitos, periodos, documentos, epis, postos, medicoes, fotos, agentes, produtos] = await Promise.all(kinds.map((k) => caseChildren(caseId, k)));
   const equipamentos = (await db.records.where('kind').equals('equip').toArray()).filter((e) => !e.deleted)
     .sort((a, b) => (a.data.ordem || 0) - (b.data.ordem || 0));
   const paradigmas = new Map((await db.records.where('kind').equals('paradigma').toArray()).filter((r) => !r.deleted).map((r) => [r.data.codigo, r]));
@@ -101,6 +101,7 @@ export async function carregar(caseId) {
   // referências internas aos arquivos PDF (Parte N, p. X) e datas ISO no meio do texto não vão para o documento
   const limpa = (lst) => lst.map((r) => ({ ...r, data: limpaDados(r.data) }));
   const dados = { id: caseId, c: limpaDados(caso.data), quesitos: limpa(quesitos), periodos: limpa(herdarDoAnterior(pers)), documentos: limpa(documentos), epis, postos: limpa(psts), agentes: limpa(agentes.filter((a) => v(a.data.nome))).sort((a, b) => (a.data.ordem ?? a.createdAt ?? 0) - (b.data.ordem ?? b.createdAt ?? 0)), medicoes: meds, fotos, equipamentos, perfil, paradigmas, quimicos,
+    produtos: produtos.filter((p) => v(p.data.nome)).sort((a, b) => (a.data.ordem ?? a.createdAt ?? 0) - (b.data.ordem ?? b.createdAt ?? 0)),
     regraCertMeses: Number((cfgPar && cfgPar.data.regraCertMeses) || 24) };
   // nomes próprios do caso (empresas, pessoas, cidades dos trajetos) não são sublinhados pelo corretor do Word
   const nomes = [dados.c.autorNome, dados.c.reuNome, perfil.nome, ...dados.periodos.flatMap((r) => [r.data.empresa, empresaLimpa(r.data.empresa), r.data.vias, r.data.cargo])]

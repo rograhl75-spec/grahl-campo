@@ -1,4 +1,5 @@
 import { db, createRecord, caseChildren } from './db.js';
+import { legendaDoNomeArquivo } from './fotosIA.js';
 
 const MAX_LADO = 2560;
 const QUALIDADE = 0.88;
@@ -102,7 +103,7 @@ export async function adicionarFotos(caseId, files, { postoId = '', legenda = ''
     const { blob, thumb, w, h } = await processarFoto(file);
     ordem += 1;
     const rec = await createRecord('foto', caseId, {
-      postoId, legenda, ordem, largura: w, altura: h,
+      postoId, legenda: legenda || legendaDoNomeArquivo(file.name), ordem, largura: w, altura: h,
       gps: exif.gps || gps, gpsFonte: exif.gps ? 'foto' : (gps ? 'aparelho' : ''),
       tiradaEm: exif.tiradaEm || new Date(file.lastModified || Date.now()).toISOString(),
       tiradaEmFonte: exif.tiradaEm ? 'foto' : 'arquivo',

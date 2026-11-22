@@ -20,6 +20,7 @@ O indicador no topo da tela mostra sempre o estado: *Salvo neste aparelho*, *Sem
 - **Casos:** lista com busca e filtro por fase, ordenada pela próxima data (diligência, laudo, manifestação).
 - **Resumo:** tipo (judicial ou extrajudicial), sua atuação, justiça (Trabalho, Federal, Estadual de competência delegada, Fazenda Pública, Cível, JEF), matéria, objeto, fase, processo, partes e prazos.
 - **Preparação:** síntese dos autos, contratos e períodos, documentos técnicos, ficha de EPIs, roteiro da vistoria e equipamentos a levar. Tem também o painel **Pré-relatório com IA** (veja abaixo).
+  - **Produtos químicos – fichas das FDS:** um registro por produto (nome comercial, fabricante, revisão e origem da FDS, seções 2, 3, 8 e 9). "Ficha da FDS pelo Claude" lê a FDS anexada ou pesquisa a do fabricante, com o endereço e a data da consulta. Em todos os documentos com químicos (pré-relatório, LTCAT, laudos previdenciário e trabalhista, pareceres), cada produto sai numa ficha própria, além dos quadros obrigatórios de cada tipo de laudo. FDS pesquisada sai com o aviso de que a versão pode diferir da usada no período.
 - **Quesitos:** transcrição literal, com espaço para anotações em campo.
   - **Depois do laudo – quesitos suplementares e esclarecimentos:** laudo apresentado (mov. e data), decisão que determinou a resposta, prazo, retificações de erro material e ratificação. Os quesitos suplementares ficam numa lista própria e não entram no laudo nem no pré-relatório. O botão **Copiar instrução** leva ao Claude os seus registros de campo (horário, presentes, local, GPS, medições) como fonte primária; o Claude transcreve os quesitos da petição e minuta as respostas num JSON que o app aplica sem duplicar. O caso passa para a fase "Respondendo quesitos suplementares" e o prazo aparece na lista de casos.
 - **Campo:** diligência (data e hora com um toque, GPS, presentes, condições do dia), postos e atividades, medições e fotos por posto.
@@ -28,6 +29,8 @@ O indicador no topo da tela mostra sempre o estado: *Salvo neste aparelho*, *Sem
   - **Vibração:** registra VCI e VMB.
   - **Químicos e outros:** registro livre.
 - **Fotos:** tiradas pela câmera ou escolhidas da galeria. Ficam no tablet no mesmo instante e depois sobem para a nuvem. Têm legenda, posto, ordem, data/hora e GPS.
+  - **Legenda pelo nome do arquivo:** foto com nome descritivo ("Área 1 - 05a, bancada de testes de bombas.jpeg") já entra com a legenda; nomes automáticos de câmera (IMG_…, DSC…, PXL_…, WhatsApp Image…) são ignorados. Para fotos já importadas, o botão "Preencher legendas vazias pelo nome do arquivo".
+  - **Identificação pelo Claude:** em "Legendas e identificação das fotos", envie as fotos numeradas (compartilhamento do Android direto para o Claude, ou ZIP) ou as folhas de contato (12 fotos por folha, com o número), copie a instrução e cole a resposta. O Claude devolve a legenda e o que está legível em cada foto – plaqueta (marca, modelo, série, ano), rótulo de produto, CA de EPI, display de equipamento – e a ficha da FDS dos produtos dos rótulos. Tudo entra "a conferir"; leitura de display serve só para conferir com o relatório do equipamento.
 - **Documentos (Word no seu timbrado, fonte Abadi, espaçamento 1,5):** aparecem só os modelos do seu papel no caso, agrupados pela fase. Cada cartão tem "Gerar Word" e "Redigir com o Claude".
   - **Todos:** pré-relatório (para o assistente, com a estratégia da assistência; para o perito, com as verificações de impedimento e prazo) e relatório fotográfico avulso.
   - **Perito do Juízo:**
@@ -73,7 +76,7 @@ O indicador no topo da tela mostra sempre o estado: *Salvo neste aparelho*, *Sem
 
 1. Em Preparação → Pré-relatório com IA, toque em **Copiar instrução**.
 2. No Claude, cole a instrução e anexe os PDFs dos autos.
-3. Copie a resposta (um bloco JSON) e cole no app.
+3. Copie a resposta (um bloco JSON) e cole no app. A resposta já traz a ficha da FDS de cada produto químico identificado (pesquisada pelo Claude quando a FDS não foi anexada) e a legenda e a identificação das fotos anexadas.
 4. Confira a prévia e aplique. Campos já preenchidos não são alterados, a menos que você marque "substituir". Quesitos, EPIs, períodos e documentos são acrescentados sem duplicar.
 5. Em Documentos, gere o pré-relatório.
 

@@ -3,6 +3,7 @@ import { db, softDelete, updateFields } from '../db.js';
 import { avisarAlteracao } from '../sync.js';
 import { adicionarFotos, urlMiniatura, urlCompleta } from '../photos.js';
 import { imagensDoDocx, imagensDoPdf, importarImagens } from '../fotosLaudo.js';
+import { legendaDoNomeArquivo, promptFotos, lerJsonFotos, aplicarFotosIA, arquivosNumerados, folhasDeContato, entregarArquivos, TIPOS_IDENT } from '../fotosIA.js';
 import { TF, salvar } from './fields.jsx';
 import { useLive } from './hooks.js';
 import { Icone } from './Icone.jsx';
@@ -87,6 +88,7 @@ export function Fotos({ rec }) {
         <p class="dica">As fotos ficam gravadas no aparelho no momento em que são tiradas e são enviadas à nuvem quando houver internet. A ordem aqui é a ordem do relatório fotográfico.</p>
       </section>
       <ImportarFotos rec={rec} />
+      <IdentificarFotos rec={rec} fotos={fotos} nomePosto={nomePosto} />
       <section class="bloco largo">
         {!fotos.length && <p class="vazio">Nenhuma foto.</p>}
         <div class="galeria">
@@ -97,6 +99,7 @@ export function Fotos({ rec }) {
                 <b>Foto {idx + 1}</b>{f.data.postoId && nomePosto[f.data.postoId] ? ` · ${nomePosto[f.data.postoId]}` : ''}
                 <br /><small class="suave">{f.data.tiradaEm ? new Date(f.data.tiradaEm).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : 'sem data na foto'}{f.data.gps ? ` · GPS ${f.data.gps}` : ''}{f.data.origem ? ` · ${f.data.origem}` : ''}</small>
                 <TF rec={f} k="legenda" label="Legenda" />
+                {f.data.identificacao && <small class="dica">🔎 {f.data.identTipo ? `${f.data.identTipo}: ` : ''}{f.data.identificacao}{f.data.identSituacao !== 'Conferido' ? ' – a conferir' : ''}</small>}
                 <div class="linha-botoes">
                   <button type="button" class="mini" onClick={() => mover(idx, -1)}>↑</button>
                   <button type="button" class="mini" onClick={() => mover(idx, 1)}>↓</button>
@@ -132,7 +135,22 @@ function EditorFoto({ caseId, id, fechar, postos: postosProp }) {
             {postos.map((p) => <option value={p.id}>{p.data.nome || 'posto sem nome'}</option>)}
           </select>
         </label>
-        <small class="dica">{f.data.tiradaEm && new Date(f.data.tiradaEm).toLocaleString('pt-BR')} {f.data.gps && `· GPS ${f.data.gps}`}</small>
+        <details open={!!f.data.identificacao}>
+          <summary>Identificação (plaqueta, rótulo, display, CA)</summary>
+          <label class="campo"><span class="rotulo">Tipo</span>
+            <select value={f.data.identTipo || ''} onChange={(e) => salvar(id, 'identTipo', e.currentTarget.value)}>
+              <option value="">—</option>{TIPOS_IDENT.map((t) => <option value={t}>{t}</option>)}
+            </select>
+          </label>
+          <TF rec={f} k="identificacao" label="O que está legível na foto (marca, modelo, série, produto, CA, leitura do display)" area rows={2} historico={false} />
+          <label class="campo"><span class="rotulo">Situação</span>
+            <select value={f.data.identSituacao || ''} onChange={(e) => salvar(id, 'identSituacao', e.currentTarget.value)}>
+              <option value="">—</option><option>A conferir</option><option>Conferido</option>
+            </select>
+          </label>
+          {f.data.identObs && <small class="dica">Observação do Claude: {f.data.identObs}{f.data.identConfianca ? ` (legibilidade ${f.data.identConfianca})` : ''}</small>}
+        </details>
+        <small class="dica">{f.data.tiradaEm && new Date(f.data.tiradaEm).toLocaleString('pt-BR')} {f.data.gps && `· GPS ${f.data.gps}`}{f.data.nomeArquivo ? ` · arquivo ${f.data.nomeArquivo}` : ''}</small>
         <div class="linha-botoes entre">
           <button type="button" class="perigo" onClick={excluir}>Excluir foto</button>
           <button type="button" class="primario" onClick={fechar}>Concluir</button>
@@ -179,6 +197,68 @@ function ImportarFotos({ rec }) {
       <label class={`botao-arquivo ${ocupado ? 'desativado' : ''}`}>{ocupado ? 'Importando…' : '＋ Escolher laudo ou fotos'}
         <input type="file" accept=".docx,.pdf,application/pdf,image/*" multiple hidden disabled={ocupado} onChange={receber} /></label>
       {msg && <p class={msg.startsWith('Erro') ? 'erro-msg' : 'ok-msg'}>{msg}</p>}
+    </section>
+  );
+}
+
+// Legendas pelo nome do arquivo e identificação das fotos pelo Claude
+function IdentificarFotos({ rec, fotos, nomePosto }) {
+  const [json, setJson] = useState('');
+  const [msg, setMsg] = useState('');
+  const [ocupado, setOcupado] = useState(false);
+  const [soSem, setSoSem] = useState(true);
+  const [substituir, setSubstituir] = useState(false);
+  if (!fotos.length) return null;
+  const numeradas = fotos.map((f, i) => ({ ...f, numero: i + 1 }));
+  const alvo = numeradas.filter((f) => !soSem || !String(f.data.legenda || '').trim() || !f.data.identificacao);
+  const peloNome = numeradas.filter((f) => !String(f.data.legenda || '').trim() && legendaDoNomeArquivo(f.data.nomeArquivo));
+  const legendasDoNome = async () => {
+    for (const f of peloNome) await updateFields(f.id, { legenda: legendaDoNomeArquivo(f.data.nomeArquivo) });
+    avisarAlteracao();
+    setMsg(`✓ ${peloNome.length} legenda(s) preenchida(s) pelo nome do arquivo.`);
+  };
+  const copiar = async () => {
+    const contexto = [rec.data.vistoriaLocal || rec.data.reuNome, rec.data.funcoes && String(rec.data.funcoes).split('\n')[0].slice(0, 160)].filter(Boolean).join(' – ');
+    try { await navigator.clipboard.writeText(promptFotos(alvo, { nomePosto, contexto })); setMsg(`✓ Instrução copiada (${alvo.length} foto(s)). No Claude, cole a instrução e anexe as fotos numeradas ou as folhas de contato.`); }
+    catch (e) { setMsg('Não foi possível copiar.'); }
+  };
+  const enviar = async (folhas) => {
+    setOcupado(true); setMsg(folhas ? 'Montando as folhas de contato…' : 'Preparando as fotos numeradas…');
+    try {
+      const arqs = folhas ? await folhasDeContato(alvo) : await arquivosNumerados(alvo);
+      const r = await entregarArquivos(arqs, folhas ? 'folhas-de-contato.zip' : 'fotos-numeradas.zip');
+      setMsg(r === 'compartilhado' ? `✓ ${arqs.length} arquivo(s) enviados. Escolha o Claude na lista do Android.` : r === 'zip' ? `✓ ZIP com ${arqs.length} arquivo(s) baixado. Anexe os arquivos no Claude.` : r === 'cancelado' ? 'Envio cancelado.' : 'Nenhuma foto disponível neste aparelho.');
+    } catch (e) { setMsg(`Erro: ${e.message}`); }
+    setOcupado(false);
+  };
+  const aplicar = async () => {
+    try {
+      const dados = lerJsonFotos(json);
+      const r = await aplicarFotosIA(rec.id, dados, { substituir });
+      avisarAlteracao();
+      setMsg(`✓ ${r.fotos} foto(s) com legenda ou identificação${r.produtos ? `; ${r.produtos} produto(s) químico(s) com ficha da FDS (Preparação → Produtos químicos)` : ''}. Tudo entra "a conferir".`);
+      setJson('');
+    } catch (e) { setMsg(`Erro: ${e.message}`); }
+  };
+  return (
+    <section class="bloco largo">
+      <h3>Legendas e identificação das fotos</h3>
+      {peloNome.length > 0 && (
+        <div class="linha-botoes"><button type="button" class="sec" onClick={legendasDoNome}>Preencher {peloNome.length} legenda(s) vazia(s) pelo nome do arquivo</button></div>
+      )}
+      <p class="dica">O Claude lê plaquetas (marca, modelo, série, ano), rótulos de produtos (e busca a FDS), CA de EPI e displays de equipamentos. Leitura de display serve só para conferir com o relatório do equipamento. Os números das fotos são os desta tela.</p>
+      <label class="check"><input type="checkbox" checked={soSem} onChange={(e) => setSoSem(e.currentTarget.checked)} /> Só as fotos sem legenda ou sem identificação ({alvo.length} de {fotos.length})</label>
+      <div class="linha-botoes">
+        <button type="button" class="sec" disabled={ocupado || !alvo.length} onClick={() => enviar(false)}>1a. Enviar fotos numeradas</button>
+        <button type="button" class="sec" disabled={ocupado || !alvo.length} onClick={() => enviar(true)}>1b. Folhas de contato (12 por folha)</button>
+        <button type="button" class="primario" disabled={!alvo.length} onClick={copiar}>2. Copiar instrução</button>
+      </div>
+      <small class="dica">Muitas fotos: mande as folhas de contato para a legenda geral e, em tamanho original, só as de plaquetas, rótulos e displays.</small>
+      <label class="campo"><span class="rotulo">3. Cole aqui o JSON devolvido pelo Claude</span>
+        <textarea rows={3} value={json} onInput={(e) => setJson(e.currentTarget.value)} /></label>
+      <label class="check"><input type="checkbox" checked={substituir} onChange={(e) => setSubstituir(e.currentTarget.checked)} /> Substituir legendas já preenchidas</label>
+      <div class="linha-botoes"><button type="button" class="primario" disabled={!json.trim()} onClick={aplicar}>Aplicar</button></div>
+      {msg && <p class="ok-msg">{msg}</p>}
     </section>
   );
 }

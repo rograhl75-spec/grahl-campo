@@ -9,7 +9,7 @@
 //  5) documento da empresa citado no texto quando o caso diz que eles são só referência.
 // ======================================================================
 import { agenteNoVinculo } from './enquadramento.js';
-import { propostasDasRegras, regraDoAgente, fundamentacaoPelasRegras } from './regras.js';
+import { propostasDasRegras, regraDoAgente, fundamentacaoPelasRegras, propostasDasFds } from './regras.js';
 
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 const semAc = (t) => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
@@ -50,6 +50,15 @@ export function coerenciaDoLaudo(dados) {
       explicacao: 'Até 05/03/1997, o agente que consta dos Decretos 53.831/64 ou 83.080/79 caracteriza por presunção. A partir de 06/03/1997, só o que consta do Anexo IV: quantitativo (NR-15, Anexos 11 e 12) sem medição não caracteriza e vai ao PPP como "não quantificada"; qualitativo (Anexos 13 e 13-A) caracteriza; Grupo 1 da LINACH com CAS caracteriza a partir de 08/10/2014.',
       previa: props.map(({ a, r, campos }) => `${curto(a.data.nome)}: ${Object.entries(campos).filter(([k]) => rot[k]).map(([k, val]) => `${rot[k]} → ${val || 'igual a 06/03/1997'}`).join('; ') || 'códigos'} (${r.motivo})${r.conferir.length ? ` [conferir: ${r.conferir.join('; ')}]` : ''}`),
       lotes: [{ rotulo: 'Aplicar a todos', escritas: props.map(({ a, campos }) => ({ rec: a.id, campos })) }] });
+  }
+  // 1-b) agentes a partir das FDS dos produtos do caso: criar os que faltam e completar os existentes
+  const { propostas: pf, semProposta } = propostasDasFds(dados);
+  if (pf.length) {
+    out.push({ id: 'fds-agentes', grupo: G, tipo: 'lote', respondido: false, caseId: dados.id,
+      titulo: `Agentes a partir das FDS – ${pf.filter((x) => x.acao === 'criar').length} novo(s), ${pf.filter((x) => x.acao === 'completar').length} a completar`,
+      explicacao: `Componentes da seção 3 das FDS agrupados pelo código do decreto (óleos minerais: cód. 1.0.7, b; demais derivados de petróleo: cód. 1.0.17) ou pelo CAS no banco de químicos, já com o resultado pelas regras de cada período.${semProposta.length ? ` Sem proposta: ${semProposta.slice(0, 6).join('; ')}${semProposta.length > 6 ? '…' : ''}.` : ''}`,
+      previa: pf.map((x) => (x.acao === 'criar' ? `Novo: ${x.nome} – ${x.data.fonte}${x.r ? ` (${x.r.motivo})` : ''}${x.data.ip346 ? `; IP 346: ${x.data.ip346}` : ''}` : `Completar ${x.nome}: ${Object.entries(x.campos).map(([k, val]) => `${k} = ${val}`).join('; ')}`)),
+      lotes: [{ rotulo: 'Criar e completar os agentes', escritas: pf.map((x) => (x.acao === 'criar' ? { criar: { kind: 'agenteAvaliado', data: x.data } } : { rec: x.a.id, campos: x.campos })) }] });
   }
   // 2) texto condicional ("a confirmar", "se confirmado", "depende de") com resultado definitivo – um item só
   // circunstâncias e frequência só contam nos agentes do quadro do art. 68 (os que caracterizam); a fundamentação, em todos

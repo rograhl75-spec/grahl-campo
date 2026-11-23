@@ -247,3 +247,43 @@ describe('reescrever pelas regras', () => {
     expect((await pendenciasDoCaso('m7')).some((i) => i.id === 'coer-cond')).toBe(false);
   });
 });
+
+describe('óleo mineral × derivado de petróleo × sintético e IP 346', () => {
+  it('classifica pelo nome e pelo CAS e lê o IP 346 da FDS', async () => {
+    const { grupoHidrocarboneto, ip346DoTexto, IP346 } = await import('../src/hidrocarbonetos.js');
+    expect(grupoHidrocarboneto('Óleo básico mineral altamente refinado', '64742-54-7')).toBe('oleoMineral');
+    expect(grupoHidrocarboneto('Vaselina')).toBe('oleoMineral');
+    expect(grupoHidrocarboneto('Óleo diesel', '68334-30-5')).toBe('derivadoPetroleo');
+    expect(grupoHidrocarboneto('Aguarrás mineral')).toBe('derivadoPetroleo');
+    expect(grupoHidrocarboneto('Polialfaolefina', '68037-01-4')).toBe('sintetico');
+    expect(grupoHidrocarboneto('Graxa de base sintética')).toBe('sintetico');
+    expect(ip346DoTexto('Óleo básico (< 3 % de extrato DMSO, IP 346)')).toBe(IP346[0]);
+    expect(ip346DoTexto('óleo mineral não tratado')).toBe(IP346[1]);
+  });
+  it('regras: óleo mineral no cód. 1.0.7, b, qualitativo, sem LINACH; diesel no 1.0.17 a conferir; sintético não enquadrável', async () => {
+    const { regraDoAgente, fundamentacaoPelasRegras } = await import('../src/regras.js');
+    const d = { quimicos: [], medicoes: [], periodos: [] };
+    const oleo = { data: { nome: 'Óleo hidráulico mineral', tipo: 'Químico', ip346: '< 3 % (óleo altamente refinado)' } };
+    const r = regraDoAgente(oleo, d);
+    expect([r.resAte97, r.resDesde97, r.resDesde2014]).toEqual(['Caracteriza', 'Caracteriza', '']);
+    expect(r.codDesde97).toMatch(/^1\.0\.7, b/);
+    expect(fundamentacaoPelasRegras(oleo, r)).toMatch(/IP 346/);
+    const diesel = regraDoAgente({ data: { nome: 'Óleo diesel', tipo: 'Químico', cas: '68334-30-5' } }, d);
+    expect(diesel.codDesde97).toMatch(/^1\.0\.17/);
+    expect(diesel.conferir.join(' ')).toMatch(/art\. 287, § 4º/);
+    const sint = regraDoAgente({ data: { nome: 'Graxa de base sintética', tipo: 'Químico' } }, d);
+    expect(sint.resDesde97).toBe('Não enquadrável');
+  });
+  it('FDS → agentes: cria o grupo do produto com o resultado e completa o existente', async () => {
+    await caso('m8', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'], autorNome: 'V', pppEmitente: 'Empresa (empregador)', modalidade: 'Remota (entrevista por videoconferência)' });
+    await filho('m8v', 'periodo', 'm8', { empresa: 'E', inicio: '2000-01-01', fim: '2020-01-01', cargo: 'Mecânico', cbo: '9113-05', categoriaSegurado: 'Empregado' });
+    await filho('m8p', 'fds', 'm8', { nome: 'Óleo Diesel S10', s3Componentes: 'Óleo diesel; 68334-30-5; 95-100 %' });
+    await filho('m8q', 'fds', 'm8', { nome: 'Lubrificante X', s3Componentes: 'Óleo básico mineral; 64742-54-7; > 90 %', s2Outros: 'Extrato DMSO < 3 % (IP 346)' });
+    const it0 = (await pendenciasDoCaso('m8')).find((i) => i.id === 'fds-agentes');
+    const novos = it0.lotes[0].escritas.filter((e) => e.criar).map((e) => e.criar.data);
+    expect(novos.map((x) => x.nome).sort()).toEqual(['Derivados de petróleo (combustíveis e solventes)', 'Óleos minerais']);
+    const oleo = novos.find((x) => x.nome === 'Óleos minerais');
+    expect(oleo).toMatchObject({ ip346: '< 3 % (óleo altamente refinado)', resDesde97: 'Caracteriza' });
+    expect(oleo.codDesde97).toMatch(/^1\.0\.7, b/);
+  });
+});

@@ -183,3 +183,19 @@ describe('contribuinte individual que emite o próprio PPP', () => {
     expect(t).not.toContain('representante legal da');
   });
 });
+
+describe('importação: excluir agente e não trocar o tipo', () => {
+  it('"excluir": true manda o agente para a lixeira; sem "tipo" o físico continua físico', async () => {
+    const { aplicarIA, lerJsonIA } = await import('../src/aiimport.js');
+    await caso('s6', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'] });
+    await filho('s6a', 'agenteAvaliado', 's6', { nome: 'Ácido clorídrico', tipo: 'Químico' });
+    await filho('s6b', 'agenteAvaliado', 's6', { nome: 'Radiações ionizantes (raios X intraoral)', tipo: 'Físico' });
+    await aplicarIA('s6', lerJsonIA(JSON.stringify({ agentesAvaliados: [{ nome: 'Ácido clorídrico', excluir: true }, { nome: 'Radiações ionizantes', frequencia: 'Cerca de 8 radiografias por dia.' }] })), { substituir: true });
+    const ags = (await db.records.toArray()).filter((r) => r.kind === 'agenteAvaliado' && r.caseId === 's6');
+    expect(ags.find((r) => r.id === 's6a').deleted).toBeTruthy();
+    const rx = ags.find((r) => r.id === 's6b');
+    expect(rx.data.tipo).toBe('Físico');
+    expect(rx.data.frequencia).toBe('Cerca de 8 radiografias por dia.');
+    expect(ags.length).toBe(2);
+  });
+});

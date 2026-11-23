@@ -229,7 +229,9 @@ function agentesAvaliados(d, dados, sub, n) {
     // fundamentação de cada agente dentro do quadro: o texto padrão das regras já está nas colunas de cada época
     // (resultado e código); o que é próprio do agente vai para a coluna "Observações" – sem parágrafo por agente
     // frases que repetem a época ("Até 05/03/1997, …", "A partir de 06/03/1997, …") já estão nas colunas do quadro
-    const deEpoca = (t) => /^(At[ée] 05\/03\/1997|A partir de (06\/03\/1997|08\/10\/2014))\b/.test(t.trim());
+    // também a frase que cita os códigos com as datas de época e o "Há entendimento…" (jurisprudência fica no item próprio)
+    const deEpoca = (t) => /^(At[ée] 05\/03\/1997|A partir de (06\/03\/1997|08\/10\/2014))\b/.test(t.trim())
+      || (/c[óo]d\./.test(t) && /05\/03\/1997|06\/03\/1997/.test(t)) || /^H[áa] entendimento/i.test(t.trim());
     const resto = new Map(lst.map((a) => [a.id, frasesPadrao(a).filter((f) => !f.k).flatMap((f) => f.t.split(/(?<=\.)\s+(?=\p{Lu})/u)).filter((t) => !deEpoca(t)).join(' ')]));
     const quantSemMed = (a) => a.data.resDesde97 === 'Não caracteriza' && (!!anexoQuantitativo(a, dados.quimicos) || frasesPadrao(a).some((f) => f.k === 'nc'));
     const temObs = lst.some((a) => resto.get(a.id));
@@ -241,7 +243,7 @@ function agentesAvaliados(d, dados, sub, n) {
     d.quadro(`${TIT_TIPO[tipo].split(' – ')[0]} – enquadramento por época`, [cab, ...lst.map((a) => {
       const k = codigosDoAgente(a);
       const lin = varios ? [nomeExp(a), alcance(a)] : [nomeExp(a)];
-      const q = quantSemMed(a) ? `\nquantitativo (NR-15, ${anexoQuantitativo(a, dados.quimicos) || 'Anexo 11'}), sem medição: no PPP como "não quantificada"` : '';
+      const q = quantSemMed(a) ? (/quantitativ/i.test(k.desde97) ? '\nsem medição: no PPP como "não quantificada"' : `\nquantitativo (NR-15, ${anexoQuantitativo(a, dados.quimicos) || 'Anexo 11'}), sem medição: no PPP como "não quantificada"`) : '';
       if (temAte97) lin.push(`${RES_TXT(a.data.resAte97)}${k.ate97 ? `\n${codTxt(k.ate97)}` : ''}`);
       if (temDesde97) lin.push(`${RES_TXT(a.data.resDesde97)}${k.desde97 ? `\n${codTxt(k.desde97)}` : ''}${q}`);
       if (tem14) lin.push(v(a.data.resDesde2014) ? `${RES_TXT(a.data.resDesde2014)}${k.desde97 ? `\n${codTxt(k.desde97)}` : ''}` : RES_TXT(a.data.resDesde97));

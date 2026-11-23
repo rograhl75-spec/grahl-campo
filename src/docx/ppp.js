@@ -179,7 +179,7 @@ export async function ppp(caseId, dadosProntos) {
   d.identificacao([['19 – Data de emissão do PPP', dataBR(hojeLocal())], ['20.1 – NIT / CPF do representante legal', v(c.pppRepresentanteNit) || '[[NIT]]'],
     ['20.2 – Nome do representante legal', v(c.pppRepresentante) || (/Pr[oó]prio/.test(c.pppEmitente || '') ? v(c.autorNome) : '[[representante legal]]')]]);
   d.add(p([run('_____________________________________')], { align: 'center', before: 480, after: 0 }));
-  d.add(p([run('Carimbo e assinatura do representante legal', { size: 9, color: '475569', np: true })], { align: 'center', after: 240 }));
+  d.add(p([run(/Pr[oó]prio/.test(c.pppEmitente || '') ? 'Assinatura do segurado (emitente do PPP)' : 'Carimbo e assinatura do representante legal', { size: 9, color: '475569', np: true })], { align: 'center', after: 240 }));
 
   // ---------------- Observações ----------------
   d.h1('', 'Observações');

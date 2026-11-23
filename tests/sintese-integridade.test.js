@@ -246,3 +246,21 @@ describe('cooperado sem exclusividade', () => {
     expect(t).toContain('art. 1º da Lei nº 10.666/2003');
   });
 });
+
+describe('auditoria do laudo do dentista (versão 11)', () => {
+  it('Observações sem códigos de época nem "Há entendimento"; PPP do próprio segurado com a assinatura dele', async () => {
+    await caso('s10', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'], autorNome: 'Dentista', pppEmitente: 'Próprio segurado (contribuinte individual)' });
+    await filho('s10v', 'periodo', 's10', { empresa: 'Consultório', inicio: '1990-01-01', fim: '', cargo: 'Cirurgião-dentista', atividades: 'Clínica.' });
+    await filho('s10a', 'agenteAvaliado', 's10', { nome: 'Microrganismos', tipo: 'Biológico', resAte97: 'Caracteriza', resDesde97: 'Caracteriza',
+      fundamentacao: 'Contato habitual com sangue e saliva. O consultório é estabelecimento de saúde, e a atividade corresponde ao cód. 1.3.2 até 05/03/1997 e ao cód. 3.0.1 a partir de 06/03/1997. Luvas reduzem, mas não eliminam, o contato.' });
+    await filho('s10b', 'agenteAvaliado', 's10', { nome: 'Formaldeído', tipo: 'Químico', resAte97: 'Caracteriza', codAte97: '1.2.11 do Dec. 53.831/64', resDesde97: 'Não enquadrável',
+      fundamentacao: 'Há entendimento de que o agente do Grupo 1 da LINACH é qualitativo. O volume usado é mínimo.' });
+    const r = await ltcatPpp('s10');
+    const t = await texto(r);
+    expect(t).toContain('Contato habitual com sangue e saliva. Luvas reduzem');
+    expect(t).not.toContain('O consultório é estabelecimento de saúde');
+    expect(t).not.toContain('Há entendimento');
+    expect(t).toContain('O volume usado é mínimo.');
+    expect(await texto(r.extras[0])).toContain('Assinatura do segurado (emitente do PPP)');
+  });
+});

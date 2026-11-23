@@ -298,3 +298,18 @@ describe('PPP: integridade física fora do campo 15 e "Não se aplica" digitado'
     expect(p).toContain('Consta do LTCAT, no item');
   });
 });
+
+describe('exposição que começa depois de 05/03/1997', () => {
+  it('quadro "sem exposição no período", fora da síntese e do PPP até 1997', async () => {
+    await caso('s13', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'], autorNome: 'X', pppEmitente: 'Empresa (empregador)', pppEmitenteNome: 'Y' });
+    await filho('s13v', 'periodo', 's13', { empresa: 'Y', inicio: '1989-05-01', fim: '2020-12-31', cargo: 'Técnico', categoriaSegurado: 'Contribuinte individual' });
+    await filho('s13a', 'agenteAvaliado', 's13', { nome: 'Óleo mineral', tipo: 'Químico', resAte97: 'Caracteriza', codAte97: '1.2.11 do Dec. 53.831/64', resDesde97: 'Caracteriza', codDesde97: '1.0.7, b, do Anexo IV', expInicio: '1997-07-17' });
+    await filho('s13b', 'agenteAvaliado', 's13', { nome: 'Eletricidade (tensão acima de 250 V)', tipo: 'Físico', resAte97: 'Caracteriza', codAte97: '1.1.8 do Dec. 53.831/64', resDesde97: 'Não enquadrável' });
+    const r = await ltcatPpp('s13');
+    const t = await texto(r);
+    expect(t).toContain('sem exposição no período');
+    const p = await texto(r.extras[0]);
+    expect(p).toContain('17/07/1997 a');
+    expect(p).not.toMatch(/01\/05\/1989 a\s*\n?\s*05\/03\/1997\s*\n?\s*Q\s*\n?\s*Óleo/);
+  });
+});

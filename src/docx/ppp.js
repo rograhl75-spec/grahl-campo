@@ -118,9 +118,26 @@ export async function ppp(caseId, dadosProntos) {
     if (!segs.length) return a.segs.some((s) => /\[\[/.test(s.caracteriza)) ? '[[código]]' : '00 (sem exposição)';
     return '04 (25 anos)';
   };
+  // código GFIP por trecho do vínculo: a linha de lotação se divide onde o código muda (ex.: trecho só com risco à
+  // integridade física, que não entra na GFIP); trechos seguidos com o mesmo código ficam numa linha
+  const trechosGfip = (r, idx) => {
+    const a = av[idx];
+    const ini = r.data.inicio; const fim = r.data.fim || hoje();
+    if (!a || !a.segs.length) return [{ ini, fim, cod: gfip(idx) }];
+    const codSeg = (sg) => (sg.caracteriza === 'SIM' && sg.itens.some((i) => i.sup && !i.integridade) ? '04 (25 anos)' : /\[\[/.test(sg.caracteriza) ? '[[código]]' : '00 (sem exposição)');
+    const out = [];
+    for (const sg of a.segs) {
+      const cod = codSeg(sg); const u = out[out.length - 1];
+      if (u && u.cod === cod) u.fim = sg.fim; else out.push({ ini: out.length ? sg.ini : ini, fim: sg.fim, cod });
+    }
+    out[out.length - 1].fim = fim;
+    // o trecho que começa depois de um afastamento continua o anterior
+    for (let i = 1; i < out.length; i++) out[i].ini = dia(out[i - 1].fim, 1);
+    return out;
+  };
   d.quadro('13 – Lotação e atribuição', [['Período', 'CNPJ / CAEPF', 'Setor', 'Cargo', 'Função', 'CBO', 'Cód. GFIP'],
-    ...dentro.map(({ r, idx }) => [`${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`, (proprio ? emit.doc : v(r.data.cnpj) || emit.doc) || '—',
-      semParenteses(r.data.setor) || '—', semParenteses(r.data.cargo) || '[[cargo]]', semParenteses(r.data.funcao) || semParenteses(r.data.cargo) || '—', codigoCbo(r.data.cbo) || '[[CBO]]', gfip(idx)])],
+    ...dentro.flatMap(({ r, idx }) => trechosGfip(r, idx).map((t) => [`${dataBR(t.ini)} a ${!r.data.fim && t.fim === (r.data.fim || hoje()) ? (r.data.fim ? dataBR(r.data.fim) : 'atual') : dataBR(t.fim)}`, (proprio ? emit.doc : v(r.data.cnpj) || emit.doc) || '—',
+      semParenteses(r.data.setor) || '—', semParenteses(r.data.cargo) || '[[cargo]]', semParenteses(r.data.funcao) || semParenteses(r.data.cargo) || '—', codigoCbo(r.data.cbo) || '[[CBO]]', t.cod]))],
   { larguras: [0.16, 0.16, 0.16, 0.15, 0.15, 0.09, 0.13], tam: 8, alinhar: 'left', semNumero: true, fonte: 'Registros administrativos do emitente e LTCAT do signatário. Código GFIP 04: exposição a agente nocivo com aposentadoria especial aos 25 anos.' });
   d.quadro('14 – Profissiografia', [['Período', 'Descrição das atividades'],
     ...dentro.map(({ r }) => [`${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`,

@@ -291,8 +291,9 @@ describe('PPP: integridade física fora do campo 15 e "Não se aplica" digitado'
     await filho('s12a', 'agenteAvaliado', 's12', { nome: 'Óleo mineral', tipo: 'Químico', resAte97: 'Caracteriza', codAte97: '1.2.11 do Dec. 53.831/64', resDesde97: 'Caracteriza', codDesde97: '1.0.7, b, do Anexo IV', epcEficaz: 'Não se aplica' });
     await filho('s12b', 'agenteAvaliado', 's12', { nome: 'n-Pentano', tipo: 'Químico', resAte97: 'Caracteriza', codAte97: '1.2.11 do Dec. 53.831/64', resDesde97: 'Não enquadrável', integridadeFisica: 'Caracterizada tecnicamente', circunstancias: 'Estações de pentano.', frequencia: 'Habitual e permanente.' });
     const p = await texto((await ltcatPpp('s12')).extras[0]);
-    expect(p).not.toContain('S/N');
-    expect(p).not.toMatch(/\bF\s*\n?\s*n-Pentano/);
+    // o cabeçalho do quadro 15.9 tem "S/N"; no campo 15 não pode haver linha de integridade (técnica "NHO", "S/N")
+    expect((p.match(/S\/N/g) || []).length).toBe(1);
+    expect(p).not.toMatch(/\bNHO\b/);
     expect(p).not.toContain('Não se aplica\nNão\n');
     expect(p).toContain('Consta do LTCAT, no item');
   });

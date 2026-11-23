@@ -210,6 +210,13 @@ export async function pendenciasDoCaso(caseId) {
         txt(`efeitos-${a.id}`, a.id, 'efeitos', `${a.data.nome} – efeitos à saúde`, 'Vai para o quadro de características dos químicos. Ex.: "Corrosivo: queimaduras de pele, olhos e mucosas; irritação das vias respiratórias."');
       }
     }
+    // risco à integridade física registrado: precisa das circunstâncias e da frequência (vão ao quadro do item 5)
+    for (const a of dados.agentes) {
+      if (a.data.integridadeFisica !== 'Caracterizada tecnicamente') continue;
+      for (const [campo, rot] of [['circunstancias', 'circunstâncias da exposição (risco à integridade física)'], ['frequencia', 'frequência e duração (risco à integridade física)']]) {
+        if (!String(a.data[campo] || '').trim()) txt(`int-${campo}-${a.id}`, a.id, campo, `${a.data.nome} – ${rot}`, 'Ex.: "Acesso às cabines primárias energizadas (13,8 kV) para leitura e conferência, várias vezes por semana, indissociável da instalação dos controladores."');
+      }
+    }
     const temAte97 = dados.periodos.some((r) => (r.data.inicio || '9999') <= '1997-03-05');
     // os agentes que as regras de cada período resolvem ficam no item único "Enquadramento pelas regras"
     const pelasRegras = new Set(propostasDasRegras(dados).map(({ a }) => a.id));

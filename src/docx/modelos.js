@@ -23,6 +23,7 @@ import { formaAvaliacaoPrev } from '../quimicos.js';
 import { codigosDoAgente, agenteNoVinculo, categoriaDoVinculo, lerAfastamentos } from '../enquadramento.js';
 import { ppp, emitenteDoPpp } from './ppp.js';
 import { fichasFds } from './fdsQuadros.js';
+import { secaoIntegridade, condicoesIntegridade, TITULO_INTEGRIDADE } from '../integridade.js';
 import { quadroCaracteristicasQuimicos, quadroArt68, bancoDoAgente, anexoQuantitativo, agentesDoArt68 } from './agentesQuadros.js';
 import { empresaLimpa } from '../nomes.js';
 
@@ -228,6 +229,8 @@ function agentesAvaliados(d, dados, sub, n) {
   // art. 68, § 2º: a descrição qualitativa só é exigida para os agentes que caracterizam (ou ainda a confirmar)
   const ags68 = agentesDoArt68(ags);
   if (ags68.length) { sub('Avaliação qualitativa (art. 68, § 2º, do Decreto 3.048/1999)'); n += 1; quadroArt68(d, ags68); }
+  // risco à integridade física fora do Anexo IV: registro técnico, sem alterar o enquadramento
+  if (secaoIntegridade(d, dados, sub)) n += 1;
   d.texto('A técnica de avaliação de cada agente, informada no PPP, segue o Manual de Aposentadoria Especial do INSS (2018): qualitativa para os agentes biológicos e, até 05/03/1997, para os químicos, por presunção de exposição; a partir de 06/03/1997, quantitativa para os agentes químicos dos Anexos 11 e 12 da NR-15 e qualitativa para os dos Anexos 13 e 13-A, e, para os agentes do Grupo 1 da LINACH com registro no CAS, qualitativa a partir de 08/10/2014; quantitativa para os agentes físicos, exceto a radiação ionizante até 05/03/1997. A partir de 01/01/2004, a metodologia de avaliação dos agentes químicos quantitativos é a das NHO da FUNDACENTRO existentes para o agente (NHO 02 e NHO 07; poeiras e fibras, NHO 03, NHO 04 e NHO 08 – item 1.6.3 do Manual). Nos agentes avaliados de forma qualitativa, a intensidade ou a concentração não foi quantificada, e assim consta do PPP.');
   return n;
 }
@@ -604,6 +607,7 @@ export async function ltcatPpp(caseId) {
   d.h1('6', 'Conclusão');
   d.h2('6.1', 'Síntese do enquadramento');
   conclusaoPrevidenciaria(d, dados, { tituloQuadro: 'Síntese do enquadramento por período' });
+  if (condicoesIntegridade(dados).length) d.texto(`A síntese segue o Anexo IV do Decreto nº 3.048/1999. As condições de risco à integridade física registradas no item 5 ("${TITULO_INTEGRIDADE}") não a alteram e ficam para apreciação da autoridade administrativa ou judicial.`);
   d.h2('6.2', 'Parecer técnico');
   d.texto('Nos períodos que caracterizam exposição habitual e permanente, não ocasional nem intermitente, a agentes nocivos, o PPP deve informar o código GFIP 04; nos demais, o código aplicável à ausência de exposição. Os dados de exposição constam do PPP emitido com este laudo.');
   d.h1('7', 'Recomendações');

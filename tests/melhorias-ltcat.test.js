@@ -287,3 +287,27 @@ describe('óleo mineral × derivado de petróleo × sintético e IP 346', () => 
     expect(oleo.codDesde97).toMatch(/^1\.0\.7, b/);
   });
 });
+
+describe('risco à integridade física fora do Anexo IV', () => {
+  it('LTCAT registra em item próprio, sem mudar o enquadramento; PPP só remete', async () => {
+    await caso('m9', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'], autorNome: 'W', pppEmitente: 'Empresa (empregador)', pppEmitenteNome: 'E', modalidade: 'Remota (entrevista por videoconferência)', jurisprudencia: 'Incluir' });
+    await filho('m9v', 'periodo', 'm9', { empresa: 'E', inicio: '1990-01-01', fim: '2021-12-31', cargo: 'Eletricista', cbo: '9511-05', categoriaSegurado: 'Empregado' });
+    await filho('m9a', 'agenteAvaliado', 'm9', { nome: 'Eletricidade (tensão acima de 250 V)', tipo: 'Físico', resAte97: 'Caracteriza', resDesde97: 'Não enquadrável',
+      integridadeFisica: 'Caracterizada tecnicamente', circunstancias: 'Manutenção de painéis energizados.', frequencia: 'Diária, indissociável da atividade.' });
+    await filho('m9b', 'agenteAvaliado', 'm9', { nome: 'Inflamáveis (gasolina)', tipo: 'Químico', resAte97: 'Caracteriza', resDesde97: 'Não enquadrável', integridadeFisica: 'Caracterizada tecnicamente',
+      circunstancias: 'Abastecimento de geradores.', frequencia: 'Semanal.' });
+    const r = await ltcatPpp('m9');
+    const t = await texto(r);
+    expect(t).toMatch(/CONDIÇÕES DE RISCO À INTEGRIDADE FÍSICA NÃO PREVISTAS NO ANEXO IV/i);
+    expect(t).toContain('06/03/1997 a 31/12/2021');
+    expect(t).toContain('NR-16, Anexo 4');
+    expect(t).toContain('NR-16, Anexo 2');
+    expect(t).toContain('Emenda Constitucional nº 103/2019, o art. 201');
+    expect(t).toContain('Tema 534');
+    expect(t).toContain('inflamáveis e explosivos após 05/03/1997');
+    const p = await texto(r.extras[0]);
+    expect(p).toContain('Consta do LTCAT, no item');
+    expect(p).not.toMatch(/\|?\s*F\s*\n?Eletricidade[^\n]*\n[^\n]*06\/03\/1997/);
+    expect(p).toContain('não altera os fatores de risco do campo 15 nem o código GFIP');
+  });
+});

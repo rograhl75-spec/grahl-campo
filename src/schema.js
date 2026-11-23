@@ -331,6 +331,8 @@ export const CAMPOS_AGENTE_AVALIADO = [
   ['epiEficaz', 'EPI eficaz', 'select', ['Sim', 'Não', 'Não se aplica']],
   ['ca', 'CA do EPI', 'text'],
   ['fundamentacao', 'Fundamentação técnica (vai para o item 5 do LTCAT)', 'area'],
+  ['integridadeFisica', 'Risco à integridade física fora do Anexo IV (eletricidade após 05/03/1997, inflamáveis, explosivos) – registro no LTCAT; o PPP só remete', 'select', ['Caracterizada tecnicamente', 'Não caracterizada', 'Não se aplica']],
+  ['criterioIntegridade', 'Critério técnico do risco à integridade física (em branco: NR-16 / NR-10 pelo nome do agente)', 'text'],
 ];
 
 export const CAMPOS_DOC = [

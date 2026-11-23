@@ -76,6 +76,7 @@ describe('agentes', () => {
     const quim = await db.records.where('kind').equals('quimico').toArray();
     expect(bancoDoAgente({ data: { nome: 'Mesamoll (éster alquilsulfônico de fenol)' } }, quim)).toBeNull();
     expect(bancoDoAgente({ data: { nome: 'Fenol' } }, quim)?.id).toBe('q-fenol');
+    expect(bancoDoAgente({ data: { nome: 'Isocianatos (TDI)' } }, quim)?.id).toBe('q-tdi');
     expect(viasPadrao({ data: { nome: 'Eletricidade (tensão acima de 250 V)', tipo: 'Físico' } })).toMatch(/energizad/);
     expect(viasPadrao({ data: { nome: 'TDI', tipo: 'Químico' } })).toBe('');
   });
@@ -162,5 +163,31 @@ describe('LTCAT e PPP do contribuinte individual sócio, avaliação remota', ()
     const t = await texto((await ltcatPpp('m3')).extras[0]);
     expect(t).toContain('01/01/2010 a 09/01/2022');
     expect(t).toContain('constam do PPP eletrônico (eSocial, evento S-2240)');
+  });
+});
+
+describe('técnica e intensidade dos agentes qualitativos no PPP', () => {
+  it('anexo da NR-15, NHO a partir de 2004, LINACH só desde 08/10/2014 e "Não quantificada"', async () => {
+    const { tecnicaNoPeriodo } = await import('../src/enquadramento.js');
+    const a = { data: { nome: 'Óleo mineral', tipo: 'Químico', tecnica: 'Qualitativa', codDesde97: '1.0.7, b, do Anexo IV – avaliação qualitativa' } };
+    expect(tecnicaNoPeriodo(a, '1997-03-05')).toMatch(/^Qualitativa – presunção/);
+    expect(tecnicaNoPeriodo(a, '2003-12-31')).toBe('Qualitativa – NR-15, Anexo 13');
+    expect(tecnicaNoPeriodo(a, '2010-01-01')).toBe('Qualitativa – NR-15, Anexo 13; metodologia: NHO 02 e NHO 07 da FUNDACENTRO');
+    const sil = { data: { nome: 'Sílica livre cristalizada', tipo: 'Químico' } };
+    expect(tecnicaNoPeriodo(sil, '2014-10-07')).toMatch(/NHO 03, NHO 04 e NHO 08/);
+    expect(tecnicaNoPeriodo({ data: { nome: 'Microrganismos', tipo: 'Biológico' } }, '2010-01-01')).toMatch(/cód\. 3\.0\.1/);
+  });
+  it('PPP: linhas partidas em 2003 e anexo na técnica; contribuinte individual sem corte do eSocial', async () => {
+    await caso('m4', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'], autorNome: 'Q', pppEmitente: 'Empresa (empregador)', pppEmitenteNome: 'E', esocialSst: '2022-01-10' });
+    await filho('m4v', 'periodo', 'm4', { empresa: 'E', inicio: '2000-01-01', fim: '2024-12-31', cargo: 'Técnico', categoriaSegurado: 'Contribuinte individual', cbo: '3131-25' });
+    await filho('m4a', 'agenteAvaliado', 'm4', { nome: 'Óleo mineral', tipo: 'Químico', resDesde97: 'Caracteriza', tecnica: 'Qualitativa', codDesde97: '1.0.7 – qualitativa' });
+    const t = await texto((await ltcatPpp('m4')).extras[0]);
+    expect(t).toContain('2000-01-01'.split('-').reverse().join('/') + ' a 31/12/2003');
+    // o marco de 07/10/2014 não muda nada aqui (o código diz "qualitativa"): uma linha só
+    expect(t).toContain('01/01/2004 a 31/12/2024');
+    expect(t).toContain('Qualitativa – NR-15, Anexo 13');
+    expect(t).toContain('NHO 02 e NHO 07');
+    expect(t).toContain('Não quantificada');
+    expect(t).not.toContain('PPP eletrônico');
   });
 });

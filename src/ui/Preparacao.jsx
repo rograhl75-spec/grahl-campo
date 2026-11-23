@@ -10,7 +10,7 @@ import { TF, salvar } from './fields.jsx';
 import { RecordList } from './RecordList.jsx';
 import { useLive } from './hooks.js';
 import { Campos } from './fields.jsx';
-import { sugerirParaVinculo, paraResultadoBusca, fichaPesquisa, fichaPesquisaTexto, rotuloParadigma } from '../paradigmas.js';
+import { sugerirParaVinculo, paraResultadoBusca, fichaPesquisa, fichaPesquisaTexto, rotuloParadigma, PROMPT_LAUDOS_DOS_AUTOS, lerJsonVeiculos, adicionarParadigmas, doProcesso, citacaoDe } from '../paradigmas.js';
 import { familiaDoGrupo, tipoDoGrupo, CAMPOS_VEICULO_COPIAVEIS } from '../schema.js';
 import { CAMPOS_PENOSIDADE } from '../docx/penosidade.js';
 import { ResultadoBusca } from './Paradigmas.jsx';
@@ -285,7 +285,7 @@ export function VeiculoDoPeriodo({ r, abertoInicial }) {
   const tipoBusca = () => r.data.veiculoTipo || tipoDoGrupo(r.data.grupoVeiculo);
   // o grupo do veículo indica a família técnica do banco (ex.: cavalo antigo sem ar → F5); a família digitada prevalece
   // comparação por pontos com o banco (família provável pelo veículo, similares, modelo, marca, tipo, ar, época)
-  const buscar = async () => setRes(paraResultadoBusca(await sugerirParaVinculo({ data: { ...r.data, veiculoTipo: tipoBusca() } })));
+  const buscar = async () => setRes(paraResultadoBusca(await sugerirParaVinculo({ caseId: r.caseId, data: { ...r.data, veiculoTipo: tipoBusca() } })));
   const escolher = async (tipo, p) => {
     await updateFields(r.id, tipo === 'ruido' ? { paradigmaRuido: p.data.codigo } : { paradigmaVibracao: p.data.codigo });
     avisarAlteracao();
@@ -382,6 +382,42 @@ function FichaPesquisa({ r, familia }) {
   );
 }
 
+// Medições dos laudos de outros peritos juntados aos autos (prova emprestada): extrai pelo Claude, inclui no banco
+// marcadas com o processo do caso e, com a opção ligada, só elas entram na sugestão de paradigmas deste caso
+function MedicoesDosAutos({ rec }) {
+  const [previa, setPrevia] = useState(null);
+  const [msg, setMsg] = useState('');
+  const numero = rec.data.numero || '';
+  const dosAutos = useLive(async () => (await db.records.where('kind').equals('paradigma').toArray()).filter((p) => !p.deleted && doProcesso(p, numero)), [numero], []);
+  const alternar = async (e) => { await updateFields(rec.id, { somenteMedicoesAutos: e.currentTarget.checked }); avisarAlteracao(); };
+  const incluir = async () => {
+    const cods = await adicionarParadigmas(previa, { processoAutos: numero });
+    avisarAlteracao();
+    setMsg(`✓ ${cods.length} medição(ões) incluída(s): ${cods.join(', ')} (situação "Revisar"). Confira os valores em Bases técnicas → Veículos medidos e depois clique em "Sugerir paradigmas para todos os vínculos".`);
+    setPrevia(null);
+  };
+  return (
+    <details class="mt" open={rec.data.somenteMedicoesAutos || dosAutos.length > 0}>
+      <summary><b>Medições dos laudos juntados aos autos (prova emprestada)</b>{dosAutos.length ? ` – ${dosAutos.length} no banco` : ''}</summary>
+      <label class="check"><input type="checkbox" checked={!!rec.data.somenteMedicoesAutos} onChange={alternar} /> Usar somente as medições dos laudos juntados aos autos deste processo (sem o banco do signatário)</label>
+      {!numero && <p class="erro-msg">Informe o número do processo no cadastro do caso: é ele que liga as medições aos autos.</p>}
+      {dosAutos.length > 0 && <ul class="lista-curta">{dosAutos.map((p) => <li><b>{rotuloParadigma(p)}</b> – Lavg {p.data.lavg || '—'} · arep {p.data.arep || p.data.arenLaudo || '—'} · VDVR {p.data.vdvrLaudo || '—'} · {citacaoDe(p)}{/não usar/i.test(p.data.situacao || '') ? ' (NÃO USAR)' : ''}</li>)}</ul>}
+      <BotaoClaudeDireto rotulo="Extrair as medições dos laudos dos autos" sec instrucao={PROMPT_LAUDOS_DOS_AUTOS} anexos={async () => {
+        const a = await anexosDosAutos(rec.id);
+        if (!a.length) throw new Error('Anexe primeiro o PDF dos autos na etapa 2, item A.');
+        return a;
+      }} onResposta={(t) => { try { const l = lerJsonVeiculos(t); setPrevia(l); setMsg(''); return `${l.length} medição(ões) encontrada(s): confira a prévia e inclua.`; } catch (e) { setPrevia(null); return `Erro ao ler a resposta: ${e.message}`; } }} />
+      {previa && (
+        <div class="previa">
+          <ul>{previa.map((v) => { const i = v.identificacao || {}, r = v.resultados || {}, f = v.fonte || {}; return <li>{i.marca} {i.modelo} {i.ano} – Lavg {r.lavg_q5 ?? '—'} · arep {r.arep ?? r.aren_laudo ?? '—'} · VDVR {r.vdvr_laudo ?? '—'} · perito {f.perito || '?'} · proc. {f.processo || '?'} {f.paginas_autos ? `(${f.paginas_autos})` : ''}{v.observacoes ? <><br /><small>{v.observacoes}</small></> : ''}</li>; })}</ul>
+          <button type="button" class="primario" onClick={incluir}>Incluir no banco, ligadas a este processo</button>
+        </div>
+      )}
+      {msg && <p class="ok-msg">{msg}</p>}
+    </details>
+  );
+}
+
 // Todos os vínculos de uma vez: candidato de ruído e de vibração de cada um, para aceitar em bloco
 export function ParadigmasDosVinculos({ rec }) {
   const [linhas, setLinhas] = useState(null);
@@ -411,11 +447,15 @@ export function ParadigmasDosVinculos({ rec }) {
     setLinhas(null);
   };
   const rot = (x) => (x ? `${rotuloParadigma(x.p)} (${x.papel})` : '—');
+  const soAutos = !!rec.data.somenteMedicoesAutos;
   return (
     <section class="bloco largo">
       <div class="linha-botoes entre"><h3>Paradigmas dos vínculos</h3>
         <button type="button" onClick={pesquisar}>Sugerir paradigmas para todos os vínculos</button></div>
-      <p class="dica">O app pesquisa no banco cada vínculo (tabela de similares, família do grupo do veículo e tipo). Vínculos sem paradigma recebem uma ficha para você pesquisar nos seus laudos. No documento, um vínculo ainda sem paradigma usa o melhor candidato marcado em amarelo para conferir.</p>
+      <p class="dica">{soAutos
+        ? 'Somente as medições dos laudos juntados aos autos deste processo entram na sugestão (o banco do signatário fica de fora). Sem medição adequada nos autos, o vínculo fica sem paradigma.'
+        : 'O app pesquisa no banco cada vínculo (tabela de similares, família do grupo do veículo e tipo). Vínculos sem paradigma recebem uma ficha para você pesquisar nos seus laudos. No documento, um vínculo ainda sem paradigma usa o melhor candidato marcado em amarelo para conferir.'}</p>
+      <MedicoesDosAutos rec={rec} />
       {linhas && (
         <>
           <div class="tabela-rolagem"><table class="tabela">

@@ -9,7 +9,7 @@ import {
   qualificacaoCurta, qualificacaoCompleta, blocoAssinatura, credencial, registrosCrq, equipamentosUsados, quadroEquipamentos, quadroDiligencia,
   anexosDoCaso, inserirAnexos, fimNaEmissao, quadroPeriodos, quadroEpis, quadroDocumentos, quadroCriteriosRuido, quadroConfrontoRuido, quadroMedicoesRuido,
   quadroMedicoesGenerico, medicoesPorAgente, nomePostoFn, profissiografia, figurasDoCaso, respostasQuesitos, capaTecnica,
-  quadroCriteriosCalor, quadroCriteriosVibracao, documentosARequerer, quadrosParadigmasMetodologia, memoriasParadigmas, usaParadigmas, fluxoAvaliacao,
+  quadroCriteriosCalor, quadroCriteriosVibracao, documentosARequerer, quadrosParadigmasMetodologia, memoriasParadigmas, usaParadigmas, origemParadigmas, fluxoAvaliacao,
   art, dadosDaConta, dataPorExtenso, horaPorExtenso, reaisPorExtenso, numeroPorExtenso, moeda, lerValor, nomeOrigemQuesito,
   quadroFormaEnquadramento, quadroRequisitosEpi, codigosEnquadramento, textoDeterminacao, nomeCurto,
   ehCasoMotorista, apendicesDoCaso, textoIntegram, inserirApendices, tituloVinculo, descricaoVinculo, agentesCurtos, refDespachos, ehSimilaridade, empresaDoDespacho, empresaCurta, prefixoQuesito,
@@ -41,7 +41,7 @@ function textoTipoPericia(dados) {
   const indireta = periciaIndireta(dados);
   const veic = dados.postos.map((ps) => nomeCurto(ps.data.nome)).filter(Boolean);
   if (!indireta) return 'A perícia foi realizada de forma direta, no local de trabalho e nos postos ocupados pela parte autora, com avaliação das condições ambientais e das atividades nele desenvolvidas.';
-  return `A perícia foi realizada de forma indireta, por similaridade, porque o ambiente e os veículos de origem não estão mais disponíveis nas condições da época. Foram avaliados${veic.length ? ` os seguintes postos e veículos, representativos dos utilizados pelo autor em cada vínculo: ${veic.join('; ')}` : ' postos e veículos representativos dos utilizados pelo autor em cada vínculo'}${usaParadigmas(dados) ? ', complementados por paradigmas de veículos similares (item 2.3)' : ''}. A semelhança de função, tipo de veículo e condições de operação está demonstrada no item 4, vínculo a vínculo.`;
+  return `A perícia foi realizada de forma indireta, por similaridade, porque o ambiente e os veículos de origem não estão mais disponíveis nas condições da época. Foram avaliados${veic.length ? ` os seguintes postos e veículos, representativos dos utilizados pelo autor em cada vínculo: ${veic.join('; ')}` : ' postos e veículos representativos dos utilizados pelo autor em cada vínculo'}${usaParadigmas(dados) ? (origemParadigmas(dados) === 'terceiros' ? ', com o ruído e a vibração quantificados exclusivamente pelas medições constantes dos laudos periciais juntados aos autos (prova emprestada, item 2.3)' : ', complementados por paradigmas de veículos similares (item 2.3)') : ''}. A semelhança de função, tipo de veículo e condições de operação está demonstrada no item 4, vínculo a vínculo.`;
 }
 
 // confronto da VCI com o critério de cada período (previdenciário), a partir da conclusão calculada
@@ -717,6 +717,9 @@ function quadroDiligenciaLtcat(d, c, seg) {
 // sem medição: a avaliação foi qualitativa (em vez do quadro vazio de instrumentos)
 function instrumentosOuQualitativa(d, dados) {
   if (equipamentosUsados(dados).length || dados.medicoes.length) return quadroEquipamentos(d, equipamentosUsados(dados));
+  // sem medição própria, mas com paradigmas: a quantificação vem das medições de origem (instrumentação no item 2.3)
+  const origem = origemParadigmas(dados);
+  if (origem) return d.texto(`Não houve medição instrumental nesta perícia. O ruído e a vibração foram quantificados pelas medições ${origem === 'terceiros' ? 'constantes dos laudos periciais juntados aos autos' : origem === 'misto' ? 'do banco de paradigmas do signatário e dos laudos periciais juntados aos autos' : 'do banco de paradigmas do signatário'} (item 2.3), cuja instrumentação consta do quadro de instrumentação dos paradigmas; os demais agentes foram avaliados de forma qualitativa.`);
   if (remota(dados.c)) return d.texto(`Os agentes deste documento foram avaliados de forma qualitativa, pela atividade, pelas informações da ${/^Documental/.test(dados.c.modalidade) ? 'documentação' : 'entrevista e dos documentos'} e pelas características dos produtos e equipamentos utilizados; não houve vistoria no local de trabalho nem medição instrumental.`);
   return d.texto(`Os agentes ${dados.c.tipoAtuacao === 'Extrajudicial' ? 'deste documento' : 'avaliados nesta perícia'} foram avaliados de forma qualitativa, pela atividade e pelas condições observadas na vistoria; não houve medição instrumental.`);
 }

@@ -606,7 +606,8 @@ export async function textoDoCaso(caseId) {
   const comPar = periodos.filter((p) => p.data.paradigmaRuido || p.data.paradigmaVibracao || p.data.veiculoModelo);
   if (comPar.length) {
     const pars = new Map((await db.records.where('kind').equals('paradigma').toArray()).filter((r) => !r.deleted).map((r) => [r.data.codigo, r.data]));
-    L.push('\n## Veículos do requerente e paradigmas (banco do signatário)');
+    const caso = await db.records.get(caseId);
+    L.push(caso?.data?.somenteMedicoesAutos ? '\n## Veículos do requerente e paradigmas (SOMENTE medições dos laudos de outros peritos juntados aos autos – prova emprestada; não cite o banco do signatário)' : '\n## Veículos do requerente e paradigmas (banco do signatário)');
     L.push('Normalização: NEN = Lavg + 16,61·log(T/8); aren(T) = arep·√(T/8); VDVR(T) = VDVR·(T/Tlaudo)^0,25. Até 18/11/2003 compara-se o Lavg; depois, o NEN para a jornada efetiva. Fonte extrajudicial é citada sem nome do segurado.');
     comPar.forEach((p) => {
       const x = p.data;

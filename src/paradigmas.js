@@ -46,6 +46,8 @@ export function veiculoParaDados(v) {
     eixoDominante: s(r.eixo_dominante), arenVmb: n(r.aren_vmb), ibutg: n(r.ibutg),
     fonteTipo,
     processo: extra ? '' : s(f.processo), vara: extra ? '' : s(f.vara), dataMedicao: s(f.data),
+    // laudo de outro perito juntado aos autos de um processo (prova emprestada): quem mediu e onde está nos autos
+    peritoOrigem: extra ? '' : s(f.perito), processoAutos: extra ? '' : s(f.processo_autos), paginasAutos: extra ? '' : s(f.paginas_autos),
     // cliente/contratante da medição extrajudicial: só controle interno, nunca vai para os documentos
     clienteOrigem: s(f.cliente), relatoriosSemNomes: f.relatorios_sem_nomes === true ? 'Sim' : s(f.relatorios_sem_nomes),
     citacao: extra ? `Extrajudicial – ${s(f.data)}` : (literatura && s(mq.referencia)) || s(f.citacao),
@@ -71,7 +73,8 @@ export function dadosParaVeiculo(d, { anexoNome = '' } = {}) {
       suspensao_cabine: tx(d.suspensaoCabine), suspensao_assento: tx(d.suspensaoAssento), configuracao: tx(d.configuracao), via_predominante: tx(d.via) },
     resultados: { duracao_ruido_min: nb(d.duracaoRuidoMin), lavg_q5: nb(d.lavg), leq_q3: nb(d.leq), jornada_laudo_h: nb(d.jornadaLaudo), nen_laudo: nb(d.nenLaudo),
       tempo_vibracao: tx(d.tempoVibracao), arep: nb(d.arep), aren_laudo: nb(d.arenLaudo), vdvr_laudo: nb(d.vdvrLaudo), eixo_dominante: tx(d.eixoDominante), aren_vmb: nb(d.arenVmb), ibutg: nb(d.ibutg) },
-    fonte: { tipo: tx(d.fonteTipo), processo: tx(d.processo), vara: tx(d.vara), data: tx(d.dataMedicao), citacao: tx(d.citacao), cliente: tx(d.clienteOrigem), relatorios_sem_nomes: tx(d.relatoriosSemNomes) },
+    fonte: { tipo: tx(d.fonteTipo), processo: tx(d.processo), vara: tx(d.vara), data: tx(d.dataMedicao), citacao: tx(d.citacao), cliente: tx(d.clienteOrigem), relatorios_sem_nomes: tx(d.relatoriosSemNomes),
+      ...(d.peritoOrigem || d.processoAutos ? { perito: tx(d.peritoOrigem), processo_autos: tx(d.processoAutos), paginas_autos: tx(d.paginasAutos) } : {}) },
     instrumentacao: {
       ruido: { equipamento: tx(d.ruidoEquip), serie: tx(d.ruidoSerie), certificado: tx(d.ruidoCert), data_certificado: tx(d.ruidoCertData) },
       calibrador: { equipamento: tx(d.calibEquip), serie: tx(d.calibSerie), data_certificado: tx(d.calibCertData) },
@@ -171,12 +174,14 @@ export async function proximoCodigo() {
   return `M${String(max + 1).padStart(2, '0')}`;
 }
 
-export async function adicionarParadigmas(veiculos, { anexoId = '' } = {}) {
+export async function adicionarParadigmas(veiculos, { anexoId = '', processoAutos = '' } = {}) {
   const criados = [];
   for (const v of veiculos) {
     const d = veiculoParaDados({ ...v, id: v.id && !/^M\d+$/.test(v.id) ? v.id : '' });
     d.codigo = await proximoCodigo();
     if (anexoId) d.anexoId = anexoId;
+    // medições extraídas dos laudos juntados aos autos de um caso: ficam marcadas com o processo do caso
+    if (processoAutos) d.processoAutos = processoAutos;
     if (!d.situacao || d.situacao === 'OK') d.situacao = 'Revisar';
     // id aleatório: dois aparelhos sem internet podem gerar o mesmo código "M12", mas nunca o mesmo id
     // (com id derivado do código, a sincronização fundiria dois veículos diferentes num só)
@@ -369,9 +374,25 @@ export function citacaoDe(p) {
   // medição extrajudicial: só o tipo e a data (LGPD) – nunca cliente, empresa ou trabalhador, nem citação livre
   if (ehExtrajudicial(d)) return d.dataMedicao ? `Medição extrajudicial – ${d.dataMedicao}` : 'Medição extrajudicial';
   const c = String(d.citacao || '').trim();
-  if (c) return c;
   const proc = String(d.processo || '').trim().replace(/^proc(esso)?\.?\s*(n[ºo°]\.?\s*)?/i, '').replace(/\/[A-Z]{2}$/, '');
-  return [proc && `Proc. ${proc}`, String(d.vara || '').replace(/\s*\(.*\)\s*$/, '').trim(), d.dataMedicao].filter(Boolean).join(' – ');
+  const base = c || [proc && `Proc. ${proc}`, String(d.vara || '').replace(/\s*\(.*\)\s*$/, '').trim(), d.dataMedicao].filter(Boolean).join(' – ');
+  // laudo de outro perito: quem mediu e onde o laudo está nos autos
+  const perito = String(d.peritoOrigem || '').trim();
+  const nosAutos = String(d.paginasAutos || '').trim();
+  return [base, perito && !base.toLowerCase().includes(perito.toLowerCase()) && `perito ${perito}`, nosAutos && `juntado aos autos (${nosAutos})`].filter(Boolean).join(' – ');
+}
+
+// medição de outro perito (laudo juntado aos autos), e não do signatário
+export const deTerceiro = (p) => !!String((p?.data || p || {}).peritoOrigem || '').trim();
+const soDigitos = (t) => String(t || '').replace(/\D/g, '');
+export const doProcesso = (p, numero) => !!soDigitos(numero) && soDigitos((p?.data || p || {}).processoAutos) === soDigitos(numero);
+// fonte dos quadros de paradigmas: banco do signatário, laudos dos autos ou os dois
+export function fonteDosParadigmas(lista) {
+  const ps = lista.filter(Boolean);
+  const t = ps.filter(deTerceiro).length;
+  if (ps.length && t === ps.length) return 'Laudos periciais juntados aos autos (prova emprestada).';
+  if (t) return 'Banco de paradigmas do signatário e laudos periciais juntados aos autos (prova emprestada).';
+  return 'Banco de paradigmas do signatário.';
 }
 
 // texto do cadastro sem as anotações de trabalho: parênteses ("(pelas fotos…)", "(modelo n/i)", "(confirmar)") e "n/i"
@@ -412,6 +433,14 @@ REGRAS
   "observacoes": "página do laudo de onde saíram os valores e qualquer ressalva"
 }]}`;
 
+// Medições dos laudos de outros processos juntados aos autos (prova emprestada): extrai todos de uma vez
+export const PROMPT_LAUDOS_DOS_AUTOS = PROMPT_LAUDO_ANTIGO
+  .replace(/^Vou incluir[^\n]*\n/, 'Os autos anexados contêm laudos periciais de outros processos (prova emprestada), elaborados por outros peritos, com medições de ruído e/ou vibração em veículos e máquinas (caminhões, ônibus, vans, tratores). Vou usar SOMENTE essas medições neste processo. Extraia todas.\n')
+  .replace('4. Laudo JUDICIAL: inclua o número do processo e a vara, sem nomes das partes.',
+    '4. Laudo JUDICIAL: em "fonte", "processo" e "vara" são os do processo DE ORIGEM do laudo (não o destes autos); "perito" é o nome do perito que fez a medição; "paginas_autos" é onde o laudo está nestes autos (evento, documento e página). Sem nomes das partes.\n4a. NÃO inclua medições do perito nomeado neste processo nem valores de PPP/LTCAT de empresas. Valor ilegível ou fora do texto: null, e explique em "observacoes" (ex.: "tabela em imagem, pág. X").')
+  .replace('"fonte": {"tipo": "Judicial | Judicial trabalhista | Extrajudicial", "processo": "", "vara": "", "data": "DD/MM/AAAA"}',
+    '"fonte": {"tipo": "Judicial | Judicial trabalhista", "processo": "", "vara": "", "data": "DD/MM/AAAA", "perito": "", "paginas_autos": ""}');
+
 export function lerJsonVeiculos(texto) {
   let t = String(texto || '').trim();
   const bloco = t.match(/```(?:json)?\s*([\s\S]*?)```/i);
@@ -435,19 +464,23 @@ export async function sugerirParaVinculo(r) {
   const familia = String(x.familiaVeiculo || '').trim() || prov.familia || familiaDoGrupo(x.grupoVeiculo);
   const origemFamilia = String(x.familiaVeiculo || '').trim() ? 'informada no vínculo' : prov.familia ? prov.motivo : familia ? 'grupo do veículo' : '';
   const [pars, sims] = await Promise.all([db.records.where('kind').equals('paradigma').toArray(), db.records.where('kind').equals('similar').toArray()]);
-  const ativos = pars.filter((p) => !p.deleted && !/não usar/i.test(p.data.situacao || ''));
+  let ativos = pars.filter((p) => !p.deleted && !/não usar/i.test(p.data.situacao || ''));
+  // caso marcado "somente as medições dos laudos juntados aos autos": só os paradigmas extraídos destes autos
+  const caso = r.caseId ? await db.records.get(r.caseId) : null;
+  const soAutos = !!caso?.data?.somenteMedicoesAutos;
+  if (soAutos) ativos = ativos.filter((p) => doProcesso(p, caso.data.numero));
   const sim = melhorSimilar(sims.filter((y) => !y.deleted), x.veiculoMarca || '', x.veiculoModelo || '');
   const daTabela = new Set(sim ? [sim.data.paradigmaRuido, sim.data.paradigmaRuidoAlt, sim.data.paradigmaVibracao].filter(Boolean) : []);
   const veic = { familia, marca: x.veiculoMarca, modelo: x.veiculoModelo, ano: x.veiculoAno || String(x.inicio || '').slice(0, 4), tipo: x.veiculoTipo || tipoDoGrupo(x.grupoVeiculo), grupo: x.grupoVeiculo, cabine: x.cabine };
   const ranking = ativos.map((p) => ({ p, ...pontuar(veic, p, { similar: daTabela.has(p.data.codigo) }) }))
-    .filter((c) => c.pontos >= MINIMO_SUGESTAO).sort((a, b) => b.pontos - a.pontos);
+    .filter((c) => soAutos || c.pontos >= MINIMO_SUGESTAO).sort((a, b) => b.pontos - a.pontos);
   const ruidos = ranking.filter((c) => String(c.p.data.lavg || '').trim());
   const vibs = ranking.filter((c) => String(c.p.data.arep || c.p.data.arenLaudo || '').trim());
   const desc = (c) => (c ? `${c.motivos.join(', ')}` : '');
   const ruido = ruidos[0] ? { p: ruidos[0].p, papel: desc(ruidos[0]) } : null;
   const vibracao = vibs[0] ? { p: vibs[0].p, papel: desc(vibs[0]) } : null;
   const criterio = ruido || vibracao ? `${desc(ruidos[0] || vibs[0])}${familia ? `; família do veículo ${familia} (${origemFamilia})` : ''}` : '';
-  return { ruido, vibracao, criterio, familia, origemFamilia, ranking: { ruido: ruidos.slice(0, 3), vibracao: vibs.slice(0, 3) } };
+  return { ruido, vibracao, criterio: criterio && soAutos ? `${criterio}; somente medições dos laudos juntados aos autos` : criterio, familia, origemFamilia, soAutos, ranking: { ruido: ruidos.slice(0, 3), vibracao: vibs.slice(0, 3) } };
 }
 
 // formato da lista "Buscar paradigma" (ResultadoBusca) a partir da comparação por pontos

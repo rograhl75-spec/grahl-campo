@@ -135,10 +135,10 @@ export async function ppp(caseId, dadosProntos) {
     for (let i = 1; i < out.length; i++) out[i].ini = dia(out[i - 1].fim, 1);
     return out;
   };
-  d.quadro('13 – Lotação e atribuição', [['Período', 'CNPJ / CAEPF', 'Setor', 'Cargo', 'Função', 'CBO', 'Cód. GFIP'],
-    ...dentro.flatMap(({ r, idx }) => trechosGfip(r, idx).map((t) => [`${dataBR(t.ini)} a ${!r.data.fim && t.fim === (r.data.fim || hoje()) ? (r.data.fim ? dataBR(r.data.fim) : 'atual') : dataBR(t.fim)}`, (proprio ? emit.doc : v(r.data.cnpj) || emit.doc) || '—',
-      semParenteses(r.data.setor) || '—', semParenteses(r.data.cargo) || '[[cargo]]', semParenteses(r.data.funcao) || semParenteses(r.data.cargo) || '—', codigoCbo(r.data.cbo) || '[[CBO]]', t.cod]))],
-  { larguras: [0.16, 0.16, 0.16, 0.15, 0.15, 0.09, 0.13], tam: 8, alinhar: 'left', semNumero: true, fonte: 'Registros administrativos do emitente e LTCAT do signatário. Código GFIP 04: exposição a agente nocivo com aposentadoria especial aos 25 anos.' });
+  const linhas13 = dentro.flatMap(({ r, idx }) => trechosGfip(r, idx).map((t) => [`${dataBR(t.ini)} a ${!r.data.fim && t.fim === (r.data.fim || hoje()) ? (r.data.fim ? dataBR(r.data.fim) : 'atual') : dataBR(t.fim)}`, (proprio ? emit.doc : v(r.data.cnpj) || emit.doc) || '—',
+      semParenteses(r.data.setor) || '—', semParenteses(r.data.cargo) || '[[cargo]]', semParenteses(r.data.funcao) || semParenteses(r.data.cargo) || '—', codigoCbo(r.data.cbo) || '[[CBO]]', t.cod]));
+  d.quadro('13 – Lotação e atribuição', [['Período', 'CNPJ / CAEPF', 'Setor', 'Cargo', 'Função', 'CBO', 'Cód. GFIP'], ...linhas13],
+  { larguras: [0.16, 0.16, 0.16, 0.15, 0.15, 0.09, 0.13], tam: 8, alinhar: 'left', semNumero: true, fonte: `Registros administrativos do emitente e LTCAT do signatário. Código GFIP 04: exposição a agente nocivo com aposentadoria especial aos 25 anos.${linhas13.some((l) => /^00/.test(l[6])) ? ` Código 00: sem exposição a agente nocivo do Anexo IV no trecho${dados.agentes.some((a) => a.data.integridadeFisica === 'Caracterizada tecnicamente') ? '; o risco à integridade física enquadrado no LTCAT consta das observações' : ''}.` : ''}` });
   d.quadro('14 – Profissiografia', [['Período', 'Descrição das atividades'],
     ...dentro.map(({ r }) => [`${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`,
       [v(r.data.profissiografia) || v(r.data.atividades) || '[[descrição das atividades]]', v(r.data.local) && `Local: ${r.data.local}.`].filter(Boolean).join(' ')])],

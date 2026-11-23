@@ -5,7 +5,7 @@ import { herdarDoAnterior } from '../heranca.js';
 import { acentuar } from '../ortografia.js';
 import { resumoMedicao, calculados } from '../medicoes.js';
 import { nen, num, fmt, fatorQ, doseJornada, horasDia, fmtHoras } from '../calc.js';
-import { ORIGEM_QUESITO, contextoLegal, ehSuplementar , reuEhInss, localVistoria, vistoriasDoCaso, datasDasVistorias, variasVistorias } from '../schema.js';
+import { ORIGEM_QUESITO, contextoLegal, ehSuplementar , reuEhInss, localVistoria, vistoriasDoCaso, datasDasVistorias, variasVistorias, semDocsEmpresa } from '../schema.js';
 import { tempoConducao } from './penosidade.js';
 import { Doc, p, run, rich, montarDocx, ordinalDia1, FONTES_EMBUTIDAS, M, semRevisao } from './ooxml.js';
 import { nenParaJornada, certificadoVencido, rotuloParadigma, citacaoDe, num as numP, vibracaoDoParadigma, semNotas } from '../paradigmas.js';
@@ -67,6 +67,15 @@ const SIGLAS_DOC = '(?:PGR|PPRA|PCMSO|LTCAT|PCMAT|AET)';
 const RE_PAR_DOC = new RegExp(`\\s*\\([^()]*\\b${SIGLAS_DOC}\\b[^()]*\\)`, 'g');
 const RE_CAB_DOC = new RegExp(`(^|[\\n:;.]\\s*|\\)\\s*)(?:(?:o|a)\\s+)?${SIGLAS_DOC}(?:\\s+\\d{4}(?:\\s*[–-]\\s*\\d{4})?)?(?:\\s+e\\s+(?:(?:o|a)\\s+)?${SIGLAS_DOC}(?:\\s+\\d{4}(?:\\s*[–-]\\s*\\d{4})?)?)*\\s*[–-]\\s+`, 'g');
 const RE_CONF_DOC = new RegExp(`,?\\s*(?:conforme|segundo|de acordo com|cf\\.)\\s+(?:(?:o|a)\\s+)?${SIGLAS_DOC}\\b[^,.;)\\n]*`, 'gi');
+function partesForaDeParenteses(t) {
+  const out = []; let nivel = 0; let atual = '';
+  for (const ch of String(t)) {
+    if (ch === '(') nivel += 1; else if (ch === ')') nivel = Math.max(0, nivel - 1);
+    if (!nivel && (ch === ';' || ch === ',')) { out.push(atual.trim()); atual = ''; } else atual += ch;
+  }
+  out.push(atual.trim());
+  return out.filter(Boolean);
+}
 export function limpaTextoLaudo(t, { semDocs = false, campo = '' } = {}) {
   if (typeof t !== 'string' || !t.trim()) return t;
   let s = t;
@@ -81,8 +90,13 @@ export function limpaTextoLaudo(t, { semDocs = false, campo = '' } = {}) {
   // aspas simples em volta de palavras ('fresa') → aspas duplas
   s = s.replace(/(^|[\s(;:,])'([^'\n]{1,80}?)'(?=[\s).;:,!?]|$)/g, '$1"$2"');
   if (semDocs) {
-    s = s.replace(RE_PAR_DOC, '').replace(RE_CONF_DOC, '').replace(RE_CAB_DOC, '$1');
-    if (campo === 'fonte' || campo === 'setor') s = s.split(/\s*[;,]\s*/).filter((x) => !new RegExp(`\\b${SIGLAS_DOC}\\b`).test(x)).join('; ');
+    const temDoc = (x) => new RegExp(`\\b${SIGLAS_DOC}\\b`).test(x);
+    // lista (fonte, setor): corta nos separadores fora de parênteses ("PGR 2026 (itens 11–12, 16)" é um item só)
+    s = s.replace(RE_PAR_DOC, '');
+    if (campo === 'fonte' || campo === 'setor') s = partesForaDeParenteses(s).filter((x) => !temDoc(x)).join('; ');
+    s = s.replace(RE_CONF_DOC, '').replace(RE_CAB_DOC, '$1');
+    // frase que ainda cita o documento ("O PGR 2026 recomenda…"): sai inteira
+    s = s.split(/(?<=[.!?])\s+(?=\p{Lu})/u).filter((f) => !temDoc(f)).join(' ');
   }
   return s.replace(/[ \t]+([,;.)])/g, '$1').replace(/\(\s*\)/g, '').replace(/[ \t]{2,}/g, ' ').replace(/^[ \t]+|[ \t]+$/gm, '').trim();
 }
@@ -128,9 +142,9 @@ export async function carregar(caseId) {
     }
   }
   // referências internas aos arquivos PDF (Parte N, p. X) e datas ISO no meio do texto não vão para o documento
-  const semDocs = /^Somente/.test(String(caso.data.docsEmpresa || ''));
+  const semDocs = semDocsEmpresa(caso.data);
   const limpa = (lst) => lst.map((r) => ({ ...r, data: limpaDados(r.data, { semDocs }) }));
-  const dados = { id: caseId, c: limpaDados(caso.data), quesitos: limpa(quesitos), periodos: limpa(herdarDoAnterior(pers)), documentos: limpa(documentos), epis, postos: limpa(psts), agentes: limpa(agentes.filter((a) => v(a.data.nome))).sort((a, b) => (a.data.ordem ?? a.createdAt ?? 0) - (b.data.ordem ?? b.createdAt ?? 0)), medicoes: meds, fotos, equipamentos, perfil, paradigmas, quimicos,
+  const dados = { id: caseId, c: limpaDados(caso.data, { semDocs }), quesitos: limpa(quesitos), periodos: limpa(herdarDoAnterior(pers)), documentos: limpa(documentos), epis, postos: limpa(psts), agentes: limpa(agentes.filter((a) => v(a.data.nome))).sort((a, b) => (a.data.ordem ?? a.createdAt ?? 0) - (b.data.ordem ?? b.createdAt ?? 0)), medicoes: meds, fotos, equipamentos, perfil, paradigmas, quimicos,
     produtos: produtos.filter((p) => v(p.data.nome)).sort((a, b) => (a.data.ordem ?? a.createdAt ?? 0) - (b.data.ordem ?? b.createdAt ?? 0)),
     regraCertMeses: Number((cfgPar && cfgPar.data.regraCertMeses) || 24) };
   // nomes próprios do caso (empresas, pessoas, cidades dos trajetos) não são sublinhados pelo corretor do Word

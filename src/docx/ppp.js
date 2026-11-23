@@ -111,7 +111,8 @@ export async function ppp(caseId, dadosProntos) {
   const gfip = (idx) => {
     const a = av[idx];
     if (!a) return '[[código]]';
-    const segs = a.segs.filter((s) => s.caracteriza === 'SIM');
+    // risco à integridade física (fora do Anexo IV) só nas observações: não muda o código GFIP
+    const segs = a.segs.filter((s) => s.caracteriza === 'SIM' && s.itens.some((i) => i.sup && !i.integridade));
     if (!segs.length) return a.segs.some((s) => /\[\[/.test(s.caracteriza)) ? '[[código]]' : '00 (sem exposição)';
     return '04 (25 anos)';
   };

@@ -53,9 +53,10 @@ describe('síntese sem linhas repetidas e integridade física sugerida', () => {
     expect(t).toContain('inclui o período posterior à Emenda Constitucional nº 103/2019');
     expect(t).not.toMatch(/Empresa Alfa Ltda \(01\/05\/1989/);
     // 5.3: frases agrupadas, sem um parágrafo por agente
-    expect(t).toMatch(/os agentes .*n-pentano.*constam do cód\. 1\.2\.11/i);
-    expect(t).toContain("di(2-etilhexil)ftalato – DOP não consta");
-    expect((t.match(/não consta do Anexo IV dos Decretos 2\.172\/97/g) || []).length).toBe(0);
+    // 5.3: o texto padrão de cada agente está no quadro (resultado e código); nenhum parágrafo por agente
+    expect(t).not.toMatch(/o agente consta do cód\. 1\.2\.11/);
+    expect(t).not.toMatch(/Até 05\/03\/1997, os agentes (?!químicos são)/);
+    expect(t).toMatch(/sem medição: no PPP como ("|&quot;)não quantificada/);
     // quadro 1: local e documentos fora do quadro
     expect(t).toContain('Local de trabalho:');
     // quadro de características: a citação da FISPQ vai para a fonte
@@ -114,5 +115,24 @@ describe('efeitos pela FDS e agente repetido pelo nome principal', () => {
     const ids = (await pendenciasDoCaso('s3')).map((x) => x.id);
     expect(ids).toContain('agdup-s3b');
     expect(ids).not.toContain('efeitos-s3b');
+  });
+});
+
+describe('documentos da empresa não citados', () => {
+  it('tira PGR/PCMSO de listas, parênteses, cabeçalhos e frases', async () => {
+    const { limpaTextoLaudo } = await import('../src/docx/base.js');
+    const { semDocsEmpresa } = await import('../src/schema.js');
+    expect(semDocsEmpresa({ tipoAtuacao: 'Extrajudicial' })).toBe(true);
+    expect(semDocsEmpresa({ tipoAtuacao: 'Extrajudicial', docsEmpresa: 'Citar no laudo' })).toBe(false);
+    expect(semDocsEmpresa({ tipoAtuacao: 'Judicial' })).toBe(false);
+    const fonte = limpaTextoLaudo('CNIS; Contrato Social 6ª alteração (fls. 01–05); Contrato KM juramentado; entregas técnicas; PGR 2026 (itens 11–12, 16); PCMSO 2026 (p. 8–10, 12, 16); entrevista de 23/10/2026.', { semDocs: true, campo: 'fonte' });
+    expect(fonte).not.toMatch(/PGR|PCMSO|16\)/);
+    expect(fonte).toContain('entregas técnicas');
+    expect(limpaTextoLaudo('Manutenção/supervisão (PGR 2026)', { semDocs: true, campo: 'setor' })).toBe('Manutenção/supervisão');
+    const epi = limpaTextoLaudo('Não há fichas de entrega de EPI. O PGR 2026 (GHE Manutenção/supervisão) recomenda cinto de segurança, sem CA; o inventário registra creme de proteção. Na entrevista, o segurado relata uso de luvas.', { semDocs: true });
+    expect(epi).toBe('Não há fichas de entrega de EPI. Na entrevista, o segurado relata uso de luvas.');
+    const prof = limpaTextoLaudo("e) Atual: PGR 2026–2028 e PCMSO 2026 – setor Manutenção/supervisão, função Supervisor; 'trabalhos acima de 2 metros de altura' (PGR, item 11). Treinamentos práticos.", { semDocs: true });
+    expect(prof).not.toMatch(/PGR|PCMSO/);
+    expect(prof).toContain('Atual: setor Manutenção/supervisão');
   });
 });

@@ -1,4 +1,5 @@
 import { efeitosDoBanco } from './efeitosQuimicos.js';
+import { grupoHidrocarboneto, classificacaoDoGrupo } from '../hidrocarbonetos.js';
 // Quadros dos agentes usados em qualquer documento:
 //  - características dos agentes químicos (identificação, vias, órgãos-alvo, efeitos, limites e classificação),
 //    independentemente da caracterização – dados do próprio cadastro do agente e, na falta, do banco de químicos;
@@ -75,6 +76,7 @@ function linhaQuimico(nome, x = {}, q = null) {
     !/^Nenhum/i.test(v(b.nr15Anexos)) && /Anexo 13(?!-)/.test(v(b.nr15Anexos)) ? 'NR-15, Anexo 13' : '',
     !/^Nenhum/i.test(v(b.nr15Anexos)) && /Anexo 13-A/.test(v(b.nr15Anexos)) ? 'NR-15, Anexo 13-A' : '',
     v(b.linach) && `LINACH ${b.linach}`, v(b.iarc) && `IARC ${b.iarc}`,
+    classificacaoDoGrupo(grupoHidrocarboneto(nome, x.cas), v(x.ip346)),
   ].filter(Boolean).join('; ');
   return [`${nome}${cas ? `\nCAS ${cas}` : ''}`, [vias && `Vias: ${vias}`, orgaos && `Órgãos-alvo: ${orgaos}`].filter(Boolean).join('\n') || '[[vias de absorção]]',
     efeitos || '[[efeitos à saúde]]', v(x.limites) || lim || 'Sem limite de tolerância na NR-15'];
@@ -109,6 +111,8 @@ export function quadroArt68(d, agentes) {
 export function anexoQuantitativo(a, quimicos = []) {
   const x = a.data || a;
   if (x.tipo && x.tipo !== 'Químico') return '';
+  // óleo mineral e derivados de petróleo: avaliação qualitativa (NR-15, Anexo 13), ainda que o banco traga limite de névoa
+  if (['oleoMineral', 'derivadoPetroleo', 'sintetico'].includes(grupoHidrocarboneto(x.nome, x.cas))) return '';
   const q = bancoDoAgente(a, quimicos);
   if (!q) return '';
   if (v(q.data.nr15Mgm3) || v(q.data.nr15Ppm)) return 'Anexo 11';

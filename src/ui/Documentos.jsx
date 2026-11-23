@@ -3,7 +3,7 @@ import { pendenciasDoCaso, marcacoesNoDocumento } from '../pendencias.js';
 import { horasDia, horasForaTexto, fmtHoras } from '../calc.js';
 import { avisarAlteracao } from '../sync.js';
 import { confirmar } from './dialogo.jsx';
-import { softDelete } from '../db.js';
+import { softDelete, createRecord } from '../db.js';
 import { RelatoriosMedicao } from './Campo.jsx';
 import { DESC_ANEXO_DOC } from '../apendices.js';
 import { CATALOGO, HONORARIOS, situacaoHonorarios, PETICOES_PERITO, PETICOES_AT, POSICOES_AT } from '../docx/reports.js';
@@ -380,7 +380,10 @@ function ItemPendencia({ it, responder }) {
         <div class="linha-botoes">
           {(it.lotes || []).map((l) => (
             <button type="button" class={`mini${l.sec ? ' sec' : ''}`} onClick={async () => {
-              for (const e of l.escritas) for (const [k, val] of Object.entries(e.campos)) await salvar(e.rec, k, val);
+              for (const e of l.escritas) {
+                if (e.criar) { await createRecord(e.criar.kind, it.caseId, e.criar.data); continue; }
+                for (const [k, val] of Object.entries(e.campos)) await salvar(e.rec, k, val);
+              }
               await responder(null);
             }}>{l.rotulo}</button>
           ))}

@@ -313,6 +313,7 @@ export const CAMPOS_AGENTE_AVALIADO = [
   ['expInicio', 'Exposição a partir de (só se não for o vínculo inteiro)', 'date'],
   ['expFim', 'Exposição até (só se não for o vínculo inteiro)', 'date'],
   ['cas', 'Nº CAS (químicos)', 'text'],
+  ['ip346', 'Óleo mineral – extrato em DMSO (IP 346), conforme a FDS', 'select', ['< 3 % (óleo altamente refinado)', '≥ 3 % ou não tratado / pouco tratado', 'Não informado na FDS']],
   ['circunstancias', 'Circunstâncias da exposição durante a jornada (art. 68, § 2º, I, do Dec. 3.048/99)', 'area'],
   ['fonte', 'Fontes e possibilidades de liberação (art. 68, § 2º, II)', 'area'],
   ['vias', 'Meios de contato e vias de absorção (art. 68, § 2º, III)', 'area'],

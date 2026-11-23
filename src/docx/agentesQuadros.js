@@ -142,7 +142,8 @@ export function perigosDoAgente(a, dados = {}) {
   const cas = casValido(x.cas); const nome = semAc(x.nome).replace(/\s*\(.*$/, '').trim();
   const fds = (dados.produtos || []).filter((p) => { const c = semAc(`${p.data.nome || ''}\n${p.data.s3Componentes || ''}`); return (cas && c.includes(cas)) || (nome.length >= 4 && c.includes(nome)); })
     .map((p) => `${p.data.s2FrasesH || ''} ${p.data.s2Classificacao || ''}`).join(' ');
-  const t = semAc(`${x.efeitos || ''} ${x.limites || ''} ${fds}`);
+  // trechos negados ("sem sensibilização", "não classificado", "nenhum efeito na fertilidade") não contam
+  const t = semAc(`${x.efeitos || ''} ${x.limites || ''} ${fds}`).replace(/\b(sem|nao|nenhum|nenhuma|negativ\w*)\b[^.;,()]*/g, ' ');
   const out = [];
   if (/sensibiliza|asma ocupacional|h334|h317/.test(t)) out.push('sensibilizante');
   if (/\bgrupo 1\b/.test(semAc(b.linach)) || /^(1|2a)\b/i.test(v(b.iarc).replace(/^grupo\s*/i, '')) || /h350|carcinog|cancerigen/.test(t)) out.push('cancerígeno');

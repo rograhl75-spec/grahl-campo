@@ -583,7 +583,10 @@ export async function ltcatPpp(caseId) {
   d.texto(naturezaLtcat(dados, seg));
   const semVistoria = remota(c);
   d.h2('2.2', semVistoria ? 'Entrevista e levantamento' : 'Diligência');
-  d.texto('O laudo individual deve ser acompanhado de autorização escrita da empresa para efetuar o levantamento e do nome e identificação do acompanhante da empresa, quando o responsável técnico não for seu empregado, e da data e do local da realização da perícia (art. 277, IV, alíneas *a*, *b* e *c*, da IN 128/2022).');
+  // contribuinte individual sem empresa (o próprio segurado emite o PPP): não há empresa que autorize nem acompanhe
+  d.texto(/Pr[oó]prio/.test(c.pppEmitente || '')
+    ? 'O laudo individual registra a autorização para o levantamento, o acompanhante e a data e o local da avaliação (art. 277, IV, alíneas *a*, *b* e *c*, da IN 128/2022). Como o segurado exerce a atividade por conta própria, sem empresa, a autorização é dada por ele, no termo ao final deste laudo, e o acompanhamento é feito por ele mesmo.'
+    : 'O laudo individual deve ser acompanhado de autorização escrita da empresa para efetuar o levantamento e do nome e identificação do acompanhante da empresa, quando o responsável técnico não for seu empregado, e da data e do local da realização da perícia (art. 277, IV, alíneas *a*, *b* e *c*, da IN 128/2022).');
   quadroDiligenciaLtcat(d, c, seg);
   d.h2('2.3', 'Declarações');
   d.texto(`${/Pr[oó]prio/.test(c.pppEmitente || '') ? 'A declaração do segurado' : 'A declaração do segurado e a autorização da emitente para o levantamento (art. 277, IV, *a*, da IN 128/2022)'} sobre o histórico dos locais de trabalho, das atividades, dos equipamentos e dos produtos utilizados em cada período ${/Pr[oó]prio/.test(c.pppEmitente || '') ? 'consta' : 'constam'} do termo de declaração e autorização, assinado ao final deste laudo. ${semVistoria ? 'As condições de trabalho do período avaliado foram reconstituídas com base nessas declarações, na entrevista do segurado e nos documentos apresentados.' : 'As condições dos períodos anteriores à vistoria foram reconstituídas com base nessas declarações e nos documentos do item 1.3.'}`);
@@ -1036,7 +1039,8 @@ function termoDeclaracaoAutorizacao(d, dados) {
   const quando = c.vistoriaData ? ` em ${dataBR(c.vistoriaData)}` : '';
   d.h1('', 'Termo de declaração e autorização');
   d.texto(`Eu, ${seg}${docSeg ? `, ${docSeg}` : ''}, declaro que as informações que prestei sobre os locais de trabalho, as atividades, os equipamentos e os produtos utilizados em cada período, registradas neste laudo, são verdadeiras, e que recebi uma via deste documento.`);
-  if (!proprio) {
+  if (proprio) d.texto(`Como exerço a atividade por conta própria, autorizo o levantamento das condições ambientais de trabalho realizado${quando} pelo signatário deste laudo (art. 277, IV, *a*, da IN 128/2022) e declaro ciência do seu conteúdo.`);
+  else {
     const em = `${emit.nome || '[[emitente]]'}${emit.doc ? ` (CNPJ/CAEPF ${emit.doc})` : ''}`;
     d.texto(`${unico ? `Na condição de representante legal da ${em}, autorizo` : `A ${em}, por seu representante legal, autoriza`} o levantamento das condições ambientais de trabalho realizado${quando} pelo signatário deste laudo, que não é empregado da empresa (art. 277, IV, *a*, da IN 128/2022), e ${unico ? 'declaro' : 'declara'} ciência do seu conteúdo.`);
   }

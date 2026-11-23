@@ -1125,7 +1125,7 @@ export async function anexosDoCaso(dados, { romanos = false, inicio = 0 } = {}) 
   const { obterAnexo } = await import('../sync.js');
   const out = []; let falhas = 0;
   for (const r of await apendicesRegistros(dados.id, DESC_ANEXO_DOC)) {
-    try { out.push({ letra: (romanos ? ROMANOS : LETRAS)[inicio + out.length] || String(inicio + out.length + 1), titulo: acentuar(r.data.titulo || r.data.nome), paginas: await paginasDoArquivo(await obterAnexo(r.id), r.data.mime, { recortar: true }) }); } catch (e) { falhas++; }
+    try { out.push({ letra: (romanos ? ROMANOS : LETRAS)[inicio + out.length] || String(inicio + out.length + 1), titulo: acentuar(r.data.titulo || r.data.nome).replace(/^\p{Ll}/u, (c) => c.toUpperCase()), paginas: await paginasDoArquivo(await obterAnexo(r.id), r.data.mime, { recortar: true }) }); } catch (e) { falhas++; }
   }
   return { anexos: out, falhasAnexo: falhas };
 }

@@ -161,10 +161,12 @@ export async function carregar(caseId) {
   // nomes próprios citados nas atividades, no local e nas fontes (clientes, marcas, cidades: Grammer, Electrolux, Pentamix…)
   const livres = [...dados.periodos.flatMap((r) => [r.data.atividades, r.data.profissiografia, r.data.local, r.data.fonte]),
     ...dados.agentes.flatMap((a) => [a.data.fonte, a.data.circunstancias, a.data.efeitos, a.data.limites])].filter(Boolean).join(' ');
-  semRevisao((livres.match(/(?<![.!?]\s)(?<=\s|\(|^)[A-ZÀ-Ý][\p{L}'’-]{2,}/gu) || []).filter((w) => !/^(Até|A|O|Os|As|Em|No|Na|Nos|Nas|De|Do|Da|Com|Para|Por|Sem|Uso)$/.test(w)));
+  semRevisao((livres.match(/(?<=\s|\(|^)[A-ZÀ-Ý][\p{L}'’-]{1,}/gu) || []).filter((w) => !/^(Até|A|O|Os|As|Em|No|Na|Nos|Nas|De|Do|Da|Com|Para|Por|Sem|Uso)$/.test(w)));
   // fichas das FDS: produto, fabricante e componentes (marcas, siglas e nomes químicos longos)
   const fds = dados.produtos.flatMap((p) => [p.data.nome, p.data.fabricante, p.data.revisao, p.data.uso, p.data.s2Classificacao, p.data.s2FrasesH, p.data.s3Componentes, p.data.s8Limites, p.data.s8Engenharia, p.data.s8Epi, p.data.s9Estado, p.data.observacoes]).filter(Boolean).join(' ');
   semRevisao((fds.match(/[\p{L}][\p{L}-]{1,}/gu) || []).filter((w) => /[A-Z].*[A-Z]|^[A-Z][a-z]+[A-Z]|^\p{L}{12,}$/u.test(w) || /^[A-ZÀ-Ý]/.test(w)));
+  // componentes da seção 3 (nomes químicos): todas as palavras longas
+  semRevisao(dados.produtos.flatMap((p) => String(p.data.s3Componentes || '').match(/\p{L}{8,}/gu) || []));
   // nomes de produtos e substâncias dos agentes avaliados (formocresol, TEGDMA…): o dicionário do Word não os tem
   semRevisao(dados.agentes.flatMap((a) => String(a.data.nome || '').match(/[\p{L}][\p{L}-]{3,}/gu) || []).filter((w) => /[A-Z]{2,}|[a-z]{9,}/.test(w)));
   // ordem cronológica: cada posto/veículo vai para a posição do primeiro vínculo que representa

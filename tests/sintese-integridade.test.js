@@ -313,3 +313,17 @@ describe('exposição que começa depois de 05/03/1997', () => {
     expect(p).not.toMatch(/01\/05\/1989 a\s*\n?\s*05\/03\/1997\s*\n?\s*Q\s*\n?\s*Óleo/);
   });
 });
+
+describe('PPP: lotação partida onde o código GFIP muda', () => {
+  it('trecho só com integridade física sai com 00; os demais com 04', async () => {
+    await caso('s14', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'], autorNome: 'X', pppEmitente: 'Empresa (empregador)', pppEmitenteNome: 'Y' });
+    await filho('s14v', 'periodo', 's14', { empresa: 'Y', inicio: '1989-05-01', fim: '2020-12-31', cargo: 'Técnico', categoriaSegurado: 'Contribuinte individual', cbo: '7301-05' });
+    await filho('s14a', 'agenteAvaliado', 's14', { nome: 'Óleo mineral', tipo: 'Químico', resAte97: 'Caracteriza', codAte97: '1.2.11 do Dec. 53.831/64', resDesde97: 'Caracteriza', codDesde97: '1.0.7, b, do Anexo IV', expInicio: '1997-07-17' });
+    await filho('s14b', 'agenteAvaliado', 's14', { nome: 'Eletricidade (tensão acima de 250 V)', tipo: 'Físico', resAte97: 'Caracteriza', codAte97: '1.1.8 do Dec. 53.831/64', resDesde97: 'Não enquadrável',
+      integridadeFisica: 'Caracterizada tecnicamente', circunstancias: 'Painéis energizados.', frequencia: 'Habitual e permanente.' });
+    const p = await texto((await ltcatPpp('s14')).extras[0]);
+    expect(p).toMatch(/01\/05\/1989 a\s*05\/03\/1997[\s\S]{0,200}04 \(25 anos\)/);
+    expect(p).toMatch(/06\/03\/1997 a\s*16\/07\/1997[\s\S]{0,200}00 \(sem exposição\)/);
+    expect(p).toMatch(/17\/07\/1997 a\s*31\/12\/2020[\s\S]{0,200}04 \(25 anos\)/);
+  });
+});

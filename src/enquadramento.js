@@ -73,7 +73,7 @@ export function tecnicaDoAgente(a, ate97, { linach = true } = {}) {
 //  - até 05/03/1997: presunção de exposição pela atividade (códigos dos Decretos 53.831/64 e 83.080/79);
 //  - a partir de 06/03/1997: o anexo da NR-15 (11, 12, 13 ou 13-A) ou, para os biológicos, o cód. 3.0.1;
 //  - LINACH Grupo 1 com CAS: qualitativa só a partir de 08/10/2014 (Portaria Interministerial nº 9/2014);
-//  - químicos a partir de 01/01/2004: metodologia das NHO da FUNDACENTRO existentes para o agente
+//  - químicos quantitativos a partir de 01/01/2004: metodologia das NHO da FUNDACENTRO existentes para o agente
 //    (NHO 02 e NHO 07; poeiras e fibras: NHO 03, NHO 04 e NHO 08), item 1.6.3 do Manual.
 // A intensidade não medida sai "Não quantificada" no PPP.
 export const MARCOS_TECNICA = ['2003-12-31', '2014-10-07'];
@@ -94,7 +94,8 @@ export function tecnicaNoPeriodo(a, fim, { quantitativoSemMedicao = '' } = {}) {
     return `Qualitativa – presunção de exposição (${/^\d/.test(cod) ? `cód. ${cod}` : 'Dec. 53.831/64 e 83.080/79'})`;
   }
   let t = quantitativoSemMedicao && !/^Quantitativa/.test(tecnicaDoAgente(a, false)) ? `Quantitativa – NR-15, ${quantitativoSemMedicao}` : tecnicaDoAgente(a, false, { linach: fim > '2014-10-07' });
-  if (fim > '2003-12-31' && !/NHO/i.test(t)) t += `; metodologia: ${RE_POEIRA.test(x.nome || '') || /Anexo 12/.test(t) ? 'NHO 03, NHO 04 e NHO 08' : 'NHO 02 e NHO 07'} da FUNDACENTRO`;
+  // NHO só para a avaliação quantitativa (Anexos 11 e 12): a qualitativa não tem método de coleta
+  if (fim > '2003-12-31' && /^Quantitativa/.test(t) && !/NHO/i.test(t)) t += `; metodologia: ${RE_POEIRA.test(x.nome || '') || /Anexo 12/.test(t) ? 'NHO 03, NHO 04 e NHO 08' : 'NHO 02 e NHO 07'} da FUNDACENTRO`;
   return t;
 }
 

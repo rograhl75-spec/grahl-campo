@@ -172,7 +172,8 @@ describe('técnica e intensidade dos agentes qualitativos no PPP', () => {
     const a = { data: { nome: 'Óleo mineral', tipo: 'Químico', tecnica: 'Qualitativa', codDesde97: '1.0.7, b, do Anexo IV – avaliação qualitativa' } };
     expect(tecnicaNoPeriodo(a, '1997-03-05')).toMatch(/^Qualitativa – presunção/);
     expect(tecnicaNoPeriodo(a, '2003-12-31')).toBe('Qualitativa – NR-15, Anexo 13');
-    expect(tecnicaNoPeriodo(a, '2010-01-01')).toBe('Qualitativa – NR-15, Anexo 13; metodologia: NHO 02 e NHO 07 da FUNDACENTRO');
+    expect(tecnicaNoPeriodo(a, '2010-01-01')).toBe('Qualitativa – NR-15, Anexo 13');
+    expect(tecnicaNoPeriodo({ data: { nome: 'TDI', tipo: 'Químico', codDesde97: 'quantitativa' } }, '2010-01-01')).toBe('Quantitativa – NR-15, Anexo 11; metodologia: NHO 02 e NHO 07 da FUNDACENTRO');
     const sil = { data: { nome: 'Sílica livre cristalizada', tipo: 'Químico' } };
     expect(tecnicaNoPeriodo(sil, '2014-10-07')).toMatch(/NHO 03, NHO 04 e NHO 08/);
     expect(tecnicaNoPeriodo({ data: { nome: 'Microrganismos', tipo: 'Biológico' } }, '2010-01-01')).toMatch(/cód\. 3\.0\.1/);
@@ -182,11 +183,10 @@ describe('técnica e intensidade dos agentes qualitativos no PPP', () => {
     await filho('m4v', 'periodo', 'm4', { empresa: 'E', inicio: '2000-01-01', fim: '2024-12-31', cargo: 'Técnico', categoriaSegurado: 'Contribuinte individual', cbo: '3131-25' });
     await filho('m4a', 'agenteAvaliado', 'm4', { nome: 'Óleo mineral', tipo: 'Químico', resDesde97: 'Caracteriza', tecnica: 'Qualitativa', codDesde97: '1.0.7 – qualitativa' });
     const t = await texto((await ltcatPpp('m4')).extras[0]);
-    expect(t).toContain('2000-01-01'.split('-').reverse().join('/') + ' a 31/12/2003');
-    // o marco de 07/10/2014 não muda nada aqui (o código diz "qualitativa"): uma linha só
-    expect(t).toContain('01/01/2004 a 31/12/2024');
+    // qualitativa: os marcos de 2003 e 2014 não mudam a técnica – uma linha só
+    expect(t).toContain('01/01/2000 a 31/12/2024');
     expect(t).toContain('Qualitativa – NR-15, Anexo 13');
-    expect(t).toContain('NHO 02 e NHO 07');
+    expect(t).not.toContain('NHO 02 e NHO 07 da');
     expect(t).toContain('Não quantificada');
     expect(t).not.toContain('PPP eletrônico');
   });

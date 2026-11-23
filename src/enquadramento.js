@@ -40,9 +40,11 @@ export function codigosDoAgente(a) {
 // quantitativa (NR-15, Anexo 11) ou qualitativa (Anexos 13 e 13-A), conforme o agente; radiação ionizante –
 // qualitativa até 05/03/1997 e quantitativa depois (NR-15, Anexo 5); demais físicos – quantitativa.
 // O que o perito digitou no agente prevalece.
-export function tecnicaDoAgente(a, ate97) {
+// técnica digitada só com "Qualitativa" ou "Quantitativa" (sem a norma): o app completa com o anexo
+const tecnicaGenerica = (t) => /^(qualitativ[ao]|quantitativ[ao])\.?$/i.test(v(t));
+export function tecnicaDoAgente(a, ate97, { linach = true } = {}) {
   const x = a.data || a;
-  if (v(x.tecnica)) return x.tecnica;
+  if (v(x.tecnica) && !tecnicaGenerica(x.tecnica)) return x.tecnica;
   const cod = `${ate97 ? x.codAte97 || '' : x.codDesde97 || ''} ${x.nome || ''}`;
   if (x.tipo === 'Biológico') return 'Qualitativa';
   if (x.tipo === 'Físico') {
@@ -58,13 +60,43 @@ export function tecnicaDoAgente(a, ate97) {
   if (/quantitativ/i.test(cod)) return 'Quantitativa – NR-15, Anexo 11';
   if (/qualitativ/i.test(cod)) return 'Qualitativa – NR-15, Anexo 13';
   // 2) quadros do Manual de Aposentadoria Especial do INSS (2018), pelo nome do agente
-  if (cancerigenoAnexoIV(x.nome)) return 'Qualitativa – LINACH Grupo 1';
+  if (linach && cancerigenoAnexoIV(x.nome)) return 'Qualitativa – LINACH Grupo 1';
   const m = avaliacaoPeloManual(x.nome);
   if (m) return m.forma === 'Quantitativa' ? 'Quantitativa – NR-15, Anexo 11' : 'Qualitativa – NR-15, Anexo 13';
   // 3) o anexo citado no código
   if (/Anexo 11/i.test(cod)) return 'Quantitativa – NR-15, Anexo 11';
   if (/Anexo 13/i.test(cod)) return 'Qualitativa – NR-15, Anexo 13';
   return 'Qualitativa – NR-15, Anexo 13';
+}
+
+// Técnica do campo 15.5 do PPP no subperíodo, pelo Manual de Aposentadoria Especial do INSS (2018):
+//  - até 05/03/1997: presunção de exposição pela atividade (códigos dos Decretos 53.831/64 e 83.080/79);
+//  - a partir de 06/03/1997: o anexo da NR-15 (11, 12, 13 ou 13-A) ou, para os biológicos, o cód. 3.0.1;
+//  - LINACH Grupo 1 com CAS: qualitativa só a partir de 08/10/2014 (Portaria Interministerial nº 9/2014);
+//  - químicos quantitativos a partir de 01/01/2004: metodologia das NHO da FUNDACENTRO existentes para o agente
+//    (NHO 02 e NHO 07; poeiras e fibras: NHO 03, NHO 04 e NHO 08), item 1.6.3 do Manual.
+// A intensidade não medida sai "Não quantificada" no PPP.
+export const MARCOS_TECNICA = ['2003-12-31', '2014-10-07'];
+const RE_POEIRA = /poeira|s[ií]lica|asbest|amiant|fibra|particulad|aerodispers/i;
+export function tecnicaNoPeriodo(a, fim, { quantitativoSemMedicao = '' } = {}) {
+  const x = a.data || a;
+  const ate97 = fim <= '1997-03-05';
+  if (v(x.tecnica) && !tecnicaGenerica(x.tecnica)) return x.tecnica;
+  const tipo = x.tipo || 'Químico';
+  if (tipo === 'Biológico') return ate97 ? 'Qualitativa – presunção pela atividade (Dec. 53.831/64, cód. 1.3.2; Dec. 83.080/79, cód. 1.3.4)' : 'Qualitativa – Anexo IV do Dec. 3.048/99, cód. 3.0.1';
+  if (tipo === 'Físico') {
+    const t = tecnicaDoAgente(a, ate97);
+    if (/^Qualitativa$/.test(t) && /eletric|el[ée]tric|tens[ãa]o/i.test(x.nome || '')) return ate97 ? 'Qualitativa – tensão acima de 250 V (Dec. 53.831/64, cód. 1.1.8)' : 'Qualitativa – tensão acima de 250 V';
+    return t;
+  }
+  if (ate97) {
+    const cod = String(codigosDoAgente(a).ate97 || '').split(/\s+\(|\s+–\s+/)[0].trim();
+    return `Qualitativa – presunção de exposição (${/^\d/.test(cod) ? `cód. ${cod}` : 'Dec. 53.831/64 e 83.080/79'})`;
+  }
+  let t = quantitativoSemMedicao && !/^Quantitativa/.test(tecnicaDoAgente(a, false)) ? `Quantitativa – NR-15, ${quantitativoSemMedicao}` : tecnicaDoAgente(a, false, { linach: fim > '2014-10-07' });
+  // NHO só para a avaliação quantitativa (Anexos 11 e 12): a qualitativa não tem método de coleta
+  if (fim > '2003-12-31' && /^Quantitativa/.test(t) && !/NHO/i.test(t)) t += `; metodologia: ${RE_POEIRA.test(x.nome || '') || /Anexo 12/.test(t) ? 'NHO 03, NHO 04 e NHO 08' : 'NHO 02 e NHO 07'} da FUNDACENTRO`;
+  return t;
 }
 
 // o agente vale para o vínculo? "V1, V3" (pela ordem cronológica) ou em branco = todos

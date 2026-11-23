@@ -47,15 +47,20 @@ export function viasPadrao(a) {
 // nome do agente é descrição ("Mesamoll (éster … de fenol)") e não entra na busca pelo nome
 export function bancoDoAgente(a, quimicos = []) {
   const x = a.data || a;
-  const cas = casValido(x.cas).split(', ')[0];
+  const cas = (casValido(x.cas) || casValido(x.nome)).split(', ')[0];
   if (cas) { const r = quimicos.find((q) => v(q.data.cas) === cas); if (r) return r; }
-  const alvo = ` ${semAc(String(x.nome || '').replace(/\([^)]*\)/g, ' ')).replace(/[^a-z0-9]+/g, ' ')} `;
+  const norm = (n) => semAc(n).replace(/[^a-z0-9]+/g, ' ').trim();
+  const nomesDe = (q) => [String(q.data.nome || '').replace(/\s*\(.*$/, ''), ...String(q.data.sinonimos || '').split(';'),
+    ...((String(q.data.nome || '').match(/\(([^)]*)\)/) || [])[1] || '').split(/[;,]/)].map(norm).filter(Boolean);
+  // 1) o nome fora dos parênteses, por palavra inteira
+  const alvo = ` ${norm(String(x.nome || '').replace(/\([^)]*\)/g, ' '))} `;
   let melhor = null; let tam = 0;
-  for (const q of quimicos) {
-    const nomes = [String(q.data.nome || '').replace(/\s*\(.*$/, ''), ...String(q.data.sinonimos || '').split(';')].map((n) => semAc(n).replace(/[^a-z0-9]+/g, ' ').trim()).filter((n) => n.length >= 4);
-    for (const n of nomes) if (alvo.includes(` ${n} `) && n.length > tam) { melhor = q; tam = n.length; }
-  }
-  return melhor;
+  for (const q of quimicos) for (const n of nomesDe(q).filter((k) => k.length >= 4)) if (alvo.includes(` ${n} `) && n.length > tam) { melhor = q; tam = n.length; }
+  if (melhor) return melhor;
+  // 2) o que está entre parênteses só vale como item inteiro ("Isocianatos (TDI)" → TDI); "(éster … de fenol)" não é fenol
+  const itens = ((String(x.nome || '').match(/\(([^)]*)\)/) || [])[1] || '').split(/[;,]|\s+[–-]\s+/).map(norm).filter((k) => k.length >= 3);
+  for (const q of quimicos) if (nomesDe(q).some((n) => itens.includes(n))) return q;
+  return null;
 }
 
 // linhas do quadro de características

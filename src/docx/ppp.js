@@ -7,7 +7,7 @@
 import { Doc, dataBR, credencial, finalizar, carregar, fimNaEmissao, hojeLocal } from './base.js';
 import { p, run } from './ooxml.js';
 import { avaliarPeriodos } from './conclusao.js';
-import { exposicaoNoVinculo, codigosDoAgente, tecnicaDoAgente, categoriaDoVinculo, lerAfastamentos } from '../enquadramento.js';
+import { exposicaoNoVinculo, codigosDoAgente, tecnicaNoPeriodo, MARCOS_TECNICA, categoriaDoVinculo, lerAfastamentos } from '../enquadramento.js';
 import { empresaLimpa } from '../nomes.js';
 import { anexoQuantitativo } from './agentesQuadros.js';
 import { codigoCbo } from '../cbo.js';
@@ -28,11 +28,21 @@ const dia = (iso, n) => { const d = new Date(`${iso}T12:00:00`); d.setDate(d.get
 const isoData = (t) => { const x = v(t); if (/^\d{4}-\d{2}-\d{2}$/.test(x)) return x; const m = x.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : ''; };
 // marcos do preenchimento (art. 285 da IN 128/2022): EPC dispensado até 13/10/1996; EPI, até 02/12/1998
 const MARCOS_PPP = ['1996-10-13', '1998-12-02'];
-function partirNosMarcos(ini, fim) {
+function partirNosMarcos(ini, fim, extra = []) {
   const out = []; let a = ini;
-  for (const m of MARCOS_PPP) if (m >= a && m < fim) { out.push([a, m]); a = dia(m, 1); }
+  for (const m of [...new Set([...MARCOS_PPP, ...extra])].sort()) if (m >= a && m < fim) { out.push([a, m]); a = dia(m, 1); }
   out.push([a, fim]);
   return out;
+}
+// subperíodos seguidos com as mesmas informações (o marco não mudou nada) viram uma linha só
+function juntarIguais(linhas) {
+  const out = [];
+  for (const l of linhas) {
+    const ant = out[out.length - 1];
+    if (ant && ant.slice(1, 8).join('|') === l.slice(1, 8).join('|')) { ant[9] = l[9]; continue; }
+    out.push([...l]);
+  }
+  return out.map((l) => [`${dataBR(l[8])} a ${fimTxt(l[10], l[9])}`, ...l.slice(1, 8)]);
 }
 // eSocial SST: o PPP em papel do empregado, do avulso e do cooperado vai até a véspera da entrada do emitente
 export function corteEsocial(c, r) {
@@ -124,22 +134,23 @@ export async function ppp(caseId, dadosProntos) {
   // uma linha por janela de exposição, partida em 13/10/1996 (EPC) e 02/12/1998 (EPI): antes desses marcos os campos
   // não se aplicam (art. 285 da IN 128/2022)
   const linhasExp = [
-    ...exps.flatMap((e) => partirNosMarcos(e.ini, e.fim).map(([ini, fim]) => {
+    // químicos: também em 31/12/2003 (NHO a partir de 2004) e 07/10/2014 (LINACH), quando a técnica muda
+    ...exps.flatMap((e) => juntarIguais(partirNosMarcos(e.ini, e.fim, (e.agente.data.tipo || 'Químico') === 'Químico' ? MARCOS_TECNICA : []).map(([ini, fim]) => {
       const x = e.agente.data; void codigosDoAgente;
       const anexo = anexoQuantitativo(e.agente, dados.quimicos) || 'Anexo 11';
-      const tec = e.naoQuantificado && !/^Quantitativa/.test(tecnicaDoAgente(e.agente, false)) ? `Quantitativa – NR-15, ${anexo}` : tecnicaDoAgente(e.agente, fim <= '1997-03-05') || '[[técnica]]';
-      const intens = (/^n[ãa]o se aplica$/i.test(v(x.intensidade)) ? '' : v(x.intensidade)) || (e.naoQuantificado ? 'Não quantificada' : /^Qualitativa/.test(tec) ? '—' : '[[intensidade]]');
+      const tec = tecnicaNoPeriodo(e.agente, fim, { quantitativoSemMedicao: e.naoQuantificado ? anexo : '' }) || '[[técnica]]';
+      const intens = (/^n[ãa]o se aplica$|^qualitativ/i.test(v(x.intensidade)) ? '' : v(x.intensidade)) || (e.naoQuantificado || /^Qualitativa/.test(tec) ? 'Não quantificada' : '[[intensidade]]');
       const epiAplica = fim > '1998-12-02';
       return [`${dataBR(ini)} a ${fimTxt(e.r, fim)}`, (x.tipo || 'Q')[0], nomeFator(x.nome), intens, tec,
         fim <= '1996-10-13' ? 'Não se aplica' : x.epcEficaz || (semEpi ? 'Não' : '[[S/N]]'),
-        epiAplica ? x.epiEficaz || (semEpi ? 'Não' : '[[S/N]]') : 'Não se aplica', epiAplica ? numeroCa(x.ca) : '—'];
-    })),
+        epiAplica ? x.epiEficaz || (semEpi ? 'Não' : '[[S/N]]') : 'Não se aplica', epiAplica ? numeroCa(x.ca) : '—', ini, fim, e.r];
+    }))),
     ...linhasMed,
   ].sort((a, b) => isoIni(a[0]).localeCompare(isoIni(b[0])));
   d.quadro('15 – Exposição a fatores de riscos', [['Período', 'Tipo', 'Fator de risco', 'Intensidade', 'Técnica utilizada', 'EPC eficaz', 'EPI eficaz', 'CA EPI'],
     ...(linhasExp.length ? linhasExp : [['[[período]]', '', (dados.agentes || []).length ? 'Ausência de fator de risco nocivo' : '[[cadastre os agentes avaliados na etapa 2. Autos]]', '', '', '', '', '']])],
   { larguras: [0.14, 0.07, 0.23, 0.13, 0.12, 0.09, 0.11, 0.11], tam: 8, alinhar: 'left', semNumero: true,
-    fonte: `LTCAT do signatário, itens 5 e 6. Tipo: F – físico; Q – químico; B – biológico. "—": avaliação qualitativa, sem intensidade ou concentração. EPC e EPI eficazes: não se aplicam até 13/10/1996 e até 02/12/1998, respectivamente (art. 285 da IN 128/2022).${exps.some((e) => !e.caracteriza) ? ' "Não quantificada": agente de avaliação quantitativa (NR-15, Anexos 11 e 12) presente no ambiente, sem medição da concentração; não caracteriza a exposição (itens 5 e 6 do LTCAT).' : ''}` });
+    fonte: `LTCAT do signatário, itens 5 e 6. Tipo: F – físico; Q – químico; B – biológico. "Não quantificada": avaliação qualitativa, sem medição da intensidade ou da concentração; técnica conforme o Manual de Aposentadoria Especial do INSS (2018), com as NHO da FUNDACENTRO a partir de 01/01/2004 para os agentes de avaliação quantitativa. EPC e EPI eficazes: não se aplicam até 13/10/1996 e até 02/12/1998, respectivamente (art. 285 da IN 128/2022).${exps.some((e) => !e.caracteriza) ? ' Agente de avaliação quantitativa (NR-15, Anexos 11 e 12) sem medição: consta como presente no ambiente e não caracteriza a exposição (itens 5 e 6 do LTCAT).' : ''}` });
   const comEpi = exps.some((e) => e.caracteriza && e.agente.data.epiEficaz === 'Sim');
   d.quadro('15.9 – Atendimento aos requisitos das NR-06 e NR-09 (EPI)', [['Requisito', 'S/N'],
     ...['Foi tentada a implementação de medidas de proteção coletiva, de caráter administrativo ou de organização, optando-se pelo EPI por inviabilidade técnica, insuficiência ou interinidade, ou ainda em caráter complementar ou emergencial?',

@@ -19,6 +19,7 @@ import { propostasDasRegras } from './regras.js';
 import { caseChildren } from './db.js';
 import { efeitosDoBanco } from './docx/efeitosQuimicos.js';
 import { profissaoDoCaso } from './data/profissoes.js';
+import { candidatosIntegridade, INTEGRIDADE } from './integridade.js';
 
 const br = (iso) => String(iso || '').replace(/^(\d{4})-(\d{2})-(\d{2}).*$/, '$3/$2/$1');
 const nomeVinculo = (r, i) => `V${i + 1} – ${String(r.data.empresa || 'vínculo').split(/\s*\(|,/)[0].trim().slice(0, 45)} (${br(r.data.inicio) || '?'} a ${r.data.fim ? br(r.data.fim) : 'atual'})`;
@@ -209,6 +210,26 @@ export async function pendenciasDoCaso(caseId) {
       if (a.data.tipo === 'Químico' && !String(a.data.efeitos || '').trim() && !efeitosDoBanco(bancoDoAgente(a, dados.quimicos)) && !profissaoDoCaso(c, dados.periodos)) {
         txt(`efeitos-${a.id}`, a.id, 'efeitos', `${a.data.nome} – efeitos à saúde`, 'Vai para o quadro de características dos químicos. Ex.: "Corrosivo: queimaduras de pele, olhos e mucosas; irritação das vias respiratórias."');
       }
+    }
+    // FDS incompleta: sem as seções 2 (perigos), 3 (composição) ou 8 (controle e EPI), a ficha do produto e o quadro de
+    // características ficam sem base; avisa até que as seções sejam preenchidas ou o signatário confirme que segue assim
+    for (const pr of dados.produtos || []) {
+      const x = pr.data;
+      if (x.fdsIncompletaCiente === 'Sim') continue;
+      const falta = [[2, x.s2Classificacao || x.s2FrasesH || x.s2Advertencia], [3, x.s3Componentes], [8, x.s8Limites || x.s8Epi || x.s8Engenharia]].filter(([, val]) => !String(val || '').trim()).map(([n]) => n);
+      if (!falta.length) continue;
+      itens.push({ id: `fds-incompleta-${pr.id}`, grupo: g, tipo: 'aviso', rec: pr.id, respondido: false,
+        acoes: [{ rotulo: 'Ciente – segue assim, com observação na ficha', campo: 'fdsIncompletaCiente', valor: 'Sim' }],
+        titulo: `FDS de ${x.nome} sem ${falta.length > 1 ? 'as seções' : 'a seção'} ${falta.join(', ').replace(/, (\d)$/, ' e $1')}`,
+        explicacao: `Seção 2: perigos e frases H; 3: composição com CAS; 8: limites, controles e EPI. Peça a FDS completa ao fornecedor (ABNT NBR 14725) ou pesquise a do fabricante e importe pela etapa 4. Sem ela, o quadro de características e as recomendações usam só o banco de químicos.` });
+    }
+    // risco à integridade física fora do Anexo IV: eletricidade, inflamáveis e explosivos depois de 05/03/1997 (sugestão automática)
+    const EXPL_INT = { eletricidade: 'Eletricidade acima de 250 V não consta do Anexo IV a partir de 06/03/1997 (NR-16, Anexo 4, e NR-10).', inflamáveis: 'Inflamável (pelo nome, pelo ponto de fulgor do banco ou pela FDS): NR-16, Anexo 2 – operação ou permanência em área de risco.', explosivos: 'NR-16, Anexo 1 – área de risco de explosivos.' };
+    for (const { a, risco } of candidatosIntegridade(dados)) {
+      itens.push({ id: `integridade-${a.id}`, grupo: g, rec: a.id, campo: 'integridadeFisica', tipo: 'escolha', valor: '',
+        opcoes: [{ valor: INTEGRIDADE[0], rotulo: 'Sim – habitual e permanente (registrar no LTCAT)' }, { valor: INTEGRIDADE[1], rotulo: 'Não – eventual ou sem área de risco' }, { valor: INTEGRIDADE[2], rotulo: 'Não se aplica' }],
+        titulo: `${a.data.nome} – risco à integridade física a partir de 06/03/1997?`,
+        explicacao: `${EXPL_INT[risco]} Se "Sim", o LTCAT registra a condição em item próprio (fato técnico, sem alterar o enquadramento) e o PPP remete ao LTCAT nas observações.` });
     }
     // risco à integridade física registrado: precisa das circunstâncias e da frequência (vão ao quadro do item 5)
     for (const a of dados.agentes) {

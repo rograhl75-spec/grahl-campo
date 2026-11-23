@@ -7,6 +7,7 @@
 // Constituição (EC nº 103/2019) fala só em agentes químicos, físicos e biológicos prejudiciais à saúde.
 // ======================================================================
 import { agenteNoVinculo } from './enquadramento.js';
+import { bancoDoAgente } from './docx/agentesQuadros.js';
 
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 const semAc = (t) => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
@@ -15,6 +16,39 @@ const curto = (n) => v(n).replace(/\s+\(.*$/, '');
 
 export const INTEGRIDADE = ['Caracterizada tecnicamente', 'Não caracterizada', 'Não se aplica'];
 export const TITULO_INTEGRIDADE = 'Condições de risco à integridade física não previstas no Anexo IV';
+
+// ---------------- candidatos (sugestão automática) ----------------
+// Inflamável: nome conhecido, ponto de fulgor até 60 °C no banco de químicos (NR-20) ou frases H220 a H226 / classificação
+// "inflamável" na FDS de um produto que contém o agente; eletricidade e explosivos, pelo nome.
+const RE_INFLAMAVEL = /pentano|hexano|heptano|octano|gasolina|etanol|alcool|metanol|isopropanol|acetona|tolueno|xileno|thinner|solvente|nafta|aguarras|querosene|glp|gas liquefeito|butano|propano|acetileno|hidrogenio|metano|eter|acetato de (etila|butila)|metiletilcetona|\bmek\b|inflamave/;
+const RE_INFLAMAVEL_INICIO = new RegExp(`^(?:ciclo|iso)?(?:${RE_INFLAMAVEL.source})`);
+const fulgor = (t) => { const m = String(t || '').replace(',', '.').match(/(-?\d+(?:\.\d+)?)\s*°?\s*C/i); return m ? Number(m[1]) : NaN; };
+export function tipoDeRisco(a, dados = {}) {
+  const x = a.data || a;
+  const n = semAc(`${x.nome || ''} ${x.criterioIntegridade || ''}`);
+  if (/eletric|tensao|energiz/.test(n)) return 'eletricidade';
+  if (/explosiv/.test(n)) return 'explosivos';
+  // o nome tem de começar pelo inflamável ("Tolueno", "n-Pentano", "Vapores de gasolina"): "Diisocianato de tolueno"
+  // e "Fluortriclorometano" não são inflamáveis
+  const principal = semAc(x.nome).replace(/\s*\(.*$/, '').trim().replace(/^(?:n-|iso-|vapores? de |inflamaveis? ?[-–:]? ?)/, '');
+  if (/inflamave/.test(semAc(x.nome).slice(0, 12)) || RE_INFLAMAVEL_INICIO.test(principal)) return 'inflamáveis';
+  const q = bancoDoAgente(a, dados.quimicos || []);
+  if (q && (fulgor(q.data.pontoFulgor) <= 60 || /H22[0-6]/.test(v(q.data.frasesH)))) return 'inflamáveis';
+  const cas = v(x.cas); const nome = semAc(x.nome).replace(/\s*\(.*$/, '').trim();
+  const naFds = (dados.produtos || []).some((p) => {
+    const d = p.data; const comp = semAc(`${d.nome || ''}\n${d.s3Componentes || ''}`);
+    return ((cas && comp.includes(cas)) || (nome.length >= 4 && comp.includes(nome)))
+      && (/H22[0-6]/.test(v(d.s2FrasesH)) || /inflamave/.test(semAc(d.s2Classificacao)) || fulgor(d.s9Fulgor) <= 60);
+  });
+  return naFds ? 'inflamáveis' : '';
+}
+// agentes ainda sem resposta que podem representar risco à integridade física fora do Anexo IV, em período
+// posterior a 05/03/1997 (antes, o decreto já trata eletricidade e os químicos por presunção)
+export function candidatosIntegridade(dados, hoje = new Date().toISOString().slice(0, 10)) {
+  const depois97 = (a) => (dados.periodos || []).some((r, i) => agenteNoVinculo(a, i) && (r.data.fim || hoje) >= '1997-03-06' && (!v(a.data.expFim) || v(a.data.expFim) >= '1997-03-06'));
+  return (dados.agentes || []).filter((a) => !v(a.data.integridadeFisica) && a.data.resDesde97 !== 'Caracteriza' && depois97(a))
+    .map((a) => ({ a, risco: tipoDeRisco(a, dados) })).filter((c) => c.risco);
+}
 
 // critério técnico pelo tipo de risco (o digitado no agente prevalece)
 export function criterioIntegridade(a) {
@@ -48,10 +82,19 @@ export function condicoesIntegridade(dados, hoje = new Date().toISOString().slic
 }
 
 // item do LTCAT (dentro do item 5): texto, quadro e nota da EC 103/2019
+// "n-Pentano (inflamáveis)"; "Eletricidade" sem repetir o tipo de risco
+const rotuloPend = (c) => (semAc(curto(c.a.data.nome)).includes(semAc(c.risco).slice(0, 7)) ? curto(c.a.data.nome) : `${curto(c.a.data.nome)} (${c.risco})`);
 export function secaoIntegridade(d, dados, sub) {
   const cs = condicoesIntegridade(dados);
-  if (!cs.length) return false;
+  const pend = candidatosIntegridade(dados);
+  if (!cs.length && !pend.length) return false;
+  if (!cs.length) {
+    sub(TITULO_INTEGRIDADE);
+    d.texto(`[[Avaliar o risco à integridade física a partir de 06/03/1997 (${pend.map(rotuloPend).join('; ')}): responda nas pendências se a exposição é habitual e permanente ("Caracterizada tecnicamente") ou eventual ("Não caracterizada").]]`);
+    return true;
+  }
   sub(TITULO_INTEGRIDADE);
+  if (pend.length) d.texto(`[[Avaliar também o risco à integridade física de: ${pend.map(rotuloPend).join('; ')} (pendências).]]`);
   d.texto('As condições abaixo não constam do Anexo IV do Decreto nº 3.048/1999 e não alteram o enquadramento dos períodos, que segue o item 6. São registradas como fato técnico, pelos critérios da NR-16 e da NR-10, para apreciação da autoridade administrativa ou judicial.');
   const varios = dados.periodos.length > 1;
   d.quadro('Condições de risco à integridade física', [['Condição', 'Critério técnico', 'Período', 'Circunstâncias, frequência e duração'],

@@ -5,7 +5,8 @@ import { ehSuplementar } from '../schema.js';
 import { doseJornada, fatorQ, fmt, ibutg, nen } from '../calc.js';
 import { confrontoAnexo11, num as numQ } from '../quimicos.js';
 import { exposicaoNoVinculo, codigosDoAgente, medidasDoAgente, tecnicaNoPeriodo } from '../enquadramento.js';
-import { anexoQuantitativo } from './agentesQuadros.js';
+import { anexoQuantitativo, perigosDoAgente, medidasDoPerigo } from './agentesQuadros.js';
+import { condicoesIntegridade } from '../integridade.js';
 import {
   Doc, carregar, finalizar, dataBR, partes, art, enderecamentoTexto, linhasProcesso, qualificacaoCurta, credencial,
   equipamentosUsados, quadroEquipamentos, quadroDiligencia, quadroDocumentos, quadroEpis, profissiografia, figurasDoCaso,
@@ -409,14 +410,34 @@ export function linhasRecomendacoes(dados) {
     if (x.resDesde97 !== 'Caracteriza' && x.resDesde2014 !== 'Caracteriza' && !(x.resAte97 === 'Caracteriza' && !x.resDesde97)) continue;
     rows.push([postoGeral, x.nome, 'Exposição caracterizada (avaliação qualitativa)', medidasDoAgente(a)]);
   }
+  // presentes, sem caracterização, mas com perigo que pede controle (sensibilizante, cancerígeno, tóxico à reprodução)
+  const ja = new Set(rows.map((r) => r[1]));
+  for (const a of dados.agentes || []) {
+    if (ja.has(a.data.nome)) continue;
+    const pg = perigosDoAgente(a, dados);
+    if (pg.length) rows.push([postoGeral, a.data.nome, `Agente presente – ${pg.join(', ')}`, medidasDoPerigo(pg)]);
+  }
+  // riscos à integridade física registrados no item 5
+  const vistos = new Set();
+  for (const c of condicoesIntegridade(dados)) {
+    if (vistos.has(c.a.id)) continue; vistos.add(c.a.id);
+    const ele = /NR-10|el[ée]tric/i.test(c.criterio);
+    rows.push([postoGeral, c.a.data.nome.replace(/\s*\(.*$/, ''), 'Risco à integridade física', ele
+      ? 'NR-10: desenergização, bloqueio e etiquetagem; trabalho só por profissional autorizado e treinado; vestimenta e EPI para arco elétrico; distâncias de segurança.'
+      : 'NR-20 e NR-16: armazenamento e transferência em recipientes adequados, aterramento e ligação equipotencial, eliminação de fontes de ignição, ventilação e detecção de gases na área de risco.']);
+  }
   return rows;
 }
 export function quadroRecomendacoes(d, dados) {
   const rows = linhasRecomendacoes(dados);
   const soQuali = rows.length && !dados.medicoes?.length;
-  d.quadro('Medidas de controle recomendadas', [['Posto', 'Agente', 'Situação', 'Medidas recomendadas (ordem da NR-1)'],
-    ...(rows.length ? rows : [['[[posto]]', '[[agente]]', '[[situação]]', '[[medidas]]']])],
-  { larguras: [0.18, 0.17, 0.2, 0.45], tam: 9, alinhar: 'left', fonte: soQuali ? 'Elaborado pelo signatário. Agentes com exposição caracterizada na avaliação qualitativa (item 5).' : 'Elaborado pelo signatário. Agentes no nível de ação ou acima (NR-9: ruído – dose de 50%; VCI – aren 0,5 m/s² ou VDVR 9,1 m/s^1,75; VMB – aren 2,5 m/s²; químicos – metade do limite de exposição).' });
+  // um posto só ("Todos os postos" em todas as linhas): a coluna sai
+  const umPosto = rows.length > 0 && rows.every((r) => r[0] === rows[0][0]);
+  const extra = rows.some((r) => /^Agente presente|^Risco à integridade/.test(r[2])) ? ' Também os agentes presentes com perigo que pede controle, ainda que sem caracterização previdenciária (sensibilizantes, cancerígenos e tóxicos à reprodução, pela FDS e pelo banco de químicos), e os riscos à integridade física do item 5.' : '';
+  const cab = ['Posto', 'Agente', 'Situação', 'Medidas recomendadas (ordem da NR-1)'];
+  const linhas = rows.length ? rows : [['[[posto]]', '[[agente]]', '[[situação]]', '[[medidas]]']];
+  d.quadro(umPosto && !/^Todos os postos$/.test(rows[0][0]) ? `Medidas de controle recomendadas – ${rows[0][0]}` : 'Medidas de controle recomendadas', [umPosto ? cab.slice(1) : cab, ...(umPosto ? linhas.map((r) => r.slice(1)) : linhas)],
+  { larguras: umPosto ? [0.24, 0.2, 0.56] : [0.14, 0.22, 0.18, 0.46], tam: 9, alinhar: 'left', fonte: soQuali ? `Elaborado pelo signatário. Agentes com exposição caracterizada na avaliação qualitativa (item 5).${extra}` : 'Elaborado pelo signatário. Agentes no nível de ação ou acima (NR-9: ruído – dose de 50%; VCI – aren 0,5 m/s² ou VDVR 9,1 m/s^1,75; VMB – aren 2,5 m/s²; químicos – metade do limite de exposição).' });
   return rows.length;
 }
 

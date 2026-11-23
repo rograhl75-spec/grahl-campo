@@ -172,6 +172,66 @@ const TXT_RADIACAO = 'As radiações ionizantes, até 05/03/1997, enquadram-se p
 const RES_TXT = (r) => ({ 'Caracteriza': 'caracteriza', 'Não caracteriza': 'não caracteriza', 'Não enquadrável': 'não enquadrável', 'A confirmar': '[[a confirmar]]' }[r] || '[[resultado]]');
 // "1.2.9 (…)" vira "cód. 1.2.9 (…)"; texto livre ("não consta do Anexo IV") fica como está
 const codTxt = (k) => (/^\d/.test(k) ? `cód. ${k}` : k.charAt(0).toUpperCase() + k.slice(1));
+// Fundamentação por agente: as frases do texto padrão das regras (as mesmas para vários agentes) saem agrupadas
+// numa frase por situação – "Até 05/03/1997, A, B e C constam do cód. 1.2.11…" –, e o que for próprio de cada
+// agente (texto digitado, grupo do óleo mineral, LINACH) sai em parágrafo próprio. Evita dez parágrafos iguais.
+const RE_FRASE = [
+  ['ac', /^Até 05\/03\/1997, o agente consta do (cód\. .+), e o enquadramento é qualitativo, por presunção de exposição \(IN 128\/2022, art\. 297, I\)\.$/],
+  ['an', /^Até 05\/03\/1997, o agente não consta dos Decretos 53\.831\/64 e 83\.080\/79: não há enquadramento por ele\.$/],
+  ['ne', /^A partir de 06\/03\/1997, o agente não consta do Anexo IV dos Decretos 2\.172\/97 e 3\.048\/99, cujo rol de agentes é exaustivo: não é enquadrável, ainda que presente no ambiente\.$/],
+  ['nc', /^A partir de 06\/03\/1997, o agente consta do Anexo IV \((cód\. .+)\) e tem limite de tolerância na NR-15, com avaliação quantitativa \(IN 128\/2022, art\. 297, II\)\. Sem medição da concentração no ambiente, a exposição não é caracterizada; o agente consta do PPP como presente, com a intensidade "não quantificada"\.$/],
+  ['c', /^A partir de 06\/03\/1997, o agente consta do Anexo IV \((cód\. .+)\), com avaliação qualitativa \(IN 128\/2022, art\. 297, II\), e a exposição é caracterizada nas atividades descritas\.$/],
+];
+// frases da fundamentação: as do texto padrão (k, cod) e as demais (k: '')
+function frasesPadrao(a) {
+  const t = v(a.data.fundamentacao);
+  // corta nas frases sem quebrar "art. 297, I." nem "cód. 1.2.11" (ponto seguido de espaço e maiúscula)
+  const frases = t ? t.split(/(?<=\.)\s+(?=(?:Até|A partir|Sem medição)\b)/) : [];
+  const out = [];
+  for (const f of frases) {
+    // a frase "Sem medição…" pertence à anterior (nc)
+    if (/^Sem medição/.test(f) && out.length) { const ant = out.pop(); out.push(...classificar(`${ant.t} ${f}`)); continue; }
+    out.push(...classificar(f));
+  }
+  return out;
+}
+function classificar(f) {
+  for (const [k, re] of RE_FRASE) { const m = f.match(re); if (m) return [{ k, cod: m[1] || '', t: f }]; }
+  return [{ k: '', cod: '', t: f }];
+}
+const nomeAgCurto = (a) => v(a.data.nome).replace(/\s+\(.*$/, '').replace(/^\p{Lu}(?=\p{Ll})/u, (c) => c.toLowerCase());
+const listaE = (l) => l.join(', ').replace(/, ([^,]*)$/, ' e $1');
+function fundamentacaoAgrupada(d, lst) {
+  const fr = new Map(lst.map((a) => [a.id, frasesPadrao(a)]));
+  const padrao = lst.filter((a) => fr.get(a.id).some((f) => f.k));
+  // agrupar só compensa com dois ou mais agentes no texto padrão
+  if (padrao.length < 2) {
+    for (const a of lst) {
+      if (v(a.data.fundamentacao)) d.texto(`**${a.data.nome}.** ${v(a.data.fundamentacao)}`);
+      else d.redigir(`fundamentação de ${a.data.nome} (código de cada época e conclusão).`);
+    }
+    return;
+  }
+  const grupos = new Map();
+  for (const a of padrao) for (const f of fr.get(a.id)) if (f.k) { const k = `${f.k}|${f.cod}`; if (!grupos.has(k)) grupos.set(k, []); grupos.get(k).push(a); }
+  const ordem = ['ac', 'an', 'c', 'nc', 'ne'];
+  const linhas = [...grupos.entries()].sort((x, y) => ordem.indexOf(x[0].split('|')[0]) - ordem.indexOf(y[0].split('|')[0])).map(([k, ags]) => {
+    const [tipo, cod] = k.split('|'); const pl = ags.length > 1; const nomes = listaE(ags.map(nomeAgCurto)).replace(/^./, (c) => c.toUpperCase());
+    if (tipo === 'ac') return `Até 05/03/1997, ${pl ? `os agentes ${nomes.replace(/^./, (c) => c.toLowerCase())} constam` : `${nomes.replace(/^./, (c) => c.toLowerCase())} consta`} do ${cod}, e o enquadramento é qualitativo, por presunção de exposição (IN 128/2022, art. 297, I).`;
+    if (tipo === 'an') return `Até 05/03/1997, ${pl ? `${nomes.replace(/^./, (c) => c.toLowerCase())} não constam` : `${nomes.replace(/^./, (c) => c.toLowerCase())} não consta`} dos Decretos 53.831/64 e 83.080/79: não há enquadramento por ${pl ? 'eles' : 'ele'}.`;
+    if (tipo === 'c') return `A partir de 06/03/1997, ${nomes.replace(/^./, (c) => c.toLowerCase())} ${pl ? 'constam' : 'consta'} do Anexo IV (${cod}), com avaliação qualitativa (IN 128/2022, art. 297, II), e a exposição é caracterizada nas atividades descritas.`;
+    if (tipo === 'nc') return `A partir de 06/03/1997, ${nomes.replace(/^./, (c) => c.toLowerCase())} ${pl ? 'constam' : 'consta'} do Anexo IV (${cod}) e ${pl ? 'têm' : 'tem'} limite de tolerância na NR-15, com avaliação quantitativa (IN 128/2022, art. 297, II). Sem medição da concentração no ambiente, a exposição não é caracterizada; ${pl ? 'os agentes constam' : 'o agente consta'} do PPP como ${pl ? 'presentes' : 'presente'}, com a intensidade "não quantificada".`;
+    return `A partir de 06/03/1997, ${nomes.replace(/^./, (c) => c.toLowerCase())} não ${pl ? 'constam' : 'consta'} do Anexo IV dos Decretos 2.172/97 e 3.048/99, cujo rol de agentes é exaustivo: não ${pl ? 'são enquadráveis' : 'é enquadrável'}, ainda que ${pl ? 'presentes' : 'presente'} no ambiente.`;
+  });
+  d.texto(linhas.map((l) => `- ${l}`).join("\n"));
+  // o que é próprio de cada agente (e os agentes sem o texto padrão)
+  for (const a of lst) {
+    const resto = fr.get(a.id).filter((f) => !f.k).map((f) => f.t).join(' ');
+    if (resto) d.texto(`**${a.data.nome}.** ${resto}`);
+    else if (!fr.get(a.id).length) d.redigir(`fundamentação de ${a.data.nome} (código de cada época e conclusão).`);
+  }
+}
+
 function agentesAvaliados(d, dados, sub, n) {
   const ags = dados.agentes || [];
   if (!ags.length) {
@@ -216,13 +276,10 @@ function agentesAvaliados(d, dados, sub, n) {
       const quant = lst.filter((a) => anexoQuantitativo(a, dados.quimicos) && a.data.resDesde97 === 'Não caracteriza')
         .map((a) => a.data.nome.replace(/\s*\(.*$/, '').replace(/^\p{Lu}(?=\p{Ll})/u, (c) => c.toLowerCase()));
       const lq = quant.join(', ').replace(/, ([^,]*)$/, ' e $1').replace(/^./, (c) => c.toUpperCase());
-      if (quant.length) d.texto(`${lq} ${quant.length > 1 ? 'têm' : 'tem'} limite de tolerância nos Anexos 11 ou 12 da NR-15 (avaliação quantitativa). Sem medição da concentração no ambiente, a exposição não é caracterizada, e ${quant.length > 1 ? 'os agentes constam' : 'o agente consta'} do PPP como presente${quant.length > 1 ? 's' : ''}, com a intensidade "não quantificada".`);
+      const cobertos = lst.filter((a) => anexoQuantitativo(a, dados.quimicos) && a.data.resDesde97 === 'Não caracteriza').every((a) => frasesPadrao(a).some((f) => f.k === 'nc'));
+      if (quant.length && !(cobertos && lst.length > 1)) d.texto(`${lq} ${quant.length > 1 ? 'têm' : 'tem'} limite de tolerância nos Anexos 11 ou 12 da NR-15 (avaliação quantitativa). Sem medição da concentração no ambiente, a exposição não é caracterizada, e ${quant.length > 1 ? 'os agentes constam' : 'o agente consta'} do PPP como presente${quant.length > 1 ? 's' : ''}, com a intensidade "não quantificada".`);
     }
-    for (const a of lst) {
-      const partes = [v(a.data.fundamentacao)].filter(Boolean);
-      if (partes.length) d.texto(`**${a.data.nome}.** ${partes.join(' ')}`);
-      else d.redigir(`fundamentação de ${a.data.nome} (código de cada época e conclusão).`);
-    }
+    fundamentacaoAgrupada(d, lst);
   }
   // produtos com FDS sem agente químico avaliado: as fichas saem numa seção própria
   if ((dados.produtos || []).length && !dados._fdsImpressas) { sub('Produtos químicos – dados das fichas com dados de segurança (FDS)'); n += 1; fichasFds(d, dados); }
@@ -585,7 +642,8 @@ export async function ltcatPpp(caseId) {
     { larguras: [0.1, 0.9], tam: 9, alinhar: 'left', fonte: 'Declarações do segurado (item 2.3), documentos do item 1.3 e vistoria.' });
   // postos da vistoria: só quando houve vistoria e há postos cadastrados (a numeração segue sem saltos)
   if (dados.postos.length) { n4 += 1; profissiografia(d, dados.postos, dados, { numero: `4.${n4}` }); }
-  else if (!semVistoria) d.redigir('descrição do ambiente e das atividades observadas na vistoria (cadastrar os postos na aba Campo).');
+  // sem postos: o aviso só quando nenhum vínculo tem as atividades descritas (a profissiografia já cumpre o art. 276, IV)
+  else if (!semVistoria && !dados.periodos.some((r) => v(r.data.atividades) || v(r.data.profissiografia))) d.redigir('descrição do ambiente e das atividades observadas na vistoria (cadastrar os postos na aba Campo).');
   const { lista, faltando } = await figurasDoCaso(dados);
   if (lista.length) { n4 += 1; d.h2(`4.${n4}`, 'Registro fotográfico'); d.figuras(lista); }
 
@@ -642,11 +700,18 @@ export async function ltcatPpp(caseId) {
 // vínculos do LTCAT: empresa sem as anotações entre parênteses; local e categoria do segurado em colunas próprias
 function quadroVinculosLtcat(d, dados) {
   if (!dados.periodos.length) return d.texto('[[Cadastrar os vínculos/períodos na aba Preparação.]]');
-  return d.quadro('Períodos avaliados', [['Vínculo', 'Período', 'Cargo / setor / local', 'Categoria', 'Fonte'],
+  // local e documentos costumam ser longos (sede, filiais, clientes; várias fontes): vão abaixo do quadro, em texto
+  d.quadro('Períodos avaliados', [['Vínculo', 'Período', 'Cargo / setor', 'Categoria'],
     ...dados.periodos.map((r, i) => [[`${dados.periodos.length > 1 ? `V${i + 1} – ` : ''}${empresaLimpa(r.data.empresa) || 'vínculo'}`, r.data.cnpj && `CNPJ ${r.data.cnpj}`].filter(Boolean).join('\n'),
-      `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`,
-      [r.data.cargo, r.data.setor, r.data.local].filter((x) => v(x)).join(' / '), categoriaDoVinculo(r) || '[[categoria]]', r.data.fonte || ''])],
-  { larguras: [0.24, 0.15, 0.24, 0.14, 0.23], tam: 9, alinhar: 'left' });
+      `${dataBR(r.data.inicio)} a\n${r.data.fim ? dataBR(r.data.fim) : 'atual'}`,
+      [r.data.cargo, r.data.setor].filter((x) => v(x)).join(' / ') || '[[cargo]]', categoriaDoVinculo(r) || '[[categoria]]'])],
+  { larguras: [0.28, 0.17, 0.37, 0.18], tam: 9, alinhar: 'left', fonte: 'Elaborado pelo signatário. Locais de trabalho e documentos de cada vínculo no texto a seguir.' });
+  const varios = dados.periodos.length > 1;
+  for (const [i, r] of dados.periodos.entries()) {
+    const partes = [v(r.data.local) && `**${varios ? `V${i + 1} – l` : 'L'}ocal de trabalho:** ${v(r.data.local).replace(/\.?$/, '.')}`, v(r.data.fonte) && `**${varios && !v(r.data.local) ? `V${i + 1} – d` : 'D'}ocumentos e fontes:** ${v(r.data.fonte).replace(/\.?$/, '.')}`].filter(Boolean);
+    if (partes.length) d.texto(partes.join(' '));
+  }
+  return d;
 }
 
 // diligência do LTCAT: presencial (vistoria) ou remota (entrevista por videoconferência); campos de enchimento
@@ -743,7 +808,7 @@ function textoCategoriaSegurado(d, dados) {
   }
   if (qtd(coop)) d.texto(`${quem(coop)}, o segurado era cooperado de cooperativa de trabalho, categoria à qual se aplicam as regras da aposentadoria especial (art. 1º da Lei nº 10.666/2003). ${proprio ? 'Como presta os serviços em consultório próprio, não exclusivamente pela cooperativa, o PPP é emitido pelo próprio segurado, com base neste laudo.' : 'O PPP desse período cabe à cooperativa, com base neste laudo.'}`);
   if (per.some((x) => !x.cat)) d.texto(`[[Informe a categoria do segurado nos vínculos ${lista((x) => !x.cat)} (etapa 2. Autos).]]`);
-  if (dados.periodos.some((r) => !r.data.fim || r.data.fim > '2019-11-13')) d.texto('Os subperíodos posteriores a 13/11/2019, data de entrada em vigor da Emenda Constitucional nº 103/2019, são indicados separadamente na síntese do item 6.');
+  if (dados.periodos.some((r) => !r.data.fim || r.data.fim > '2019-11-13')) d.texto('A data de 13/11/2019, de entrada em vigor da Emenda Constitucional nº 103/2019, é indicada na síntese do item 6: em linha própria, quando o enquadramento muda nessa data, ou na nota do quadro, quando não muda.');
   const afs = dados.periodos.flatMap((r) => lerAfastamentos(r.data.afastamentos));
   if (afs.some((x) => x.excluido)) d.texto('Os afastamentos por benefício por incapacidade temporária de natureza previdenciária são indicados separadamente no item 6 e nas observações do PPP (art. 65, parágrafo único, do Decreto nº 3.048/1999).');
 }

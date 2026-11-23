@@ -135,7 +135,7 @@ describe('LTCAT e PPP do contribuinte individual sócio, avaliação remota', ()
     expect(t).not.toMatch(/\nlocal\n/);
     expect(t).toContain('na condição de sócio da empresa emitente do PPP');
     expect(t).not.toContain('Não há empresa que mantenha registros ambientais');
-    expect(t).toContain('posteriores a 13/11/2019, data de entrada em vigor');
+    expect(t).toContain('13/11/2019, de entrada em vigor da Emenda Constitucional nº 103/2019, é indicada na síntese');
     expect(t).not.toMatch(/PGR|00:07|~1992/);
     expect(t).not.toContain('Anexe a ART');
     expect(t).toContain('4.1 PROFISSIOGRAFIA');

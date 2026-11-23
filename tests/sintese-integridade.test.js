@@ -327,3 +327,13 @@ describe('PPP: lotação partida onde o código GFIP muda', () => {
     expect(p).toMatch(/17\/07\/1997 a\s*31\/12\/2020[\s\S]{0,200}04 \(25 anos\)/);
   });
 });
+
+describe('instruções do Claude (LTCAT + PPP extrajudicial)', () => {
+  it('trazem as regras novas', async () => {
+    const { montarPrompt } = await import('../src/aiimport.js');
+    const t = montarPrompt('extra-ltcat', { materia: 'Previdenciária', tipoAtuacao: 'Extrajudicial' });
+    for (const k of ['enquadra a condição caracterizada (art. 57', 'não entra no campo 15 nem no código GFIP', 'PERÍODO DE EXPOSIÇÃO DE CADA AGENTE', 'Resolução CONAMA nº 267/2000',
+      'IN IBAMA nº 4/2018', 'RDC Anvisa nº 173/2017', '"por analogia"', 'sem exclusividade com a cooperativa', '"excluir": true', '"novoNome"', 'No trabalho extrajudicial, não são citados']) expect(t).toContain(k);
+    expect(t).not.toContain('sem alterar o enquadramento, e o PPP só remete');
+  });
+});

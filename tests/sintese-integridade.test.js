@@ -136,3 +136,37 @@ describe('documentos da empresa não citados', () => {
     expect(prof).toContain('Atual: setor Manutenção/supervisão');
   });
 });
+
+describe('texto da entrevista e perigos', () => {
+  it('tira minutagem, "transcrição", "~" após travessão, "a:" sem data e "[, ]"', async () => {
+    const { limpaTextoLaudo } = await import('../src/docx/base.js');
+    const t = limpaTextoLaudo("Agente de expansão (entrevista 00:18:59–00:19:48: \"Isso é o R11\"); Grammer, conforme entrevista 00:19:48; controladores (1989–~1992); transcrição 23/10/2026. d) 07/1997 a: montagem. 'equipamentos [, ] esporadicamente pode realizar trabalhos acima de 2 metros de altura, conforme o documento da empresa do segurado'.");
+    expect(t).not.toMatch(/\d{2}:\d{2}:\d{2}|R11"|~|transcrição|a:|\[/);
+    expect(t).toContain('(entrevista)');
+    expect(t).toContain('1989–cerca de 1992');
+    expect(t).toContain('entrevista de 23/10/2026');
+    expect(t).toContain('07/1997 em diante:');
+    expect(t).toContain('"equipamentos, esporadicamente');
+  });
+  it('"sensibilização cardíaca" não é sensibilizante', async () => {
+    const { perigosDoAgente } = await import('../src/docx/agentesQuadros.js');
+    expect(perigosDoAgente({ data: { nome: 'HCFC-141b', tipo: 'Químico', efeitos: 'Depressão do SNC e sensibilização cardíaca com risco de arritmia.' } })).toEqual([]);
+    expect(perigosDoAgente({ data: { nome: 'MDI', tipo: 'Químico', efeitos: 'Sensibilização respiratória e cutânea.' } })).toEqual(['sensibilizante']);
+  });
+});
+
+describe('termo de declaração e autorização', () => {
+  it('segurado que é o representante legal: uma assinatura com os dois papéis; 2.3 remete ao termo', async () => {
+    await caso('s4', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'], autorNome: 'Fulano de Tal', autorCpf: '000.000.000-00', pppNit: '000.00000.00-0',
+      pppEmitente: 'Empresa (empregador)', pppEmitenteNome: 'Empresa Gama Ltda', pppEmitenteCnpj: '00.000.000/0001-00', pppRepresentante: 'Fulano de Tal', vistoriaData: '2026-10-01' });
+    await filho('s4v', 'periodo', 's4', { empresa: 'Empresa Gama Ltda', inicio: '2000-01-01', fim: '2010-12-31', cargo: 'Técnico', atividades: 'Montagem.' });
+    await filho('s4a', 'agenteAvaliado', 's4', { nome: 'Óleo mineral', tipo: 'Químico', resAte97: 'Caracteriza', resDesde97: 'Caracteriza', codDesde97: '1.0.7, b, do Anexo IV' });
+    const t = await texto(await ltcatPpp('s4'));
+    expect(t).toMatch(/TERMO DE DECLARAÇÃO E AUTORIZAÇÃO/i);
+    expect(t).toContain('Eu, Fulano de Tal, CPF 000.000.000-00 – NIT 000.00000.00-0, declaro');
+    expect(t).toContain('Na condição de representante legal da Empresa Gama Ltda (CNPJ/CAEPF 00.000.000/0001-00), autorizo o levantamento');
+    expect(t).toContain('Segurado e representante legal da Empresa Gama Ltda');
+    expect((t.match(/_{20,}\n/g) || []).length).toBeGreaterThanOrEqual(1);
+    expect(t).toContain('constam do termo de declaração e autorização, assinado ao final deste laudo');
+  });
+});

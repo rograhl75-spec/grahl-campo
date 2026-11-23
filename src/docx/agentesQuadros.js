@@ -174,7 +174,8 @@ export function perigosDoAgente(a, dados = {}) {
   // trechos negados ("sem sensibilização", "não classificado", "nenhum efeito na fertilidade") não contam
   const t = semAc(`${x.efeitos || ''} ${x.limites || ''} ${fds}`).replace(/\b(sem|nao|nenhum|nenhuma|negativ\w*)\b[^.;,()]*/g, ' ');
   const out = [];
-  if (/sensibiliza|asma ocupacional|h334|h317/.test(t)) out.push('sensibilizante');
+  // sensibilizante respiratório ou cutâneo ("sensibilização cardíaca" dos halogenados não é)
+  if (/sensibiliza\w*\s+(respirat|cutane|a pele|da pele|dermic)|sensibilizante|asma ocupacional|h334|h317/.test(t)) out.push('sensibilizante');
   if (/\bgrupo 1\b/.test(semAc(b.linach)) || /^(1|2a)\b/i.test(v(b.iarc).replace(/^grupo\s*/i, '')) || /h350|carcinog|cancerigen/.test(t)) out.push('cancerígeno');
   if (/h360|toxicidade a reproducao|toxico a reproducao|fertilidade/.test(t)) out.push('tóxico à reprodução');
   return out;

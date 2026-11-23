@@ -83,12 +83,17 @@ export function limpaTextoLaudo(t, { semDocs = false, campo = '' } = {}) {
   s = s.replace(/\s*\([^()]*\btranscri(?:ção|cao|ções)\b[^()]*\)/gi, '');
   s = s.replace(/,?\s*transcrit[oa]s? como\s*['"‘“][^'"’”]{1,40}['"’”]/gi, '');
   s = s.replace(/\s*\(ver\s+[^()]{1,60}\)/gi, '');
-  s = s.replace(/(^|[\s(])~\s*(?=\d)/g, '$1cerca de ');
+  // minutagem da entrevista ("entrevista 00:19:48", "entrevista 00:18:59–00:19:48: \"Isso é o R11\"") e "transcrição de 23/10/2026"
+  s = s.replace(/\b(entrevistas?)\s+(?:\d{1,2}:)?\d{2}:\d{2}(?::\d{2})?(?:\s*[–-]\s*(?:\d{1,2}:)?\d{2}:\d{2}(?::\d{2})?)?(?::\s*["“][^"”]{1,80}["”])?/gi, '$1');
+  s = s.replace(/\btranscrição(?:\s+de)?\s+(?=\d{2}\/\d{2}\/\d{4})/gi, 'entrevista de ');
+  s = s.replace(/(^|[\s(–-])~\s*(?=\d)/g, '$1cerca de ');
+  // "07/1997 a:" (fim em aberto sem data) → "07/1997 em diante:"; "[, ]" de edição de citação → ","
+  s = s.replace(/(\b\d{2}\/\d{4}|\b\d{4})\s+a\s*:/g, '$1 em diante:').replace(/\s*\[\s*,\s*\]\s*/g, ', ');
   // nota de trabalho entre colchetes simples → pendência marcada; reticências de citação ([...]) ficam
   s = s.replace(/(^|[^\[])\[(?!\[)([^\[\]\n]{2,120})\](?!\])/g, (m, pre, dentro) => (/^\s*(\.\.\.|…)\s*$/.test(dentro) ? m
     : /confirm|confer|verific|pendente|a definir|\?|data|preencher/i.test(dentro) ? `${pre}[[${dentro.trim()}]]` : m));
   // aspas simples em volta de palavras ('fresa') → aspas duplas
-  s = s.replace(/(^|[\s(;:,])'([^'\n]{1,80}?)'(?=[\s).;:,!?]|$)/g, '$1"$2"');
+  s = s.replace(/(^|[\s(;:,])'([^'\n]{1,300}?)'(?=[\s).;:,!?]|$)/g, '$1"$2"');
   if (semDocs) {
     const temDoc = (x) => new RegExp(`\\b${SIGLAS_DOC}\\b`).test(x);
     // lista (fonte, setor): corta nos separadores fora de parênteses ("PGR 2026 (itens 11–12, 16)" é um item só)

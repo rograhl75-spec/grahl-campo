@@ -586,7 +586,7 @@ export async function ltcatPpp(caseId) {
   d.texto('O laudo individual deve ser acompanhado de autorização escrita da empresa para efetuar o levantamento e do nome e identificação do acompanhante da empresa, quando o responsável técnico não for seu empregado, e da data e do local da realização da perícia (art. 277, IV, alíneas *a*, *b* e *c*, da IN 128/2022).');
   quadroDiligenciaLtcat(d, c, seg);
   d.h2('2.3', 'Declarações');
-  d.texto(`Integram este laudo, como anexos, a autorização para o levantamento e a declaração ${/Pr[oó]prio/.test(c.pppEmitente || '') || !c.reuNome ? 'do segurado' : 'do responsável legal'} sobre o histórico dos locais de trabalho, das atividades, dos equipamentos e dos produtos utilizados em cada período, assinadas. ${semVistoria ? 'As condições de trabalho do período avaliado foram reconstituídas com base nessas declarações, na entrevista do segurado e nos documentos apresentados.' : 'As condições dos períodos anteriores à vistoria foram reconstituídas com base nessas declarações e nos documentos do item 1.3.'}`);
+  d.texto(`${/Pr[oó]prio/.test(c.pppEmitente || '') ? 'A declaração do segurado' : 'A declaração do segurado e a autorização da emitente para o levantamento (art. 277, IV, *a*, da IN 128/2022)'} sobre o histórico dos locais de trabalho, das atividades, dos equipamentos e dos produtos utilizados em cada período ${/Pr[oó]prio/.test(c.pppEmitente || '') ? 'consta' : 'constam'} do termo de declaração e autorização, assinado ao final deste laudo. ${semVistoria ? 'As condições de trabalho do período avaliado foram reconstituídas com base nessas declarações, na entrevista do segurado e nos documentos apresentados.' : 'As condições dos períodos anteriores à vistoria foram reconstituídas com base nessas declarações e nos documentos do item 1.3.'}`);
   d.h2('2.4', 'Instrumentos e calibração');
   instrumentosOuQualitativa(d, dados);
   d.h2('2.5', 'Valor probatório');
@@ -654,6 +654,7 @@ export async function ltcatPpp(caseId) {
     d.texto('[[Preencher, em cada posto da etapa 4. Campo, as fontes geradoras e a via e periodicidade da exposição (art. 276, VI e VII), ou a fonte de cada agente avaliado (etapa 2. Autos).]]');
   }
   blocoAssinatura(d, dados, `Responsável técnico – ART nº ${art}`);
+  termoDeclaracaoAutorizacao(d, dados);
   secaoReferencias(d, dados, { prev: true, judicial: true });
   const { anexos, falhasAnexo } = await anexosDoCaso(dados);
   const { apendices, falhasApendice, semRelatorios, semRelatoriosLgpd } = await apendicesDoCaso(dados);
@@ -1015,6 +1016,38 @@ export function introPerito(perfil, c, acao) {
   const ref = refDespachos(c) ? `, em atenção ${refDespachos(c)}` : '';
   return `${qualificacaoCurta(perfil)}, perito judicial nomeado nos autos em epígrafe, vem, respeitosamente, à presença de Vossa Excelência${ref}, ${acao}`;
 }
+// Termo ao final do LTCAT: declaração do segurado (veracidade das informações prestadas) e autorização da emitente
+// para o levantamento (art. 277, IV, a, da IN 128/2022), com campos de assinatura. Segurado que é o próprio
+// representante legal da emitente (sócio) ou emitente do PPP: uma assinatura só, com os dois papéis.
+const mesmoNome = (a, b) => v(a) && v(b) && v(a).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ') === v(b).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ');
+function campoAssinatura(d, nome, linhas) {
+  d.add(p([run('_____________________________________')], { align: 'center', before: 720, after: 0, keepNext: true }));
+  d.add(p([run(nome || '[[nome]]', { b: true, np: true })], { align: 'center', after: 0, keepNext: true }));
+  linhas.filter(Boolean).forEach((l, i, arr) => d.add(p([rich(l, { size: 10, np: true })], { align: 'center', after: i === arr.length - 1 ? 240 : 0, keepNext: i < arr.length - 1 })));
+}
+function termoDeclaracaoAutorizacao(d, dados) {
+  const { c } = dados;
+  const seg = v(c.autorNome) || '[[segurado]]';
+  const proprio = /Pr[oó]prio/.test(c.pppEmitente || '');
+  const emit = emitenteDoPpp(dados);
+  const rep = v(c.pppRepresentante) || (proprio ? seg : '');
+  const unico = proprio || mesmoNome(rep, seg);
+  const docSeg = [v(c.autorCpf) && `CPF ${c.autorCpf}`, v(c.pppNit) && `NIT ${c.pppNit}`].filter(Boolean).join(' – ');
+  const quando = c.vistoriaData ? ` em ${dataBR(c.vistoriaData)}` : '';
+  d.h1('', 'Termo de declaração e autorização');
+  d.texto(`Eu, ${seg}${docSeg ? `, ${docSeg}` : ''}, declaro que as informações que prestei sobre os locais de trabalho, as atividades, os equipamentos e os produtos utilizados em cada período, registradas neste laudo, são verdadeiras, e que recebi uma via deste documento.`);
+  if (!proprio) {
+    const em = `${emit.nome || '[[emitente]]'}${emit.doc ? ` (CNPJ/CAEPF ${emit.doc})` : ''}`;
+    d.texto(`${unico ? `Na condição de representante legal da ${em}, autorizo` : `A ${em}, por seu representante legal, autoriza`} o levantamento das condições ambientais de trabalho realizado${quando} pelo signatário deste laudo, que não é empregado da empresa (art. 277, IV, *a*, da IN 128/2022), e ${unico ? 'declaro' : 'declara'} ciência do seu conteúdo.`);
+  }
+  d.add(p([run(`${'_'.repeat(22)}, ____/____/________.`)], { align: 'right', before: 240, after: 0, keepNext: true }));
+  if (unico) campoAssinatura(d, seg, [docSeg, proprio ? 'Segurado' : `Segurado e representante legal da ${emit.nome || 'emitente'}`]);
+  else {
+    campoAssinatura(d, seg, [docSeg, 'Segurado']);
+    campoAssinatura(d, rep || '[[representante legal]]', [v(c.pppRepresentanteNit) && `CPF / NIT ${c.pppRepresentanteNit}`, `Representante legal da ${emit.nome || 'emitente'}`]);
+  }
+}
+
 export function fecho(d, dados, papel = 'Perito Judicial') {
   d.add(p([run('Nestes termos,')], { first: 709, before: 240, after: 0, keepNext: true, align: 'left' }));
   d.add(p([run('pede deferimento.')], { first: 709, after: 120, keepNext: true, align: 'left' }));

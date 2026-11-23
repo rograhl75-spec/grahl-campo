@@ -24,6 +24,8 @@ const semParenteses = (t) => v(t).replace(/\s*\([^)]*\)/g, '').trim();
 const nomeFator = (n) => { const c = semParenteses(n).replace(/,?\s*CAS\s*[\d-]+/gi, '').trim(); return c.length >= 3 ? c : v(n); };
 // CA: só o número do certificado
 const numeroCa = (t) => { const m = v(t).match(/\b(?:CA\s*n?[ºo°.]?\s*)?(\d{3,6})\b/i); return m ? m[1] : '—'; };
+// "Não se aplica" digitado no agente não vale como resposta: o marco legal decide quando o campo se aplica
+const sn = (t) => (/^(Sim|Não)$/.test(v(t)) ? v(t) : '');
 const dia = (iso, n) => { const d = new Date(`${iso}T12:00:00`); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
 // "10/01/2022" ou "2022-01-10" → ISO
 const isoData = (t) => { const x = v(t); if (/^\d{4}-\d{2}-\d{2}$/.test(x)) return x; const m = x.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : ''; };
@@ -131,7 +133,8 @@ export async function ppp(caseId, dadosProntos) {
   // sem fichas de EPI: EPC e EPI eficazes "Não" (requisitos do art. 291 da IN 128/2022 não comprovados)
   const semEpi = !dados.epis.length;
   // medições (ruído, calor, vibração, químicos) dos postos do vínculo que superam o limite entram pela síntese
-  const linhasMed = dentro.flatMap(({ r, idx }) => (av[idx]?.segs || []).flatMap((s) => s.itens.filter((i) => i.sup && !i.categoria && !i.agente)
+  // risco à integridade física (fora do Anexo IV) não é fator de risco do campo 15: só as observações
+  const linhasMed = dentro.flatMap(({ r, idx }) => (av[idx]?.segs || []).flatMap((s) => s.itens.filter((i) => i.sup && !i.categoria && !i.agente && !i.integridade)
     .map((i) => [`${dataBR(s.ini)} a ${fimTxt(r, s.fim)}`, 'F', i.t.split(':')[0], i.t.replace(/^[^:]+:\s*/, '').replace(/\s[>≤].*$/, ''), /Ruído/.test(i.t) ? (s.fim <= '2003-11-18' ? 'NR-15, Anexo 1' : 'NHO-01') : 'NHO', '[[S/N]]', s.fim < '1998-12-03' ? 'Não se aplica' : '[[S/N]]', '—'])));
   // uma linha por janela de exposição, partida em 13/10/1996 (EPC) e 02/12/1998 (EPI): antes desses marcos os campos
   // não se aplicam (art. 285 da IN 128/2022)
@@ -154,8 +157,8 @@ export async function ppp(caseId, dadosProntos) {
       const epiAplica = fim > '1998-12-02';
       const epcSemMarco = !comMarcosEpi;
       return [`${dataBR(ini)} a ${fimTxt(e.r, fim)}`, (x.tipo || 'Q')[0], nomeFator(x.nome), intens, tec,
-        !epcSemMarco && fim <= '1996-10-13' ? 'Não se aplica' : x.epcEficaz || (semEpi ? 'Não' : '[[S/N]]'),
-        epcSemMarco || epiAplica ? x.epiEficaz || (semEpi ? 'Não' : '[[S/N]]') : 'Não se aplica', epiAplica && !semEpi ? numeroCa(x.ca) : '—', ini, fim, e.r];
+        !epcSemMarco && fim <= '1996-10-13' ? 'Não se aplica' : sn(x.epcEficaz) || (semEpi ? 'Não' : '[[S/N]]'),
+        epcSemMarco || epiAplica ? sn(x.epiEficaz) || (semEpi ? 'Não' : '[[S/N]]') : 'Não se aplica', epiAplica && !semEpi ? numeroCa(x.ca) : '—', ini, fim, e.r];
     }))),
     ...linhasMed,
   ].sort((a, b) => isoIni(a[0]).localeCompare(isoIni(b[0])));

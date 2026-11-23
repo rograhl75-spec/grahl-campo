@@ -1,4 +1,5 @@
 // Banco de agentes químicos: consulta, base de fontes abertas, importação pelo Claude e calculadora
+import { BotaoClaudeDireto } from './ClaudeDireto.jsx';
 import { useState } from 'preact/hooks';
 import { db, createRecord, softDelete } from '../db.js';
 import { avisarAlteracao } from '../sync.js';
@@ -119,11 +120,17 @@ function ImportarClaude({ agentes = [] }) {
       <h3>Incluir ou completar agentes (Claude, FISPQ, arquivo de valores da ACGIH)</h3>
       <label class="campo"><span class="rotulo">Agentes ou produtos (um por linha)</span>
         <textarea rows={2} value={nomes} onInput={(e) => setNomes(e.currentTarget.value)} /></label>
-      <div class="linha-botoes"><button type="button" class="sec" onClick={copiar}>Copiar instrução (FISPQ, NIOSH, artigo)</button></div>
+      <BotaoClaudeDireto rotulo="Pesquisar / ler direto com o Claude" web permitirArquivos rotuloArquivos="Anexar FISPQs ou artigos (opcional)"
+        instrucao={() => { if (!nomes.trim()) throw new Error('Escreva antes os agentes ou produtos (um por linha).'); return PROMPT_QUIMICOS + nomes.trim(); }}
+        onResposta={(t) => { setJson(t); return 'Confira o JSON abaixo e toque em "Aplicar".'; }} />
+      <div class="linha-botoes"><button type="button" class="sec" onClick={copiar}>Copiar instrução (claude.ai)</button></div>
       <div class="linha2">
         <label class="campo"><span class="rotulo">Edição do livreto da ACGIH</span>
           <input inputMode="numeric" value={edicao} onInput={(e) => setEdicao(e.currentTarget.value)} /></label>
       </div>
+      <BotaoClaudeDireto rotulo="Ler o livreto da ACGIH direto com o Claude" permitirArquivos rotuloArquivos="Anexar o livreto (PDF)" sec
+        instrucao={() => { if (!agentes.length) throw new Error('Carregue antes a base de fontes abertas: a instrução da ACGIH lista os agentes do banco.'); return promptAcgih(agentes, edicao.trim()); }}
+        onResposta={(t) => { setJson(t); return 'Confira o JSON abaixo e toque em "Aplicar".'; }} />
       <div class="linha-botoes"><button type="button" class="sec" onClick={copiarAcgih}>Copiar instrução da ACGIH (anexe o seu livreto)</button></div>
       <small class="dica">Os valores da ACGIH ficam só no seu banco (aparelho e sua nuvem), não na base pública do app.</small>
       <label class="campo"><span class="rotulo">Cole aqui o JSON devolvido pelo Claude</span>

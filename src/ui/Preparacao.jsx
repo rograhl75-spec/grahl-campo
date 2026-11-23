@@ -2,6 +2,7 @@ import { horasDia, fmtHoras } from '../calc.js';
 import { useState } from 'preact/hooks';
 import { db } from '../db.js';
 import { CAMPOS_SINTESE, CAMPOS_PERIODO, CAMPOS_DOC, CAMPOS_EPI, CAMPOS_ENTREVISTA_MOTORISTA, CAMPOS_AGENTE_AVALIADO, contextoLegal } from '../schema.js';
+import { BotaoClaudeDireto, anexosDosAutos } from './ClaudeDireto.jsx';
 import { SITUACOES, situacaoDoCaso, montarPrompt, lerJsonIA, aplicarIA, limparDuplicados } from '../aiimport.js';
 import { avisarAlteracao } from '../sync.js';
 import { dataBR } from '../docx/reports.js';
@@ -241,8 +242,10 @@ function ImportarIA({ rec, abertoInicial = false }) {
           {SITUACOES.map((x) => <option value={x.id}>{x.titulo}</option>)}
         </select>
       </label>
+      <BotaoClaudeDireto rotulo="Enviar os autos direto ao Claude" instrucao={prompt} anexos={() => anexosDosAutos(rec.id)}
+        onResposta={(t) => { setTexto(t); try { setPrevia(lerJsonIA(t)); setErro(''); return 'Confira a prévia abaixo e toque em "Aplicar ao caso".'; } catch (e) { setPrevia(null); setErro(e.message); return ''; } }} />
       <div class="linha-botoes">
-        <button type="button" class="primario" onClick={copiar}>Copiar instrução</button>
+        <button type="button" class="sec" onClick={copiar}>Copiar instrução (claude.ai)</button>
         <button type="button" class="sec" onClick={() => setAberto(false)}>Fechar</button>
       </div>
       <details><summary>Ver a instrução</summary><pre class="prompt">{prompt}</pre></details>
@@ -468,8 +471,11 @@ function PesquisarFds({ rec }) {
       <p class="dica">Nos documentos, cada produto sai numa ficha própria com as seções 2 (perigos), 3 (composição), 8 (controle de exposição e EPI) e 9 (propriedades) da FDS, além dos quadros obrigatórios de cada tipo de laudo. FDS fornecida pela empresa prevalece sobre a pesquisada; a pesquisada sai com o endereço e o aviso de que a versão pode diferir da usada na época.</p>
       <label class="campo"><span class="rotulo">Produtos (um por linha, com o fabricante){pendentes.length ? ` – em branco: os ${pendentes.length} cadastrados sem composição` : ''}</span>
         <textarea rows={2} value={nomes} onInput={(e) => setNomes(e.currentTarget.value)} placeholder={pendentes.join('\n')} /></label>
-      <div class="linha-botoes"><button type="button" class="sec" onClick={copiar}>Copiar instrução (ler ou pesquisar a FDS)</button></div>
-      <label class="campo"><span class="rotulo">Cole aqui o JSON devolvido pelo Claude</span>
+      <BotaoClaudeDireto rotulo="Ler / pesquisar as FDS direto com o Claude" web permitirArquivos rotuloArquivos="Anexar as FDS que tiver (PDF ou fotos do rótulo)"
+        instrucao={() => { const lista = nomes.split('\n').map((x) => x.trim()).filter(Boolean); const alvo = lista.length ? lista : pendentes; if (!alvo.length) throw new Error('Escreva os produtos (um por linha), com o fabricante quando souber.'); return promptFds(alvo); }}
+        onResposta={(t) => { setJson(t); return 'Confira o JSON abaixo e toque em "Aplicar".'; }} />
+      <div class="linha-botoes"><button type="button" class="sec" onClick={copiar}>Copiar instrução (claude.ai)</button></div>
+      <label class="campo"><span class="rotulo">Resposta do Claude (JSON) – preenchida sozinha pelo envio direto, ou cole aqui</span>
         <textarea rows={3} value={json} onInput={(e) => setJson(e.currentTarget.value)} /></label>
       <label class="check"><input type="checkbox" checked={substituir} onChange={(e) => setSubstituir(e.currentTarget.checked)} /> Substituir dados já preenchidos</label>
       <div class="linha-botoes"><button type="button" class="primario" disabled={!json.trim()} onClick={aplicar}>Aplicar</button></div>

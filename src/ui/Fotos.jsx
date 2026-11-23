@@ -1,3 +1,4 @@
+import { BotaoClaudeDireto } from './ClaudeDireto.jsx';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { db, softDelete, updateFields } from '../db.js';
 import { avisarAlteracao } from '../sync.js';
@@ -254,6 +255,10 @@ function IdentificarFotos({ rec, fotos, nomePosto }) {
         <button type="button" class="primario" disabled={!alvo.length} onClick={copiar}>2. Copiar instrução</button>
       </div>
       <small class="dica">Muitas fotos: mande as folhas de contato para a legenda geral e, em tamanho original, só as de plaquetas, rótulos e displays.</small>
+      <BotaoClaudeDireto rotulo={`Identificar ${alvo.length} foto(s) direto com o Claude`}
+        instrucao={() => { if (!alvo.length) throw new Error('Nenhuma foto para identificar.'); const contexto = [rec.data.vistoriaLocal || rec.data.reuNome, rec.data.funcoes && String(rec.data.funcoes).split('\n')[0].slice(0, 160)].filter(Boolean).join(' – '); return promptFotos(alvo, { nomePosto, contexto }); }}
+        anexos={async () => (alvo.length > 60 ? await folhasDeContato(alvo) : await arquivosNumerados(alvo)).map((f) => ({ blob: f, nome: f.name.replace(/\.\w+$/, ''), mime: f.type || 'image/jpeg' }))}
+        web onResposta={(t) => { setJson(t); return 'Confira o JSON abaixo e toque em "Aplicar".'; }} />
       <label class="campo"><span class="rotulo">3. Cole aqui o JSON devolvido pelo Claude</span>
         <textarea rows={3} value={json} onInput={(e) => setJson(e.currentTarget.value)} /></label>
       <label class="check"><input type="checkbox" checked={substituir} onChange={(e) => setSubstituir(e.currentTarget.checked)} /> Substituir legendas já preenchidas</label>

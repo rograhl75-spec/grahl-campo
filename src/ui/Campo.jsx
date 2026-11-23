@@ -1,3 +1,4 @@
+import { BotaoClaudeDireto } from './ClaudeDireto.jsx';
 import { horasDia } from '../calc.js';
 import { useState, useEffect, useRef } from 'preact/hooks';
 import { termoPresenca } from '../docx/modelos2.js';
@@ -698,8 +699,11 @@ function AnotacoesDiligencia({ rec }) {
       <label class="campo campo-area"><span class="rotulo">Texto da nota do Google Keep (ou outro texto)</span>
         <textarea rows={5} value={colado} onInput={(e) => setColado(e.currentTarget.value)} placeholder="No Keep: abra a nota, selecione todo o texto, copie e cole aqui." />
       </label>
+      <BotaoClaudeDireto rotulo="Enviar as anotações direto ao Claude" permitirArquivos rotuloArquivos="Anexar relatórios dos medidores e fotos de anotações em papel"
+        instrucao={async () => { const lista = todos(); if (!lista.length) throw new Error('Anexe um arquivo ou cole o texto das anotações.'); return promptAnotacoes(rec, lista); }}
+        onResposta={(t) => { setJson(t); try { setPrevia(lerJsonIA(t)); setErro(''); return 'Confira a prévia abaixo e toque em "Aplicar ao caso".'; } catch (err) { setPrevia(null); setErro(err.message); return ''; } }} />
       <div class="linha-botoes">
-        <button type="button" class="primario" onClick={copiar} disabled={lendo}>Copiar instrução</button>
+        <button type="button" class="sec" onClick={copiar} disabled={lendo}>Copiar instrução (claude.ai)</button>
         <button type="button" class="sec" onClick={() => setAberto(false)}>Fechar</button>
       </div>
       <label class="campo campo-area"><span class="rotulo">Resposta do Claude (JSON)</span>

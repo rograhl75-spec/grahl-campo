@@ -8,7 +8,9 @@ import { RelatoriosMedicao } from './Campo.jsx';
 import { DESC_ANEXO_DOC } from '../apendices.js';
 import { CATALOGO, HONORARIOS, situacaoHonorarios, PETICOES_PERITO, PETICOES_AT, POSICOES_AT } from '../docx/reports.js';
 import { exportarBackup, baixarArquivo, carimbo } from '../backup.js';
-import { exportarParaClaude } from '../aiimport.js';
+import { exportarParaClaude, lerJsonIA, aplicarIA } from '../aiimport.js';
+import { BotaoClaudeDireto, anexosDosAutos } from './ClaudeDireto.jsx';
+import { temClaude } from '../claudeApi.js';
 import { documentoDoClaude, temConteudo } from '../docx/claudeDoc.js';
 import { gravarTudoAgora, salvar, TF, Sel } from './fields.jsx';
 import { FORMAS_PAGAMENTO, localVistoria } from '../schema.js';
@@ -234,8 +236,23 @@ function BotaoClaude({ rec, tipo, rotulo = 'Redigir com o Claude' }) {
       setMsg('Não foi possível copiar; o texto foi baixado como arquivo .md para anexar no Claude.');
     }
   };
+  // envio direto pela API: respostas dos quesitos → aplicadas ao caso; documento → Word no timbrado
+  const responder = async (t) => {
+    if (tipo === 'respostas') {
+      const dados = lerJsonIA(t);
+      const r = await aplicarIA(rec.id, dados, { substituir: false });
+      avisarAlteracao();
+      return `${r.respostas} resposta(s) preenchida(s) nos quesitos em branco (as já escritas ficaram como estavam). Confira na etapa 3 antes de gerar o laudo.`;
+    }
+    const doc = await documentoDoClaude(rec.id, t);
+    baixarArquivo(doc.blob, doc.nome);
+    return `${doc.nome} gerado no timbrado e baixado. Confira as pendências em amarelo.`;
+  };
   return <>
-    <button type="button" class="sec" onClick={copiar}>{rotulo}</button>
+    <BotaoClaudeDireto rotulo={tipo === 'respostas' ? 'Responder os quesitos direto com o Claude' : 'Redigir direto com o Claude (gera o Word)'}
+      instrucao={async () => { gravarTudoAgora(); return exportarParaClaude(rec.id, tipo); }} anexos={() => anexosDosAutos(rec.id)}
+      permitirArquivos rotuloArquivos="Anexar outros documentos (opcional)" onResposta={responder} />
+    <button type="button" class="sec" onClick={copiar}>{temClaude() ? `${rotulo} (copiar para o claude.ai)` : rotulo}</button>
     {msg && <p class="ok-msg">{msg}</p>}
   </>;
 }
@@ -246,6 +263,7 @@ function RespostasClaude({ rec }) {
       <h3>Responder os quesitos com o Claude</h3>
       <div class="bloco destaque">
         <p>Para o texto completo de um documento, use o botão "Redigir com o Claude" do próprio cartão. Este aqui pede ao Claude as respostas de todos os quesitos num JSON, que volta para o app e preenche só as respostas em branco:</p>
+        <p class="dica">Com a chave do Claude configurada, use <b>Responder os quesitos direto com o Claude</b>: as respostas entram sozinhas nos quesitos em branco. Sem a chave, siga os passos:</p>
         <ol class="passos">
           <li>Toque em <b>Copiar caso para responder os quesitos</b>.</li>
           <li>Numa conversa nova no Claude, cole o texto e anexe os autos (ou o laudo).</li>

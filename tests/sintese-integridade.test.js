@@ -234,3 +234,15 @@ describe('varredura do laudo do dentista', () => {
     expect(tecnicaDoAgente({ data: { nome: 'Mercúrio', tipo: 'Químico', tecnica: 'Qualitativa até 05/03/1997' } }, false)).not.toMatch(/até 05\/03/);
   });
 });
+
+describe('cooperado sem exclusividade', () => {
+  it('3.2 explica a condição simultânea', async () => {
+    await caso('s9', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'], autorNome: 'Dentista', pppEmitente: 'Próprio segurado (contribuinte individual)' });
+    await filho('s9v', 'periodo', 's9', { empresa: 'Consultório próprio', inicio: '1990-01-01', fim: '', cargo: 'Cirurgião-dentista', categoriaSegurado: 'Contribuinte individual',
+      atividades: 'Clínica geral. Cooperado da cooperativa odontológica desde 1992, com atendimento também a particulares.' });
+    await filho('s9a', 'agenteAvaliado', 's9', { nome: 'Microrganismos', tipo: 'Biológico', resAte97: 'Caracteriza', resDesde97: 'Caracteriza' });
+    const t = await texto(await ltcatPpp('s9'));
+    expect(t).toContain('Paralelamente, o segurado é cooperado de cooperativa de trabalho, sem exclusividade');
+    expect(t).toContain('art. 1º da Lei nº 10.666/2003');
+  });
+});

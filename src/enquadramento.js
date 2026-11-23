@@ -95,6 +95,8 @@ export function tecnicaNoPeriodo(a, fim, { quantitativoSemMedicao = '' } = {}) {
     return `Qualitativa – presunção de exposição (${/^\d/.test(cod) ? `cód. ${cod}` : 'Dec. 53.831/64 e 83.080/79'})`;
   }
   let t = quantitativoSemMedicao && !/^Quantitativa/.test(tecnicaDoAgente(a, false)) ? `Quantitativa – NR-15, ${quantitativoSemMedicao}` : tecnicaDoAgente(a, false, { linach: fim > '2014-10-07' });
+  // quantitativo sem medição: não houve coleta, então não se cita metodologia de coleta (NHO) nem se parte a linha em 2004
+  if (quantitativoSemMedicao) return t.replace(/;\s*metodologia.*$/, '');
   // NHO só para a avaliação quantitativa (Anexos 11 e 12): a qualitativa não tem método de coleta
   if (fim > '2003-12-31' && /^Quantitativa/.test(t) && !/NHO/i.test(t)) t += `; metodologia: ${RE_POEIRA.test(x.nome || '') || /Anexo 12/.test(t) ? 'NHO 03, NHO 04 e NHO 08' : 'NHO 02 e NHO 07'} da FUNDACENTRO`;
   return t;

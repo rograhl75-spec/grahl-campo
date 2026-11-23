@@ -264,3 +264,22 @@ describe('auditoria do laudo do dentista (versão 11)', () => {
     expect(await texto(r.extras[0])).toContain('Assinatura do segurado (emitente do PPP)');
   });
 });
+
+describe('PPP: intensidade e quebras de período', () => {
+  it('qualitativo "Qualitativa"; quantitativo sem medição "Não quantificada" sem NHO; só a quebra de 05/03/1997; com fichas de EPI, as quebras de 1996 e 1998 voltam', async () => {
+    await caso('s11', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'], autorNome: 'Dentista', pppEmitente: 'Próprio segurado (contribuinte individual)' });
+    await filho('s11v', 'periodo', 's11', { empresa: 'Consultório', inicio: '1989-01-01', fim: '2020-12-31', cargo: 'Cirurgião-dentista' });
+    await filho('s11a', 'agenteAvaliado', 's11', { nome: 'Microrganismos', tipo: 'Biológico', resAte97: 'Caracteriza', resDesde97: 'Caracteriza' });
+    await filho('s11b', 'agenteAvaliado', 's11', { nome: 'Mercúrio', tipo: 'Químico', codAte97: '1.2.8 do Dec. 53.831/64', resAte97: 'Caracteriza', codDesde97: '1.0.15 do Anexo IV – avaliação quantitativa', resDesde97: 'Não caracteriza', expFim: '2018-12-31' });
+    const p = await texto((await ltcatPpp('s11')).extras[0]);
+    expect(p).not.toMatch(/13\/10\/1996|02\/12\/1998|31\/12\/2003|01\/01\/2004/);
+    expect(p).toContain('01/01/1989 a 05/03/1997');
+    expect(p).toContain('06/03/1997 a 31/12/2018');
+    expect(p).toContain('Não quantificada');
+    expect(p).not.toContain('NHO 02');
+    expect(p).toMatch(/Microrganismos[\s\S]{0,40}Qualitativa/);
+    await filho('s11e', 'epi', 's11', { descricao: 'Luva', ca: '12345', dataEntrega: '2010-01-01' });
+    const p2 = await texto((await ltcatPpp('s11')).extras[0]);
+    expect(p2).toContain('13/10/1996');
+  });
+});

@@ -12,8 +12,9 @@ import { dataBR } from '../docx/reports.js';
 import { RecordList } from './RecordList.jsx';
 import { useLive } from './hooks.js';
 import { confirmar } from './dialogo.jsx';
+import { configClaude, salvarConfigClaude, testarClaude, MODELOS_CLAUDE, ESFORCOS, OPCOES_CACHE } from '../claudeApi.js';
 
-const ABAS = [['meus-dados', 'Meus dados'], ['nuvem', 'Nuvem'], ['backup', 'Backup'], ['antigo', 'App antigo'], ['equipamentos', 'Equipamentos'], ['lixeira', 'Lixeira'], ['aparelho', 'Este aparelho']];
+const ABAS = [['meus-dados', 'Meus dados'], ['claude', 'Claude (API)'], ['nuvem', 'Nuvem'], ['backup', 'Backup'], ['antigo', 'App antigo'], ['equipamentos', 'Equipamentos'], ['lixeira', 'Lixeira'], ['aparelho', 'Este aparelho']];
 
 // Validade da calibração: a data informada em "Próxima calibração" ou, na falta dela, 12 meses (prática dos laboratórios RBC)
 export function situacaoCalibracao(d) {
@@ -42,6 +43,7 @@ export function Config({ aba }) {
     <div class="pagina">
       <nav class="abas">{ABAS.map(([k, r]) => <a href={`#/config/${k}`} class={aba === k ? 'ativo' : ''}>{r}</a>)}</nav>
       {aba === 'meus-dados' && <MeusDados />}
+      {aba === 'claude' && <ClaudeApi />}
       {aba === 'nuvem' && <Nuvem />}
       {aba === 'backup' && <Backup />}
       {aba === 'antigo' && <Antigo />}
@@ -360,5 +362,59 @@ function OrganizarNomes() {
       )}
       {msg && <p class="ok-msg">{msg}</p>}
     </section>
+  );
+}
+
+// Chave de API e modelo do Claude: ficam só neste aparelho (não vão para a nuvem do app)
+function ClaudeApi() {
+  const [cfg, setCfg] = useState(configClaude());
+  const [ver, setVer] = useState(false);
+  const [msg, setMsg] = useState('');
+  const [testando, setTestando] = useState(false);
+  const muda = (k, val) => { const novo = { ...cfg, [k]: val }; setCfg(novo); salvarConfigClaude({ [k]: val }); setMsg(''); };
+  const testar = async () => {
+    setTestando(true); setMsg('');
+    try { const r = await testarClaude(); setMsg(`✓ Conexão funcionando (${r.modelo}). Custo do teste: menos de US$ 0,01.`); }
+    catch (e) { setMsg(`✗ ${e.message}`); } finally { setTestando(false); }
+  };
+  return (
+    <div class="grade">
+      <section class="bloco largo">
+        <h3>Claude direto pelo app (API)</h3>
+        <p>Com a chave configurada, os botões <b>Enviar direto ao Claude</b> aparecem em todas as etapas que hoje pedem para copiar a instrução e colar no claude.ai: o app manda a instrução e os PDFs dos autos e recebe a resposta sozinho.</p>
+        <ol class="passos">
+          <li>Crie a conta em <a href="https://platform.claude.com" target="_blank" rel="noopener">platform.claude.com</a> (é separada da assinatura do claude.ai e cobra por uso).</li>
+          <li>Em <b>Billing</b>, adicione créditos e, em <b>Limits</b>, defina um limite de gasto mensal.</li>
+          <li>Em <b>API Keys</b>, crie uma chave (por exemplo, "app GRAHL") e cole abaixo.</li>
+          <li>Toque em <b>Testar conexão</b>.</li>
+        </ol>
+        <label class="campo"><span class="rotulo">Chave de API (começa com sk-ant-)</span>
+          <input type={ver ? 'text' : 'password'} value={cfg.chave} autocomplete="off" onInput={(e) => muda('chave', e.currentTarget.value.trim())} placeholder="sk-ant-..." />
+        </label>
+        <div class="linha-botoes">
+          <button type="button" class="sec mini" onClick={() => setVer(!ver)}>{ver ? 'Ocultar' : 'Mostrar'}</button>
+          {cfg.chave && <button type="button" class="sec mini perigo" onClick={async () => { if (await confirmar('Apagar a chave deste aparelho?')) muda('chave', ''); }}>Apagar chave</button>}
+        </div>
+        <label class="campo"><span class="rotulo">Modelo</span>
+          <select value={cfg.modelo} onChange={(e) => muda('modelo', e.currentTarget.value)}>
+            {MODELOS_CLAUDE.map((m) => <option value={m.id}>{m.nome} – US$ {m.entrada} / {m.saida} por milhão de tokens</option>)}
+          </select>
+        </label>
+        <label class="campo"><span class="rotulo">Esforço de raciocínio</span>
+          <select value={cfg.esforco} onChange={(e) => muda('esforco', e.currentTarget.value)}>
+            {ESFORCOS.map(([v, r]) => <option value={v}>{r}</option>)}
+          </select>
+        </label>
+        <label class="campo"><span class="rotulo">Reaproveitamento dos autos (cache)</span>
+          <select value={cfg.cache} onChange={(e) => muda('cache', e.currentTarget.value)}>
+            {OPCOES_CACHE.map(([v, r]) => <option value={v}>{r}</option>)}
+          </select>
+        </label>
+        <p class="dica">Com o reaproveitamento, os PDFs dos autos ficam na sua conta da Anthropic por até 7 dias e, dentro do prazo escolhido, cada novo envio do mesmo caso (extração, quesitos, redação…) paga só 10% da leitura dos autos. O primeiro envio custa um pouco mais na parte dos autos (1,25 vez com 5 minutos; 2 vezes com 1 hora). Vale a pena quando você usa duas ou mais etapas seguidas no mesmo caso.</p>
+        <div class="linha-botoes"><button type="button" class="primario" disabled={!cfg.chave || testando} onClick={testar}>{testando ? 'Testando…' : 'Testar conexão'}</button></div>
+        {msg && <p class={msg.startsWith('✓') ? 'ok-msg' : 'erro-msg'}>{msg}</p>}
+        <p class="dica">A chave fica guardada só neste aparelho (não vai para a nuvem do app nem para o backup): configure em cada aparelho que for usar. Os PDFs dos autos ficam na conta da Anthropic por até 7 dias para o reaproveitamento (com ele desligado, são apagados logo depois da resposta); os demais anexos são apagados logo depois. Custo aproximado com o Opus 5.5: LTCAT com cerca de 50 páginas de documentos, US$ 0,30 a 0,60; autos com cerca de 300 páginas, US$ 2 a 4. Cada envio mostra o custo estimado.</p>
+      </section>
+    </div>
   );
 }

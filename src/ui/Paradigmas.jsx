@@ -1,3 +1,4 @@
+import { BotaoClaudeDireto } from './ClaudeDireto.jsx';
 import { useState, useEffect } from 'preact/hooks';
 import { db, createRecord, softDelete, updateFields } from '../db.js';
 import { avisarAlteracao, obterAnexo } from '../sync.js';
@@ -745,6 +746,9 @@ function Importar() {
           <label class="botao-arquivo">{nomeAnexo ? <><Icone nome="doc" /> {nomeAnexo}</> : '1. Anexar PDF do laudo'}<input type="file" accept="application/pdf,.pdf" hidden onChange={anexar} /></label>
           <button type="button" class="primario" onClick={copiar}>2. Copiar instrução</button>
         </div>
+        <BotaoClaudeDireto rotulo="2. Enviar o laudo direto ao Claude" instrucao={PROMPT_LAUDO_ANTIGO}
+          anexos={async () => { if (!anexoId) throw new Error('Anexe primeiro o PDF do laudo (passo 1).'); return [{ blob: await obterAnexo(anexoId), nome: nomeAnexo || 'laudo.pdf', mime: 'application/pdf' }]; }}
+          onResposta={(t) => { setTexto(t); try { setPrevia(lerJsonVeiculos(t)); setMsg(''); return 'Confira a prévia abaixo e inclua no banco.'; } catch (e) { setPrevia(null); return `Erro ao ler: ${e.message}`; } }} />
         <details><summary>Ver a instrução</summary><pre class="prompt">{PROMPT_LAUDO_ANTIGO}</pre></details>
         <label class="campo campo-area"><span class="rotulo">3. Resposta do Claude (JSON)</span>
           <textarea rows={6} value={texto} onInput={(e) => setTexto(e.currentTarget.value)} placeholder='{"veiculos": [...]}' />
@@ -764,6 +768,8 @@ function Importar() {
         <div class="linha-botoes">
           <button type="button" onClick={async () => { try { await navigator.clipboard.writeText(PROMPT_MAQUINAS); setMsg('Instrução de máquinas copiada. Cole no Claude e anexe o artigo, manual ou laudo.'); } catch (e) { setMsg('Selecione o texto da instrução abaixo.'); } }}>Copiar instrução de máquinas</button>
         </div>
+        <BotaoClaudeDireto rotulo="Enviar artigo, manual ou laudo direto ao Claude" instrucao={PROMPT_MAQUINAS} permitirArquivos rotuloArquivos="Anexar o artigo, manual ou laudo (PDF)"
+          onResposta={(t) => { setTexto(t); try { setPrevia(lerJsonVeiculos(t)); setMsg(''); return 'Confira a prévia em "Incluir laudos antigos" e inclua no banco.'; } catch (e) { setPrevia(null); return `Resposta colocada em "Resposta do Claude (JSON)" acima. ${e.message}`; } }} />
         <details><summary>Ver a instrução</summary><pre class="prompt">{PROMPT_MAQUINAS}</pre></details>
       </section>
       {msg && <p class="ok-msg largo">{msg}</p>}

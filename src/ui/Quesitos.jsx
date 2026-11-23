@@ -1,3 +1,4 @@
+import { BotaoClaudeDireto, anexosDosAutos } from './ClaudeDireto.jsx';
 import { useState } from 'preact/hooks';
 import { ORIGEM_QUESITO, CAMPOS_ESCLARECIMENTOS, ehSuplementar, rotuloOrigem } from '../schema.js';
 
@@ -116,7 +117,10 @@ function ClaudeSuplementares({ rec }) {
         <li>Numa conversa nova no Claude, cole a instrução e anexe a petição dos quesitos suplementares, a decisão e o laudo (ou o PDF inteiro do processo).</li>
         <li>Copie a resposta (o bloco que começa com <code>{'{'}</code>), cole abaixo, confira a prévia e aplique. Os quesitos são criados sem duplicar e as respostas preenchem só as que estiverem vazias, a menos que marque "substituir".</li>
       </ol>
-      <div class="linha-botoes"><button type="button" class="primario" onClick={copiar}>Copiar instrução</button></div>
+      <BotaoClaudeDireto rotulo="Enviar direto ao Claude (com os autos)" anexos={() => anexosDosAutos(rec.id)} permitirArquivos rotuloArquivos="Anexar a petição dos quesitos e a decisão, se não estiverem nos autos guardados"
+        instrucao={async () => { gravarTudoAgora(); return montarPromptSuplementares(rec.id); }}
+        onResposta={(t) => { setTexto(t); try { setPrevia(lerJsonSuplementares(t)); setErro(''); return 'Confira a prévia abaixo e aplique.'; } catch (e) { setPrevia(null); setErro(e.message); return ''; } }} />
+      <div class="linha-botoes"><button type="button" class="sec" onClick={copiar}>Copiar instrução (claude.ai)</button></div>
       <label class="campo campo-area"><span class="rotulo">Resposta do Claude (JSON)</span>
         <textarea rows={5} value={texto} onInput={(e) => setTexto(e.currentTarget.value)} placeholder='{"esclarecimentos": {...}, "quesitos": [...]}' />
       </label>

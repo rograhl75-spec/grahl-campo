@@ -170,3 +170,32 @@ describe('termo de declaração e autorização', () => {
     expect(t).toContain('constam do termo de declaração e autorização, assinado ao final deste laudo');
   });
 });
+
+describe('contribuinte individual que emite o próprio PPP', () => {
+  it('2.2 sem "autorização da empresa" e termo com a autorização do próprio segurado', async () => {
+    await caso('s5', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'], autorNome: 'Dentista Fictício', autorCpf: '111.111.111-11', pppEmitente: 'Próprio segurado (contribuinte individual)', vistoriaData: '2026-11-04' });
+    await filho('s5v', 'periodo', 's5', { empresa: 'Consultório próprio', inicio: '1990-01-01', fim: '', cargo: 'Cirurgião-dentista', atividades: 'Clínica geral.' });
+    await filho('s5a', 'agenteAvaliado', 's5', { nome: 'Microrganismos', tipo: 'Biológico', resAte97: 'Caracteriza', resDesde97: 'Caracteriza' });
+    const t = await texto(await ltcatPpp('s5'));
+    expect(t).not.toContain('autorização escrita da empresa');
+    expect(t).toContain('a autorização é dada por ele, no termo ao final deste laudo');
+    expect(t).toContain('Como exerço a atividade por conta própria, autorizo o levantamento');
+    expect(t).not.toContain('representante legal da');
+  });
+});
+
+describe('importação: excluir agente e não trocar o tipo', () => {
+  it('"excluir": true manda o agente para a lixeira; sem "tipo" o físico continua físico', async () => {
+    const { aplicarIA, lerJsonIA } = await import('../src/aiimport.js');
+    await caso('s6', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'] });
+    await filho('s6a', 'agenteAvaliado', 's6', { nome: 'Ácido clorídrico', tipo: 'Químico' });
+    await filho('s6b', 'agenteAvaliado', 's6', { nome: 'Radiações ionizantes (raios X intraoral)', tipo: 'Físico' });
+    await aplicarIA('s6', lerJsonIA(JSON.stringify({ agentesAvaliados: [{ nome: 'Ácido clorídrico', excluir: true }, { nome: 'Radiações ionizantes', frequencia: 'Cerca de 8 radiografias por dia.' }] })), { substituir: true });
+    const ags = (await db.records.toArray()).filter((r) => r.kind === 'agenteAvaliado' && r.caseId === 's6');
+    expect(ags.find((r) => r.id === 's6a').deleted).toBeTruthy();
+    const rx = ags.find((r) => r.id === 's6b');
+    expect(rx.data.tipo).toBe('Físico');
+    expect(rx.data.frequencia).toBe('Cerca de 8 radiografias por dia.');
+    expect(ags.length).toBe(2);
+  });
+});

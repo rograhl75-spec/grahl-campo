@@ -74,3 +74,26 @@ describe('síntese sem linhas repetidas e integridade física sugerida', () => {
     expect(p).toContain('Dec. 53.831/64');
   });
 });
+
+describe('importação completa o agente pelo nome principal', () => {
+  it('"Mesamoll" completa "Mesamoll (éster…)" sem duplicar nem renomear', async () => {
+    const { aplicarIA, lerJsonIA } = await import('../src/aiimport.js');
+    await caso('s2', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'] });
+    await filho('s2a', 'agenteAvaliado', 's2', { nome: 'Mesamoll (éster de ácido alquilsulfônico de fenol)', tipo: 'Químico', vinculos: '' });
+    const dados = lerJsonIA(JSON.stringify({ agentesAvaliados: [{ nome: 'Mesamoll', tipo: 'Químico', efeitos: 'Não classificado como perigoso.', integridadeFisica: 'Não se aplica' }] }));
+    await aplicarIA('s2', dados, { substituir: true });
+    const ags = (await db.records.toArray()).filter((r) => r.kind === 'agenteAvaliado' && r.caseId === 's2');
+    expect(ags.length).toBe(1);
+    expect(ags[0].data.nome).toBe('Mesamoll (éster de ácido alquilsulfônico de fenol)');
+    expect(ags[0].data.efeitos).toBe('Não classificado como perigoso.');
+  });
+});
+
+describe('perigos do agente', () => {
+  it('trecho negado não conta', async () => {
+    const { perigosDoAgente } = await import('../src/docx/agentesQuadros.js');
+    expect(perigosDoAgente({ data: { nome: 'Mesamoll', tipo: 'Químico', efeitos: 'Não classificado; sem irritação e sem sensibilização; sem efeitos na fertilidade.' } })).toEqual([]);
+    expect(perigosDoAgente({ data: { nome: 'TDI', tipo: 'Químico', efeitos: 'Sensibilização respiratória (asma ocupacional).' } })).toEqual(['sensibilizante']);
+    expect(perigosDoAgente({ data: { nome: 'DOP', tipo: 'Químico', efeitos: 'H360 – pode prejudicar a fertilidade ou o feto.' } })).toEqual(['tóxico à reprodução']);
+  });
+});

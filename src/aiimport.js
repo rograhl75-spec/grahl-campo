@@ -385,16 +385,25 @@ export async function aplicarIA(caseId, dados, { substituir = false, criarPeriod
     const porDatas = new Map(lista === 'periodos' ? existentes.filter((r) => r.data.inicio).map((r) => [`${r.data.inicio}|${r.data.fim || ''}`, r]) : []);
     // mesma empresa e mesmo início: é o mesmo vínculo com outra data de fim (vínculos sequenciais unidos num só)
     const porInicio = new Map(lista === 'periodos' ? existentes.filter((r) => r.data.inicio).map((r) => [`${normTxt(r.data.empresa).slice(0, 30)}|${r.data.inicio}`, r]) : []);
+    // agente com o nome escrito de outro jeito ("n-Pentano" × "n-Pentano (agente de expansão)"): reconhece pelo nome
+    // principal (antes do parêntese ou do travessão), quando um só agente do caso tem esse nome
+    const base = (n) => normTxt(String(n || '').replace(/\s+[(–-].*$/, ''));
+    const contagem = new Map();
+    if (lista === 'agentesAvaliados') for (const r of existentes) contagem.set(base(r.data.nome), (contagem.get(base(r.data.nome)) || 0) + 1);
+    const porNome = new Map(lista === 'agentesAvaliados' ? existentes.filter((r) => contagem.get(base(r.data.nome)) === 1).map((r) => [base(r.data.nome), r]) : []);
     let ordem = existentes.length;
     for (const item of dados[lista]) {
       const ja = vistos.get(chave(item)) || (lista === 'periodos' && item.inicio
-        ? porDatas.get(`${item.inicio}|${item.fim || ''}`) || porInicio.get(`${normTxt(item.empresa).slice(0, 30)}|${item.inicio}`) : undefined);
+        ? porDatas.get(`${item.inicio}|${item.fim || ''}`) || porInicio.get(`${normTxt(item.empresa).slice(0, 30)}|${item.inicio}`) : undefined)
+        || (lista === 'agentesAvaliados' && base(item.nome) ? porNome.get(base(item.nome)) : undefined);
       if (!ja && lista === 'periodos' && !criarPeriodos) continue;
       if (ja) {
         // "substituir": o que vier preenchido corrige o registro existente; senão, só completa o que está vazio
         const novos = Object.fromEntries(Object.entries(item).filter(([k, val]) => String(val ?? '').trim()
           && (substituir ? String(val).trim() !== String(ja.data[k] ?? '').trim() : !String(ja.data[k] ?? '').trim())));
         delete novos.fimAberto;
+        // reconhecido pelo nome principal: o nome completo já cadastrado fica
+        if (lista === 'agentesAvaliados' && ja.data.nome !== item.nome) delete novos.nome;
         // vínculo em aberto ("fim": "atual"): com "substituir", limpa a data de fim antiga
         if (item.fimAberto && substituir && String(ja.data.fim || '').trim()) novos.fim = '';
         if (Object.keys(novos).length) await updateFields(ja.id, novos);

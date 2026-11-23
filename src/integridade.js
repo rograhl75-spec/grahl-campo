@@ -7,11 +7,13 @@
 // Constituição (EC nº 103/2019) fala só em agentes químicos, físicos e biológicos prejudiciais à saúde.
 // ======================================================================
 import { agenteNoVinculo } from './enquadramento.js';
-import { bancoDoAgente } from './docx/agentesQuadros.js';
+import { bancoDoAgente, agentesDoArt68 } from './docx/agentesQuadros.js';
 
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 const semAc = (t) => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 const br = (iso) => String(iso || '').replace(/^(\d{4})-(\d{2})-(\d{2}).*$/, '$3/$2/$1');
+// "Habitual e permanente, não ocasional nem intermitente: o agente…" → até os dois-pontos ou o primeiro ponto
+const primeiraFrase = (t) => { const x = v(t); if (!x) return ''; const m = x.match(/^[^:.]+/); return `${m ? m[0] : x}.`; };
 const curto = (n) => v(n).replace(/\s+\(.*$/, '');
 
 export const INTEGRIDADE = ['Caracterizada tecnicamente', 'Não caracterizada', 'Não se aplica'];
@@ -97,9 +99,12 @@ export function secaoIntegridade(d, dados, sub) {
   if (pend.length) d.texto(`[[Avaliar também o risco à integridade física de: ${pend.map(rotuloPend).join('; ')} (pendências).]]`);
   d.texto('As condições abaixo não constam do Anexo IV do Decreto nº 3.048/1999, mas expõem o segurado a risco à integridade física, que o art. 57 da Lei nº 8.213/1991 equipara às condições prejudiciais à saúde. Caracterizadas pelos critérios da NR-16 e da NR-10, com exposição habitual e permanente, não ocasional nem intermitente, elas são enquadradas neste laudo e constam da síntese do item 6; o entendimento sobre o rol dos regulamentos está no item de jurisprudência.');
   const varios = dados.periodos.length > 1;
+  // o agente já descrito no quadro do art. 68 (item anterior): aqui só a frequência, sem repetir as circunstâncias
+  const noArt68 = new Set(agentesDoArt68(dados.agentes || []).map((a) => a.id));
   d.quadro('Condições de risco à integridade física', [['Condição', 'Critério técnico', 'Período', 'Circunstâncias, frequência e duração'],
     ...cs.map((c) => [`${curto(c.a.data.nome)}${varios ? `\nV${c.idx + 1}` : ''}`, c.criterio, `${br(c.ini)} a ${c.r.data.fim || v(c.a.data.expFim) ? br(c.fim) : 'atual'}`,
-      [v(c.a.data.circunstancias), v(c.a.data.frequencia)].filter(Boolean).join(' ') || '[[circunstâncias, frequência e duração da exposição]]'])],
+      noArt68.has(c.a.id) ? `${primeiraFrase(c.a.data.frequencia) || '[[frequência]]'} Circunstâncias e fontes: quadro do art. 68, § 2º (item anterior).`
+        : [v(c.a.data.circunstancias), v(c.a.data.frequencia)].filter(Boolean).join(' ') || '[[circunstâncias, frequência e duração da exposição]]'])],
   { larguras: [0.18, 0.3, 0.16, 0.36], tam: 8.5, alinhar: 'left', fonte: 'Elaborado pelo signatário com base nas declarações do item 2.3 e nos critérios da NR-16 e da NR-10.' });
   if (cs.some((c) => c.posEc103)) d.texto('A partir de 13/11/2019, data de entrada em vigor da Emenda Constitucional nº 103/2019, o art. 201, § 1º, II, da Constituição refere-se apenas à efetiva exposição a agentes químicos, físicos e biológicos prejudiciais à saúde; para esse período, o enquadramento por risco à integridade física, mantido neste laudo pelos mesmos critérios técnicos, deve ser apreciado à luz dessa redação.');
   return true;

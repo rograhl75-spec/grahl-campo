@@ -104,13 +104,17 @@ describe('LTCAT e PPP do contribuinte individual sócio, avaliação remota', ()
     const it0 = await pendenciasDoCaso('m1');
     const ids = it0.map((i) => i.id);
     expect(ids.some((i) => i.startsWith('cbo-'))).toBe(false);
-    expect(ids).toContain('coer-quant-m1a');
-    expect(ids).toContain('coer-cond-m1a');
+    expect(ids).toContain('regras');
+    expect(ids).toContain('coer-cond');
     expect(ids).toContain('coer-eventual-m1b');
-    expect(ids).toContain('coer-fases-m1a');
+    expect(ids).toContain('coer-fases-m1v');
     expect(ids.some((i) => /^vias-m1b/.test(i))).toBe(false);
-    const q = it0.find((i) => i.id === 'coer-quant-m1a');
-    expect(q.acoes[0]).toMatchObject({ campo: 'resDesde97', valor: 'Não caracteriza' });
+    // TDI: consta do Anexo IV e tem limite no Anexo 11 (banco) – sem medição, não caracteriza a partir de 06/03/1997
+    const q = it0.find((i) => i.id === 'regras');
+    const tdi = q.lotes[0].escritas.find((e) => e.rec === 'm1a');
+    expect(tdi.campos.resDesde97).toBe('Não caracteriza');
+    // os resultados resolvidos pelas regras não viram perguntas separadas
+    expect(ids.some((i) => /^resDesde97-m1a/.test(i))).toBe(false);
     // "Está correto – manter" tira o item da lista
     await db.records.update('m1b', { 'data.ciente_eventual': 'Sim' });
     expect((await pendenciasDoCaso('m1')).some((i) => i.id === 'coer-eventual-m1b')).toBe(false);
@@ -139,7 +143,7 @@ describe('LTCAT e PPP do contribuinte individual sócio, avaliação remota', ()
     expect(t).not.toMatch(/Todos os vínculos/);
     expect(t).toMatch(/Isocianatos \(TDI, CAS 584-84-9\)\nCAS 584-84-9/);
     expect(t).toContain('Tema 1291');
-    expect(t).toMatch(/Tema 1291[^\n]*conferir/);
+    expect(t).toMatch(/Tema 1291[^\n]*Tema 1447/);
     expect(t).toContain('LINACH');
   });
   it('PPP: CBO, cargo e setor limpos, linhas partidas em 1996 e 1998, CA só número, data de emissão', async () => {
@@ -189,5 +193,39 @@ describe('técnica e intensidade dos agentes qualitativos no PPP', () => {
     expect(t).not.toContain('NHO 02 e NHO 07 da');
     expect(t).toContain('Não quantificada');
     expect(t).not.toContain('PPP eletrônico');
+  });
+});
+
+describe('regras de enquadramento por período', () => {
+  it('consta, quantitativo ou qualitativo e LINACH', async () => {
+    const { regraDoAgente } = await import('../src/regras.js');
+    const quimicos = await db.records.where('kind').equals('quimico').toArray();
+    const d = { quimicos, medicoes: [], periodos: [] };
+    const mdi = regraDoAgente({ data: { nome: 'MDI', tipo: 'Químico', codAte97: '1.2.11 do Dec. 53.831/64', codDesde97: 'Não consta do Anexo IV' } }, d);
+    expect([mdi.resAte97, mdi.resDesde97]).toEqual(['Caracteriza', 'Não enquadrável']);
+    const graxa = regraDoAgente({ data: { nome: 'Graxa sintética', tipo: 'Químico', codDesde97: 'Não consta do Anexo IV' } }, d);
+    expect(graxa.resAte97).toBe('Não enquadrável');
+    const oleo = regraDoAgente({ data: { nome: 'Óleo mineral', tipo: 'Químico', codAte97: '1.2.11', codDesde97: '1.0.7, b, do Anexo IV' } }, d);
+    expect(oleo.resDesde97).toBe('Caracteriza');
+    const sil = regraDoAgente({ data: { nome: 'Sílica livre cristalizada', tipo: 'Químico', cas: '14808-60-7', codAte97: '1.2.10', codDesde97: '1.0.18 do Anexo IV' } }, d);
+    expect([sil.resDesde97, sil.resDesde2014]).toEqual(['Não caracteriza', 'Caracteriza']);
+    const el = regraDoAgente({ data: { nome: 'Eletricidade', tipo: 'Físico' } }, d);
+    expect([el.resAte97, el.resDesde97]).toEqual(['Caracteriza', 'Não enquadrável']);
+  });
+  it('LINACH: o PPP separa a linha em 08/10/2014', async () => {
+    await caso('m5', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'], autorNome: 'R', pppEmitente: 'Empresa (empregador)', pppEmitenteNome: 'E' });
+    await filho('m5v', 'periodo', 'm5', { empresa: 'E', inicio: '2010-01-01', fim: '2020-12-31', cargo: 'Jatista', categoriaSegurado: 'Empregado', cbo: '7244-40' });
+    await filho('m5a', 'agenteAvaliado', 'm5', { nome: 'Sílica livre cristalizada', tipo: 'Químico', cas: '14808-60-7', resDesde97: 'Não caracteriza', resDesde2014: 'Caracteriza', codDesde97: '1.0.18' });
+    const t = await texto((await ltcatPpp('m5')).extras[0]);
+    expect(t).toContain('01/01/2010 a 07/10/2014');
+    expect(t).toContain('08/10/2014 a 31/12/2020');
+    expect(t).toContain('LINACH Grupo 1');
+  });
+  it('nota entre colchetes vira pendência com substituir / apagar', async () => {
+    await caso('m6', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'], autorNome: 'T', pppEmitente: 'Empresa (empregador)' });
+    await filho('m6v', 'periodo', 'm6', { empresa: 'E', inicio: '1997-07-01', fim: '2019-01-01', cargo: 'Técnico', cbo: '3131-25', categoriaSegurado: 'Empregado', atividades: 'd) 07/1997 a [data a confirmar – fim do contrato]: montagem.' });
+    const n = (await pendenciasDoCaso('m6')).find((i) => i.tipo === 'nota');
+    expect(n.trecho).toBe('[data a confirmar – fim do contrato]');
+    expect(n.valorAtual.replace(n.trecho, '2019')).toContain('07/1997 a 2019:');
   });
 });

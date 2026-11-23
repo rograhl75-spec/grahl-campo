@@ -117,4 +117,4 @@ export function anexoQuantitativo(a, quimicos = []) {
 }
 
 // agentes do quadro do art. 68: os que caracterizam em alguma época ou ainda estão "a confirmar"
-export const agentesDoArt68 = (ags) => ags.filter((a) => [a.data.resAte97, a.data.resDesde97].some((r) => r === 'Caracteriza' || r === 'A confirmar' || !r));
+export const agentesDoArt68 = (ags) => ags.filter((a) => [a.data.resAte97, a.data.resDesde97].some((r) => r === 'Caracteriza' || r === 'A confirmar' || !r) || a.data.resDesde2014 === 'Caracteriza');

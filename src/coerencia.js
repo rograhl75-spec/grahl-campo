@@ -19,6 +19,8 @@ const br = (iso) => String(iso || '').replace(/^(\d{4})-(\d{2})-(\d{2}).*$/, '$3
 const G = 'Coerência do laudo';
 
 export const RE_CONDICIONAL = /\b(a confirmar|se confirmad[oa]s?|caso (?:se )?confirme|dependem? d[aoe]s?|dependendo d[aoe]|a depender|ficou de|aguarda(?:ndo)?|pendente de|n[aã]o confirmad[oa])\b/i;
+// "não depende de tempo mínimo", "independe de": negação, não é condição
+export const condicional = (t) => RE_CONDICIONAL.test(String(t || '').replace(/\b(?:n[aã]o\s+depende[m]?|independe[m]?)\s+d[aoe]s?\b/gi, ''));
 // "não ocasional nem intermitente" é a fórmula da permanência: não conta como exposição eventual
 export const RE_EVENTUAL = /\b(eventua(?:l|is|lmente)|ocasiona(?:l|is|lmente)|espor[aá]dic[oa]s?|esporadicamente|intermitente(?:s|mente)?|raramente)\b/i;
 const tiraPermanencia = (t) => String(t || '').replace(/n[aã]o\s+ocasional\s+nem\s+intermitente/gi, '').replace(/nem\s+intermitente/gi, '').replace(/n[aã]o\s+(?:é\s+|era\s+)?(?:eventual|ocasional|intermitente)/gi, '');
@@ -28,7 +30,7 @@ export const RE_DOC_EMPRESA = /\b(PGR|PPRA|PCMSO|LTCAT|PCMAT|AET)\b/;
 export function semCondicional(t) {
   // pedaços com o separador que os segue ("; " ou ". "), para remontar sem trocar a pontuação
   const pedacos = String(t || '').match(/[^.;]+(?:[.;]+|$)/g) || [];
-  const fica = pedacos.filter((x) => x.trim() && !RE_CONDICIONAL.test(x));
+  const fica = pedacos.filter((x) => x.trim() && !condicional(x));
   return fica.join('').replace(/\s+/g, ' ').replace(/[;,]\s*$/, '.').trim();
 }
 const caracteriza = (a) => [a.data.resAte97, a.data.resDesde97, a.data.resDesde2014].includes('Caracteriza');
@@ -64,16 +66,16 @@ export function coerenciaDoLaudo(dados) {
   // 2) texto condicional ("a confirmar", "se confirmado", "depende de") com resultado definitivo – um item só
   // circunstâncias e frequência só contam nos agentes do quadro do art. 68 (os que caracterizam); a fundamentação, em todos
   const camposCond = (a) => (caracteriza(a) ? ['fundamentacao', 'circunstancias', 'frequencia'] : ['fundamentacao']);
-  const cond = ags.filter((a) => definitivo(a) && camposCond(a).some((k) => RE_CONDICIONAL.test(v(a.data[k]))) && !ciente(a, 'cond'));
+  const cond = ags.filter((a) => definitivo(a) && camposCond(a).some((k) => condicional(v(a.data[k]))) && !ciente(a, 'cond'));
   if (cond.length) {
     // fundamentação: o texto pelas regras; circunstâncias e frequência: sai só o trecho condicional (o fato fica;
     // o que ficar vazio volta como pergunta do art. 68)
     const reescr = cond.map((a) => {
       const r = regraDoAgente(a, dados);
       const campos = {};
-      if (r && RE_CONDICIONAL.test(v(a.data.fundamentacao))) campos.fundamentacao = fundamentacaoPelasRegras(a, r);
-      else if (RE_CONDICIONAL.test(v(a.data.fundamentacao))) campos.fundamentacao = semCondicional(a.data.fundamentacao);
-      for (const k of ['circunstancias', 'frequencia']) if (RE_CONDICIONAL.test(v(a.data[k]))) campos[k] = semCondicional(a.data[k]);
+      if (r && condicional(v(a.data.fundamentacao))) campos.fundamentacao = fundamentacaoPelasRegras(a, r);
+      else if (condicional(v(a.data.fundamentacao))) campos.fundamentacao = semCondicional(a.data.fundamentacao);
+      for (const k of ['circunstancias', 'frequencia']) if (condicional(v(a.data[k]))) campos[k] = semCondicional(a.data[k]);
       return { a, campos };
     }).filter(({ campos }) => Object.keys(campos).length);
     out.push({ id: 'coer-cond', grupo: G, tipo: 'lote', respondido: false,
@@ -91,9 +93,14 @@ export function coerenciaDoLaudo(dados) {
     const depois95 = vinculos.some((r) => !r.data.fim || r.data.fim > '1995-04-28') && !(v(x.expFim) && v(x.expFim) <= '1995-04-28');
     const ev = ['frequencia', 'circunstancias', 'fundamentacao'].map((k) => tiraPermanencia(x[k]).match(RE_EVENTUAL)).find(Boolean);
     if (ev && caracteriza(a) && depois95 && !ciente(a, 'eventual')) {
-      out.push(item(a, 'eventual', `${curto(x.nome)}: exposição "${ev[0]}" com resultado "Caracteriza"`,
-        'De 29/04/1995 em diante o enquadramento exige exposição habitual e permanente, não ocasional nem intermitente (art. 57, § 3º, da Lei nº 8.213/1991). Até 28/04/1995 a permanência não era exigida. Confirme a frequência ou mude o resultado.',
-        [{ rotulo: 'Mudar para "Não caracteriza" (a partir de 06/03/1997)', campo: 'resDesde97', valor: 'Não caracteriza' }]));
+      // muda todas as épocas que estão "Caracteriza" (antes só mudava a partir de 06/03/1997, e o item não saía quando o
+      // "Caracteriza" era o de até 05/03/1997)
+      const campos = Object.fromEntries(['resAte97', 'resDesde97', 'resDesde2014'].filter((k) => x[k] === 'Caracteriza').map((k) => [k, 'Não caracteriza']));
+      out.push({ id: `coer-eventual-${a.id}`, grupo: G, tipo: 'lote', respondido: false,
+        titulo: `${curto(x.nome)}: exposição "${ev[0]}" com resultado "Caracteriza"`,
+        explicacao: 'De 29/04/1995 em diante o enquadramento exige exposição habitual e permanente, não ocasional nem intermitente (art. 57, § 3º, da Lei nº 8.213/1991). Até 28/04/1995 a permanência não era exigida. Confirme a frequência (se for habitual, corrija o texto no agente) ou mude o resultado.',
+        lotes: [{ rotulo: 'Mudar para "Não caracteriza"', escritas: [{ rec: a.id, campos }] },
+          { rotulo: 'Está correto – manter', sec: true, escritas: [{ rec: a.id, campos: { ciente_eventual: 'Sim' } }] }] });
     }
   }
   // 4) atividades por fases e agentes que caracterizam o vínculo inteiro – um item só por vínculo

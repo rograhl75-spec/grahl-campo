@@ -20,8 +20,11 @@ import { componentesDoTexto } from './fds.js';
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 const semAc = (t) => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 const curto = (n) => v(n).replace(/\s+\(.*$/, '');
-const consta = (t) => /^\s*\d/.test(v(t));
-const naoConsta = (t) => /n[aã]o\s+(consta|h[aá])|sem c[oó]digo|fora do anexo/i.test(v(t));
+// código "por analogia" ou "enquadramento forçado" não é enquadramento: vale como "não consta"
+const RE_EVENTUAL_R = /\b(eventua(?:l|is|lmente)|ocasiona(?:l|is|lmente)|espor[aá]dic[oa]s?|esporadicamente|intermitente(?:s|mente)?|raramente|pontua(?:l|is|lmente))\b/i;
+const forcado = (t) => /analogia|for[çc]ad[oa]/i.test(v(t));
+const consta = (t) => /^\s*\d/.test(v(t)) && !forcado(t);
+const naoConsta = (t) => /n[aã]o\s+(consta|h[aá])|sem c[oó]digo|fora do anexo/i.test(v(t)) || forcado(t);
 const limpaCod = (t) => v(t).replace(/\s*\((?:pela|por) (?:classe|família)[^)]*\)/gi, '').trim();
 
 function temMedicao(a, dados) {
@@ -119,8 +122,15 @@ export function propostasDasRegras(dados) {
     if (!r) continue;
     const x = a.data;
     const campos = {};
-    for (const k of ['resAte97', 'resDesde97', 'resDesde2014']) if (v(r[k]) !== v(x[k]) && !(k === 'resDesde97' && r.medido)) campos[k] = r[k];
-    for (const k of ['codAte97', 'codDesde97']) if (!v(x[k])) campos[k] = r[k];
+    // exposição eventual que o signatário já marcou "Não caracteriza": a regra não volta a pôr "Caracteriza"
+    const eventual = ['frequencia', 'circunstancias'].some((k) => RE_EVENTUAL_R.test(v(x[k]).replace(/n[aã]o\s+ocasional\s+nem\s+intermitente|nem\s+intermitente|n[aã]o\s+(?:é\s+|era\s+)?(?:eventual|ocasional|intermitente)/gi, '')));
+    for (const k of ['resAte97', 'resDesde97', 'resDesde2014']) {
+      if (v(r[k]) === v(x[k]) || (k === 'resDesde97' && r.medido)) continue;
+      if (eventual && x[k] === 'Não caracteriza' && r[k] === 'Caracteriza') continue;
+      campos[k] = r[k];
+    }
+    // código vazio ou "por analogia" / "forçado": o código pela regra
+    for (const k of ['codAte97', 'codDesde97']) if (!v(x[k]) || forcado(x[k])) campos[k] = r[k];
     if (!Object.keys(campos).length) continue;
     out.push({ a, r, campos });
   }

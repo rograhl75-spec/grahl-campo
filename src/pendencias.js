@@ -14,7 +14,9 @@ import { contextoLegal, ehParecerTecnico, EMITENTE_PPP, CATEGORIAS_SEGURADO, RES
 import { categoriaDoVinculo } from './enquadramento.js';
 import { agentesDoArt68, bancoDoAgente, viasPadrao } from './docx/agentesQuadros.js';
 import { carregarCbo, sugerirCbo, codigoCbo } from './cbo.js';
-import { coerenciaDoLaudo } from './coerencia.js';
+import { coerenciaDoLaudo, notasNoTexto } from './coerencia.js';
+import { propostasDasRegras } from './regras.js';
+import { caseChildren } from './db.js';
 import { efeitosDoBanco } from './docx/efeitosQuimicos.js';
 import { profissaoDoCaso } from './data/profissoes.js';
 
@@ -209,7 +211,10 @@ export async function pendenciasDoCaso(caseId) {
       }
     }
     const temAte97 = dados.periodos.some((r) => (r.data.inicio || '9999') <= '1997-03-05');
+    // os agentes que as regras de cada período resolvem ficam no item único "Enquadramento pelas regras"
+    const pelasRegras = new Set(propostasDasRegras(dados).map(({ a }) => a.id));
     for (const a of dados.agentes) {
+      if (pelasRegras.has(a.id)) continue;
       for (const [campo, rot, vale] of [['resAte97', 'até 05/03/1997', temAte97], ['resDesde97', 'a partir de 06/03/1997', true]]) {
         const val = String(a.data[campo] || '').trim();
         if (!vale || (val && val !== 'A confirmar')) continue;
@@ -219,7 +224,14 @@ export async function pendenciasDoCaso(caseId) {
     }
   }
   // conferência de coerência do laudo (resultado × fundamentação, frequência, fases da atividade, citações)
-  if (ltcat || contextoLegal(c).prev) itens.push(...coerenciaDoLaudo(dados));
+  if (ltcat || contextoLegal(c).prev) {
+    itens.push(...coerenciaDoLaudo(dados));
+    // notas de trabalho entre colchetes no texto dos vínculos e dos agentes (no registro original, antes da limpeza)
+    const [pers, ags] = await Promise.all([caseChildren(caseId, 'periodo'), caseChildren(caseId, 'agenteAvaliado')]);
+    const idxP = new Map(dados.periodos.map((r, i) => [r.id, i]));
+    itens.push(...notasNoTexto(pers.filter((r) => !r.deleted && idxP.has(r.id)), 'Notas no texto', (r) => `V${idxP.get(r.id) + 1}`),
+      ...notasNoTexto(ags.filter((a) => !a.deleted), 'Notas no texto', (a) => String(a.data.nome || 'Agente').replace(/\s+\(.*$/, '')));
+  }
   // quesitos sem resposta: responder aqui mesmo (o texto do quesito aparece acima do campo)
   const ordemOrigem = (o) => ['Juízo', 'Autor / Reclamante', 'Réu / Reclamada', 'INSS', 'Complementares'].indexOf(o);
   for (const q of [...dados.quesitos].sort((a, b) => ordemOrigem(a.data.origem) - ordemOrigem(b.data.origem) || (Number(a.data.numero) || 0) - (Number(b.data.numero) || 0))) {

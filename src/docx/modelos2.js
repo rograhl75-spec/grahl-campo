@@ -406,7 +406,7 @@ export function linhasRecomendacoes(dados) {
   const postoGeral = dados.postos?.length === 1 ? nome(dados.postos[0].id) : 'Todos os postos';
   for (const a of dados.agentes || []) {
     const x = a.data;
-    if (x.resDesde97 !== 'Caracteriza' && !(x.resAte97 === 'Caracteriza' && !x.resDesde97)) continue;
+    if (x.resDesde97 !== 'Caracteriza' && x.resDesde2014 !== 'Caracteriza' && !(x.resAte97 === 'Caracteriza' && !x.resDesde97)) continue;
     rows.push([postoGeral, x.nome, 'Exposição caracterizada (avaliação qualitativa)', medidasDoAgente(a)]);
   }
   return rows;

@@ -193,14 +193,19 @@ function agentesAvaliados(d, dados, sub, n) {
     const varios = per.length > 1;
     const cab = varios ? ['Agente', 'Vínculos'] : ['Agente'];
     if (temAte97) cab.push('Até 05/03/1997');
-    if (temDesde97) cab.push('A partir de 06/03/1997');
+    // LINACH Grupo 1 com CAS: coluna própria a partir de 08/10/2014
+    const tem14 = temDesde97 && lst.some((a) => v(a.data.resDesde2014) && a.data.resDesde2014 !== a.data.resDesde97) && per.some((r) => !r.data.fim || r.data.fim > '2014-10-07');
+    if (temDesde97) cab.push(tem14 ? '06/03/1997 a 07/10/2014' : 'A partir de 06/03/1997');
+    if (tem14) cab.push('A partir de 08/10/2014 (LINACH)');
     const nomeExp = (a) => `${a.data.nome}${v(a.data.expInicio) || v(a.data.expFim) ? `\nExposição: ${v(a.data.expInicio) ? dataBR(a.data.expInicio) : 'início do vínculo'} a ${v(a.data.expFim) ? dataBR(a.data.expFim) : 'fim do vínculo'}` : ''}`;
-    const larg = varios ? (temAte97 && temDesde97 ? [0.3, 0.16, 0.27, 0.27] : [0.4, 0.2, 0.4]) : (temAte97 && temDesde97 ? [0.36, 0.32, 0.32] : [0.5, 0.5]);
+    const nCol = cab.length - (varios ? 2 : 1);
+    const larg = varios ? [0.26, 0.14, ...Array(nCol).fill(0.6 / nCol)] : [nCol > 2 ? 0.28 : 0.36, ...Array(nCol).fill((nCol > 2 ? 0.72 : 0.64) / nCol)];
     d.quadro(`${TIT_TIPO[tipo].split(' – ')[0]} – enquadramento por época`, [cab, ...lst.map((a) => {
       const k = codigosDoAgente(a);
       const lin = varios ? [nomeExp(a), alcance(a)] : [nomeExp(a)];
       if (temAte97) lin.push(`${RES_TXT(a.data.resAte97)}${k.ate97 ? `\n${codTxt(k.ate97)}` : ''}`);
       if (temDesde97) lin.push(`${RES_TXT(a.data.resDesde97)}${k.desde97 ? `\n${codTxt(k.desde97)}` : ''}`);
+      if (tem14) lin.push(v(a.data.resDesde2014) ? `${RES_TXT(a.data.resDesde2014)}${k.desde97 ? `\n${codTxt(k.desde97)}` : ''}` : RES_TXT(a.data.resDesde97));
       return lin;
     })], { larguras: larg, tam: 9, alinhar: 'left',
       fonte: 'Elaborado pelo signatário com base nos Decretos 53.831/1964, 83.080/1979, 2.172/1997 e 3.048/1999 e na IN PRES/INSS nº 128/2022.' });
@@ -646,7 +651,8 @@ function quadroDiligenciaLtcat(d, c, seg) {
   const presentes = String(c.vistoriaPresentes || '').split('\n').map((l) => l.trim()).filter(Boolean)
     .map((l) => (/^(o|a)?\s*segurad[oa]$/i.test(l) ? `${seg} – segurado` : l)).join('\n');
   const local = /^\s*(local|o local|-|—)\s*$/i.test(String(c.vistoriaLocal || '')) ? '' : c.vistoriaLocal;
-  if (!remota(c)) return quadroDiligencia(d, { ...c, vistoriaLocal: local, vistoriaPresentes: presentes });
+  // presencial sem o local digitado: o estabelecimento do emitente do PPP
+  if (!remota(c)) return quadroDiligencia(d, { ...c, vistoriaLocal: local || c.pppEmitenteNome || c.reuNome || '', vistoriaEndereco: c.vistoriaEndereco || c.pppEndereco || '', vistoriaPresentes: presentes });
   const doc = /^Documental/.test(c.modalidade);
   const linhas = [
     ['Data e horário', [dataBR(c.vistoriaData), [c.vistoriaInicio, c.vistoriaFim].filter(Boolean).join(' às ')].filter(Boolean).join(', ') || (doc ? 'Não se aplica' : '[[data da entrevista]]')],

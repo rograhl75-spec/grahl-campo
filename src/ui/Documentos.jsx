@@ -376,6 +376,23 @@ function ItemPendencia({ it, responder }) {
           {it.acoes.map((a) => <button type="button" class="mini" onClick={() => responder(it.rec, a.campo, a.valor)}>{a.rotulo}</button>)}
         </div>
       )}
+      {it.tipo === 'lote' && (
+        <div class="linha-botoes">
+          {(it.lotes || []).map((l) => (
+            <button type="button" class={`mini${l.sec ? ' sec' : ''}`} onClick={async () => {
+              for (const e of l.escritas) for (const [k, val] of Object.entries(e.campos)) await salvar(e.rec, k, val);
+              await responder(null);
+            }}>{l.rotulo}</button>
+          ))}
+        </div>
+      )}
+      {it.tipo === 'nota' && (
+        <div class="com-botao">
+          <label class="campo"><span class="rotulo">No lugar da nota</span><input value={txt} onInput={(e) => setTxt(e.currentTarget.value)} /></label>
+          <button type="button" class="mini" disabled={!String(txt).trim()} onClick={() => responder(it.rec, it.campo, it.valorAtual.replace(it.trecho, String(txt).trim()))}>Substituir</button>
+          <button type="button" class="mini perigo" onClick={() => responder(it.rec, it.campo, it.valorAtual.replace(` ${it.trecho}`, '').replace(it.trecho, ''))}>Apagar a nota</button>
+        </div>
+      )}
       {it.ciente && (
         <div class="linha-botoes">
           <button type="button" class="mini sec" onClick={() => responder(it.rec, it.ciente.campo, 'Sim')}>Está correto – manter</button>

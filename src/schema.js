@@ -323,6 +323,7 @@ export const CAMPOS_AGENTE_AVALIADO = [
   ['resAte97', 'Resultado até 05/03/1997', 'select', RESULTADO_AGENTE],
   ['codDesde97', 'Código a partir de 06/03/1997 (Anexo IV)', 'text'],
   ['resDesde97', 'Resultado a partir de 06/03/1997', 'select', RESULTADO_AGENTE],
+  ['resDesde2014', 'Resultado a partir de 08/10/2014 (LINACH Grupo 1 com CAS; em branco = o mesmo de 06/03/1997)', 'select', RESULTADO_AGENTE],
   ['intensidade', 'Intensidade / concentração (PPP)', 'text'],
   ['tecnica', 'Técnica utilizada (PPP) – ex.: "Qualitativa"', 'text'],
   ['epcEficaz', 'EPC eficaz', 'select', ['Sim', 'Não', 'Não se aplica']],

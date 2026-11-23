@@ -122,6 +122,7 @@ export function cortesDosAgentes(agentes, idx) {
     const x = a.data || a;
     if (/^\d{4}-\d{2}-\d{2}$/.test(v(x.expInicio))) out.push(vespera(x.expInicio));
     if (/^\d{4}-\d{2}-\d{2}$/.test(v(x.expFim))) out.push(v(x.expFim));
+    if (v(x.resDesde2014) && v(x.resDesde2014) !== v(x.resDesde97)) out.push('2014-10-07');
   }
   return out;
 }
@@ -130,7 +131,8 @@ export function cortesDosAgentes(agentes, idx) {
 export function resultadoNoSegmento(a, fim) {
   const x = a.data || a;
   const ate = fim <= '1997-03-05';
-  const res = v(ate ? x.resAte97 : x.resDesde97);
+  // LINACH Grupo 1 com CAS: resultado próprio a partir de 08/10/2014 (em branco = o de 06/03/1997)
+  const res = v(ate ? x.resAte97 : (fim > '2014-10-07' && v(x.resDesde2014)) || x.resDesde97);
   const cod = ate ? codigosDoAgente(a).ate97 : codigosDoAgente(a).desde97;
   return { res, cod };
 }
@@ -235,7 +237,7 @@ export function exposicaoNoVinculo(r, idx, agentes, { presentes = false, quantit
   if (!ini0) return [];
   // "não caracteriza" só entra quando o agente é do Anexo IV e de avaliação quantitativa sem medição (ex.: mercúrio
   // ou ácido clorídrico após 05/03/1997); o que não caracteriza na avaliação qualitativa não vai ao PPP
-  const quant = (a, ate) => /^Quantitativa/.test(tecnicaDoAgente(a, ate)) || (!ate && quantitativo(a));
+  const quant = (a, ate) => /^Quantitativa/.test(tecnicaDoAgente(a, ate, { linach: false })) || (!ate && quantitativo(a));
   // agente fora do Anexo IV ("não enquadrável") não vai ao PPP, ainda que tenha limite na NR-15
   const conta = (res, a, ate) => res === 'Caracteriza' || (presentes && res === 'Não caracteriza' && quant(a, ate));
   const out = [];
@@ -248,11 +250,14 @@ export function exposicaoNoVinculo(r, idx, agentes, { presentes = false, quantit
     if (ini > fim) continue;
     const jan = [];
     if (ini <= '1997-03-05' && conta(x.resAte97, a, true)) jan.push([ini, fim < '1997-03-05' ? fim : '1997-03-05', x.resAte97 === 'Caracteriza', true]);
-    if (fim >= '1997-03-06' && conta(x.resDesde97, a, false)) {
+    // épocas separadas: o código e a técnica mudam em 06/03/1997; LINACH Grupo 1, em 08/10/2014
+    const r14 = v(x.resDesde2014) && v(x.resDesde2014) !== v(x.resDesde97) ? v(x.resDesde2014) : '';
+    const fim97 = r14 && fim > '2014-10-07' ? '2014-10-07' : fim;
+    if (fim >= '1997-03-06' && ini <= fim97 && conta(x.resDesde97, a, false)) {
       const a0 = ini > '1997-03-06' ? ini : '1997-03-06';
-      const car = x.resDesde97 === 'Caracteriza';
-      jan.push([a0, fim, car, false]); // épocas separadas: o código e a técnica mudam em 06/03/1997
+      jan.push([a0, fim97, x.resDesde97 === 'Caracteriza', false]);
     }
+    if (r14 && fim > '2014-10-07' && conta(r14, a, false)) jan.push([ini > '2014-10-08' ? ini : '2014-10-08', fim, r14 === 'Caracteriza', false]);
     for (const [p, q, car, ate] of jan) out.push({ ini: p, fim: q, agente: a, caracteriza: car, naoQuantificado: !car && quant(a, ate) });
   }
   return out;

@@ -429,7 +429,12 @@ export function linhasRecomendacoes(dados) {
   return rows;
 }
 export function quadroRecomendacoes(d, dados) {
-  const rows = linhasRecomendacoes(dados);
+  // mesma situação e mesmas medidas no mesmo posto: uma linha só, com os agentes um abaixo do outro
+  const rows = [];
+  for (const r of linhasRecomendacoes(dados)) {
+    const igual = rows.find((x) => x[0] === r[0] && x[2] === r[2] && x[3] === r[3]);
+    if (igual) igual[1] = `${igual[1]}\n${r[1]}`; else rows.push([...r]);
+  }
   const soQuali = rows.length && !dados.medicoes?.length;
   // um posto só ("Todos os postos" em todas as linhas): a coluna sai
   const umPosto = rows.length > 0 && rows.every((r) => r[0] === rows[0][0]);

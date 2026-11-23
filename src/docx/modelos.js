@@ -228,7 +228,9 @@ function agentesAvaliados(d, dados, sub, n) {
     const nomeExp = (a) => `${a.data.nome}${v(a.data.expInicio) || v(a.data.expFim) ? `\nExposição: ${v(a.data.expInicio) ? dataBR(a.data.expInicio) : 'início do vínculo'} a ${v(a.data.expFim) ? dataBR(a.data.expFim) : 'fim do vínculo'}` : ''}`;
     // fundamentação de cada agente dentro do quadro: o texto padrão das regras já está nas colunas de cada época
     // (resultado e código); o que é próprio do agente vai para a coluna "Observações" – sem parágrafo por agente
-    const resto = new Map(lst.map((a) => [a.id, frasesPadrao(a).filter((f) => !f.k).map((f) => f.t).join(' ')]));
+    // frases que repetem a época ("Até 05/03/1997, …", "A partir de 06/03/1997, …") já estão nas colunas do quadro
+    const deEpoca = (t) => /^(At[ée] 05\/03\/1997|A partir de (06\/03\/1997|08\/10\/2014))\b/.test(t.trim());
+    const resto = new Map(lst.map((a) => [a.id, frasesPadrao(a).filter((f) => !f.k).flatMap((f) => f.t.split(/(?<=\.)\s+(?=\p{Lu})/u)).filter((t) => !deEpoca(t)).join(' ')]));
     const quantSemMed = (a) => a.data.resDesde97 === 'Não caracteriza' && (!!anexoQuantitativo(a, dados.quimicos) || frasesPadrao(a).some((f) => f.k === 'nc'));
     const temObs = lst.some((a) => resto.get(a.id));
     if (temObs) cab.push('Observações');

@@ -289,7 +289,7 @@ describe('óleo mineral × derivado de petróleo × sintético e IP 346', () => 
 });
 
 describe('risco à integridade física fora do Anexo IV', () => {
-  it('LTCAT registra em item próprio, sem mudar o enquadramento; PPP só remete', async () => {
+  it('LTCAT enquadra em item próprio e na síntese; PPP cita nas observações, sem mudar campo 15 e GFIP', async () => {
     await caso('m9', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'], autorNome: 'W', pppEmitente: 'Empresa (empregador)', pppEmitenteNome: 'E', modalidade: 'Remota (entrevista por videoconferência)', jurisprudencia: 'Incluir' });
     await filho('m9v', 'periodo', 'm9', { empresa: 'E', inicio: '1990-01-01', fim: '2021-12-31', cargo: 'Eletricista', cbo: '9511-05', categoriaSegurado: 'Empregado' });
     await filho('m9a', 'agenteAvaliado', 'm9', { nome: 'Eletricidade (tensão acima de 250 V)', tipo: 'Físico', resAte97: 'Caracteriza', resDesde97: 'Não enquadrável',
@@ -298,7 +298,9 @@ describe('risco à integridade física fora do Anexo IV', () => {
       circunstancias: 'Abastecimento de geradores.', frequencia: 'Semanal.' });
     const r = await ltcatPpp('m9');
     const t = await texto(r);
-    expect(t).toMatch(/CONDIÇÕES DE RISCO À INTEGRIDADE FÍSICA NÃO PREVISTAS NO ANEXO IV/i);
+    expect(t).toMatch(/RISCOS À INTEGRIDADE FÍSICA \(NR-16 E NR-10\)/i);
+    expect(t).toContain('Integridade física');
+    expect(t).toMatch(/a agentes nocivos e a risco à integridade física/);
     expect(t).toContain('06/03/1997 a 31/12/2021');
     expect(t).toContain('NR-16, Anexo 4');
     expect(t).toContain('NR-16, Anexo 2');
@@ -308,6 +310,6 @@ describe('risco à integridade física fora do Anexo IV', () => {
     const p = await texto(r.extras[0]);
     expect(p).toContain('Consta do LTCAT, no item');
     expect(p).not.toMatch(/\|?\s*F\s*\n?Eletricidade[^\n]*\n[^\n]*06\/03\/1997/);
-    expect(p).toContain('não altera os fatores de risco do campo 15 nem o código GFIP');
+    expect(p).toContain('não integra os fatores de risco do campo 15 nem o código GFIP');
   });
 });

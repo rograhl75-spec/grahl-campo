@@ -1,6 +1,7 @@
 // Conclusão previdenciária calculada pelo app, por vínculo e por subperíodo de critério:
 // categoria (até 28/04/1995), ruído (Lavg até 18/11/2003; NEN depois) e vibração de corpo inteiro
 // (ISO 2631-1 de 06/03/1997 a 13/08/2014; NR-15, Anexo 8, a partir de 14/08/2014).
+import { itensIntegridade } from '../integridade.js';
 import { dataBR, postosDoPeriodo, nomeCurto, hojeLocal, superaLimite } from './base.js';
 import { comJurisprudencia } from './fontes.js';
 import { avaliaPenosidade, vinculosMotorista, matrizIAC, tempoConducao } from './penosidade.js';
@@ -87,11 +88,12 @@ function celulasSintese(s, r, idx, dados, penoso, penosidade) {
     return l.length ? l.join('\n') : '—';
   };
   // medições (ruído, vibração, calor) e itens que não vêm do cadastro de agentes
-  const fis = s.itens.filter((i) => !i.categoria && !i.agente).map((i) => i.t);
+  const fis = s.itens.filter((i) => !i.categoria && !i.agente && !i.integridade).map((i) => i.t);
+  const integ = s.itens.filter((i) => i.integridade).map((i) => `${nomeMin(i.t)} (${i.cod})`);
   const res = penosidade ? resultadoSubperiodo(s, penoso) : s.caracteriza;
   const pen = penoso === true && s.fim > '1995-04-28' ? '\npenosidade (matriz do item 3)' : '';
   // um vínculo só: o nome da empresa repetido em todas as linhas não diz nada (já está no item 1.3)
-  return [`${dados.periodos.length > 1 ? `${empresaCurta(r)}\n` : ''}${dataBR(s.ini)} a\n${fimSeg(r, s)}`, cat.length ? cat.join('\n') : '—', texto('Biológico'), texto('Químico'), texto('Físico', fis), `${res}${pen}`];
+  return [`${dados.periodos.length > 1 ? `${empresaCurta(r)}\n` : ''}${dataBR(s.ini)} a\n${fimSeg(r, s)}`, cat.length ? cat.join('\n') : '—', texto('Biológico'), texto('Químico'), texto('Físico', fis), integ.length ? integ.join('\n') : '—', `${res}${pen}`];
 }
 // nota de rodapé da síntese: só fala de ruído e vibração quando houver
 function fonteSintese(dados, av) {
@@ -165,6 +167,8 @@ export function avaliarPeriodos(dados) {
           if (sup) algum = true;
         }
       }
+      // risco à integridade física (NR-16 e NR-10) enquadrado no item 5
+      for (const it of itensIntegridade(dados, idx, a, b)) { itens.push(it); algum = true; dadosOk = true; }
       // medição inválida para o período (q = 3 antes de 19/11/2003) sem outro agente que caracterize: fica pendente, não "NÃO"
       const pend = !algum && itens.some((i) => i.pendente);
       return { ini: a, fim: b, itens, caracteriza: pend ? '[[pendente]]' : dadosOk ? (algum ? 'SIM' : 'NÃO') : '[[S/N]]', codigos: [...new Set(itens.filter((i) => i.sup).map((i) => i.cod))].join('; ') || '—' };
@@ -214,9 +218,9 @@ export function conclusaoPrevidenciaria(d, dados, { tituloQuadro = 'Conclusão p
   }, [])).flat();
   const linhasSintese = juntos.map((x) => x.cel);
   const cruzaEc103 = juntos.some((x) => x.ini <= '2019-11-13' && x.fim > '2019-11-13');
-  const temCol = [1, 2, 3, 4].map((k) => linhasSintese.some((l) => l[k] !== '—'));
-  const cab = [dados.periodos.length > 1 ? 'Vínculo / período' : 'Período', 'Categoria profissional', 'Agentes biológicos', 'Agentes químicos', 'Agentes físicos', 'Resultado'];
-  const pesos = [0.16, 0.16, 0.18, 0.32, 0.18, 0.12];
+  const temCol = [1, 2, 3, 4, 5].map((k) => linhasSintese.some((l) => l[k] !== '—'));
+  const cab = [dados.periodos.length > 1 ? 'Vínculo / período' : 'Período', 'Categoria profissional', 'Agentes biológicos', 'Agentes químicos', 'Agentes físicos', 'Integridade física', 'Resultado'];
+  const pesos = [0.16, 0.16, 0.18, 0.32, 0.18, 0.18, 0.12];
   const usar = [true, ...temCol, true];
   const larg = pesos.filter((_, i) => usar[i]); const soma = larg.reduce((x, y) => x + y, 0);
   d.quadro(tituloQuadro, [cab.filter((_, i) => usar[i]), ...linhasSintese.map((l) => l.filter((_, i) => usar[i]))],
@@ -243,7 +247,8 @@ export function conclusaoPrevidenciaria(d, dados, { tituloQuadro = 'Conclusão p
     const cat = sim.filter(soCat), agente = sim.filter((s) => !soCat(s));
     const cods = (l) => [...new Set(l.flatMap((s) => s.codigos.split('; ')))].join('; ');
     if (cat.length) partes.push(`enquadra-se por categoria profissional, com presunção legal de exposição, ${pl(cat, 'no período', 'nos períodos')} de ${p(cat)}`);
-    if (agente.length) partes.push(`caracteriza exposição habitual e permanente, não ocasional nem intermitente, a agentes nocivos ${pl(agente, 'no período', 'nos períodos')} de ${p(agente)}, pelos agentes e códigos do quadro acima`);
+    const comInt = agente.some((sg) => sg.itens.some((i) => i.integridade));
+    if (agente.length) partes.push(`caracteriza exposição habitual e permanente, não ocasional nem intermitente, a agentes nocivos${comInt ? ' e a risco à integridade física' : ''} ${pl(agente, 'no período', 'nos períodos')} de ${p(agente)}, pelos agentes e códigos do quadro acima`);
     // penosidade caracterizada onde os agentes não superam os limites: o resultado é especial pela penosidade
     const penR = penDe(r) === true;
     const naoPen = penR ? nao.filter((s) => s.fim > '1995-04-28') : [];

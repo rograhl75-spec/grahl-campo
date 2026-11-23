@@ -199,39 +199,6 @@ function classificar(f) {
   for (const [k, re] of RE_FRASE) { const m = f.match(re); if (m) return [{ k, cod: m[1] || '', t: f }]; }
   return [{ k: '', cod: '', t: f }];
 }
-const nomeAgCurto = (a) => v(a.data.nome).replace(/\s+\(.*$/, '').replace(/^\p{Lu}(?=\p{Ll})/u, (c) => c.toLowerCase());
-const listaE = (l) => l.join(', ').replace(/, ([^,]*)$/, ' e $1');
-function fundamentacaoAgrupada(d, lst) {
-  const fr = new Map(lst.map((a) => [a.id, frasesPadrao(a)]));
-  const padrao = lst.filter((a) => fr.get(a.id).some((f) => f.k));
-  // agrupar só compensa com dois ou mais agentes no texto padrão
-  if (padrao.length < 2) {
-    for (const a of lst) {
-      if (v(a.data.fundamentacao)) d.texto(`**${a.data.nome}.** ${v(a.data.fundamentacao)}`);
-      else d.redigir(`fundamentação de ${a.data.nome} (código de cada época e conclusão).`);
-    }
-    return;
-  }
-  const grupos = new Map();
-  for (const a of padrao) for (const f of fr.get(a.id)) if (f.k) { const k = `${f.k}|${f.cod}`; if (!grupos.has(k)) grupos.set(k, []); grupos.get(k).push(a); }
-  const ordem = ['ac', 'an', 'c', 'nc', 'ne'];
-  const linhas = [...grupos.entries()].sort((x, y) => ordem.indexOf(x[0].split('|')[0]) - ordem.indexOf(y[0].split('|')[0])).map(([k, ags]) => {
-    const [tipo, cod] = k.split('|'); const pl = ags.length > 1; const nomes = listaE(ags.map(nomeAgCurto)).replace(/^./, (c) => c.toUpperCase());
-    if (tipo === 'ac') return `Até 05/03/1997, ${pl ? `os agentes ${nomes.replace(/^./, (c) => c.toLowerCase())} constam` : `${nomes.replace(/^./, (c) => c.toLowerCase())} consta`} do ${cod}, e o enquadramento é qualitativo, por presunção de exposição (IN 128/2022, art. 297, I).`;
-    if (tipo === 'an') return `Até 05/03/1997, ${pl ? `${nomes.replace(/^./, (c) => c.toLowerCase())} não constam` : `${nomes.replace(/^./, (c) => c.toLowerCase())} não consta`} dos Decretos 53.831/64 e 83.080/79: não há enquadramento por ${pl ? 'eles' : 'ele'}.`;
-    if (tipo === 'c') return `A partir de 06/03/1997, ${nomes.replace(/^./, (c) => c.toLowerCase())} ${pl ? 'constam' : 'consta'} do Anexo IV (${cod}), com avaliação qualitativa (IN 128/2022, art. 297, II), e a exposição é caracterizada nas atividades descritas.`;
-    if (tipo === 'nc') return `A partir de 06/03/1997, ${nomes.replace(/^./, (c) => c.toLowerCase())} ${pl ? 'constam' : 'consta'} do Anexo IV (${cod}) e ${pl ? 'têm' : 'tem'} limite de tolerância na NR-15, com avaliação quantitativa (IN 128/2022, art. 297, II). Sem medição da concentração no ambiente, a exposição não é caracterizada; ${pl ? 'os agentes constam' : 'o agente consta'} do PPP como ${pl ? 'presentes' : 'presente'}, com a intensidade "não quantificada".`;
-    return `A partir de 06/03/1997, ${nomes.replace(/^./, (c) => c.toLowerCase())} não ${pl ? 'constam' : 'consta'} do Anexo IV dos Decretos 2.172/97 e 3.048/99, cujo rol de agentes é exaustivo: não ${pl ? 'são enquadráveis' : 'é enquadrável'}, ainda que ${pl ? 'presentes' : 'presente'} no ambiente.`;
-  });
-  d.texto(linhas.map((l) => `- ${l}`).join("\n"));
-  // o que é próprio de cada agente (e os agentes sem o texto padrão)
-  for (const a of lst) {
-    const resto = fr.get(a.id).filter((f) => !f.k).map((f) => f.t).join(' ');
-    if (resto) d.texto(`**${a.data.nome}.** ${resto}`);
-    else if (!fr.get(a.id).length) d.redigir(`fundamentação de ${a.data.nome} (código de cada época e conclusão).`);
-  }
-}
-
 function agentesAvaliados(d, dados, sub, n) {
   const ags = dados.agentes || [];
   if (!ags.length) {
@@ -259,27 +226,31 @@ function agentesAvaliados(d, dados, sub, n) {
     if (temDesde97) cab.push(tem14 ? '06/03/1997 a 07/10/2014' : 'A partir de 06/03/1997');
     if (tem14) cab.push('A partir de 08/10/2014 (LINACH)');
     const nomeExp = (a) => `${a.data.nome}${v(a.data.expInicio) || v(a.data.expFim) ? `\nExposição: ${v(a.data.expInicio) ? dataBR(a.data.expInicio) : 'início do vínculo'} a ${v(a.data.expFim) ? dataBR(a.data.expFim) : 'fim do vínculo'}` : ''}`;
-    const nCol = cab.length - (varios ? 2 : 1);
-    const larg = varios ? [0.26, 0.14, ...Array(nCol).fill(0.6 / nCol)] : [nCol > 2 ? 0.28 : 0.36, ...Array(nCol).fill((nCol > 2 ? 0.72 : 0.64) / nCol)];
+    // fundamentação de cada agente dentro do quadro: o texto padrão das regras já está nas colunas de cada época
+    // (resultado e código); o que é próprio do agente vai para a coluna "Observações" – sem parágrafo por agente
+    const resto = new Map(lst.map((a) => [a.id, frasesPadrao(a).filter((f) => !f.k).map((f) => f.t).join(' ')]));
+    const quantSemMed = (a) => a.data.resDesde97 === 'Não caracteriza' && (!!anexoQuantitativo(a, dados.quimicos) || frasesPadrao(a).some((f) => f.k === 'nc'));
+    const temObs = lst.some((a) => resto.get(a.id));
+    if (temObs) cab.push('Observações');
+    const nCol = cab.length - (varios ? 2 : 1) - (temObs ? 1 : 0);
+    const larg = temObs
+      ? (varios ? [0.2, 0.1, ...Array(nCol).fill(0.42 / nCol), 0.28] : [0.22, ...Array(nCol).fill(0.46 / nCol), 0.32])
+      : (varios ? [0.26, 0.14, ...Array(nCol).fill(0.6 / nCol)] : [nCol > 2 ? 0.28 : 0.36, ...Array(nCol).fill((nCol > 2 ? 0.72 : 0.64) / nCol)]);
     d.quadro(`${TIT_TIPO[tipo].split(' – ')[0]} – enquadramento por época`, [cab, ...lst.map((a) => {
       const k = codigosDoAgente(a);
       const lin = varios ? [nomeExp(a), alcance(a)] : [nomeExp(a)];
+      const q = quantSemMed(a) ? `\nquantitativo (NR-15, ${anexoQuantitativo(a, dados.quimicos) || 'Anexo 11'}), sem medição: no PPP como "não quantificada"` : '';
       if (temAte97) lin.push(`${RES_TXT(a.data.resAte97)}${k.ate97 ? `\n${codTxt(k.ate97)}` : ''}`);
-      if (temDesde97) lin.push(`${RES_TXT(a.data.resDesde97)}${k.desde97 ? `\n${codTxt(k.desde97)}` : ''}`);
+      if (temDesde97) lin.push(`${RES_TXT(a.data.resDesde97)}${k.desde97 ? `\n${codTxt(k.desde97)}` : ''}${q}`);
       if (tem14) lin.push(v(a.data.resDesde2014) ? `${RES_TXT(a.data.resDesde2014)}${k.desde97 ? `\n${codTxt(k.desde97)}` : ''}` : RES_TXT(a.data.resDesde97));
+      if (temObs) lin.push(resto.get(a.id) || '—');
       return lin;
-    })], { larguras: larg, tam: 9, alinhar: 'left',
-      fonte: 'Elaborado pelo signatário com base nos Decretos 53.831/1964, 83.080/1979, 2.172/1997 e 3.048/1999 e na IN PRES/INSS nº 128/2022.' });
+    })], { larguras: larg, tam: temObs ? 8.5 : 9, alinhar: 'left',
+      fonte: `Elaborado pelo signatário com base nos Decretos 53.831/1964, 83.080/1979, 2.172/1997 e 3.048/1999 e na IN PRES/INSS nº 128/2022.${tipo === 'Químico' ? ' Até 05/03/1997, enquadramento qualitativo, por presunção de exposição (IN 128/2022, art. 297, I); a partir de 06/03/1997, só os agentes do Anexo IV, cujo rol de agentes é exaustivo (art. 297, II).' : ''}` });
     if (tipo === 'Químico') {
       quadroCaracteristicasQuimicos(d, lst.map((a) => ({ nome: a.data.nome, dados: a.data, banco: bancoDoAgente(a, dados.quimicos), fds: efeitosDaFds(a, dados) })));
       fichasFds(d, dados);
-      const quant = lst.filter((a) => anexoQuantitativo(a, dados.quimicos) && a.data.resDesde97 === 'Não caracteriza')
-        .map((a) => a.data.nome.replace(/\s*\(.*$/, '').replace(/^\p{Lu}(?=\p{Ll})/u, (c) => c.toLowerCase()));
-      const lq = quant.join(', ').replace(/, ([^,]*)$/, ' e $1').replace(/^./, (c) => c.toUpperCase());
-      const cobertos = lst.filter((a) => anexoQuantitativo(a, dados.quimicos) && a.data.resDesde97 === 'Não caracteriza').every((a) => frasesPadrao(a).some((f) => f.k === 'nc'));
-      if (quant.length && !(cobertos && lst.length > 1)) d.texto(`${lq} ${quant.length > 1 ? 'têm' : 'tem'} limite de tolerância nos Anexos 11 ou 12 da NR-15 (avaliação quantitativa). Sem medição da concentração no ambiente, a exposição não é caracterizada, e ${quant.length > 1 ? 'os agentes constam' : 'o agente consta'} do PPP como presente${quant.length > 1 ? 's' : ''}, com a intensidade "não quantificada".`);
     }
-    fundamentacaoAgrupada(d, lst);
   }
   // produtos com FDS sem agente químico avaliado: as fichas saem numa seção própria
   if ((dados.produtos || []).length && !dados._fdsImpressas) { sub('Produtos químicos – dados das fichas com dados de segurança (FDS)'); n += 1; fichasFds(d, dados); }
@@ -665,7 +636,7 @@ export async function ltcatPpp(caseId) {
   d.h1('6', 'Conclusão');
   d.h2('6.1', 'Síntese do enquadramento');
   conclusaoPrevidenciaria(d, dados, { tituloQuadro: 'Síntese do enquadramento por período' });
-  if (condicoesIntegridade(dados).length) d.texto(`A síntese segue o Anexo IV do Decreto nº 3.048/1999. As condições de risco à integridade física registradas no item 5 ("${TITULO_INTEGRIDADE}") não a alteram e ficam para apreciação da autoridade administrativa ou judicial.`);
+  if (condicoesIntegridade(dados).length) d.texto(`A síntese inclui os riscos à integridade física do item 5 ("${TITULO_INTEGRIDADE}"), enquadrados com fundamento no art. 57 da Lei nº 8.213/1991 e nos critérios da NR-16 e da NR-10.`);
   d.h2('6.2', 'Parecer técnico');
   d.texto('Nos períodos que caracterizam exposição habitual e permanente, não ocasional nem intermitente, a agentes nocivos, o PPP deve informar o código GFIP 04; nos demais, o código aplicável à ausência de exposição. Os dados de exposição constam do PPP emitido com este laudo.');
   d.h1('7', 'Recomendações');

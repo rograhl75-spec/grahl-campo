@@ -8,6 +8,7 @@
 //  4) vínculo com atividades por fases (a), b), c)…) e agente que caracteriza o vínculo inteiro;
 //  5) documento da empresa citado no texto quando o caso diz que eles são só referência.
 // ======================================================================
+import { semDocsEmpresa } from './schema.js';
 import { agenteNoVinculo } from './enquadramento.js';
 import { propostasDasRegras, regraDoAgente, fundamentacaoPelasRegras, propostasDasFds } from './regras.js';
 
@@ -106,7 +107,7 @@ export function coerenciaDoLaudo(dados) {
       explicacao: `${lst.map((a) => curto(a.data.nome)).join(', ')}. Se a exposição a algum deles não vale para todas as fases, preencha no agente (etapa 2) "Exposição a partir de" e "Exposição até": a síntese, a conclusão e o PPP passam a usar só esse período.` });
   });
   // 5) documentos da empresa citados quando são só referência
-  if (/^Somente/.test(v(c.docsEmpresa))) {
+  if (semDocsEmpresa(c)) {
     const onde = [];
     dados.periodos.forEach((r, i) => ['atividades', 'profissiografia', 'setor', 'cargo', 'fonte', 'local'].forEach((k) => { if (RE_DOC_EMPRESA.test(v(r.data[k]))) onde.push(`V${i + 1}, ${k}`); }));
     ags.forEach((a) => ['fundamentacao', 'circunstancias', 'fonte', 'vias', 'frequencia'].forEach((k) => { if (RE_DOC_EMPRESA.test(v(a.data[k]))) onde.push(`${curto(a.data.nome)}, ${k}`); }));

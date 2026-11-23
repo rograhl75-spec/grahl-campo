@@ -283,6 +283,8 @@ export const CAMPOS_PERIODO = [
 // modalidade da avaliação: ajusta a natureza (2.1), a diligência (2.2) e o item 4 do LTCAT
 export const MODALIDADE_AVALIACAO = ['Presencial (vistoria no local de trabalho)', 'Remota (entrevista por videoconferência)', 'Documental (sem vistoria nem entrevista)'];
 export const DOCS_EMPRESA = ['Citar no laudo', 'Somente referência (não citar)'];
+// documentos da empresa só como referência: o que o caso disser; em branco, no trabalho extrajudicial, não se citam
+export const semDocsEmpresa = (c = {}) => /^Somente/.test(String(c.docsEmpresa || '')) || (!String(c.docsEmpresa || '').trim() && c.tipoAtuacao === 'Extrajudicial');
 export const AUTORIA_FOTOS = ['Registro fotográfico do signatário', 'Fornecidas pelo contratante', 'Fornecidas pelo segurado', 'Fornecidas pela empresa'];
 export const remota = (c) => /^(Remota|Documental)/.test(String((c || {}).modalidade || ''));
 export const EMITENTE_PPP = ['Empresa (empregador)', 'Cooperativa de trabalho', 'Próprio segurado (contribuinte individual)'];

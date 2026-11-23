@@ -225,7 +225,10 @@ function BotaoClaude({ rec, tipo, rotulo = 'Redigir com o Claude' }) {
     const texto = await exportarParaClaude(rec.id, tipo);
     try {
       await navigator.clipboard.writeText(texto);
-      setMsg(`✓ Caso copiado (${Math.round(texto.length / 1000)} mil caracteres). Cole no Claude e anexe os autos. Depois, cole a resposta em "Montar no timbrado", logo abaixo, para gerar o Word no seu padrão.`);
+      // respostas dos quesitos: o Claude devolve um JSON, que volta pela etapa 2 (não pelo "Montar no timbrado")
+      setMsg(tipo === 'respostas'
+        ? `✓ Caso copiado (${Math.round(texto.length / 1000)} mil caracteres). Cole no Claude e anexe os autos. Ele devolve um JSON com as respostas: copie-o e cole na etapa 2. Autos → B ("Extrair os dados dos autos com o Claude"), no campo "Resposta da IA (JSON)"; toque em "Ler e mostrar prévia" e "Aplicar ao caso".`
+        : `✓ Caso copiado (${Math.round(texto.length / 1000)} mil caracteres). Cole no Claude e anexe os autos. Depois, cole a resposta em "Montar no timbrado", logo abaixo, para gerar o Word no seu padrão.`);
     } catch (e) {
       baixarArquivo(new Blob([texto], { type: 'text/markdown' }), `Caso_para_Claude_${carimbo()}.md`);
       setMsg('Não foi possível copiar; o texto foi baixado como arquivo .md para anexar no Claude.');
@@ -242,7 +245,13 @@ function RespostasClaude({ rec }) {
     <section class="grupo-docs">
       <h3>Responder os quesitos com o Claude</h3>
       <div class="bloco destaque">
-        <p>Para o texto completo de um documento, use o botão "Redigir com o Claude" do próprio cartão. Este aqui pede ao Claude as respostas de todos os quesitos num JSON que volta para o app (etapa 2. Autos → B) e preenche só as respostas em branco.</p>
+        <p>Para o texto completo de um documento, use o botão "Redigir com o Claude" do próprio cartão. Este aqui pede ao Claude as respostas de todos os quesitos num JSON, que volta para o app e preenche só as respostas em branco:</p>
+        <ol class="passos">
+          <li>Toque em <b>Copiar caso para responder os quesitos</b>.</li>
+          <li>Numa conversa nova no Claude, cole o texto e anexe os autos (ou o laudo).</li>
+          <li>Copie a resposta do Claude (o bloco que começa com <code>{'{'}</code>).</li>
+          <li>Vá à <b>etapa 2. Autos → B</b> ("Extrair os dados dos autos com o Claude"), cole no campo <b>Resposta da IA (JSON)</b> e toque em <b>Ler e mostrar prévia</b> e <b>Aplicar ao caso</b>. As respostas aparecem nos quesitos e entram no laudo.</li>
+        </ol>
         <div class="linha-botoes"><BotaoClaude rec={rec} tipo="respostas" rotulo="Copiar caso para responder os quesitos" /></div>
       </div>
     </section>

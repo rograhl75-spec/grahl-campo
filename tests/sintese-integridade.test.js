@@ -283,3 +283,33 @@ describe('PPP: intensidade e quebras de período', () => {
     expect(p2).toContain('13/10/1996');
   });
 });
+
+describe('PPP: integridade física fora do campo 15 e "Não se aplica" digitado', () => {
+  it('sem linhas F de integridade nem S/N; EPC/EPI "Não" uniforme', async () => {
+    await caso('s12', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'], autorNome: 'X', pppEmitente: 'Empresa (empregador)', pppEmitenteNome: 'Y' });
+    await filho('s12v', 'periodo', 's12', { empresa: 'Y', inicio: '1990-01-01', fim: '2020-12-31', cargo: 'Técnico', categoriaSegurado: 'Contribuinte individual' });
+    await filho('s12a', 'agenteAvaliado', 's12', { nome: 'Óleo mineral', tipo: 'Químico', resAte97: 'Caracteriza', codAte97: '1.2.11 do Dec. 53.831/64', resDesde97: 'Caracteriza', codDesde97: '1.0.7, b, do Anexo IV', epcEficaz: 'Não se aplica' });
+    await filho('s12b', 'agenteAvaliado', 's12', { nome: 'n-Pentano', tipo: 'Químico', resAte97: 'Caracteriza', codAte97: '1.2.11 do Dec. 53.831/64', resDesde97: 'Não enquadrável', integridadeFisica: 'Caracterizada tecnicamente', circunstancias: 'Estações de pentano.', frequencia: 'Habitual e permanente.' });
+    const p = await texto((await ltcatPpp('s12')).extras[0]);
+    // o cabeçalho do quadro 15.9 tem "S/N"; no campo 15 não pode haver linha de integridade (técnica "NHO", "S/N")
+    expect((p.match(/S\/N/g) || []).length).toBe(1);
+    expect(p).not.toMatch(/\bNHO\b/);
+    expect(p).not.toContain('Não se aplica\nNão\n');
+    expect(p).toContain('Consta do LTCAT, no item');
+  });
+});
+
+describe('exposição que começa depois de 05/03/1997', () => {
+  it('quadro "sem exposição no período", fora da síntese e do PPP até 1997', async () => {
+    await caso('s13', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'], autorNome: 'X', pppEmitente: 'Empresa (empregador)', pppEmitenteNome: 'Y' });
+    await filho('s13v', 'periodo', 's13', { empresa: 'Y', inicio: '1989-05-01', fim: '2020-12-31', cargo: 'Técnico', categoriaSegurado: 'Contribuinte individual' });
+    await filho('s13a', 'agenteAvaliado', 's13', { nome: 'Óleo mineral', tipo: 'Químico', resAte97: 'Caracteriza', codAte97: '1.2.11 do Dec. 53.831/64', resDesde97: 'Caracteriza', codDesde97: '1.0.7, b, do Anexo IV', expInicio: '1997-07-17' });
+    await filho('s13b', 'agenteAvaliado', 's13', { nome: 'Eletricidade (tensão acima de 250 V)', tipo: 'Físico', resAte97: 'Caracteriza', codAte97: '1.1.8 do Dec. 53.831/64', resDesde97: 'Não enquadrável' });
+    const r = await ltcatPpp('s13');
+    const t = await texto(r);
+    expect(t).toContain('sem exposição no período');
+    const p = await texto(r.extras[0]);
+    expect(p).toContain('17/07/1997 a');
+    expect(p).not.toMatch(/01\/05\/1989 a\s*\n?\s*05\/03\/1997\s*\n?\s*Q\s*\n?\s*Óleo/);
+  });
+});

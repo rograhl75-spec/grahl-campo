@@ -244,8 +244,11 @@ function agentesAvaliados(d, dados, sub, n) {
       const k = codigosDoAgente(a);
       const lin = varios ? [nomeExp(a), alcance(a)] : [nomeExp(a)];
       const q = quantSemMed(a) ? (/quantitativ/i.test(k.desde97) ? '\nsem medição: no PPP como "não quantificada"' : `\nquantitativo (NR-15, ${anexoQuantitativo(a, dados.quimicos) || 'Anexo 11'}), sem medição: no PPP como "não quantificada"`) : '';
-      if (temAte97) lin.push(`${RES_TXT(a.data.resAte97)}${k.ate97 ? `\n${codTxt(k.ate97)}` : ''}`);
-      if (temDesde97) lin.push(`${RES_TXT(a.data.resDesde97)}${k.desde97 ? `\n${codTxt(k.desde97)}` : ''}${q}`);
+      // exposição que só começa depois de 05/03/1997 (ou termina antes de 06/03/1997): a época não tem resultado
+      const semExpAte = v(a.data.expInicio) > '1997-03-05';
+      const semExpDesde = v(a.data.expFim) && v(a.data.expFim) < '1997-03-06';
+      if (temAte97) lin.push(semExpAte ? 'sem exposição no período' : `${RES_TXT(a.data.resAte97)}${k.ate97 ? `\n${codTxt(k.ate97)}` : ''}`);
+      if (temDesde97) lin.push(semExpDesde ? 'sem exposição no período' : `${RES_TXT(a.data.resDesde97)}${k.desde97 ? `\n${codTxt(k.desde97)}` : ''}${q}`);
       if (tem14) lin.push(v(a.data.resDesde2014) ? `${RES_TXT(a.data.resDesde2014)}${k.desde97 ? `\n${codTxt(k.desde97)}` : ''}` : RES_TXT(a.data.resDesde97));
       if (temObs) lin.push(resto.get(a.id) || '—');
       return lin;

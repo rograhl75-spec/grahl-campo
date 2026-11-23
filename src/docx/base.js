@@ -150,13 +150,21 @@ export async function carregar(caseId) {
   const semDocs = semDocsEmpresa(caso.data);
   const limpa = (lst) => lst.map((r) => ({ ...r, data: limpaDados(r.data, { semDocs }) }));
   const dados = { id: caseId, c: limpaDados(caso.data, { semDocs }), quesitos: limpa(quesitos), periodos: limpa(herdarDoAnterior(pers)), documentos: limpa(documentos), epis, postos: limpa(psts), agentes: limpa(agentes.filter((a) => v(a.data.nome))).sort((a, b) => (a.data.ordem ?? a.createdAt ?? 0) - (b.data.ordem ?? b.createdAt ?? 0)), medicoes: meds, fotos, equipamentos, perfil, paradigmas, quimicos,
-    produtos: produtos.filter((p) => v(p.data.nome)).sort((a, b) => (a.data.ordem ?? a.createdAt ?? 0) - (b.data.ordem ?? b.createdAt ?? 0)),
+    // produtos (FDS): o texto livre (uso, observações) passa pela mesma limpeza ("~2004" → "cerca de 2004")
+    produtos: produtos.filter((p) => v(p.data.nome)).map((p) => ({ ...p, data: { ...p.data, uso: limpaTextoLaudo(p.data.uso, { semDocs }), observacoes: limpaTextoLaudo(p.data.observacoes, { semDocs }) } })).sort((a, b) => (a.data.ordem ?? a.createdAt ?? 0) - (b.data.ordem ?? b.createdAt ?? 0)),
     regraCertMeses: Number((cfgPar && cfgPar.data.regraCertMeses) || 24) };
   // nomes próprios do caso (empresas, pessoas, cidades dos trajetos) não são sublinhados pelo corretor do Word
   const nomes = [dados.c.autorNome, dados.c.reuNome, perfil.nome, ...dados.periodos.flatMap((r) => [r.data.empresa, empresaLimpa(r.data.empresa), r.data.vias, r.data.cargo])]
     .filter(Boolean).join(' ').match(/[A-ZÀ-Ý][\p{L}'’-]+/gu) || [];
   // a mesma palavra como sai nos quadros: "CLOPAN" → "Clopan"
   semRevisao([...nomes, ...nomes.map((w) => w.charAt(0) + w.slice(1).toLowerCase()), ...nomes.map((w) => w.toUpperCase())]);
+  // nomes próprios citados nas atividades, no local e nas fontes (clientes, marcas, cidades: Grammer, Electrolux, Pentamix…)
+  const livres = [...dados.periodos.flatMap((r) => [r.data.atividades, r.data.profissiografia, r.data.local, r.data.fonte]),
+    ...dados.agentes.flatMap((a) => [a.data.fonte, a.data.circunstancias, a.data.efeitos, a.data.limites])].filter(Boolean).join(' ');
+  semRevisao((livres.match(/(?<![.!?]\s)(?<=\s|\(|^)[A-ZÀ-Ý][\p{L}'’-]{2,}/gu) || []).filter((w) => !/^(Até|A|O|Os|As|Em|No|Na|Nos|Nas|De|Do|Da|Com|Para|Por|Sem|Uso)$/.test(w)));
+  // fichas das FDS: produto, fabricante e componentes (marcas, siglas e nomes químicos longos)
+  const fds = dados.produtos.flatMap((p) => [p.data.nome, p.data.fabricante, p.data.revisao, p.data.uso, p.data.s2Classificacao, p.data.s2FrasesH, p.data.s3Componentes, p.data.s8Limites, p.data.s8Engenharia, p.data.s8Epi, p.data.s9Estado, p.data.observacoes]).filter(Boolean).join(' ');
+  semRevisao((fds.match(/[\p{L}][\p{L}-]{1,}/gu) || []).filter((w) => /[A-Z].*[A-Z]|^[A-Z][a-z]+[A-Z]|^\p{L}{12,}$/u.test(w) || /^[A-ZÀ-Ý]/.test(w)));
   // nomes de produtos e substâncias dos agentes avaliados (formocresol, TEGDMA…): o dicionário do Word não os tem
   semRevisao(dados.agentes.flatMap((a) => String(a.data.nome || '').match(/[\p{L}][\p{L}-]{3,}/gu) || []).filter((w) => /[A-Z]{2,}|[a-z]{9,}/.test(w)));
   // ordem cronológica: cada posto/veículo vai para a posição do primeiro vínculo que representa

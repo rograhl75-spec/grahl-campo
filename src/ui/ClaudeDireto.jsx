@@ -11,7 +11,8 @@ export async function anexosDosAutos(caseId) {
   const regs = (await db.records.where('[caseId+kind]').equals([caseId, 'anexo']).toArray())
     .filter((r) => !r.deleted && r.data.descricao === 'autos').sort((a, b) => a.createdAt - b.createdAt);
   const out = [];
-  for (const r of regs) out.push({ blob: await obterAnexo(r.id), nome: r.data.nome || 'autos.pdf', mime: 'application/pdf' });
+  // "chave": o mesmo PDF dos autos é reaproveitado entre os envios do caso (cache) – muda se o arquivo for trocado
+  for (const r of regs) { const blob = await obterAnexo(r.id); out.push({ blob, nome: r.data.nome || 'autos.pdf', mime: 'application/pdf', chave: `autos:${r.id}:${blob.size}` }); }
   return out;
 }
 
@@ -38,7 +39,8 @@ export function BotaoClaudeDireto({ instrucao, anexos, permitirArquivos = false,
       setEtapa('');
       const extra = await onResposta(r.texto, r);
       const modelo = (MODELOS_CLAUDE.find((m) => m.id === configClaude().modelo) || {}).nome?.replace(/\s*\(.*$/, '') || r.modelo;
-      setMsg(`✓ Resposta do ${modelo} recebida – ${Math.round(r.uso.entrada / 1000)} mil tokens de entrada e ${Math.round(r.uso.saida / 1000)} mil de saída, cerca de ${brl(r.custo)}.${r.cortada ? ' A resposta atingiu o limite de tamanho e pode estar incompleta.' : ''}${extra ? ` ${extra}` : ''}`);
+      const lidoTxt = r.uso.lido ? ` ${Math.round(r.uso.lido / 1000)} mil tokens dos autos reaproveitados (economia de cerca de ${brl(r.economia)}).` : r.uso.gravado ? ' Autos guardados para reaproveitamento nos próximos envios deste caso.' : '';
+      setMsg(`✓ Resposta do ${modelo} recebida – ${Math.round((r.uso.entrada + r.uso.gravado + r.uso.lido) / 1000)} mil tokens de entrada e ${Math.round(r.uso.saida / 1000)} mil de saída, cerca de ${brl(r.custo)}.${lidoTxt}${r.cortada ? ' A resposta atingiu o limite de tamanho e pode estar incompleta.' : ''}${extra ? ` ${extra}` : ''}`);
       setArquivos([]);
     } catch (e) {
       setEtapa(''); setErro(e.message || String(e));

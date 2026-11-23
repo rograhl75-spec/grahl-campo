@@ -22,7 +22,9 @@ export const MODELOS_CLAUDE = [
 ];
 export const ESFORCOS = [['medium', 'Médio (mais rápido e barato)'], ['high', 'Alto (padrão do app)'], ['xhigh', 'Muito alto (casos complexos)']];
 const CHAVE_LS = 'grahl.claude.api';
-const PADRAO = { chave: '', modelo: 'claude-opus-5-5', esforco: 'high' };
+const PADRAO = { chave: '', modelo: 'claude-opus-5-5', esforco: 'high', cache: '1h' };
+// reaproveitamento dos autos (cache de prompt): o mesmo PDF reenviado dentro do prazo custa 10% da leitura
+export const OPCOES_CACHE = [['1h', 'Por 1 hora (padrão: várias etapas seguidas no mesmo caso)'], ['5m', 'Por 5 minutos (envios em sequência rápida)'], ['nao', 'Desligado']];
 
 export function configClaude() {
   try { return { ...PADRAO, ...JSON.parse(localStorage.getItem(CHAVE_LS) || '{}') }; } catch { return { ...PADRAO }; }
@@ -54,16 +56,41 @@ async function reduzirImagem(blob) {
 
 const tipoDo = (a) => a.mime || a.blob?.type || (/\.pdf$/i.test(a.nome || '') ? 'application/pdf' : /\.(jpe?g|png|webp|gif|heic)$/i.test(a.nome || '') ? 'image/jpeg' : 'text/plain');
 
-// anexos: [{ blob, nome, mime }] → blocos de conteúdo; devolve também os file_id enviados (para apagar depois)
-async function blocosDosAnexos(client, anexos, onEtapa) {
-  const blocos = []; const enviados = [];
-  for (const a of anexos) {
+// PDFs dos autos ficam na conta (Files API) por até 7 dias, para o reaproveitamento: a cada envio do mesmo caso
+// vai o mesmo file_id, e o cache de prompt da API reaproveita a leitura. PDFs avulsos são apagados depois da resposta.
+const MAPA_LS = 'grahl.claude.arquivos';
+const DIAS_ARQ = 7;
+const lerMapa = () => { try { return JSON.parse(localStorage.getItem(MAPA_LS) || '{}'); } catch { return {}; } };
+const gravarMapa = (m) => { try { localStorage.setItem(MAPA_LS, JSON.stringify(m)); } catch { /* sem armazenamento */ } };
+async function limparArquivosAntigos(client) {
+  const m = lerMapa(); const limite = Date.now() - DIAS_ARQ * 86400000; let mudou = false;
+  for (const [k, x] of Object.entries(m)) {
+    if (x.ts >= limite) continue;
+    try { await client.files.delete(x.id); } catch { /* já apagado */ }
+    delete m[k]; mudou = true;
+  }
+  if (mudou) gravarMapa(m);
+}
+export function esquecerArquivoEnviado(chave) { const m = lerMapa(); delete m[chave]; gravarMapa(m); }
+
+// anexos: [{ blob, nome, mime, chave? }] → blocos de conteúdo. Com "chave" (PDF dos autos), o arquivo é reaproveitado.
+// Os PDFs com chave vão primeiro e na mesma ordem (o cache de prompt depende de o começo da pergunta ser igual),
+// com a marca de cache no último deles. Devolve os file_id avulsos (para apagar depois).
+async function blocosDosAnexos(client, anexos, onEtapa, cache) {
+  const blocos = []; const enviados = []; const mapa = lerMapa();
+  const ordem = [...anexos.filter((a) => a.chave).sort((x, y) => String(x.chave).localeCompare(String(y.chave))), ...anexos.filter((a) => !a.chave)];
+  let ultimoFixo = -1;
+  for (const a of ordem) {
     const mime = tipoDo(a);
     if (/pdf/i.test(mime)) {
-      onEtapa?.(`Enviando ${a.nome || 'PDF'}…`);
-      const f = await client.files.upload({ file: await sdk.toFile(a.blob, a.nome || 'documento.pdf', { type: 'application/pdf' }) });
-      enviados.push(f.id);
-      blocos.push({ type: 'document', source: { type: 'file', file_id: f.id }, title: a.nome || 'documento.pdf' });
+      let id = a.chave && cache !== 'nao' ? mapa[a.chave]?.id : '';
+      if (!id) {
+        onEtapa?.(`Enviando ${a.nome || 'PDF'}…`);
+        id = (await client.files.upload({ file: await sdk.toFile(a.blob, a.nome || 'documento.pdf', { type: 'application/pdf' }) })).id;
+        if (a.chave && cache !== 'nao') { mapa[a.chave] = { id, ts: Date.now() }; gravarMapa(mapa); } else enviados.push(id);
+      }
+      blocos.push({ type: 'document', source: { type: 'file', file_id: id }, title: a.nome || 'documento.pdf' });
+      if (a.chave) ultimoFixo = blocos.length - 1;
     } else if (/^image\//i.test(mime)) {
       // o nome vai antes da imagem ("Foto 01"), para o Claude saber qual é qual
       if (a.nome) blocos.push({ type: 'text', text: a.nome });
@@ -74,7 +101,8 @@ async function blocosDosAnexos(client, anexos, onEtapa) {
       throw new Error(`O arquivo "${a.nome}" não pode ir direto ao Claude (envie em PDF, imagem ou texto). Arquivos do Word: salve como PDF.`);
     }
   }
-  return { blocos, enviados };
+  if (ultimoFixo >= 0 && cache !== 'nao') blocos[ultimoFixo].cache_control = { type: 'ephemeral', ...(cache === '1h' ? { ttl: '1h' } : {}) };
+  return { blocos, enviados, chaves: ordem.filter((a) => a.chave).map((a) => a.chave) };
 }
 
 // texto final da resposta: os blocos de texto, sem a fala que antecede cada pesquisa na internet
@@ -91,9 +119,15 @@ function textoDaResposta(conteudos) {
   return partes.join('').trim();
 }
 
-export function custoEstimado(modelo, uso) {
+// custo: entrada normal, gravação do cache (1,25× em 5 min; 2× em 1 h), leitura do cache (0,1×) e saída
+export function custoEstimado(modelo, uso, cache = '1h') {
   const m = MODELOS_CLAUDE.find((x) => x.id === modelo) || MODELOS_CLAUDE[0];
-  return ((uso.entrada || 0) * m.entrada + (uso.saida || 0) * m.saida) / 1e6;
+  const fatorGrava = cache === '5m' ? 1.25 : 2;
+  return ((uso.entrada || 0) * m.entrada + (uso.gravado || 0) * m.entrada * fatorGrava + (uso.lido || 0) * m.entrada * 0.1 + (uso.saida || 0) * m.saida) / 1e6;
+}
+export function economiaDoCache(modelo, uso) {
+  const m = MODELOS_CLAUDE.find((x) => x.id === modelo) || MODELOS_CLAUDE[0];
+  return ((uso.lido || 0) * m.entrada * 0.9) / 1e6;
 }
 
 // Pergunta ao Claude com a instrução do app e os anexos. Devolve { texto, uso, custo, modelo }.
@@ -105,42 +139,59 @@ export async function perguntarClaude({ instrucao, anexos = [], web = false, max
   const client = cliente(cfg);
   let enviados = [];
   try {
-    const r = await blocosDosAnexos(client, anexos, onEtapa);
+    await limparArquivosAntigos(client);
+    let r = await blocosDosAnexos(client, anexos, onEtapa, cfg.cache);
     enviados = r.enviados;
-    const pergunta = { role: 'user', content: [...r.blocos, { type: 'text', text: instrucao }] };
-    let messages = [pergunta];
-    const conteudos = []; const uso = { entrada: 0, saida: 0 };
-    let recebidos = 0; let final = null;
-    // pesquisa na internet: o servidor pode pausar a volta (pause_turn); reenvia a conversa para continuar
-    for (let volta = 0; volta < 6; volta += 1) {
-      onEtapa?.(volta ? 'Continuando a pesquisa…' : 'O Claude está trabalhando…');
-      const stream = client.beta.messages.stream({
-        model: cfg.modelo,
-        max_tokens: maxTokens,
-        output_config: { effort: cfg.esforco || 'high' },
-        betas: ['server-side-fallback-2026-07-01'],
-        fallbacks: 'default',
-        messages,
-        ...(web ? { tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 10 }] } : {}),
-      });
-      stream.on('text', (delta) => { recebidos += delta.length; onEtapa?.(`Recebendo a resposta… ${Math.round(recebidos / 1000)} mil caracteres`); });
-      final = await stream.finalMessage();
-      uso.entrada += (final.usage.input_tokens || 0) + (final.usage.cache_creation_input_tokens || 0) + (final.usage.cache_read_input_tokens || 0);
-      uso.saida += final.usage.output_tokens || 0;
-      conteudos.push(final.content);
-      if (final.stop_reason !== 'pause_turn') break;
-      messages = [pergunta, { role: 'assistant', content: conteudos.flat() }];
+    let resposta;
+    try { resposta = await conversar(client, cfg, r.blocos, instrucao, web, maxTokens, onEtapa); }
+    catch (e) {
+      // arquivo reaproveitado que já não existe na conta (apagado na plataforma): envia de novo, uma vez
+      if (!r.chaves.length || !/file/i.test(String(e?.message || '')) || !(e?.status === 404 || e?.status === 400)) throw e;
+      r.chaves.forEach(esquecerArquivoEnviado);
+      r = await blocosDosAnexos(client, anexos, onEtapa, cfg.cache);
+      enviados = [...enviados, ...r.enviados];
+      resposta = await conversar(client, cfg, r.blocos, instrucao, web, maxTokens, onEtapa);
     }
-    if (final.stop_reason === 'refusal') throw new Error('O Claude recusou o pedido (política de segurança). Revise a instrução ou os anexos e tente de novo.');
-    const texto = textoDaResposta(conteudos);
-    if (!texto) throw new Error('O Claude não devolveu texto. Tente de novo.');
-    return { texto, uso, custo: custoEstimado(cfg.modelo, uso), modelo: final.model || cfg.modelo, cortada: final.stop_reason === 'max_tokens' };
+    return { ...resposta, custo: custoEstimado(cfg.modelo, resposta.uso, cfg.cache), economia: economiaDoCache(cfg.modelo, resposta.uso) };
   } catch (e) {
     throw new Error(mensagemDeErro(e));
   } finally {
-    // os PDFs enviados não ficam guardados na conta da Anthropic
+    // os PDFs avulsos não ficam guardados na conta da Anthropic
     for (const id of enviados) { try { await client.files.delete(id); } catch { /* já apagado */ } }
   }
+}
+
+async function conversar(client, cfg, blocos, instrucao, web, maxTokens, onEtapa) {
+  const pergunta = { role: 'user', content: [...blocos, { type: 'text', text: instrucao }] };
+  let messages = [pergunta];
+  const conteudos = []; const uso = { entrada: 0, gravado: 0, lido: 0, saida: 0 };
+  let recebidos = 0; let final = null;
+  // pesquisa na internet: o servidor pode pausar a volta (pause_turn); reenvia a conversa para continuar
+  for (let volta = 0; volta < 6; volta += 1) {
+    onEtapa?.(volta ? 'Continuando a pesquisa…' : 'O Claude está trabalhando…');
+    const stream = client.beta.messages.stream({
+      model: cfg.modelo,
+      max_tokens: maxTokens,
+      output_config: { effort: cfg.esforco || 'high' },
+      betas: ['server-side-fallback-2026-07-01'],
+      fallbacks: 'default',
+      messages,
+      ...(web ? { tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 10 }] } : {}),
+    });
+    stream.on('text', (delta) => { recebidos += delta.length; onEtapa?.(`Recebendo a resposta… ${Math.round(recebidos / 1000)} mil caracteres`); });
+    final = await stream.finalMessage();
+    uso.entrada += final.usage.input_tokens || 0;
+    uso.gravado += final.usage.cache_creation_input_tokens || 0;
+    uso.lido += final.usage.cache_read_input_tokens || 0;
+    uso.saida += final.usage.output_tokens || 0;
+    conteudos.push(final.content);
+    if (final.stop_reason !== 'pause_turn') break;
+    messages = [pergunta, { role: 'assistant', content: conteudos.flat() }];
+  }
+  if (final.stop_reason === 'refusal') throw new Error('O Claude recusou o pedido (política de segurança). Revise a instrução ou os anexos e tente de novo.');
+  const texto = textoDaResposta(conteudos);
+  if (!texto) throw new Error('O Claude não devolveu texto. Tente de novo.');
+  return { texto, uso, modelo: final.model || cfg.modelo, cortada: final.stop_reason === 'max_tokens' };
 }
 
 function mensagemDeErro(e) {

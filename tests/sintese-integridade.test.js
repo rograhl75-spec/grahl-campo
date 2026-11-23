@@ -190,12 +190,13 @@ describe('importação: excluir agente e não trocar o tipo', () => {
     await caso('s6', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'] });
     await filho('s6a', 'agenteAvaliado', 's6', { nome: 'Ácido clorídrico', tipo: 'Químico' });
     await filho('s6b', 'agenteAvaliado', 's6', { nome: 'Radiações ionizantes (raios X intraoral)', tipo: 'Físico' });
-    await aplicarIA('s6', lerJsonIA(JSON.stringify({ agentesAvaliados: [{ nome: 'Ácido clorídrico', excluir: true }, { nome: 'Radiações ionizantes', frequencia: 'Cerca de 8 radiografias por dia.' }] })), { substituir: true });
+    await aplicarIA('s6', lerJsonIA(JSON.stringify({ agentesAvaliados: [{ nome: 'Ácido clorídrico', excluir: true }, { nome: 'Radiações ionizantes', frequencia: 'Cerca de 8 radiografias por dia.', novoNome: 'Radiações ionizantes (raios X)' }] })), { substituir: true });
     const ags = (await db.records.toArray()).filter((r) => r.kind === 'agenteAvaliado' && r.caseId === 's6');
     expect(ags.find((r) => r.id === 's6a').deleted).toBeTruthy();
     const rx = ags.find((r) => r.id === 's6b');
     expect(rx.data.tipo).toBe('Físico');
     expect(rx.data.frequencia).toBe('Cerca de 8 radiografias por dia.');
+    expect(rx.data.nome).toBe('Radiações ionizantes (raios X)');
     expect(ags.length).toBe(2);
   });
 });

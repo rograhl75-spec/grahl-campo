@@ -177,7 +177,8 @@ describe('vínculo em aberto no LTCAT e no PPP', () => {
     await filho('d4b', 'agenteAvaliado', 'd4', { nome: 'Ácido fosfórico', tipo: 'Químico', resAte97: 'Caracteriza', resDesde97: 'Caracteriza', codDesde97: '1.0.12 do Anexo IV' });
     await filho('d4c', 'agenteAvaliado', 'd4', { nome: 'Mercúrio', tipo: 'Químico', resAte97: 'Caracteriza', resDesde97: 'Não caracteriza' });
     const r = await ltcatPpp('d4');
-    const hoje = new Date().toISOString().slice(0, 10).split('-').reverse().join('/');
+    // data local (o app usa a data do aparelho, não a UTC)
+    const hoje = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
     for (const t of [await texto(r), await texto(r.extras[0])]) {
       expect(t).not.toMatch(/a atual\b/);
       expect(t).toContain(`a ${hoje}`);

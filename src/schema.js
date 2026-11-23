@@ -272,12 +272,19 @@ export const CAMPOS_PERIODO = [
   ['fonte', 'Fonte (PPP, CTPS, CNIS, laudo...)', 'text'],
   ['categoriaSegurado', 'Categoria do segurado no período', 'select', CATEGORIAS_SEGURADO],
   ['local', 'Local de trabalho no período (endereço / cidade)', 'text'],
-  ['cbo', 'CBO (para o PPP)', 'text'],
+  ['cbo', 'CBO (para o PPP) – ex.: "9503-05 – Supervisor de manutenção eletromecânica"', 'text'],
+  ['funcao', 'Função (PPP, campo 13; em branco = o cargo)', 'text'],
   ['profissiografia', 'Profissiografia para o PPP (descrição das atividades; em branco = "Atividades")', 'area'],
   ['afastamentos', 'Afastamentos por benefício (um por linha: "13/11/2025 a 11/01/2026 – B31")', 'area'],
+  ['notas', 'Notas de trabalho (não saem no laudo nem no PPP)', 'area'],
 ];
 
 // LTCAT + PPP: quem emite o PPP e os dados administrativos do formulário
+// modalidade da avaliação: ajusta a natureza (2.1), a diligência (2.2) e o item 4 do LTCAT
+export const MODALIDADE_AVALIACAO = ['Presencial (vistoria no local de trabalho)', 'Remota (entrevista por videoconferência)', 'Documental (sem vistoria nem entrevista)'];
+export const DOCS_EMPRESA = ['Citar no laudo', 'Somente referência (não citar)'];
+export const AUTORIA_FOTOS = ['Registro fotográfico do signatário', 'Fornecidas pelo contratante', 'Fornecidas pelo segurado', 'Fornecidas pela empresa'];
+export const remota = (c) => /^(Remota|Documental)/.test(String((c || {}).modalidade || ''));
 export const EMITENTE_PPP = ['Empresa (empregador)', 'Cooperativa de trabalho', 'Próprio segurado (contribuinte individual)'];
 export const CAMPOS_PPP = [
   ['pppEmitente', 'Quem emite o PPP', 'select', EMITENTE_PPP],
@@ -290,6 +297,10 @@ export const CAMPOS_PPP = [
   ['pppRepresentante', 'Representante legal do emitente (nome)', 'text'],
   ['pppRepresentanteNit', 'Representante legal – NIT / CPF', 'text'],
   ['pppObs', 'Observações do PPP', 'area'],
+  ['modalidade', 'Modalidade da avaliação', 'select', MODALIDADE_AVALIACAO],
+  ['docsEmpresa', 'Documentos ambientais da empresa (PGR, LTCAT, PCMSO)', 'select', DOCS_EMPRESA],
+  ['fotosAutoria', 'Autoria das fotos (fonte das figuras)', 'select', AUTORIA_FOTOS],
+  ['esocialSst', 'Início do eSocial SST do emitente (o PPP em papel vai até a véspera; em branco = não se aplica)', 'date'],
 ];
 
 // Agentes avaliados no LTCAT (biológicos, químicos e físicos sem medição), com o resultado por época:
@@ -299,6 +310,8 @@ export const CAMPOS_AGENTE_AVALIADO = [
   ['nome', 'Agente (ex.: "Microrganismos e parasitas infectocontagiosos vivos e suas toxinas")', 'text'],
   ['tipo', 'Tipo', 'select', ['Biológico', 'Químico', 'Físico']],
   ['vinculos', 'Vínculos (V1, V2…; em branco = todos)', 'text'],
+  ['expInicio', 'Exposição a partir de (só se não for o vínculo inteiro)', 'date'],
+  ['expFim', 'Exposição até (só se não for o vínculo inteiro)', 'date'],
   ['cas', 'Nº CAS (químicos)', 'text'],
   ['circunstancias', 'Circunstâncias da exposição durante a jornada (art. 68, § 2º, I, do Dec. 3.048/99)', 'area'],
   ['fonte', 'Fontes e possibilidades de liberação (art. 68, § 2º, II)', 'area'],

@@ -41,7 +41,8 @@ export function codigosDoAgente(a) {
 // qualitativa até 05/03/1997 e quantitativa depois (NR-15, Anexo 5); demais físicos – quantitativa.
 // O que o perito digitou no agente prevalece.
 // técnica digitada só com "Qualitativa" ou "Quantitativa" (sem a norma): o app completa com o anexo
-const tecnicaGenerica = (t) => /^(qualitativ[ao]|quantitativ[ao])\.?$/i.test(v(t));
+// "Qualitativa", "Quantitativa" ou com a época ("Qualitativa até 05/03/1997"): a técnica sai pela regra de cada período
+const tecnicaGenerica = (t) => /^(qualitativ[ao]|quantitativ[ao])(\s+(at[ée]|a partir de|desde)\s+[\d/]+)?\.?$/i.test(v(t));
 export function tecnicaDoAgente(a, ate97, { linach = true } = {}) {
   const x = a.data || a;
   if (v(x.tecnica) && !tecnicaGenerica(x.tecnica)) return x.tecnica;

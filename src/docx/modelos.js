@@ -228,7 +228,9 @@ function agentesAvaliados(d, dados, sub, n) {
     const nomeExp = (a) => `${a.data.nome}${v(a.data.expInicio) || v(a.data.expFim) ? `\nExposição: ${v(a.data.expInicio) ? dataBR(a.data.expInicio) : 'início do vínculo'} a ${v(a.data.expFim) ? dataBR(a.data.expFim) : 'fim do vínculo'}` : ''}`;
     // fundamentação de cada agente dentro do quadro: o texto padrão das regras já está nas colunas de cada época
     // (resultado e código); o que é próprio do agente vai para a coluna "Observações" – sem parágrafo por agente
-    const resto = new Map(lst.map((a) => [a.id, frasesPadrao(a).filter((f) => !f.k).map((f) => f.t).join(' ')]));
+    // frases que repetem a época ("Até 05/03/1997, …", "A partir de 06/03/1997, …") já estão nas colunas do quadro
+    const deEpoca = (t) => /^(At[ée] 05\/03\/1997|A partir de (06\/03\/1997|08\/10\/2014))\b/.test(t.trim());
+    const resto = new Map(lst.map((a) => [a.id, frasesPadrao(a).filter((f) => !f.k).flatMap((f) => f.t.split(/(?<=\.)\s+(?=\p{Lu})/u)).filter((t) => !deEpoca(t)).join(' ')]));
     const quantSemMed = (a) => a.data.resDesde97 === 'Não caracteriza' && (!!anexoQuantitativo(a, dados.quimicos) || frasesPadrao(a).some((f) => f.k === 'nc'));
     const temObs = lst.some((a) => resto.get(a.id));
     if (temObs) cab.push('Observações');
@@ -778,6 +780,9 @@ function textoCategoriaSegurado(d, dados) {
     const socio = vincCi.some((r) => /s[oó]ci[oa]|administrador|quotas/i.test(`${r.data.cargo || ''} ${r.data.atividades || ''}`));
     const empresa = /Empresa/.test(dados.c.pppEmitente || '') && !proprio;
     if (proprio) d.texto(`${quem(ci)}, o segurado exerceu a atividade como contribuinte individual, por conta própria${/dentist|odont|consult[oó]rio/i.test(vincCi.map((r) => `${r.data.cargo || ''} ${r.data.local || ''}`).join(' ')) ? ', em consultório próprio' : ''}. Não há empresa que mantenha registros ambientais desse período; este laudo é a demonstração ambiental que o descreve e fundamenta o PPP emitido pelo próprio segurado.`);
+    // cooperado ao mesmo tempo, sem exclusividade (atende também particulares): segue contribuinte individual por conta própria
+    const coopSimult = vincCi.some((r) => /cooperad|cooperativa/i.test(`${r.data.fonte || ''} ${r.data.atividades || ''} ${r.data.profissiografia || ''} ${r.data.cargo || ''}`));
+    if (proprio && coopSimult) d.texto('Paralelamente, o segurado é cooperado de cooperativa de trabalho, sem exclusividade: atende os pacientes da cooperativa e os particulares no próprio local de trabalho, com a mesma atividade e os mesmos agentes (item 4.1). Por isso, o período é tratado como de contribuinte individual por conta própria, e o PPP é emitido pelo próprio segurado; a condição de cooperado não afasta o direito, pois a aposentadoria especial também se aplica ao cooperado de cooperativa de trabalho (art. 1º da Lei nº 10.666/2003).');
     else if (empresa) d.texto(`${quem(ci)}, o segurado exerceu a atividade como contribuinte individual, ${socio ? 'na condição de sócio da empresa emitente do PPP' : 'prestando serviços à empresa emitente do PPP'}. Este laudo é a demonstração ambiental individual desse período, com o histórico das atividades e dos agentes de cada época, e fundamenta o PPP emitido pela empresa.`);
     else d.texto(`${quem(ci)}, o segurado exerceu a atividade como contribuinte individual. Este laudo é a demonstração ambiental individual que descreve esse período.`);
   }

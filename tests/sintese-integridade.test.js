@@ -220,3 +220,29 @@ describe('coerência: biológico "não depende de" e peróxidos "por analogia"',
     expect(camp.codAte97).toMatch(/^Não consta/);
   });
 });
+
+describe('varredura do laudo do dentista', () => {
+  it('"sem exposição permanente" com "Caracteriza" vira pendência; técnica "Qualitativa até 05/03/1997" segue a regra', async () => {
+    await caso('s8', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'], pppEmitente: 'Próprio segurado (contribuinte individual)' });
+    await filho('s8v', 'periodo', 's8', { empresa: 'Consultório', inicio: '1989-01-01', fim: '', cargo: 'Cirurgião-dentista' });
+    await filho('s8a', 'agenteAvaliado', 's8', { nome: 'Álcool etílico 70%', tipo: 'Químico', codAte97: '1.2.11 do Dec. 53.831/64 (III – álcoois)', resAte97: 'Caracteriza', resDesde97: 'Não enquadrável',
+      fundamentacao: 'Até 05/03/1997, o enquadramento literal é possível, mas o uso é de saneante, em pequeno volume, sem exposição permanente a vapores; não caracteriza.' });
+    const pend = await pendenciasDoCaso('s8');
+    const ev = pend.find((x) => x.id === 'coer-eventual-s8a');
+    expect(ev.lotes[0].escritas[0].campos).toEqual({ resAte97: 'Não caracteriza' });
+    const { tecnicaDoAgente } = await import('../src/enquadramento.js');
+    expect(tecnicaDoAgente({ data: { nome: 'Mercúrio', tipo: 'Químico', tecnica: 'Qualitativa até 05/03/1997' } }, false)).not.toMatch(/até 05\/03/);
+  });
+});
+
+describe('cooperado sem exclusividade', () => {
+  it('3.2 explica a condição simultânea', async () => {
+    await caso('s9', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'], autorNome: 'Dentista', pppEmitente: 'Próprio segurado (contribuinte individual)' });
+    await filho('s9v', 'periodo', 's9', { empresa: 'Consultório próprio', inicio: '1990-01-01', fim: '', cargo: 'Cirurgião-dentista', categoriaSegurado: 'Contribuinte individual',
+      atividades: 'Clínica geral. Cooperado da cooperativa odontológica desde 1992, com atendimento também a particulares.' });
+    await filho('s9a', 'agenteAvaliado', 's9', { nome: 'Microrganismos', tipo: 'Biológico', resAte97: 'Caracteriza', resDesde97: 'Caracteriza' });
+    const t = await texto(await ltcatPpp('s9'));
+    expect(t).toContain('Paralelamente, o segurado é cooperado de cooperativa de trabalho, sem exclusividade');
+    expect(t).toContain('art. 1º da Lei nº 10.666/2003');
+  });
+});

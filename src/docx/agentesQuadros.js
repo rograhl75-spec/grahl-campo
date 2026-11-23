@@ -182,7 +182,7 @@ export function perigosDoAgente(a, dados = {}) {
 }
 export function medidasDoPerigo(perigos) {
   const m = [];
-  if (perigos.includes('sensibilizante')) m.push('sistema fechado na transferência, purga e limpeza; ventilação local exaustora; proteção respiratória com filtro para vapores orgânicos e particulados nas operações com aerossol; luvas e óculos compatíveis com a FDS; vigilância médica respiratória e dermatológica (NR-7)');
+  if (perigos.includes('sensibilizante')) m.push('menor quantidade por aplicação e recipientes fechados; ventilação local exaustora onde houver vapor ou aerossol; luvas de material compatível com a FDS e óculos, com troca após contaminação; vigilância médica respiratória e dermatológica (NR-7)');
   if (perigos.includes('cancerígeno')) m.push('substituição por produto menos perigoso; sistema fechado; exposição mínima e registro dos expostos');
   if (perigos.includes('tóxico à reprodução')) m.push('substituição do produto; luvas compatíveis e higiene das mãos; orientação sobre o risco reprodutivo e afastamento de gestantes da exposição');
   return m.length ? `${m.join('; ').replace(/^./, (c) => c.toUpperCase())}.` : '';

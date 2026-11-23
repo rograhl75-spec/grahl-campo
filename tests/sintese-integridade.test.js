@@ -200,3 +200,23 @@ describe('importação: excluir agente e não trocar o tipo', () => {
     expect(ags.length).toBe(2);
   });
 });
+
+describe('coerência: biológico "não depende de" e peróxidos "por analogia"', () => {
+  it('sem falso condicional, regra tira a analogia e o item de eventual muda todas as épocas', async () => {
+    await caso('s7', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'], pppEmitente: 'Próprio segurado (contribuinte individual)' });
+    await filho('s7v', 'periodo', 's7', { empresa: 'Consultório', inicio: '1989-01-01', fim: '', cargo: 'Cirurgião-dentista' });
+    await filho('s7b', 'agenteAvaliado', 's7', { nome: 'Microrganismos', tipo: 'Biológico', resAte97: 'Caracteriza', resDesde97: 'Caracteriza',
+      fundamentacao: 'A exposição é inerente à atividade e não depende de tempo mínimo diário.', frequencia: 'Habitual e permanente.' });
+    await filho('s7p', 'agenteAvaliado', 's7', { nome: 'Peróxidos (clareamento dental)', tipo: 'Químico', codAte97: '1.2.9 do Dec. 53.831/64, por analogia',
+      resAte97: 'Caracteriza', resDesde97: 'Não caracteriza', frequencia: 'Eventual, no clareamento.' });
+    const pend = await pendenciasDoCaso('s7');
+    expect(pend.find((x) => x.id === 'coer-cond')).toBeUndefined();
+    const ev = pend.find((x) => x.id === 'coer-eventual-s7p');
+    expect(ev.lotes[0].escritas[0].campos).toEqual({ resAte97: 'Não caracteriza' });
+    const regras = pend.find((x) => x.id === 'regras');
+    const camp = regras.lotes[0].escritas.find((e) => e.rec === 's7p').campos;
+    expect(camp.resAte97).toBe('Não enquadrável');
+    expect(camp.resDesde97).toBe('Não enquadrável');
+    expect(camp.codAte97).toMatch(/^Não consta/);
+  });
+});

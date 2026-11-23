@@ -229,3 +229,21 @@ describe('regras de enquadramento por período', () => {
     expect(n.valorAtual.replace(n.trecho, '2019')).toContain('07/1997 a 2019:');
   });
 });
+
+describe('reescrever pelas regras', () => {
+  it('tira o trecho condicional da frequência e reescreve a fundamentação; exposição até 1995 não pede permanência', async () => {
+    await caso('m7', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'], autorNome: 'U', pppEmitente: 'Empresa (empregador)', modalidade: 'Remota (entrevista por videoconferência)' });
+    await filho('m7v', 'periodo', 'm7', { empresa: 'E', inicio: '1989-05-01', fim: '2020-01-01', cargo: 'Técnico', cbo: '3131-25', categoriaSegurado: 'Contribuinte individual' });
+    await filho('m7a', 'agenteAvaliado', 'm7', { nome: 'Óleo mineral', tipo: 'Químico', resAte97: 'Caracteriza', resDesde97: 'Caracteriza', codAte97: '1.2.11', codDesde97: '1.0.7 do Anexo IV',
+      frequencia: 'Diária, nas montagens; habitualidade e permanência a confirmar em campo', fundamentacao: 'Depende de confirmação do segurado.' });
+    await filho('m7b', 'agenteAvaliado', 'm7', { nome: 'Eletricidade', tipo: 'Físico', resAte97: 'Caracteriza', resDesde97: 'Não enquadrável', expFim: '1992-12-31', frequencia: 'Eventual' });
+    const its = await pendenciasDoCaso('m7');
+    expect(its.some((i) => i.id === 'coer-eventual-m7b')).toBe(false);
+    const c = its.find((i) => i.id === 'coer-cond');
+    const e = c.lotes[0].escritas.find((x) => x.rec === 'm7a');
+    expect(e.campos.frequencia).toBe('Diária, nas montagens.');
+    expect(e.campos.fundamentacao).toMatch(/consta do Anexo IV/);
+    for (const [k, val] of Object.entries(e.campos)) await db.records.update('m7a', { [`data.${k}`]: val });
+    expect((await pendenciasDoCaso('m7')).some((i) => i.id === 'coer-cond')).toBe(false);
+  });
+});

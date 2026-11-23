@@ -23,6 +23,13 @@ export const RE_EVENTUAL = /\b(eventua(?:l|is|lmente)|ocasiona(?:l|is|lmente)|es
 const tiraPermanencia = (t) => String(t || '').replace(/n[aã]o\s+ocasional\s+nem\s+intermitente/gi, '').replace(/nem\s+intermitente/gi, '').replace(/n[aã]o\s+(?:é\s+|era\s+)?(?:eventual|ocasional|intermitente)/gi, '');
 export const RE_DOC_EMPRESA = /\b(PGR|PPRA|PCMSO|LTCAT|PCMAT|AET)\b/;
 
+// tira de um texto as orações condicionais ("habitualidade a confirmar em campo"), mantendo o resto
+export function semCondicional(t) {
+  // pedaços com o separador que os segue ("; " ou ". "), para remontar sem trocar a pontuação
+  const pedacos = String(t || '').match(/[^.;]+(?:[.;]+|$)/g) || [];
+  const fica = pedacos.filter((x) => x.trim() && !RE_CONDICIONAL.test(x));
+  return fica.join('').replace(/\s+/g, ' ').replace(/[;,]\s*$/, '.').trim();
+}
 const caracteriza = (a) => [a.data.resAte97, a.data.resDesde97, a.data.resDesde2014].includes('Caracteriza');
 const definitivo = (a) => [a.data.resAte97, a.data.resDesde97].some((r) => ['Caracteriza', 'Não caracteriza', 'Não enquadrável'].includes(r));
 const ciente = (rec, tag) => v((rec.data || {})[`ciente_${tag}`]) === 'Sim';
@@ -45,21 +52,33 @@ export function coerenciaDoLaudo(dados) {
       lotes: [{ rotulo: 'Aplicar a todos', escritas: props.map(({ a, campos }) => ({ rec: a.id, campos })) }] });
   }
   // 2) texto condicional ("a confirmar", "se confirmado", "depende de") com resultado definitivo – um item só
-  const cond = ags.filter((a) => definitivo(a) && ['fundamentacao', 'circunstancias', 'frequencia'].some((k) => RE_CONDICIONAL.test(v(a.data[k]))) && !ciente(a, 'cond'));
+  // circunstâncias e frequência só contam nos agentes do quadro do art. 68 (os que caracterizam); a fundamentação, em todos
+  const camposCond = (a) => (caracteriza(a) ? ['fundamentacao', 'circunstancias', 'frequencia'] : ['fundamentacao']);
+  const cond = ags.filter((a) => definitivo(a) && camposCond(a).some((k) => RE_CONDICIONAL.test(v(a.data[k]))) && !ciente(a, 'cond'));
   if (cond.length) {
-    const reescr = cond.map((a) => ({ a, r: regraDoAgente(a, dados) })).filter(({ r }) => r);
+    // fundamentação: o texto pelas regras; circunstâncias e frequência: sai só o trecho condicional (o fato fica;
+    // o que ficar vazio volta como pergunta do art. 68)
+    const reescr = cond.map((a) => {
+      const r = regraDoAgente(a, dados);
+      const campos = {};
+      if (r && RE_CONDICIONAL.test(v(a.data.fundamentacao))) campos.fundamentacao = fundamentacaoPelasRegras(a, r);
+      else if (RE_CONDICIONAL.test(v(a.data.fundamentacao))) campos.fundamentacao = semCondicional(a.data.fundamentacao);
+      for (const k of ['circunstancias', 'frequencia']) if (RE_CONDICIONAL.test(v(a.data[k]))) campos[k] = semCondicional(a.data[k]);
+      return { a, campos };
+    }).filter(({ campos }) => Object.keys(campos).length);
     out.push({ id: 'coer-cond', grupo: G, tipo: 'lote', respondido: false,
       titulo: `Fundamentação condicional com resultado definitivo – ${cond.length} agente(s)`,
       explicacao: `O texto ainda trata a exposição como dependente de confirmação ("a confirmar", "se confirmado", "depende de"): ${cond.map((a) => curto(a.data.nome)).join(', ')}. Reescreva no agente ou use o texto pelas regras de cada período.`,
       lotes: [
-        ...(reescr.length ? [{ rotulo: 'Reescrever pelas regras', escritas: reescr.map(({ a, r }) => ({ rec: a.id, campos: { fundamentacao: fundamentacaoPelasRegras(a, r) } })) }] : []),
+        ...(reescr.length ? [{ rotulo: 'Reescrever pelas regras', escritas: reescr.map(({ a, campos }) => ({ rec: a.id, campos })) }] : []),
         { rotulo: 'Está correto – manter', sec: true, escritas: cond.map((a) => ({ rec: a.id, campos: { ciente_cond: 'Sim' } })) }] });
   }
   // 3) eventual / intermitente com "Caracteriza" (depois de 28/04/1995 a permanência é exigida)
   for (const a of ags) {
     const x = a.data;
     const vinculos = dados.periodos.filter((r, i) => agenteNoVinculo(a, i));
-    const depois95 = vinculos.some((r) => !r.data.fim || r.data.fim > '1995-04-28');
+    // a exposição que termina até 28/04/1995 (campo "Exposição até") não precisa de permanência
+    const depois95 = vinculos.some((r) => !r.data.fim || r.data.fim > '1995-04-28') && !(v(x.expFim) && v(x.expFim) <= '1995-04-28');
     const ev = ['frequencia', 'circunstancias', 'fundamentacao'].map((k) => tiraPermanencia(x[k]).match(RE_EVENTUAL)).find(Boolean);
     if (ev && caracteriza(a) && depois95 && !ciente(a, 'eventual')) {
       out.push(item(a, 'eventual', `${curto(x.nome)}: exposição "${ev[0]}" com resultado "Caracteriza"`,

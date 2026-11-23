@@ -3,7 +3,7 @@
 // impugnação / parecer de assistente técnico, parecer preventivo, petição de
 // indicação com quesitos. O que depende de análise técnica sai marcado em
 // amarelo ("[[Redigir: ...]]") para ser escrito por você.
-import { ORIGEM_QUESITO, ehSuplementar, FORMAS_PAGAMENTO, localVistoria, ehAcidente, datasDasVistorias, variasVistorias, vistoriasDoCaso } from '../schema.js';
+import { ORIGEM_QUESITO, ehSuplementar, FORMAS_PAGAMENTO, localVistoria, ehAcidente, datasDasVistorias, variasVistorias, vistoriasDoCaso, remota } from '../schema.js';
 import {
   Doc, carregar, finalizar, dataBR, menosCincoAnos, ou, partes, papelAssinatura, enderecamentoTexto, linhasProcesso,
   qualificacaoCurta, qualificacaoCompleta, blocoAssinatura, credencial, registrosCrq, equipamentosUsados, quadroEquipamentos, quadroDiligencia,
@@ -189,16 +189,20 @@ function agentesAvaliados(d, dados, sub, n) {
     if (!lst.length) continue;
     sub(TIT_TIPO[tipo]); n += 1;
     d.texto(tipo === 'Físico' && lst.some((a) => /radia/i.test(a.data.nome || '')) ? `${TXT_TIPO[tipo]} ${TXT_RADIACAO}` : TXT_TIPO[tipo]);
-    const cab = ['Agente', 'Vínculos'];
+    // um vínculo só: a coluna "Vínculos" não diz nada; o período de exposição, quando não é o vínculo inteiro, vai junto do nome
+    const varios = per.length > 1;
+    const cab = varios ? ['Agente', 'Vínculos'] : ['Agente'];
     if (temAte97) cab.push('Até 05/03/1997');
     if (temDesde97) cab.push('A partir de 06/03/1997');
+    const nomeExp = (a) => `${a.data.nome}${v(a.data.expInicio) || v(a.data.expFim) ? `\nExposição: ${v(a.data.expInicio) ? dataBR(a.data.expInicio) : 'início do vínculo'} a ${v(a.data.expFim) ? dataBR(a.data.expFim) : 'fim do vínculo'}` : ''}`;
+    const larg = varios ? (temAte97 && temDesde97 ? [0.3, 0.16, 0.27, 0.27] : [0.4, 0.2, 0.4]) : (temAte97 && temDesde97 ? [0.36, 0.32, 0.32] : [0.5, 0.5]);
     d.quadro(`${TIT_TIPO[tipo].split(' – ')[0]} – enquadramento por época`, [cab, ...lst.map((a) => {
       const k = codigosDoAgente(a);
-      const lin = [a.data.nome, alcance(a)];
+      const lin = varios ? [nomeExp(a), alcance(a)] : [nomeExp(a)];
       if (temAte97) lin.push(`${RES_TXT(a.data.resAte97)}${k.ate97 ? `\n${codTxt(k.ate97)}` : ''}`);
       if (temDesde97) lin.push(`${RES_TXT(a.data.resDesde97)}${k.desde97 ? `\n${codTxt(k.desde97)}` : ''}`);
       return lin;
-    })], { larguras: temAte97 && temDesde97 ? [0.3, 0.16, 0.27, 0.27] : [0.4, 0.2, 0.4], tam: 9, alinhar: 'left',
+    })], { larguras: larg, tam: 9, alinhar: 'left',
       fonte: 'Elaborado pelo signatário com base nos Decretos 53.831/1964, 83.080/1979, 2.172/1997 e 3.048/1999 e na IN PRES/INSS nº 128/2022.' });
     if (tipo === 'Químico') {
       quadroCaracteristicasQuimicos(d, lst.map((a) => ({ nome: a.data.nome, dados: a.data, banco: bancoDoAgente(a, dados.quimicos) })));
@@ -541,11 +545,12 @@ export async function ltcatPpp(caseId) {
   d.h1('2', 'Condições da avaliação');
   d.h2('2.1', 'Objeto e natureza');
   d.texto(naturezaLtcat(dados, seg));
-  d.h2('2.2', 'Diligência');
+  const semVistoria = remota(c);
+  d.h2('2.2', semVistoria ? 'Entrevista e levantamento' : 'Diligência');
   d.texto('O laudo individual deve ser acompanhado de autorização escrita da empresa para efetuar o levantamento e do nome e identificação do acompanhante da empresa, quando o responsável técnico não for seu empregado, e da data e do local da realização da perícia (art. 277, IV, alíneas *a*, *b* e *c*, da IN 128/2022).');
-  quadroDiligencia(d, c);
+  quadroDiligenciaLtcat(d, c, seg);
   d.h2('2.3', 'Declarações');
-  d.texto(`Integram este laudo, como anexos, a autorização para o levantamento e a declaração ${/Pr[oó]prio/.test(c.pppEmitente || '') || !c.reuNome ? 'do segurado' : 'do responsável legal'} sobre o histórico dos locais de trabalho, das atividades, dos equipamentos e dos produtos utilizados em cada período, assinadas. As condições dos períodos anteriores à vistoria foram reconstituídas com base nessas declarações e nos documentos do item 1.3.`);
+  d.texto(`Integram este laudo, como anexos, a autorização para o levantamento e a declaração ${/Pr[oó]prio/.test(c.pppEmitente || '') || !c.reuNome ? 'do segurado' : 'do responsável legal'} sobre o histórico dos locais de trabalho, das atividades, dos equipamentos e dos produtos utilizados em cada período, assinadas. ${semVistoria ? 'As condições de trabalho do período avaliado foram reconstituídas com base nessas declarações, na entrevista do segurado e nos documentos apresentados.' : 'As condições dos períodos anteriores à vistoria foram reconstituídas com base nessas declarações e nos documentos do item 1.3.'}`);
   d.h2('2.4', 'Instrumentos e calibração');
   instrumentosOuQualitativa(d, dados);
   d.h2('2.5', 'Valor probatório');
@@ -564,14 +569,17 @@ export async function ltcatPpp(caseId) {
 
   d.h1('4', 'Ambiente de trabalho e profissiografia');
   // empresa, período e local já estão no item 1.3: aqui só as atividades
+  let n4 = 1;
   d.h2('4.1', 'Profissiografia');
   const ativ = (r) => [v(r.data.atividades), v(r.data.profissiografia)].filter(Boolean).join(' ') || '[[atividades do vínculo]]';
   if (dados.periodos.length === 1) d.texto(ativ(dados.periodos[0]));
   else d.quadro('Profissiografia por vínculo', [['Vínculo', 'Atividades'], ...dados.periodos.map((r, i) => [`V${i + 1}`, ativ(r)])],
     { larguras: [0.1, 0.9], tam: 9, alinhar: 'left', fonte: 'Declarações do segurado (item 2.3), documentos do item 1.3 e vistoria.' });
-  profissiografia(d, dados.postos, dados, { numero: '4.2' });
+  // postos da vistoria: só quando houve vistoria e há postos cadastrados (a numeração segue sem saltos)
+  if (dados.postos.length) { n4 += 1; profissiografia(d, dados.postos, dados, { numero: `4.${n4}` }); }
+  else if (!semVistoria) d.redigir('descrição do ambiente e das atividades observadas na vistoria (cadastrar os postos na aba Campo).');
   const { lista, faltando } = await figurasDoCaso(dados);
-  if (lista.length) { d.h2('4.3', 'Registro fotográfico'); d.figuras(lista); }
+  if (lista.length) { n4 += 1; d.h2(`4.${n4}`, 'Registro fotográfico'); d.figuras(lista); }
 
   d.h1('5', 'Avaliação dos agentes e das condições especiais');
   d.h2('5.1', 'Critérios gerais');
@@ -615,7 +623,6 @@ export async function ltcatPpp(caseId) {
     d.h1('', 'Anexos e apêndices');
     d.texto([...anexos.map((a) => `- Anexo ${a.letra} – ${a.titulo}`), ...apendices.map((a) => `- Apêndice ${a.letra} – ${a.titulo}`)].join('\n'));
   }
-  if (!anexos.length) d.texto('[[Anexe a ART e os documentos que acompanham o laudo em Documentos → cartão "LTCAT + PPP" → Anexos do documento.]]');
   inserirAnexos(d, anexos);
   inserirApendices(d, apendices, dados);
   const r = await finalizar(d, { titulo: 'LTCAT', arquivo: 'LTCAT', c });
@@ -633,9 +640,27 @@ function quadroVinculosLtcat(d, dados) {
   { larguras: [0.24, 0.15, 0.24, 0.14, 0.23], tam: 9, alinhar: 'left' });
 }
 
+// diligência do LTCAT: presencial (vistoria) ou remota (entrevista por videoconferência); campos de enchimento
+// ("local", "o segurado") viram a informação de verdade
+function quadroDiligenciaLtcat(d, c, seg) {
+  const presentes = String(c.vistoriaPresentes || '').split('\n').map((l) => l.trim()).filter(Boolean)
+    .map((l) => (/^(o|a)?\s*segurad[oa]$/i.test(l) ? `${seg} – segurado` : l)).join('\n');
+  const local = /^\s*(local|o local|-|—)\s*$/i.test(String(c.vistoriaLocal || '')) ? '' : c.vistoriaLocal;
+  if (!remota(c)) return quadroDiligencia(d, { ...c, vistoriaLocal: local, vistoriaPresentes: presentes });
+  const doc = /^Documental/.test(c.modalidade);
+  const linhas = [
+    ['Data e horário', [dataBR(c.vistoriaData), [c.vistoriaInicio, c.vistoriaFim].filter(Boolean).join(' às ')].filter(Boolean).join(', ') || (doc ? 'Não se aplica' : '[[data da entrevista]]')],
+    ['Modalidade', doc ? 'Avaliação documental, sem vistoria e sem entrevista' : 'Entrevista do segurado por videoconferência, sem vistoria no local de trabalho'],
+  ];
+  if (!doc) linhas.push(['Participantes', presentes || `${seg} – segurado`]);
+  if (v(c.vistoriaCondicoes)) linhas.push(['Observações', c.vistoriaCondicoes]);
+  return d.quadro(doc ? 'Registro do levantamento' : 'Registro da entrevista', [['Campo', 'Informação'], ...linhas], { larguras: [0.3, 0.7], alinhar: 'left' });
+}
+
 // sem medição: a avaliação foi qualitativa (em vez do quadro vazio de instrumentos)
 function instrumentosOuQualitativa(d, dados) {
   if (equipamentosUsados(dados).length || dados.medicoes.length) return quadroEquipamentos(d, equipamentosUsados(dados));
+  if (remota(dados.c)) return d.texto(`Os agentes deste documento foram avaliados de forma qualitativa, pela atividade, pelas informações da ${/^Documental/.test(dados.c.modalidade) ? 'documentação' : 'entrevista e dos documentos'} e pelas características dos produtos e equipamentos utilizados; não houve vistoria no local de trabalho nem medição instrumental.`);
   return d.texto(`Os agentes ${dados.c.tipoAtuacao === 'Extrajudicial' ? 'deste documento' : 'avaliados nesta perícia'} foram avaliados de forma qualitativa, pela atividade e pelas condições observadas na vistoria; não houve medição instrumental.`);
 }
 // metodologia do parecer previdenciário (o que foi feito, por tipo de agente)
@@ -672,6 +697,14 @@ function naturezaLtcat(dados, seg) {
   const anteriores = dados.periodos.some((r) => c.vistoriaData && (r.data.inicio || '') < c.vistoriaData);
   const locais = [...new Set(dados.periodos.map((r) => v(r.data.local)).filter(Boolean))];
   const partes = [`Este laudo avalia, de forma individual (art. 276, I, da IN 128/2022), a exposição de ${seg} a agentes nocivos nas atividades de ${cargosDoCaso(dados).map((x) => x.toLowerCase()).join(' e ') || '[[cargo]]'}, nos períodos do item 1.3, e fundamenta o Perfil Profissiográfico Previdenciário (PPP) emitido com ele.`];
+  if (/^Remota/.test(c.modalidade || '')) {
+    partes.push(`A avaliação foi feita sem vistoria no local de trabalho, com base na entrevista do segurado${vist ? `, realizada por videoconferência em ${vist}` : ' por videoconferência'}, nas declarações do item 2.3, nos documentos apresentados e nas características dos produtos e dos equipamentos utilizados em cada época. É, portanto, extemporânea e indireta quanto a todo o período avaliado, e a conclusão depende da veracidade das informações prestadas.`);
+    return partes.join(' ');
+  }
+  if (/^Documental/.test(c.modalidade || '')) {
+    partes.push('A avaliação foi feita sem vistoria e sem entrevista, com base nas declarações do item 2.3 e nos documentos apresentados, e a conclusão depende da veracidade dessas informações.');
+    return partes.join(' ');
+  }
   if (vist) partes.push(`A avaliação é contemporânea quanto às condições observadas na vistoria de ${vist}${end ? `, realizada no local de trabalho (${end})` : ''}${anteriores ? ', e extemporânea quanto aos períodos anteriores, cujas condições foram reconstituídas pelas declarações do item 2.3, pelos documentos do item 1.3 e pela permanência da atividade, com as alterações registradas no item 4' : ''}.`);
   else partes.push('[[Informe a data da vistoria (etapa 4. Campo).]]');
   if (locais.length > 1 || (locais.length === 1 && end && !end.includes(locais[0]))) partes.push('Nos períodos em que o local de trabalho foi diverso do vistoriado (item 1.3), a avaliação considera a mesma atividade profissional, conforme as declarações do item 2.3.');
@@ -690,10 +723,17 @@ function textoCategoriaSegurado(d, dados) {
   // um vínculo só: "No período avaliado" (sem "V1")
   const quem = (f) => (dados.periodos.length === 1 ? 'No período avaliado' : `${pl(f, 'No vínculo', 'Nos vínculos')} ${lista(f)}`);
   if (qtd(emp)) d.texto(`${quem(emp)}, o segurado era empregado; o PPP é emitido pelo empregador com base no LTCAT (art. 58, § 1º, da Lei nº 8.213/1991).`);
-  if (qtd(ci)) d.texto(`${quem(ci)}, o segurado exerceu a atividade como contribuinte individual${proprio ? ', em consultório próprio' : ''}. Não há empresa que mantenha registros ambientais desse período; este laudo é a demonstração ambiental que o descreve${proprio ? ' e fundamenta o PPP emitido pelo próprio segurado' : ''}.`);
+  if (qtd(ci)) {
+    const vincCi = per.filter(ci).map((x) => x.r);
+    const socio = vincCi.some((r) => /s[oó]ci[oa]|administrador|quotas/i.test(`${r.data.cargo || ''} ${r.data.atividades || ''}`));
+    const empresa = /Empresa/.test(dados.c.pppEmitente || '') && !proprio;
+    if (proprio) d.texto(`${quem(ci)}, o segurado exerceu a atividade como contribuinte individual, por conta própria${/dentist|odont|consult[oó]rio/i.test(vincCi.map((r) => `${r.data.cargo || ''} ${r.data.local || ''}`).join(' ')) ? ', em consultório próprio' : ''}. Não há empresa que mantenha registros ambientais desse período; este laudo é a demonstração ambiental que o descreve e fundamenta o PPP emitido pelo próprio segurado.`);
+    else if (empresa) d.texto(`${quem(ci)}, o segurado exerceu a atividade como contribuinte individual, ${socio ? 'na condição de sócio da empresa emitente do PPP' : 'prestando serviços à empresa emitente do PPP'}. Este laudo é a demonstração ambiental individual desse período, com o histórico das atividades e dos agentes de cada época, e fundamenta o PPP emitido pela empresa.`);
+    else d.texto(`${quem(ci)}, o segurado exerceu a atividade como contribuinte individual. Este laudo é a demonstração ambiental individual que descreve esse período.`);
+  }
   if (qtd(coop)) d.texto(`${quem(coop)}, o segurado era cooperado de cooperativa de trabalho, categoria à qual se aplicam as regras da aposentadoria especial (art. 1º da Lei nº 10.666/2003). ${proprio ? 'Como presta os serviços em consultório próprio, não exclusivamente pela cooperativa, o PPP é emitido pelo próprio segurado, com base neste laudo.' : 'O PPP desse período cabe à cooperativa, com base neste laudo.'}`);
   if (per.some((x) => !x.cat)) d.texto(`[[Informe a categoria do segurado nos vínculos ${lista((x) => !x.cat)} (etapa 2. Autos).]]`);
-  if (dados.periodos.some((r) => !r.data.fim || r.data.fim > '2019-11-13')) d.texto('Os subperíodos a partir de 14/11/2019, data de entrada em vigor da Emenda Constitucional nº 103/2019, são indicados separadamente na síntese do item 6.');
+  if (dados.periodos.some((r) => !r.data.fim || r.data.fim > '2019-11-13')) d.texto('Os subperíodos posteriores a 13/11/2019, data de entrada em vigor da Emenda Constitucional nº 103/2019, são indicados separadamente na síntese do item 6.');
   const afs = dados.periodos.flatMap((r) => lerAfastamentos(r.data.afastamentos));
   if (afs.some((x) => x.excluido)) d.texto('Os afastamentos por benefício por incapacidade temporária de natureza previdenciária são indicados separadamente no item 6 e nas observações do PPP (art. 65, parágrafo único, do Decreto nº 3.048/1999).');
 }

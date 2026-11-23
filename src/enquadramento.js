@@ -48,6 +48,8 @@ export function tecnicaDoAgente(a, ate97) {
   if (x.tipo === 'Físico') {
     if (/radia/i.test(cod)) return ate97 ? 'Qualitativa' : 'Quantitativa – NR-15, Anexo 5 (CNEN)';
     if (/ru[ií]do/i.test(cod)) return ate97 ? 'Quantitativa – NR-15, Anexo 1' : 'Quantitativa – NHO-01';
+    // eletricidade: exposição a tensão acima de 250 V, pela atividade (não há medição de intensidade)
+    if (/eletric|el[ée]tric|tens[ãa]o/i.test(cod)) return 'Qualitativa';
     return 'Quantitativa';
   }
   if (ate97) return 'Qualitativa';
@@ -73,6 +75,25 @@ export function agenteNoVinculo(a, idx) {
   return ns.includes(idx + 1);
 }
 
+// período de exposição do agente dentro do vínculo (expInicio / expFim); em branco = o vínculo inteiro
+export function agenteNoIntervalo(a, ini, fim) {
+  const x = a.data || a;
+  const de = v(x.expInicio); const ate = v(x.expFim);
+  return (!de || !fim || fim >= de) && (!ate || !ini || ini <= ate);
+}
+// datas de corte da síntese pelos períodos de exposição (o subperíodo termina na véspera do início e no fim)
+export function cortesDosAgentes(agentes, idx) {
+  const out = [];
+  const vespera = (iso) => { const d = new Date(`${iso}T12:00:00`); d.setDate(d.getDate() - 1); return d.toISOString().slice(0, 10); };
+  for (const a of agentes || []) {
+    if (!agenteNoVinculo(a, idx)) continue;
+    const x = a.data || a;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(v(x.expInicio))) out.push(vespera(x.expInicio));
+    if (/^\d{4}-\d{2}-\d{2}$/.test(v(x.expFim))) out.push(v(x.expFim));
+  }
+  return out;
+}
+
 // resultado do agente no subperíodo [ini, fim] (os subperíodos já são cortados em 05/03/1997)
 export function resultadoNoSegmento(a, fim) {
   const x = a.data || a;
@@ -89,7 +110,7 @@ export function itensAgentes(agentes, idx, ini, fim) {
   // só o código, sem a descrição: "1.0.9 do Anexo IV (cloro…) – avaliação…" → "1.0.9 do Anexo IV"
   const codCurto = (c) => String(c || '').split(/\s+\(|\s+–\s+/)[0].trim();
   for (const a of agentes) {
-    if (!agenteNoVinculo(a, idx)) continue;
+    if (!agenteNoVinculo(a, idx) || !agenteNoIntervalo(a, ini, fim)) continue;
     const nome = v(a.data.nome) || 'Agente';
     const { res, cod } = resultadoNoSegmento(a, fim);
     if (res === 'Caracteriza') {
@@ -178,8 +199,8 @@ export function categoriaDoVinculo(r) {
 // quantitativo(a): o agente tem limite de tolerância nos Anexos 11 ou 12 da NR-15 (banco de químicos) – presente no
 // ambiente e sem medição, consta do PPP com a intensidade "não quantificada", ainda que não caracterize
 export function exposicaoNoVinculo(r, idx, agentes, { presentes = false, quantitativo = () => false, hoje = new Date().toISOString().slice(0, 10) } = {}) {
-  const ini = (r.data || r).inicio; const fim = (r.data || r).fim || hoje;
-  if (!ini) return [];
+  const ini0 = (r.data || r).inicio; const fim0 = (r.data || r).fim || hoje;
+  if (!ini0) return [];
   // "não caracteriza" só entra quando o agente é do Anexo IV e de avaliação quantitativa sem medição (ex.: mercúrio
   // ou ácido clorídrico após 05/03/1997); o que não caracteriza na avaliação qualitativa não vai ao PPP
   const quant = (a, ate) => /^Quantitativa/.test(tecnicaDoAgente(a, ate)) || (!ate && quantitativo(a));
@@ -189,6 +210,10 @@ export function exposicaoNoVinculo(r, idx, agentes, { presentes = false, quantit
   for (const a of agentes) {
     if (!agenteNoVinculo(a, idx)) continue;
     const x = a.data || a;
+    // período de exposição do agente dentro do vínculo
+    const ini = v(x.expInicio) > ini0 ? v(x.expInicio) : ini0;
+    const fim = v(x.expFim) && v(x.expFim) < fim0 ? v(x.expFim) : fim0;
+    if (ini > fim) continue;
     const jan = [];
     if (ini <= '1997-03-05' && conta(x.resAte97, a, true)) jan.push([ini, fim < '1997-03-05' ? fim : '1997-03-05', x.resAte97 === 'Caracteriza', true]);
     if (fim >= '1997-03-06' && conta(x.resDesde97, a, false)) {

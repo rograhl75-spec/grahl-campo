@@ -6,7 +6,7 @@ import { comJurisprudencia } from './fontes.js';
 import { avaliaPenosidade, vinculosMotorista, matrizIAC, tempoConducao } from './penosidade.js';
 import { nenParaJornada, vibracaoDoParadigma } from '../paradigmas.js';
 import { num, fmt, nen, fatorQ, horasDia, fmtHoras, lavgDaDose } from '../calc.js';
-import { categoriaSaude, itensAgentes, lerAfastamentos, recortarAfastamentos, agenteNoVinculo, resultadoNoSegmento } from '../enquadramento.js';
+import { categoriaSaude, itensAgentes, lerAfastamentos, recortarAfastamentos, agenteNoVinculo, agenteNoIntervalo, cortesDosAgentes, resultadoNoSegmento } from '../enquadramento.js';
 
 const CORTES = ['1995-04-28', '1997-03-05', '2003-11-18', '2014-08-13', '2019-11-13'];
 const dia = (iso, n) => { const d = new Date(`${iso}T12:00:00`); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
@@ -64,14 +64,15 @@ export function valores(r, dados) {
 const empresaCurta = (r) => String(r.data.empresa || 'vínculo').replace(/\s*\([^)]*\)/g, '').trim();
 // células da síntese de um subperíodo: [período, categoria, biológicos, químicos, físicos, resultado]
 const codCurto = (c) => String(c || '').split(/\s+\(|\s+–\s+/)[0].trim();
-const nomeMin = (n) => String(n || '').replace(/\s*\(.*$/, '').replace(/^\p{Lu}(?=\p{Ll})/u, (c) => c.toLowerCase());
+// no meio da frase: "Óleo mineral" → "óleo mineral"; "n-Pentano" → "n-pentano"
+const nomeMin = (n) => String(n || '').replace(/\s*\(.*$/, '').replace(/^([a-z]{1,4}-)?(\p{Lu})(?=\p{Ll})/u, (m, pre, c) => `${pre || ''}${c.toLowerCase()}`);
 const lista = (l) => l.join(', ').replace(/, ([^,]*)$/, ' e $1');
 function celulasSintese(s, r, idx, dados, penoso, penosidade) {
   const cat = s.itens.filter((i) => i.categoria && i.sup).map((i) => `${i.t.replace(/^Categoria profissional de /, '').replace(/ – enquadramento por presunção$/, '')} (cód. ${i.cod})`);
   const col = { 'Biológico': new Map(), 'Químico': new Map(), 'Físico': new Map() };
   const pend = { 'Biológico': [], 'Químico': [], 'Físico': [] };
   for (const a of dados.agentes || []) {
-    if (!agenteNoVinculo(a, idx)) continue;
+    if (!agenteNoVinculo(a, idx) || !agenteNoIntervalo(a, s.ini, s.fim)) continue;
     const tipo = a.data.tipo || 'Químico';
     const { res, cod } = resultadoNoSegmento(a, s.fim);
     if (res === 'Caracteriza') { const k = codCurto(cod) || 'código a definir'; if (!col[tipo].has(k)) col[tipo].set(k, []); col[tipo].get(k).push(nomeMin(a.data.nome)); }
@@ -112,7 +113,7 @@ export function avaliarPeriodos(dados) {
     // afastamentos por benefício que não contam como tempo especial saem dos subperíodos
     const temRuido = isFinite(val.lavg) || !!r.data.paradigmaRuido || motorista || tratorista;
     const temVib = isFinite(val.aren) || !!r.data.paradigmaVibracao || motorista || tratorista;
-    const cortes = CORTES.filter((c) => (c !== '2003-11-18' || temRuido) && (c !== '2014-08-13' || temVib));
+    const cortes = [...new Set([...CORTES.filter((c) => (c !== '2003-11-18' || temRuido) && (c !== '2014-08-13' || temVib)), ...cortesDosAgentes(agentes, idx)])].sort();
     const { segs: partes, excluidos } = recortarAfastamentos(segmentos(r, cortes), lerAfastamentos(r.data.afastamentos));
     const segs = partes.map(([a, b]) => {
       const itens = []; let algum = false; let dadosOk = false;

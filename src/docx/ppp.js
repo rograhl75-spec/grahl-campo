@@ -4,12 +4,13 @@
 // II – registros ambientais (exposição a fatores de risco e responsável); III – monitoração biológica;
 // IV – responsáveis pelas informações. Quem emite: empresa, cooperativa de trabalho ou o próprio segurado.
 // ======================================================================
-import { Doc, dataBR, credencial, finalizar, carregar, fimNaEmissao } from './base.js';
+import { Doc, dataBR, credencial, finalizar, carregar, fimNaEmissao, hojeLocal } from './base.js';
 import { p, run } from './ooxml.js';
 import { avaliarPeriodos } from './conclusao.js';
 import { exposicaoNoVinculo, codigosDoAgente, tecnicaDoAgente, categoriaDoVinculo, lerAfastamentos } from '../enquadramento.js';
 import { empresaLimpa } from '../nomes.js';
 import { anexoQuantitativo } from './agentesQuadros.js';
+import { codigoCbo } from '../cbo.js';
 
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 const hoje = () => new Date().toISOString().slice(0, 10);
@@ -17,6 +18,28 @@ const fimTxt = (r, f) => (!r.data.fim && f === hoje() ? 'atual' : dataBR(f));
 // "01/05/1991 a …" → "1991-05-01" (ordem cronológica das linhas)
 const isoIni = (t) => String(t).replace(/^(\d{2})\/(\d{2})\/(\d{4}).*$/, '$3-$2-$1');
 const cooperado = (r) => /cooperad/i.test(categoriaDoVinculo(r));
+const semParenteses = (t) => v(t).replace(/\s*\([^)]*\)/g, '').trim();
+// nome do fator de risco no PPP: sem a marca comercial, o CAS e as notas entre parênteses
+const nomeFator = (n) => { const c = semParenteses(n).replace(/,?\s*CAS\s*[\d-]+/gi, '').trim(); return c.length >= 3 ? c : v(n); };
+// CA: só o número do certificado
+const numeroCa = (t) => { const m = v(t).match(/\b(?:CA\s*n?[ºo°.]?\s*)?(\d{3,6})\b/i); return m ? m[1] : '—'; };
+const dia = (iso, n) => { const d = new Date(`${iso}T12:00:00`); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
+// "10/01/2022" ou "2022-01-10" → ISO
+const isoData = (t) => { const x = v(t); if (/^\d{4}-\d{2}-\d{2}$/.test(x)) return x; const m = x.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : ''; };
+// marcos do preenchimento (art. 285 da IN 128/2022): EPC dispensado até 13/10/1996; EPI, até 02/12/1998
+const MARCOS_PPP = ['1996-10-13', '1998-12-02'];
+function partirNosMarcos(ini, fim) {
+  const out = []; let a = ini;
+  for (const m of MARCOS_PPP) if (m >= a && m < fim) { out.push([a, m]); a = dia(m, 1); }
+  out.push([a, fim]);
+  return out;
+}
+// eSocial SST: o PPP em papel do empregado, do avulso e do cooperado vai até a véspera da entrada do emitente
+export function corteEsocial(c, r) {
+  const ini = isoData(c.esocialSst);
+  if (!ini || !/Empregado|Avulso|cooperad/i.test(categoriaDoVinculo(r))) return '';
+  return dia(ini, -1);
+}
 
 // vínculos que entram no PPP: a cooperativa emite só os períodos de cooperado; empresa e segurado, todos
 export function vinculosDoPpp(dados) {
@@ -41,7 +64,16 @@ export async function ppp(caseId, dadosProntos) {
   const d = new Doc();
   d.h1NovaPagina = false;
   const emit = emitenteDoPpp(dados);
-  const { dentro, fora } = vinculosDoPpp(dados);
+  const { dentro: dentro0, fora } = vinculosDoPpp(dados);
+  // corte no eSocial SST: o período posterior é do PPP eletrônico
+  const cortados = [];
+  const dentro = dentro0.map(({ r, idx }) => {
+    const corte = corteEsocial(c, r);
+    if (!corte || (r.data.fim && r.data.fim <= corte)) return { r, idx };
+    cortados.push({ r, corte });
+    if ((r.data.inicio || '') > corte) return null;
+    return { r: { ...r, data: { ...r.data, fim: corte, fimNaEmissao: false } }, idx };
+  }).filter(Boolean);
   const av = avaliarPeriodos(dados);
   const proprio = /Pr[oó]prio/.test(c.pppEmitente || '');
 
@@ -74,7 +106,7 @@ export async function ppp(caseId, dadosProntos) {
   };
   d.quadro('13 – Lotação e atribuição', [['Período', 'CNPJ / CAEPF', 'Setor', 'Cargo', 'Função', 'CBO', 'Cód. GFIP'],
     ...dentro.map(({ r, idx }) => [`${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`, (proprio ? emit.doc : v(r.data.cnpj) || emit.doc) || '—',
-      v(r.data.setor) || '—', v(r.data.cargo) || '[[cargo]]', v(r.data.cargo) || '—', v(r.data.cbo) || '[[CBO]]', gfip(idx)])],
+      semParenteses(r.data.setor) || '—', semParenteses(r.data.cargo) || '[[cargo]]', semParenteses(r.data.funcao) || semParenteses(r.data.cargo) || '—', codigoCbo(r.data.cbo) || '[[CBO]]', gfip(idx)])],
   { larguras: [0.16, 0.16, 0.16, 0.15, 0.15, 0.09, 0.13], tam: 8, alinhar: 'left', semNumero: true, fonte: 'Registros administrativos do emitente e LTCAT do signatário. Código GFIP 04: exposição a agente nocivo com aposentadoria especial aos 25 anos.' });
   d.quadro('14 – Profissiografia', [['Período', 'Descrição das atividades'],
     ...dentro.map(({ r }) => [`${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`,
@@ -89,20 +121,25 @@ export async function ppp(caseId, dadosProntos) {
   // medições (ruído, calor, vibração, químicos) dos postos do vínculo que superam o limite entram pela síntese
   const linhasMed = dentro.flatMap(({ r, idx }) => (av[idx]?.segs || []).flatMap((s) => s.itens.filter((i) => i.sup && !i.categoria && !i.agente)
     .map((i) => [`${dataBR(s.ini)} a ${fimTxt(r, s.fim)}`, 'F', i.t.split(':')[0], i.t.replace(/^[^:]+:\s*/, '').replace(/\s[>≤].*$/, ''), /Ruído/.test(i.t) ? (s.fim <= '2003-11-18' ? 'NR-15, Anexo 1' : 'NHO-01') : 'NHO', '[[S/N]]', s.fim < '1998-12-03' ? 'Não se aplica' : '[[S/N]]', '—'])));
+  // uma linha por janela de exposição, partida em 13/10/1996 (EPC) e 02/12/1998 (EPI): antes desses marcos os campos
+  // não se aplicam (art. 285 da IN 128/2022)
   const linhasExp = [
-    ...exps.map((e) => {
-      const x = e.agente.data; const k = codigosDoAgente(e.agente);
+    ...exps.flatMap((e) => partirNosMarcos(e.ini, e.fim).map(([ini, fim]) => {
+      const x = e.agente.data; void codigosDoAgente;
       const anexo = anexoQuantitativo(e.agente, dados.quimicos) || 'Anexo 11';
-      return [`${dataBR(e.ini)} a ${fimTxt(e.r, e.fim)}`, (x.tipo || 'Q')[0], x.nome, (/^n[ãa]o se aplica$/i.test(v(x.intensidade)) ? '' : v(x.intensidade)) || (e.caracteriza ? 'Qualitativa' : 'Não quantificada'),
-        e.naoQuantificado && !/^Quantitativa/.test(tecnicaDoAgente(e.agente, false)) ? `Quantitativa – NR-15, ${anexo}` : tecnicaDoAgente(e.agente, e.fim <= '1997-03-05') || '[[técnica]]',
-        x.epcEficaz || (semEpi ? 'Não' : '[[S/N]]'), e.fim < '1998-12-03' ? 'Não se aplica' : x.epiEficaz || (semEpi ? 'Não' : '[[S/N]]'), v(x.ca) || '—'];
-    }),
+      const tec = e.naoQuantificado && !/^Quantitativa/.test(tecnicaDoAgente(e.agente, false)) ? `Quantitativa – NR-15, ${anexo}` : tecnicaDoAgente(e.agente, fim <= '1997-03-05') || '[[técnica]]';
+      const intens = (/^n[ãa]o se aplica$/i.test(v(x.intensidade)) ? '' : v(x.intensidade)) || (e.naoQuantificado ? 'Não quantificada' : /^Qualitativa/.test(tec) ? '—' : '[[intensidade]]');
+      const epiAplica = fim > '1998-12-02';
+      return [`${dataBR(ini)} a ${fimTxt(e.r, fim)}`, (x.tipo || 'Q')[0], nomeFator(x.nome), intens, tec,
+        fim <= '1996-10-13' ? 'Não se aplica' : x.epcEficaz || (semEpi ? 'Não' : '[[S/N]]'),
+        epiAplica ? x.epiEficaz || (semEpi ? 'Não' : '[[S/N]]') : 'Não se aplica', epiAplica ? numeroCa(x.ca) : '—'];
+    })),
     ...linhasMed,
   ].sort((a, b) => isoIni(a[0]).localeCompare(isoIni(b[0])));
   d.quadro('15 – Exposição a fatores de riscos', [['Período', 'Tipo', 'Fator de risco', 'Intensidade', 'Técnica utilizada', 'EPC eficaz', 'EPI eficaz', 'CA EPI'],
     ...(linhasExp.length ? linhasExp : [['[[período]]', '', (dados.agentes || []).length ? 'Ausência de fator de risco nocivo' : '[[cadastre os agentes avaliados na etapa 2. Autos]]', '', '', '', '', '']])],
   { larguras: [0.14, 0.07, 0.23, 0.13, 0.12, 0.09, 0.11, 0.11], tam: 8, alinhar: 'left', semNumero: true,
-    fonte: `LTCAT do signatário, itens 5 e 6. Tipo: F – físico; Q – químico; B – biológico. EPI só considerado a partir de 03/12/1998.${exps.some((e) => !e.caracteriza) ? ' "Não quantificada": agente de avaliação quantitativa (NR-15, Anexos 11 e 12) presente no ambiente, sem medição da concentração; não caracteriza a exposição (itens 5 e 6 do LTCAT).' : ''}` });
+    fonte: `LTCAT do signatário, itens 5 e 6. Tipo: F – físico; Q – químico; B – biológico. "—": avaliação qualitativa, sem intensidade ou concentração. EPC e EPI eficazes: não se aplicam até 13/10/1996 e até 02/12/1998, respectivamente (art. 285 da IN 128/2022).${exps.some((e) => !e.caracteriza) ? ' "Não quantificada": agente de avaliação quantitativa (NR-15, Anexos 11 e 12) presente no ambiente, sem medição da concentração; não caracteriza a exposição (itens 5 e 6 do LTCAT).' : ''}` });
   const comEpi = exps.some((e) => e.caracteriza && e.agente.data.epiEficaz === 'Sim');
   d.quadro('15.9 – Atendimento aos requisitos das NR-06 e NR-09 (EPI)', [['Requisito', 'S/N'],
     ...['Foi tentada a implementação de medidas de proteção coletiva, de caráter administrativo ou de organização, optando-se pelo EPI por inviabilidade técnica, insuficiência ou interinidade, ou ainda em caráter complementar ou emergencial?',
@@ -118,14 +155,14 @@ export async function ppp(caseId, dadosProntos) {
   // ---------------- Seção III ----------------
   d.h1('', 'Seção III – Resultados de monitoração biológica');
   d.quadro('17 – Exames médicos clínicos e complementares', [['Data', 'Tipo', 'Natureza', 'Exame', 'Indicação de resultados'],
-    ['—', '—', '—', 'Não há registros de exames apresentados', '—']], { larguras: [0.14, 0.12, 0.16, 0.34, 0.24], tam: 8.5, alinhar: 'left', semNumero: true, fonte: 'Emitente.' });
+    ['—', '—', '—', 'Não preenchido', '—']], { larguras: [0.14, 0.12, 0.16, 0.34, 0.24], tam: 8.5, alinhar: 'left', semNumero: true, fonte: 'O preenchimento dos resultados de monitoração biológica não é exigido para nenhum período (Resolução CFM nº 1.715/2004; Manual de Aposentadoria Especial do INSS, 2018).' });
   d.quadro('18 – Responsável pela monitoração biológica', [['Período', 'NIT', 'Registro conselho de classe', 'Nome do profissional'], ['—', '—', '—', 'Não se aplica']],
     { larguras: [0.2, 0.15, 0.3, 0.35], tam: 8.5, alinhar: 'left', semNumero: true, fonte: 'Emitente.' });
 
   // ---------------- Seção IV ----------------
   d.h1('', 'Seção IV – Responsáveis pelas informações');
   d.texto('Declaramos, para todos os fins de direito, que as informações prestadas neste documento são verídicas e foram transcritas fielmente dos registros administrativos, das demonstrações ambientais e dos programas médicos de responsabilidade da empresa. É de nosso conhecimento que a prestação de informações falsas neste documento constitui crime de falsificação de documento público, nos termos do art. 297 do Código Penal, e, também, que tais informações são de caráter privativo do trabalhador, constituindo crime, nos termos da Lei nº 9.029/1995, práticas discriminatórias decorrentes de sua exigibilidade por outrem, bem como de sua divulgação para terceiros, ressalvado quando exigidas pelos órgãos públicos competentes.');
-  d.identificacao([['19 – Data de emissão do PPP', '____/____/________'], ['20.1 – NIT / CPF do representante legal', v(c.pppRepresentanteNit) || '[[NIT]]'],
+  d.identificacao([['19 – Data de emissão do PPP', dataBR(hojeLocal())], ['20.1 – NIT / CPF do representante legal', v(c.pppRepresentanteNit) || '[[NIT]]'],
     ['20.2 – Nome do representante legal', v(c.pppRepresentante) || (/Pr[oó]prio/.test(c.pppEmitente || '') ? v(c.autorNome) : '[[representante legal]]')]]);
   d.add(p([run('_____________________________________')], { align: 'center', before: 480, after: 0 }));
   d.add(p([run('Carimbo e assinatura do representante legal', { size: 9, color: '475569', np: true })], { align: 'center', after: 240 }));
@@ -139,6 +176,7 @@ export async function ppp(caseId, dadosProntos) {
     }
   }
   if (fora.length) obs.push(`Não constam deste PPP, por não serem de responsabilidade do emitente, ${fora.length > 1 ? 'os períodos' : 'o período'} ${fora.map(({ r }) => `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`).join(', ').replace(/, ([^,]*)$/, ' e $1')}, ${fora.length > 1 ? 'demonstrados' : 'demonstrado'} pelo LTCAT do signatário.`);
+  for (const { r, corte } of cortados) obs.push(`A partir de ${dataBR(dia(corte, 1))}, as informações do período ${dataBR(r.data.inicio)} a ${r.data.fim && !r.data.fimNaEmissao ? dataBR(r.data.fim) : 'atual'} constam do PPP eletrônico (eSocial, evento S-2240), de responsabilidade do emitente.`);
   if (v(c.pppObs)) obs.push(c.pppObs);
   // a mesma observação em vários vínculos (ex.: afastamento repetido) sai uma vez só
   const obsU = [...new Set(obs)];

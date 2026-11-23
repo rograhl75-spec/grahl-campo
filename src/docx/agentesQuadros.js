@@ -24,12 +24,32 @@ export function orgaosEmPortugues(t) {
   return out.join(', '); // só os termos conhecidos
 }
 
-// agente avaliado → registro do banco de químicos (pelo nome, sinônimos ou CAS)
+// número CAS de verdade (2 a 7 dígitos-2 dígitos-1 dígito); "Óleo básico…" ou "mistura" não são CAS
+export const ehCas = (t) => /^\d{2,7}-\d{2}-\d$/.test(v(t));
+export const casValido = (t) => (String(t || '').match(/\b\d{2,7}-\d{2}-\d\b/g) || []).join(', ');
+
+// agente físico: meio de exposição no lugar das vias de absorção (art. 68, § 2º, III)
+export function viasPadrao(a) {
+  const x = a.data || a;
+  if ((x.tipo || 'Químico') !== 'Físico') return '';
+  const n = semAc(x.nome);
+  if (/eletric|tensao|energiz/.test(n)) return 'Exposição por proximidade de instalações ou equipamentos energizados, com risco de contato direto ou indireto e de arco elétrico; não há via de absorção (agente físico)';
+  if (/ruido/.test(n)) return 'Exposição por via auditiva, pelo ar, no ambiente de trabalho; não há via de absorção (agente físico)';
+  if (/vibra/.test(n)) return /maos|braco/.test(n) ? 'Transmissão às mãos e aos braços pelas ferramentas e empunhaduras; não há via de absorção (agente físico)' : 'Transmissão ao corpo inteiro pelo assento e pelo piso; não há via de absorção (agente físico)';
+  if (/calor/.test(n)) return 'Exposição ao ambiente térmico (convecção e radiação); não há via de absorção (agente físico)';
+  if (/radia/.test(n)) return 'Exposição externa à radiação no ambiente de trabalho';
+  if (/press/.test(n)) return 'Exposição do organismo à pressão do ambiente; não há via de absorção (agente físico)';
+  if (/frio/.test(n)) return 'Exposição ao ambiente frio (condução e convecção); não há via de absorção (agente físico)';
+  return 'Agente físico: exposição no ambiente de trabalho; não há via de absorção';
+}
+
+// agente avaliado → registro do banco de químicos (pelo nome, sinônimos ou CAS); o que está entre parênteses no
+// nome do agente é descrição ("Mesamoll (éster … de fenol)") e não entra na busca pelo nome
 export function bancoDoAgente(a, quimicos = []) {
   const x = a.data || a;
-  const cas = v(x.cas);
+  const cas = casValido(x.cas).split(', ')[0];
   if (cas) { const r = quimicos.find((q) => v(q.data.cas) === cas); if (r) return r; }
-  const alvo = ` ${semAc(x.nome).replace(/[^a-z0-9]+/g, ' ')} `;
+  const alvo = ` ${semAc(String(x.nome || '').replace(/\([^)]*\)/g, ' ')).replace(/[^a-z0-9]+/g, ' ')} `;
   let melhor = null; let tam = 0;
   for (const q of quimicos) {
     const nomes = [String(q.data.nome || '').replace(/\s*\(.*$/, ''), ...String(q.data.sinonimos || '').split(';')].map((n) => semAc(n).replace(/[^a-z0-9]+/g, ' ').trim()).filter((n) => n.length >= 4);
@@ -41,7 +61,7 @@ export function bancoDoAgente(a, quimicos = []) {
 // linhas do quadro de características
 function linhaQuimico(nome, x = {}, q = null) {
   const b = q ? q.data : {};
-  const cas = v(x.cas) || v(b.cas);
+  const cas = casValido(x.cas) || casValido(b.cas);
   const vias = (v(x.vias) || viasEmPortugues(b.vias)).replace(/^\p{Lu}(?=\p{Ll})/u, (c) => c.toLowerCase()).replace(/\.$/, '');
   const orgaos = orgaosEmPortugues(b.orgaosAlvo);
   const efeitos = v(x.efeitos) || efeitosDoBanco(q);
@@ -74,7 +94,7 @@ export function quadroArt68(d, agentes) {
     ...agentes.map((a) => {
       const x = a.data;
       return [x.nome, v(x.circunstancias) || '[[circunstâncias da exposição]]', v(x.fonte) || '[[fontes de liberação]]',
-        [v(x.vias), v(x.frequencia)].filter(Boolean).map((t) => t.replace(/\.$/, '')).join('. ').replace(/(.)$/, '$1.').replace(/^\.$/, '') || '[[meios de contato, vias, frequência e duração]]'];
+        [v(x.vias) || viasPadrao(a), v(x.frequencia)].filter(Boolean).map((t) => t.replace(/\.$/, '')).join('. ').replace(/(.)$/, '$1.').replace(/^\.$/, '') || '[[meios de contato, vias, frequência e duração]]'];
     })],
   { larguras: [0.2, 0.27, 0.25, 0.28], tam: 8.5, alinhar: 'left', fonte: 'Elaborado pelo signatário com base na vistoria e nas declarações do item 2.3.' });
   return true;

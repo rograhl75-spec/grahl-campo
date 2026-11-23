@@ -10,9 +10,11 @@ import { carregar } from './docx/base.js';
 import { vinculosMotorista, tempoConducao, jornadaDia, matrizIAC } from './docx/penosidade.js';
 import { sugerirParaVinculo } from './paradigmas.js';
 import { fmtHoras, horasDia, horasForaTexto } from './calc.js';
-import { contextoLegal, ehParecerTecnico, EMITENTE_PPP, CATEGORIAS_SEGURADO, RESULTADO_AGENTE } from './schema.js';
+import { contextoLegal, ehParecerTecnico, EMITENTE_PPP, CATEGORIAS_SEGURADO, RESULTADO_AGENTE, MODALIDADE_AVALIACAO, AUTORIA_FOTOS } from './schema.js';
 import { categoriaDoVinculo } from './enquadramento.js';
-import { agentesDoArt68, bancoDoAgente } from './docx/agentesQuadros.js';
+import { agentesDoArt68, bancoDoAgente, viasPadrao } from './docx/agentesQuadros.js';
+import { carregarCbo, sugerirCbo, codigoCbo } from './cbo.js';
+import { coerenciaDoLaudo } from './coerencia.js';
 import { efeitosDoBanco } from './docx/efeitosQuimicos.js';
 import { profissaoDoCaso } from './data/profissoes.js';
 
@@ -130,9 +132,31 @@ export async function pendenciasDoCaso(caseId) {
       itens.push({ id: 'pppSexo', grupo: g, rec: caseId, campo: 'pppSexo', tipo: 'escolha', valor: '', opcoes: [{ valor: 'Masculino', rotulo: 'Masculino' }, { valor: 'Feminino', rotulo: 'Feminino' }],
         titulo: 'Sexo do segurado', explicacao: 'Campo 8 do PPP.' });
     }
+    // CBO: sugestões da tabela CBO 2002 pelo cargo, função, setor e atividades; o signatário escolhe ou digita
+    const tabCbo = dados.periodos.some((r) => !codigoCbo(r.data.cbo)) ? await carregarCbo() : null;
     dados.periodos.forEach((r, i) => {
-      if (!String(r.data.cbo || '').trim()) txt(`cbo-${r.id}`, r.id, 'cbo', `CBO – ${nomeVinculo(r, i)}`, 'Campo 13 do PPP (ex.: 2232-08 – cirurgião-dentista clínico geral).');
+      if (codigoCbo(r.data.cbo)) return;
+      const sug = sugerirCbo(r, tabCbo || []);
+      itens.push({ id: `cbo-${r.id}`, grupo: g, rec: r.id, campo: 'cbo', tipo: 'escolha', livre: true, valor: '', rotuloLivre: 'Outro código (9999-99)',
+        opcoes: sug.map((x) => ({ valor: `${x.codigo} – ${x.titulo}`, rotulo: `${x.codigo} – ${x.titulo}` })),
+        titulo: `CBO – ${nomeVinculo(r, i)}`,
+        explicacao: sug.length ? 'Campo 13 do PPP. Sugestões da CBO 2002 pelo cargo, função, setor e atividades do vínculo: escolha a que descreve o que o segurado faz de fato (o título do cargo nem sempre corresponde à atividade).' : 'Campo 13 do PPP: digite o código da CBO 2002 (ex.: 2232-08).' });
     });
+    if (!String(c.modalidade || '').trim()) {
+      itens.push({ id: 'modalidade', grupo: g, rec: caseId, campo: 'modalidade', tipo: 'escolha', valor: '', opcoes: MODALIDADE_AVALIACAO.map((x) => ({ valor: x, rotulo: x })),
+        titulo: 'Modalidade da avaliação', explicacao: 'Ajusta os itens 2.1 (natureza), 2.2 (diligência) e 4 do LTCAT: sem vistoria no local, o laudo não fala em "condições observadas na vistoria".' });
+    }
+    const fotos = dados.fotos.filter((f) => !f.deleted);
+    if (fotos.length && !String(c.fotosAutoria || '').trim() && fotos.some((f) => f.data.tiradaEmFonte !== 'foto' || f.data.nomeArquivo)) {
+      itens.push({ id: 'fotosAutoria', grupo: g, rec: caseId, campo: 'fotosAutoria', tipo: 'escolha', valor: '', opcoes: AUTORIA_FOTOS.map((x) => ({ valor: x, rotulo: x })),
+        titulo: 'Autoria das fotos', explicacao: 'Vai na fonte das figuras ("Fonte: fotos fornecidas pelo segurado"). Fotos importadas de arquivo não saem com a data e o GPS da importação.' });
+    }
+    // eSocial SST: o PPP em papel do empregado ou do cooperado vai só até a véspera da entrada do emitente no eSocial
+    const comS2240 = dados.periodos.some((r) => /Empregado|Avulso|cooperad/i.test(categoriaDoVinculo(r)) && (!r.data.fim || r.data.fim > '2021-10-13'));
+    if (comS2240 && !String(c.esocialSst || '').trim() && !/Pr[oó]prio/.test(c.pppEmitente || '')) {
+      itens.push({ id: 'esocialSst', grupo: g, rec: caseId, campo: 'esocialSst', tipo: 'texto', valor: '',
+        titulo: 'Início do eSocial SST do emitente (dd/mm/aaaa)', explicacao: 'O PPP em papel vai até a véspera; depois, o PPP é o eletrônico (evento S-2240), de responsabilidade do emitente. Grupo 1: 13/10/2021; grupos 2 e 3: 10/01/2022; grupo 4: 11/01/2023. Contribuinte individual não tem S-2240.' });
+    }
     dados.periodos.forEach((r, i) => {
       if (String(r.data.categoriaSegurado || '').trim()) return;
       itens.push({ id: `cat-${r.id}`, grupo: g, rec: r.id, campo: 'categoriaSegurado', tipo: 'escolha', valor: '', opcoes: CATEGORIAS_SEGURADO.map((x) => ({ valor: x, rotulo: x })),
@@ -156,7 +180,7 @@ export async function pendenciasDoCaso(caseId) {
         titulo: `Agente repetido: "${a.data.nome}" e "${outro.data.nome}"`,
         explicacao: 'O mesmo agente cadastrado duas vezes sai duas vezes no laudo e no PPP. Exclua o que ficou desatualizado (este, com o nome mais curto, costuma ser o antigo).' });
     });
-    const semDescricao = agentesDoArt68(dados.agentes).filter((a) => ['circunstancias', 'fonte', 'vias', 'frequencia'].some((k) => !String(a.data[k] || '').trim()));
+    const semDescricao = agentesDoArt68(dados.agentes).filter((a) => ['circunstancias', 'fonte', 'vias', 'frequencia'].some((k) => !String(a.data[k] || '').trim() && !(k === 'vias' && viasPadrao(a))));
     if (semDescricao.length && profissaoDoCaso(c, dados.periodos)) {
       itens.push({ id: 'art68-banco', grupo: g, tipo: 'aviso', rec: caseId, respondido: false, link: `#/caso/${encodeURIComponent(caseId)}/preparacao`, rotuloLink: 'Ir para o banco de profissões',
         titulo: `${semDescricao.length} agente(s) sem a descrição do art. 68 – o banco de profissões completa`,
@@ -165,6 +189,8 @@ export async function pendenciasDoCaso(caseId) {
       for (const a of semDescricao) {
         for (const [campo, rot] of [['circunstancias', 'circunstâncias da exposição'], ['fonte', 'fontes e possibilidades de liberação'], ['vias', 'meios de contato e vias de absorção'], ['frequencia', 'intensidade, frequência e duração']]) {
           if (String(a.data[campo] || '').trim()) continue;
+          // agente físico: o app escreve o meio de exposição (não há via de absorção)
+          if (campo === 'vias' && viasPadrao(a)) continue;
           txt(`${campo}-${a.id}`, a.id, campo, `${a.data.nome} – ${rot}`, EXPL[campo]);
         }
       }
@@ -192,6 +218,8 @@ export async function pendenciasDoCaso(caseId) {
       }
     }
   }
+  // conferência de coerência do laudo (resultado × fundamentação, frequência, fases da atividade, citações)
+  if (ltcat || contextoLegal(c).prev) itens.push(...coerenciaDoLaudo(dados));
   // quesitos sem resposta: responder aqui mesmo (o texto do quesito aparece acima do campo)
   const ordemOrigem = (o) => ['Juízo', 'Autor / Reclamante', 'Réu / Reclamada', 'INSS', 'Complementares'].indexOf(o);
   for (const q of [...dados.quesitos].sort((a, b) => ordemOrigem(a.data.origem) - ordemOrigem(b.data.origem) || (Number(a.data.numero) || 0) - (Number(b.data.numero) || 0))) {

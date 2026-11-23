@@ -49,7 +49,7 @@ const PREV = [
   { q: (x) => x.biologico, t: '**TNU, Tema 211:** para a aplicação do art. 57, § 3º, da Lei nº 8.213/1991 a agentes biológicos, exige-se a probabilidade da exposição ocupacional, avaliando-se, de acordo com a profissiografia, o seu caráter indissociável da produção do bem ou da prestação do serviço, independentemente de tempo mínimo de exposição durante a jornada.' },
   { q: () => true, t: '**TNU, Súmula 68:** o laudo pericial não contemporâneo ao período trabalhado é apto à comprovação da atividade especial do segurado.' },
   { q: (x) => x.paradigmas, t: '**TNU, PEDILEF 0001323-30.2010.4.03.6318 (julgado em 22/06/2017):** é possível a perícia indireta (por similaridade) se a empresa de origem estiver inativa, sem representante legal e sem laudos técnicos ou formulários, ou se tiver alterado substancialmente as condições do ambiente de trabalho da época do vínculo e não for mais possível elaborar laudo técnico, observados: (I) a similaridade, na mesma época, entre a empresa paradigma e a de origem; (II) as condições insalubres existentes; (III) os agentes a que o segurado foi submetido; e (IV) a habitualidade e permanência dessas condições.' },
-  { q: (x, tipo) => tipo !== 'laudo', t: '**STJ, Tema 1291 (julgado em 10/09/2025):** é possível o reconhecimento de atividade especial do contribuinte individual não cooperado após a Lei nº 9.032/1995, mediante a comprovação da exposição a agentes nocivos; não se aplica a esses segurados a exigência de formulário emitido por empresa.' },
+  { q: (x, tipo) => tipo !== 'laudo', t: '**STJ, Tema 1291 (julgado em 10/09/2025):** é possível o reconhecimento de atividade especial do contribuinte individual não cooperado após a Lei nº 9.032/1995, mediante a comprovação da exposição a agentes nocivos; não se aplica a esses segurados a exigência de formulário emitido por empresa. [[conferir: há recurso ao STF pendente; confirme a situação do tema antes de emitir]]' },
   { q: (x) => x.motorista, t: '**STJ, Tema 1307 (REsp 2.164.724/RS e REsp 2.166.208/RS, rel. Min. Gurgel de Faria, julgados em 07/05/2026, DJEN de 20/05/2026; embargos de declaração com acórdão publicado em 03/11/2026):** é possível o reconhecimento do caráter especial, em virtude da penosidade, das atividades de motorista/cobrador de ônibus ou motorista de caminhão exercidas após a Lei nº 9.032/1995, desde que comprovada, por perícia técnica individualizada, a exposição habitual e permanente a condições concretas de desgaste à saúde.' },
   { q: (x) => x.motorista, t: '**TRF4, IAC nº 5 (5033888-90.2018.4.04.0000, julgado em 25/11/2020, acórdão publicado em 27/11/2020; sobrestado por tema do STJ):** deve ser admitida a possibilidade de reconhecimento do caráter especial das atividades de motorista ou de cobrador de ônibus em virtude da penosidade, ainda que posteriores à Lei nº 9.032/1995, desde que comprovada por perícia judicial individualizada, possuindo o interessado direito de produzir tal prova.' },
   { q: (x) => x.motorista, t: '**TRF4, IAC nº 12 (5042327-85.2021.4.04.0000, julgado em 19/11/2024):** a ratio decidendi do IAC nº 5 deve ser estendida à função de motorista de caminhão, diante de sua considerável semelhança, quanto ao caráter potencialmente penoso, com as atividades de motorista e de cobrador de ônibus.' },
@@ -85,7 +85,7 @@ export function registroJurisprudencia(d, dados, { numero = '', prev, tipo = 'la
 export function referencias(dados, { prev, judicial = true } = {}) {
   const x = contexto(dados);
   const fis = (re) => dados.medicoes.some((m) => re.test(m.data.agente || ''));
-  const quimico = fis(/qu[ií]m/i) || /qu[ií]m|poeira|s[ií]lica|solvente|hidrocarb|óleo|oleo/i.test(dados.c.agentesAlegados || '');
+  const quimico = fis(/qu[ií]m/i) || (dados.agentes || []).some((a) => (a.data.tipo || 'Químico') === 'Químico') || /qu[ií]m|poeira|s[ií]lica|solvente|hidrocarb|óleo|oleo/i.test(dados.c.agentesAlegados || '');
   const vmb = fis(/mãos|maos|VMB/i);
   const r = [];
   if (judicial) r.push('BRASIL. Lei nº 13.105, de 16 de março de 2015. Código de Processo Civil. Brasília, DF: Presidência da República, 2015.');
@@ -130,8 +130,17 @@ export function referencias(dados, { prev, judicial = true } = {}) {
   }
   if (quimico) {
     if (/poeira|s[ií]lica|particulad|fumos? met|asbesto|amianto|carv[ãa]o/i.test(`${(dados.agentes || []).length ? dados.agentes.map((a) => a.data.nome).join(' ') : dados.c.agentesAlegados || ''} ${dados.medicoes.map((m) => `${m.data.descricao || ''} ${m.data.metodo || ''}`).join(' ')}`)) r.push('FUNDACENTRO. NHO 08: coleta de material particulado sólido suspenso no ar de ambientes de trabalho. São Paulo: FUNDACENTRO, 2009.');
-    r.push('{{en:AMERICAN CONFERENCE OF GOVERNMENTAL INDUSTRIAL HYGIENISTS}} (ACGIH). {{en:TLVs and BEIs: threshold limit values for chemical substances and physical agents}}. Cincinnati: ACGIH, edição vigente. (Referência técnica complementar; NR-9, item 9.6.1.1.)');
+    // ACGIH: só no trabalhista (NR-9, item 9.6.1.1), com a edição do banco de químicos do signatário
+    if (!prev) {
+      const eds = (dados.quimicos || []).map((q) => String(q.data.acgihEdicao || '').trim()).filter(Boolean);
+      const ed = eds.sort((a, b) => b.localeCompare(a))[0] || '';
+      const ano = (ed.match(/\b(19|20)\d{2}\b/) || [''])[0];
+      r.push(`{{en:AMERICAN CONFERENCE OF GOVERNMENTAL INDUSTRIAL HYGIENISTS}} (ACGIH). {{en:TLVs and BEIs: threshold limit values for chemical substances and physical agents}}. Cincinnati: ACGIH, ${ano || '[[ano da edição]]'}. (Referência técnica complementar; NR-9, item 9.6.1.1.)`);
+    }
+    if (prev) r.push('BRASIL. Portaria Interministerial MTE/MS/MPS nº 9, de 7 de outubro de 2014. Publica a Lista Nacional de Agentes Cancerígenos para Humanos (LINACH). Diário Oficial da União, Brasília, DF, 8 out. 2014.');
+    if ((dados.produtos || []).length) r.push('ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. ABNT NBR 14725: produtos químicos – informações sobre segurança, saúde e meio ambiente. Rio de Janeiro: ABNT, 2023.');
   }
+  if (x.eletricidade) r.push('BRASIL. Ministério do Trabalho. Norma Regulamentadora nº 10 (NR-10): Segurança em Instalações e Serviços em Eletricidade. Brasília, DF, redação vigente em cada período.');
   // ABNT: ordem alfabética por autor; do mesmo autor, ordem cronológica (ordem de inserção)
   const autor = (t) => t.split('.')[0];
   const ano = (t) => Number((t.match(/\b(19|20)\d{2}\b/) || ['9999'])[0]);

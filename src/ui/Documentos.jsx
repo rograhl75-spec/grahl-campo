@@ -362,7 +362,23 @@ function ItemPendencia({ it, responder }) {
       {it.tipo === 'escolha' && (
         <div class="linha-botoes">
           {it.opcoes.map((o) => <button type="button" class="mini" onClick={() => responder(it.rec, it.campo, o.valor)}>Usar {o.rotulo}</button>)}
-          {!it.opcoes.length && <small class="dica">Sem sugestão no banco.</small>}
+          {!it.opcoes.length && !it.livre && <small class="dica">Sem sugestão no banco.</small>}
+        </div>
+      )}
+      {it.tipo === 'escolha' && it.livre && (
+        <div class="com-botao">
+          <label class="campo"><span class="rotulo">{it.rotuloLivre || 'Outro'}</span><input value={txt} onInput={(e) => setTxt(e.currentTarget.value)} onKeyDown={(e) => e.key === 'Enter' && salvarTxt()} /></label>
+          <button type="button" class="mini" disabled={!String(txt).trim()} onClick={salvarTxt}>Salvar</button>
+        </div>
+      )}
+      {it.tipo === 'aviso' && (it.acoes || []).length > 0 && (
+        <div class="linha-botoes">
+          {it.acoes.map((a) => <button type="button" class="mini" onClick={() => responder(it.rec, a.campo, a.valor)}>{a.rotulo}</button>)}
+        </div>
+      )}
+      {it.ciente && (
+        <div class="linha-botoes">
+          <button type="button" class="mini sec" onClick={() => responder(it.rec, it.ciente.campo, 'Sim')}>Está correto – manter</button>
         </div>
       )}
       {(it.tipo === 'confirmar' || it.tipo === 'texto') && (

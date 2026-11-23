@@ -261,7 +261,8 @@ export class Doc {
       });
       if (cells.length === 1) cells.push(`<w:tc><w:tcPr><w:tcW w:w="${meia}" w:type="dxa"/>${bordas('all')}</w:tcPr><w:p/></w:tc>`);
       this.add(`<w:tbl><w:tblPr><w:tblW w:w="${meia * 2}" w:type="dxa"/><w:tblLayout w:type="fixed"/><w:tblCellMar><w:top w:w="60" w:type="dxa"/><w:left w:w="60" w:type="dxa"/><w:right w:w="60" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid><w:gridCol w:w="${meia}"/><w:gridCol w:w="${meia}"/></w:tblGrid><w:tr><w:trPr><w:cantSplit/></w:trPr>${cells.join('')}</w:tr></w:tbl>`);
-      this.add(p([run('Fonte: registro fotográfico do autor.', { size: 8, color: CINZA })], { align: 'left', before: 40, after: 160, line: 240 }));
+      const fontes = [...new Set(par.map((f) => f.fonte || 'Fonte: registro fotográfico do signatário.'))];
+      this.add(p([run(fontes.length === 1 ? fontes[0] : `Fonte: ${fontes.map((x) => x.replace(/^Fonte:\s*|\.$/g, '')).join('; ')}.`, { size: 8, color: CINZA })], { align: 'left', before: 40, after: 160, line: 240 }));
     }
     return this;
   }

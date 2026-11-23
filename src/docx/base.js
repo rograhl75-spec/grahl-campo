@@ -59,10 +59,39 @@ export function limpaRefsPdf(t) {
     .replace(/\(\s*[,;–-]\s*/g, '(').replace(/\s*[,;]\s*\)/g, ')').replace(/\(\s*\)/g, '')
     .replace(/[ \t]+([,;.)])/g, '$1').replace(/([,;])\s*([,;])/g, '$1').replace(/[ \t]{2,}/g, ' ').trim();
 }
+// Texto pronto para o laudo: tira as anotações de trabalho que vêm da entrevista ou do pré-relatório
+// (minutagem da gravação, "transcrição …", "transcrito como …", "(ver …)", "~" de aproximação, aspas simples)
+// e transforma a nota entre colchetes simples ("[data a confirmar]") em pendência marcada ([[…]]).
+// Com docsEmpresa = "Somente referência", tira também as citações do PGR, LTCAT, PCMSO… da empresa.
+const SIGLAS_DOC = '(?:PGR|PPRA|PCMSO|LTCAT|PCMAT|AET)';
+const RE_PAR_DOC = new RegExp(`\\s*\\([^()]*\\b${SIGLAS_DOC}\\b[^()]*\\)`, 'g');
+const RE_CAB_DOC = new RegExp(`(^|[\\n:;.]\\s*|\\)\\s*)(?:(?:o|a)\\s+)?${SIGLAS_DOC}(?:\\s+\\d{4}(?:\\s*[–-]\\s*\\d{4})?)?(?:\\s+e\\s+(?:(?:o|a)\\s+)?${SIGLAS_DOC}(?:\\s+\\d{4}(?:\\s*[–-]\\s*\\d{4})?)?)*\\s*[–-]\\s+`, 'g');
+const RE_CONF_DOC = new RegExp(`,?\\s*(?:conforme|segundo|de acordo com|cf\\.)\\s+(?:(?:o|a)\\s+)?${SIGLAS_DOC}\\b[^,.;)\\n]*`, 'gi');
+export function limpaTextoLaudo(t, { semDocs = false, campo = '' } = {}) {
+  if (typeof t !== 'string' || !t.trim()) return t;
+  let s = t;
+  s = s.replace(/\s*\((?:\d{1,2}:)?\d{2}:\d{2}:\d{2}(?:\s*(?:[–-]|a)\s*(?:\d{1,2}:)?\d{2}:\d{2}:\d{2})?\)/g, '');
+  s = s.replace(/\s*\([^()]*\btranscri(?:ção|cao|ções)\b[^()]*\)/gi, '');
+  s = s.replace(/,?\s*transcrit[oa]s? como\s*['"‘“][^'"’”]{1,40}['"’”]/gi, '');
+  s = s.replace(/\s*\(ver\s+[^()]{1,60}\)/gi, '');
+  s = s.replace(/(^|[\s(])~\s*(?=\d)/g, '$1cerca de ');
+  // nota de trabalho entre colchetes simples → pendência marcada; reticências de citação ([...]) ficam
+  s = s.replace(/(^|[^\[])\[(?!\[)([^\[\]\n]{2,120})\](?!\])/g, (m, pre, dentro) => (/^\s*(\.\.\.|…)\s*$/.test(dentro) ? m
+    : /confirm|confer|verific|pendente|a definir|\?|data|preencher/i.test(dentro) ? `${pre}[[${dentro.trim()}]]` : m));
+  // aspas simples em volta de palavras ('fresa') → aspas duplas
+  s = s.replace(/(^|[\s(;:,])'([^'\n]{1,80}?)'(?=[\s).;:,!?]|$)/g, '$1"$2"');
+  if (semDocs) {
+    s = s.replace(RE_PAR_DOC, '').replace(RE_CONF_DOC, '').replace(RE_CAB_DOC, '$1');
+    if (campo === 'fonte' || campo === 'setor') s = s.split(/\s*[;,]\s*/).filter((x) => !new RegExp(`\\b${SIGLAS_DOC}\\b`).test(x)).join('; ');
+  }
+  return s.replace(/[ \t]+([,;.)])/g, '$1').replace(/\(\s*\)/g, '').replace(/[ \t]{2,}/g, ' ').replace(/^[ \t]+|[ \t]+$/gm, '').trim();
+}
+const NAO_LIMPA = new Set(['inicio', 'fim', 'cnpj', 'cas', 'cbo', 'expInicio', 'expFim', 'notas', 'vistoriaInicio', 'vistoriaFim', 'horaInicio', 'horaFim']);
 // também revisa o texto digitado: acentos, crase em horários e linhas de instrução ao app (src/ortografia.js)
-const limpaDados = (o) => {
+const limpaDados = (o, { semDocs = false } = {}) => {
   const out = {};
-  for (const [k, val] of Object.entries(o || {})) {
+  for (const [k, val0] of Object.entries(o || {})) {
+    const val = typeof val0 === 'string' && !NAO_LIMPA.has(k) && !/^ciente_/.test(k) ? limpaTextoLaudo(val0, { semDocs, campo: k }) : val0;
     const novo = revisarCampo(k, limpaRefsPdf(val));
     out[k] = novo;
     // o campo tinha só instruções ao app: fica vazio no texto, mas conta como respondido
@@ -99,7 +128,8 @@ export async function carregar(caseId) {
     }
   }
   // referências internas aos arquivos PDF (Parte N, p. X) e datas ISO no meio do texto não vão para o documento
-  const limpa = (lst) => lst.map((r) => ({ ...r, data: limpaDados(r.data) }));
+  const semDocs = /^Somente/.test(String(caso.data.docsEmpresa || ''));
+  const limpa = (lst) => lst.map((r) => ({ ...r, data: limpaDados(r.data, { semDocs }) }));
   const dados = { id: caseId, c: limpaDados(caso.data), quesitos: limpa(quesitos), periodos: limpa(herdarDoAnterior(pers)), documentos: limpa(documentos), epis, postos: limpa(psts), agentes: limpa(agentes.filter((a) => v(a.data.nome))).sort((a, b) => (a.data.ordem ?? a.createdAt ?? 0) - (b.data.ordem ?? b.createdAt ?? 0)), medicoes: meds, fotos, equipamentos, perfil, paradigmas, quimicos,
     produtos: produtos.filter((p) => v(p.data.nome)).sort((a, b) => (a.data.ordem ?? a.createdAt ?? 0) - (b.data.ordem ?? b.createdAt ?? 0)),
     regraCertMeses: Number((cfgPar && cfgPar.data.regraCertMeses) || 24) };
@@ -589,6 +619,11 @@ export function profissiografia(d, postos, dados, { numero, base } = {}) {
   return d;
 }
 
+// registro antigo (sem a origem gravada) e foto da câmera do app: valem; importada de arquivo sem EXIF: não
+const daFoto = (f, k) => (f.data[k] ? f.data[k] === 'foto' : !f.data.nomeArquivo && !f.data.origem);
+const FONTE_FOTOS = { 'Registro fotográfico do signatário': 'registro fotográfico do signatário', 'Fornecidas pelo contratante': 'fotos fornecidas pelo contratante',
+  'Fornecidas pelo segurado': 'fotos fornecidas pelo segurado', 'Fornecidas pela empresa': 'fotos fornecidas pela empresa' };
+export const fonteDasFotos = (c = {}, f = null) => `Fonte: ${FONTE_FOTOS[(f && f.data.autoria) || c.fotosAutoria] || 'registro fotográfico do signatário'}.`;
 export async function figurasDoCaso(dados, filtro = () => true) {
   const nome = nomePostoFn(dados.postos);
   const lista = [];
@@ -601,7 +636,9 @@ export async function figurasDoCaso(dados, filtro = () => true) {
     lista.push({
       bytes: red ? red.bytes : new Uint8Array(await b.blob.arrayBuffer()), w: (red && red.w) || f.data.largura || 4, h: (red && red.h) || f.data.altura || 3,
       legenda: f.data.legenda || (f.data.postoId ? nome(f.data.postoId) : 'Registro fotográfico'),
-      detalhe: [dataHoraBR(f.data.tiradaEm), f.data.gps && `GPS ${f.data.gps}`].filter(Boolean).join(' · '),
+      // data e GPS só quando gravados pela câmera na própria foto (não a hora e o lugar da importação)
+      detalhe: [daFoto(f, 'tiradaEmFonte') && dataHoraBR(f.data.tiradaEm), daFoto(f, 'gpsFonte') && f.data.gps && `GPS ${f.data.gps}`].filter(Boolean).join(' · '),
+      fonte: fonteDasFotos(dados.c, f),
     });
   }
   return { lista, faltando };

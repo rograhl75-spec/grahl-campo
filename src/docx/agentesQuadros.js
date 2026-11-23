@@ -71,12 +71,12 @@ const RE_CITA = /\s*\(([^()]*\b(?:FISPQ|FDS|ficha t[ée]cnica|ficha|Literatura|P
 export function separarCitacoes(t, refs) {
   return v(t).replace(RE_CITA, (m, ref) => { refs.add(ref.replace(/\s+/g, ' ').trim()); return ''; }).replace(/\s+([.;,])/g, '$1').trim();
 }
-function linhaQuimico(nome, x = {}, q = null, refs = null) {
+function linhaQuimico(nome, x = {}, q = null, refs = null, fdsEfeitos = '') {
   const b = q ? q.data : {};
   const cas = casValido(x.cas) || casValido(b.cas);
   const vias = (v(x.vias) || viasEmPortugues(b.vias)).replace(/^\p{Lu}(?=\p{Ll})/u, (c) => c.toLowerCase()).replace(/\.$/, '');
   const orgaos = orgaosEmPortugues(b.orgaosAlvo);
-  const efeitos = refs ? separarCitacoes(v(x.efeitos), refs) || efeitosDoBanco(q) : v(x.efeitos) || efeitosDoBanco(q);
+  const efeitos = refs ? separarCitacoes(v(x.efeitos), refs) || efeitosDoBanco(q) || separarCitacoes(fdsEfeitos, refs) : v(x.efeitos) || efeitosDoBanco(q) || fdsEfeitos;
   const lim = [
     v(b.nr15Mgm3) || v(b.nr15Ppm) ? `NR-15, Anexo 11: ${[v(b.nr15Ppm) && `${b.nr15Ppm} ppm`, v(b.nr15Mgm3) && `${b.nr15Mgm3} mg/m³`].filter(Boolean).join(' – ')}${b.nr15Teto === 'Sim' ? ' (valor teto)' : ''}${b.nr15Grau ? `, grau ${b.nr15Grau}` : ''}` : '',
     !/^Nenhum/i.test(v(b.nr15Anexos)) && /Anexo 13(?!-)/.test(v(b.nr15Anexos)) ? 'NR-15, Anexo 13' : '',
@@ -92,7 +92,7 @@ function linhaQuimico(nome, x = {}, q = null, refs = null) {
 export function quadroCaracteristicasQuimicos(d, itens) {
   if (!itens.length) return false;
   const refs = new Set();
-  const linhas = itens.map((i) => linhaQuimico(i.nome, i.dados, i.banco, refs));
+  const linhas = itens.map((i) => linhaQuimico(i.nome, i.dados, i.banco, refs, i.fds || ''));
   const docs = [...refs].map((r) => r.replace(/^./, (c) => c.toUpperCase()));
   d.quadro('Características dos agentes químicos', [['Agente / CAS', 'Vias de absorção e órgãos-alvo', 'Efeitos à saúde', 'Limites e classificação'], ...linhas],
   { larguras: [0.22, 0.26, 0.3, 0.22], tam: 8.5, alinhar: 'left',
@@ -134,14 +134,43 @@ export const agentesDoArt68 = (ags) => ags.filter((a) => [a.data.resAte97, a.dat
 // Perigos que pedem medidas de controle mesmo sem caracterização previdenciária: sensibilizante, cancerígeno e
 // tóxico à reprodução – pelo texto dos efeitos do agente, pelo banco de químicos (LINACH, IARC) e pelas frases H
 // da FDS dos produtos que contêm o agente
+// siglas usuais → nome do componente na FDS
+const SIGLAS = { mdi: ['difenilmetano'], pmdi: ['difenilmetano'], tdi: ['diisocianato de tolueno', 'tolueno diisocianato', 'toluileno'], dop: ['etilhexil', 'dioctilftalato'], dehp: ['etilhexil'], mek: ['metiletilcetona', 'butanona'], glp: ['propano', 'butano'] };
+// produtos (FDS) que contêm o agente: pelo CAS (do campo ou escrito no nome), pelo nome principal, pela sigla ou pelo
+// nome comercial citado no nome do agente ("PMDI Voracor CE 164")
+export function produtosDoAgente(a, dados = {}) {
+  const x = a.data || a;
+  const cass = [casValido(x.cas), casValido(x.nome)].join(', ').split(/,\s*/).filter(Boolean);
+  const nomeTodo = semAc(x.nome);
+  const nome = nomeTodo.replace(/\s+[(–-].*$/, '').trim();
+  const palavras = (t) => ` ${t.replace(/[^a-z0-9]+/g, ' ').trim()} `;
+  const termos = [nome.length >= 4 ? nome : '', ...(SIGLAS[nome.replace(/[^a-z]/g, '')] || [])].filter(Boolean).map((t) => palavras(t).trim());
+  return (dados.produtos || []).filter((p) => {
+    const d = p.data;
+    const c = palavras(semAc(`${d.nome || ''} ${d.uso || ''} ${d.s3Componentes || ''}`));
+    const comercial = palavras(semAc(d.nome || '')).trim();
+    return cass.some((k) => c.includes(k.replace(/[^0-9]+/g, ' ').trim()))
+      || termos.some((t) => c.includes(` ${t} `))
+      || (comercial.length >= 6 && palavras(nomeTodo).includes(` ${comercial.split(' ').slice(0, 3).join(' ')} `));
+  });
+}
+// efeitos à saúde pela seção 2 da FDS (frases de perigo; na falta, a classificação), quando o agente não tem texto próprio
+export function efeitosDaFds(a, dados = {}) {
+  for (const p of produtosDoAgente(a, dados)) {
+    const d = p.data;
+    const frases = v(d.s2FrasesH) || v(d.s2Classificacao);
+    if (!frases || /^n[ãa]o classificad/i.test(frases)) continue;
+    const lst = frases.split(/\n+|;\s*/).map((t) => t.replace(/^H\d{3}\w?\s*[–-]\s*/, '').replace(/\.$/, '').trim()).filter(Boolean);
+    return `${lst.map((t, i) => (i ? t.replace(/^\p{Lu}(?=\p{Ll})/u, (c) => c.toLowerCase()) : t)).join('; ').replace(/^./, (c) => c.toUpperCase())} (FDS ${v(d.nome)}${v(d.revisao) ? `, ${v(d.revisao)}` : ''}, seção 2).`;
+  }
+  return '';
+}
 export function perigosDoAgente(a, dados = {}) {
   const x = a.data || a;
   if (x.tipo && x.tipo !== 'Químico') return [];
   const q = bancoDoAgente(a, dados.quimicos || []);
   const b = q ? q.data : {};
-  const cas = casValido(x.cas); const nome = semAc(x.nome).replace(/\s*\(.*$/, '').trim();
-  const fds = (dados.produtos || []).filter((p) => { const c = semAc(`${p.data.nome || ''}\n${p.data.s3Componentes || ''}`); return (cas && c.includes(cas)) || (nome.length >= 4 && c.includes(nome)); })
-    .map((p) => `${p.data.s2FrasesH || ''} ${p.data.s2Classificacao || ''}`).join(' ');
+  const fds = produtosDoAgente(a, dados).map((p) => `${p.data.s2FrasesH || ''} ${p.data.s2Classificacao || ''}`).join(' ');
   // trechos negados ("sem sensibilização", "não classificado", "nenhum efeito na fertilidade") não contam
   const t = semAc(`${x.efeitos || ''} ${x.limites || ''} ${fds}`).replace(/\b(sem|nao|nenhum|nenhuma|negativ\w*)\b[^.;,()]*/g, ' ');
   const out = [];

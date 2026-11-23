@@ -12,7 +12,7 @@ import { sugerirParaVinculo } from './paradigmas.js';
 import { fmtHoras, horasDia, horasForaTexto } from './calc.js';
 import { contextoLegal, ehParecerTecnico, EMITENTE_PPP, CATEGORIAS_SEGURADO, RESULTADO_AGENTE, MODALIDADE_AVALIACAO, AUTORIA_FOTOS } from './schema.js';
 import { categoriaDoVinculo } from './enquadramento.js';
-import { agentesDoArt68, bancoDoAgente, viasPadrao } from './docx/agentesQuadros.js';
+import { agentesDoArt68, bancoDoAgente, viasPadrao, efeitosDaFds } from './docx/agentesQuadros.js';
 import { carregarCbo, sugerirCbo, codigoCbo } from './cbo.js';
 import { coerenciaDoLaudo, notasNoTexto } from './coerencia.js';
 import { propostasDasRegras } from './regras.js';
@@ -174,14 +174,16 @@ export async function pendenciasDoCaso(caseId) {
       frequencia: 'Quantas vezes e por quanto tempo, e se é habitual e permanente. Ex.: "Habitual e permanente, em todos os atendimentos da jornada."',
     };
     // agente repetido (o mesmo agente com outro detalhe no nome): sai duas vezes no laudo e no PPP
+    // nome principal: antes do parêntese ou do travessão ("MDI" × "MDI – diisocianato de difenilmetano")
+    const principal = (n) => String(n || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+[(–-].*$/, '').replace(/[^a-z0-9]+/g, ' ').trim();
     const chaveAg = (n) => String(n || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s*\(.*$/, '').replace(/[^a-z0-9]+/g, ' ').trim();
     dados.agentes.forEach((a, i) => {
       const k = chaveAg(a.data.nome);
-      const outro = dados.agentes.find((b, j) => j !== i && (() => { const kb = chaveAg(b.data.nome); return kb === k ? j < i : (k.length >= 6 && kb.startsWith(k) && kb !== k); })());
+      const outro = dados.agentes.find((b, j) => j !== i && (() => { const kb = chaveAg(b.data.nome); return kb === k ? j < i : (k.length >= 6 && kb.startsWith(k) && kb !== k) || (k.length >= 3 && principal(a.data.nome) === principal(b.data.nome) && k.length < kb.length); })());
       if (!outro) return;
       itens.push({ id: `agdup-${a.id}`, grupo: g, tipo: 'aviso', rec: a.id, respondido: false, excluir: `Excluir "${a.data.nome}"`,
         titulo: `Agente repetido: "${a.data.nome}" e "${outro.data.nome}"`,
-        explicacao: 'O mesmo agente cadastrado duas vezes sai duas vezes no laudo e no PPP. Exclua o que ficou desatualizado (este, com o nome mais curto, costuma ser o antigo).' });
+        explicacao: 'O mesmo agente cadastrado duas vezes sai duas vezes no laudo e no PPP. Abra os dois na etapa 2 e exclua o que tem menos informação (o de nome curto costuma ter vindo de uma importação).' });
     });
     const semDescricao = agentesDoArt68(dados.agentes).filter((a) => ['circunstancias', 'fonte', 'vias', 'frequencia'].some((k) => !String(a.data[k] || '').trim() && !(k === 'vias' && viasPadrao(a))));
     if (semDescricao.length && profissaoDoCaso(c, dados.periodos)) {
@@ -207,7 +209,7 @@ export async function pendenciasDoCaso(caseId) {
             titulo: `${a.data.nome} – ${rot}`, explicacao: 'Campo 15 do PPP: "Sim" só se as fichas comprovarem CA, troca, treinamento e higienização (art. 291 da IN 128/2022).' });
         }
       }
-      if (a.data.tipo === 'Químico' && !String(a.data.efeitos || '').trim() && !efeitosDoBanco(bancoDoAgente(a, dados.quimicos)) && !profissaoDoCaso(c, dados.periodos)) {
+      if (a.data.tipo === 'Químico' && !String(a.data.efeitos || '').trim() && !efeitosDoBanco(bancoDoAgente(a, dados.quimicos)) && !efeitosDaFds(a, dados) && !profissaoDoCaso(c, dados.periodos)) {
         txt(`efeitos-${a.id}`, a.id, 'efeitos', `${a.data.nome} – efeitos à saúde`, 'Vai para o quadro de características dos químicos. Ex.: "Corrosivo: queimaduras de pele, olhos e mucosas; irritação das vias respiratórias."');
       }
     }

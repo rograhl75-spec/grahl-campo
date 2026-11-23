@@ -11,6 +11,7 @@ import { exposicaoNoVinculo, codigosDoAgente, tecnicaNoPeriodo, MARCOS_TECNICA, 
 import { empresaLimpa } from '../nomes.js';
 import { anexoQuantitativo } from './agentesQuadros.js';
 import { codigoCbo } from '../cbo.js';
+import { obsPppIntegridade } from '../integridade.js';
 
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 const hoje = () => new Date().toISOString().slice(0, 10);
@@ -188,6 +189,7 @@ export async function ppp(caseId, dadosProntos) {
   }
   if (fora.length) obs.push(`Não constam deste PPP, por não serem de responsabilidade do emitente, ${fora.length > 1 ? 'os períodos' : 'o período'} ${fora.map(({ r }) => `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`).join(', ').replace(/, ([^,]*)$/, ' e $1')}, ${fora.length > 1 ? 'demonstrados' : 'demonstrado'} pelo LTCAT do signatário.`);
   for (const { r, corte } of cortados) obs.push(`A partir de ${dataBR(dia(corte, 1))}, as informações do período ${dataBR(r.data.inicio)} a ${r.data.fim && !r.data.fimNaEmissao ? dataBR(r.data.fim) : 'atual'} constam do PPP eletrônico (eSocial, evento S-2240), de responsabilidade do emitente.`);
+  obs.push(...obsPppIntegridade({ ...dados, periodos: dentro.map(({ r }) => r) }));
   if (v(c.pppObs)) obs.push(c.pppObs);
   // a mesma observação em vários vínculos (ex.: afastamento repetido) sai uma vez só
   const obsU = [...new Set(obs)];

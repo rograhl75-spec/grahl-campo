@@ -97,3 +97,22 @@ describe('perigos do agente', () => {
     expect(perigosDoAgente({ data: { nome: 'DOP', tipo: 'Químico', efeitos: 'H360 – pode prejudicar a fertilidade ou o feto.' } })).toEqual(['tóxico à reprodução']);
   });
 });
+
+describe('efeitos pela FDS e agente repetido pelo nome principal', () => {
+  it('"MDI" usa a seção 2 da FDS do PMDI e é apontado como repetido', async () => {
+    await caso('s3', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'], pppEmitente: 'Empresa (empregador)' });
+    await filho('s3v', 'periodo', 's3', { empresa: 'Empresa Beta', inicio: '2000-01-01', fim: '2010-12-31', cargo: 'Técnico' });
+    await filho('s3a', 'agenteAvaliado', 's3', { nome: 'MDI – diisocianato de difenilmetano (PMDI Produto X: CAS 9016-87-9)', tipo: 'Químico', efeitos: 'Sensibilização respiratória.' });
+    await filho('s3b', 'agenteAvaliado', 's3', { nome: 'MDI', tipo: 'Químico' });
+    await filho('s3p', 'fds', 's3', { nome: 'Produto X Isocianato', s3Componentes: 'Diisocianato de difenilmetano, isômeros e homólogos; 9016-87-9; 100%',
+      s2FrasesH: 'Nocivo se inalado\nQuando inalado pode provocar sintomas alérgicos, de asma ou dificuldades respiratórias' });
+    const { efeitosDaFds } = await import('../src/docx/agentesQuadros.js');
+    const { carregar } = await import('../src/docx/base.js');
+    const dados = await carregar('s3');
+    const mdi = dados.agentes.find((a) => a.data.nome === 'MDI');
+    expect(efeitosDaFds(mdi, dados)).toMatch(/^Nocivo se inalado; quando inalado pode provocar sintomas alérgicos.*\(FDS Produto X Isocianato, seção 2\)\.$/);
+    const ids = (await pendenciasDoCaso('s3')).map((x) => x.id);
+    expect(ids).toContain('agdup-s3b');
+    expect(ids).not.toContain('efeitos-s3b');
+  });
+});

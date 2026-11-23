@@ -24,7 +24,7 @@ import { codigosDoAgente, agenteNoVinculo, categoriaDoVinculo, lerAfastamentos }
 import { ppp, emitenteDoPpp } from './ppp.js';
 import { fichasFds } from './fdsQuadros.js';
 import { secaoIntegridade, condicoesIntegridade, TITULO_INTEGRIDADE } from '../integridade.js';
-import { quadroCaracteristicasQuimicos, quadroArt68, bancoDoAgente, anexoQuantitativo, agentesDoArt68 } from './agentesQuadros.js';
+import { quadroCaracteristicasQuimicos, quadroArt68, bancoDoAgente, anexoQuantitativo, agentesDoArt68, efeitosDaFds } from './agentesQuadros.js';
 import { empresaLimpa } from '../nomes.js';
 
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
@@ -271,7 +271,7 @@ function agentesAvaliados(d, dados, sub, n) {
     })], { larguras: larg, tam: 9, alinhar: 'left',
       fonte: 'Elaborado pelo signatário com base nos Decretos 53.831/1964, 83.080/1979, 2.172/1997 e 3.048/1999 e na IN PRES/INSS nº 128/2022.' });
     if (tipo === 'Químico') {
-      quadroCaracteristicasQuimicos(d, lst.map((a) => ({ nome: a.data.nome, dados: a.data, banco: bancoDoAgente(a, dados.quimicos) })));
+      quadroCaracteristicasQuimicos(d, lst.map((a) => ({ nome: a.data.nome, dados: a.data, banco: bancoDoAgente(a, dados.quimicos), fds: efeitosDaFds(a, dados) })));
       fichasFds(d, dados);
       const quant = lst.filter((a) => anexoQuantitativo(a, dados.quimicos) && a.data.resDesde97 === 'Não caracteriza')
         .map((a) => a.data.nome.replace(/\s*\(.*$/, '').replace(/^\p{Lu}(?=\p{Ll})/u, (c) => c.toLowerCase()));

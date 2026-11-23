@@ -1,0 +1,76 @@
+import 'fake-indexeddb/auto';
+import { describe, it, expect, beforeAll } from 'vitest';
+import { readFile, writeFile } from 'node:fs/promises';
+import JSZip from 'jszip';
+import { db } from '../src/db.js';
+import { PERFIL_ID } from '../src/docx/base.js';
+import { ltcatPpp } from '../src/docx/modelos.js';
+import { pendenciasDoCaso } from '../src/pendencias.js';
+import { fundamentacaoPelasRegras } from '../src/regras.js';
+
+// Dados sintéticos: técnico fictício de máquinas de espuma, um vínculo só desde 1989
+async function texto(r) {
+  const zip = await JSZip.loadAsync(await r.blob.arrayBuffer());
+  return (await zip.file('word/document.xml').async('string')).replace(/<w:tab\/>/g, ' ').replace(/<\/w:p>/g, '\n').replace(/<[^>]+>/g, '').replace(/[ \t]+/g, ' ');
+}
+const caso = (id, data) => db.records.put({ id, kind: 'caso', caseId: null, ts: {}, data });
+const filho = (id, kind, caseId, data) => db.records.put({ id, kind, caseId, ts: {}, createdAt: Date.now(), data });
+const COD = '1.2.11 do Decreto 53.831/64; 1.2.10 do Anexo I do Decreto 83.080/79';
+const agente = (id, nome, extra = {}) => {
+  const r = { resAte97: 'Caracteriza', codAte97: COD, resDesde97: 'Não enquadrável', codDesde97: '', ...extra };
+  return filho(id, 'agenteAvaliado', 's1', { nome, tipo: 'Químico', ...r, fundamentacao: extra.fundamentacao ?? fundamentacaoPelasRegras({ data: { nome } }, r) });
+};
+
+beforeAll(async () => {
+  globalThis.fetch = async (url) => {
+    const buf = await readFile(new URL(`../public/modelos/${String(url).split('/').pop()}`, import.meta.url));
+    return { ok: true, arrayBuffer: async () => buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) };
+  };
+  await db.records.put({ id: PERFIL_ID, kind: 'perfil', caseId: null, data: { nome: 'Perito Teste', cidade: 'Cidade A' }, ts: {} });
+  await caso('s1', { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT'], autorNome: 'Segurado Sintético', pppEmitente: 'Empresa (empregador)', pppEmitenteNome: 'Empresa Alfa Ltda', vistoriaData: '2026-10-01' });
+  await filho('s1v', 'periodo', 's1', { empresa: 'Empresa Alfa Ltda', cnpj: '00.000.000/0001-00', inicio: '1989-05-01', fim: '', cargo: 'Técnico de assistência', setor: 'Manutenção',
+    local: 'Sede na Rua A, 1, Cidade B; filial na Rua B, 2; e fábricas de clientes em várias cidades', fonte: 'CNIS; contrato social; relatórios de entrega técnica', categoriaSegurado: 'Contribuinte individual',
+    atividades: 'Montagem e assistência técnica de máquinas dosadoras de espuma.' });
+  await agente('a1', 'Óleo mineral', { resDesde97: 'Caracteriza', codDesde97: '1.0.7, b, do Anexo IV' });
+  await agente('a2', 'Diisocianato de tolueno (TDI)', { resDesde97: 'Não caracteriza', codDesde97: '1.0.19 do Anexo IV', efeitos: 'Sensibilização respiratória (asma ocupacional) (FISPQ do fornecedor, seção 11).' });
+  await agente('a3', 'n-Pentano', {});
+  await agente('a4', 'Ciclopentano', {});
+  await agente('a5', 'Fluortriclorometano (R11)', {});
+  await agente('a6', 'Di(2-etilhexil)ftalato – DOP', { resAte97: 'Não enquadrável', codAte97: '', efeitos: 'Toxicidade à reprodução categoria 1B (H360).' });
+  await filho('a7', 'agenteAvaliado', 's1', { nome: 'Eletricidade (tensão acima de 250 V)', tipo: 'Físico', resAte97: 'Caracteriza', codAte97: '1.1.8 do Decreto 53.831/64', resDesde97: 'Não enquadrável',
+    fundamentacao: 'Acesso eventual à cabine para leitura do medidor.' });
+});
+
+describe('síntese sem linhas repetidas e integridade física sugerida', () => {
+  it('LTCAT e PPP', async () => {
+    const r = await ltcatPpp('s1');
+    const t = await texto(r);
+    const p = await texto(r.extras[0]);
+    if (process.env.SALVAR) { await writeFile(`${process.env.SALVAR}/ltcat.docx`, Buffer.from(await r.blob.arrayBuffer())); await writeFile(`${process.env.SALVAR}/ppp.docx`, Buffer.from(await r.extras[0].blob.arrayBuffer())); }
+    // síntese: 1989–1997 numa linha e 1997–emissão noutra (os marcos de 1995 e 2019 não mudam nada)
+    expect(t).toMatch(/01\/05\/1989 a\s*\n?\s*05\/03\/1997/);
+    expect(t).not.toMatch(/01\/05\/1989 a\s*\n?\s*28\/04\/1995/);
+    expect(t).toContain('inclui o período posterior à Emenda Constitucional nº 103/2019');
+    expect(t).not.toMatch(/Empresa Alfa Ltda \(01\/05\/1989/);
+    // 5.3: frases agrupadas, sem um parágrafo por agente
+    expect(t).toMatch(/os agentes .*n-pentano.*constam do cód\. 1\.2\.11/i);
+    expect(t).toContain("di(2-etilhexil)ftalato – DOP não consta");
+    expect((t.match(/não consta do Anexo IV dos Decretos 2\.172\/97/g) || []).length).toBe(0);
+    // quadro 1: local e documentos fora do quadro
+    expect(t).toContain('Local de trabalho:');
+    // quadro de características: a citação da FISPQ vai para a fonte
+    expect(t).toContain('nos documentos: FISPQ do fornecedor, seção 11');
+    // integridade física: aviso amarelo no item 5 e pendência
+    expect(t).toContain("n-Pentano (inflamáveis); Ciclopentano (inflamáveis); Eletricidade)");
+    const pend = await pendenciasDoCaso('s1');
+    const ids = pend.map((x) => x.id);
+    expect(ids).toContain('integridade-a7');
+    expect(ids).toContain('integridade-a3');
+    expect(ids).not.toContain('integridade-a1');
+    // recomendações: TDI (sensibilizante) e DOP (reprodução), ainda que sem caracterização
+    expect(t).toMatch(/Agente presente – sensibilizante/);
+    expect(t).toMatch(/Agente presente – tóxico à reprodução/);
+    // PPP: técnica abreviada, CA sem número quando não há fichas de EPI
+    expect(p).toContain('Dec. 53.831/64');
+  });
+});

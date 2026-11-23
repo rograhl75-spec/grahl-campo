@@ -65,12 +65,18 @@ export function bancoDoAgente(a, quimicos = []) {
 }
 
 // linhas do quadro de características
-function linhaQuimico(nome, x = {}, q = null) {
+// citações de documento dentro da célula ("(FISPQ Shell…, seção 2 e 11)", "(Literatura técnica – conferir…)"):
+// saem do texto e vão para a fonte do quadro, que fica com as referências numa frase só
+const RE_CITA = /\s*\(([^()]*\b(?:FISPQ|FDS|ficha t[ée]cnica|ficha|Literatura|PGR|PCMSO|LTCAT)\b[^()]*)\)/gi;
+export function separarCitacoes(t, refs) {
+  return v(t).replace(RE_CITA, (m, ref) => { refs.add(ref.replace(/\s+/g, ' ').trim()); return ''; }).replace(/\s+([.;,])/g, '$1').trim();
+}
+function linhaQuimico(nome, x = {}, q = null, refs = null) {
   const b = q ? q.data : {};
   const cas = casValido(x.cas) || casValido(b.cas);
   const vias = (v(x.vias) || viasEmPortugues(b.vias)).replace(/^\p{Lu}(?=\p{Ll})/u, (c) => c.toLowerCase()).replace(/\.$/, '');
   const orgaos = orgaosEmPortugues(b.orgaosAlvo);
-  const efeitos = v(x.efeitos) || efeitosDoBanco(q);
+  const efeitos = refs ? separarCitacoes(v(x.efeitos), refs) || efeitosDoBanco(q) : v(x.efeitos) || efeitosDoBanco(q);
   const lim = [
     v(b.nr15Mgm3) || v(b.nr15Ppm) ? `NR-15, Anexo 11: ${[v(b.nr15Ppm) && `${b.nr15Ppm} ppm`, v(b.nr15Mgm3) && `${b.nr15Mgm3} mg/m³`].filter(Boolean).join(' – ')}${b.nr15Teto === 'Sim' ? ' (valor teto)' : ''}${b.nr15Grau ? `, grau ${b.nr15Grau}` : ''}` : '',
     !/^Nenhum/i.test(v(b.nr15Anexos)) && /Anexo 13(?!-)/.test(v(b.nr15Anexos)) ? 'NR-15, Anexo 13' : '',
@@ -79,16 +85,18 @@ function linhaQuimico(nome, x = {}, q = null) {
     classificacaoDoGrupo(grupoHidrocarboneto(nome, x.cas), v(x.ip346)),
   ].filter(Boolean).join('; ');
   return [`${nome}${cas ? `\nCAS ${cas}` : ''}`, [vias && `Vias: ${vias}`, orgaos && `Órgãos-alvo: ${orgaos}`].filter(Boolean).join('\n') || '[[vias de absorção]]',
-    efeitos || '[[efeitos à saúde]]', v(x.limites) || lim || 'Sem limite de tolerância na NR-15'];
+    efeitos || '[[efeitos à saúde]]', (refs ? separarCitacoes(x.limites, refs) : v(x.limites)) || lim || 'Sem limite de tolerância na NR-15'];
 }
 
 // itens: [{ nome, dados (campos do agente avaliado ou da medição), banco }]
 export function quadroCaracteristicasQuimicos(d, itens) {
   if (!itens.length) return false;
-  d.quadro('Características dos agentes químicos', [['Agente / CAS', 'Vias de absorção e órgãos-alvo', 'Efeitos à saúde', 'Limites e classificação'],
-    ...itens.map((i) => linhaQuimico(i.nome, i.dados, i.banco))],
+  const refs = new Set();
+  const linhas = itens.map((i) => linhaQuimico(i.nome, i.dados, i.banco, refs));
+  const docs = [...refs].map((r) => r.replace(/^./, (c) => c.toUpperCase()));
+  d.quadro('Características dos agentes químicos', [['Agente / CAS', 'Vias de absorção e órgãos-alvo', 'Efeitos à saúde', 'Limites e classificação'], ...linhas],
   { larguras: [0.22, 0.26, 0.3, 0.22], tam: 8.5, alinhar: 'left',
-    fonte: 'Elaborado pelo signatário com base nas fichas com dados de segurança dos produtos, no banco de agentes químicos do signatário (NIOSH Pocket Guide, NR-15, LINACH e IARC). Características informadas independentemente da caracterização da exposição.' });
+    fonte: `Elaborado pelo signatário com base nas fichas com dados de segurança dos produtos, no banco de agentes químicos do signatário (NIOSH Pocket Guide, NR-15, LINACH e IARC)${docs.length ? ` e nos documentos: ${docs.join('; ')}` : ''}. Características informadas independentemente da caracterização da exposição.` });
   return true;
 }
 
@@ -122,3 +130,29 @@ export function anexoQuantitativo(a, quimicos = []) {
 
 // agentes do quadro do art. 68: os que caracterizam em alguma época ou ainda estão "a confirmar"
 export const agentesDoArt68 = (ags) => ags.filter((a) => [a.data.resAte97, a.data.resDesde97].some((r) => r === 'Caracteriza' || r === 'A confirmar' || !r) || a.data.resDesde2014 === 'Caracteriza');
+
+// Perigos que pedem medidas de controle mesmo sem caracterização previdenciária: sensibilizante, cancerígeno e
+// tóxico à reprodução – pelo texto dos efeitos do agente, pelo banco de químicos (LINACH, IARC) e pelas frases H
+// da FDS dos produtos que contêm o agente
+export function perigosDoAgente(a, dados = {}) {
+  const x = a.data || a;
+  if (x.tipo && x.tipo !== 'Químico') return [];
+  const q = bancoDoAgente(a, dados.quimicos || []);
+  const b = q ? q.data : {};
+  const cas = casValido(x.cas); const nome = semAc(x.nome).replace(/\s*\(.*$/, '').trim();
+  const fds = (dados.produtos || []).filter((p) => { const c = semAc(`${p.data.nome || ''}\n${p.data.s3Componentes || ''}`); return (cas && c.includes(cas)) || (nome.length >= 4 && c.includes(nome)); })
+    .map((p) => `${p.data.s2FrasesH || ''} ${p.data.s2Classificacao || ''}`).join(' ');
+  const t = semAc(`${x.efeitos || ''} ${x.limites || ''} ${fds}`);
+  const out = [];
+  if (/sensibiliza|asma ocupacional|h334|h317/.test(t)) out.push('sensibilizante');
+  if (/\bgrupo 1\b/.test(semAc(b.linach)) || /^(1|2a)\b/i.test(v(b.iarc).replace(/^grupo\s*/i, '')) || /h350|carcinog|cancerigen/.test(t)) out.push('cancerígeno');
+  if (/h360|toxicidade a reproducao|toxico a reproducao|fertilidade/.test(t)) out.push('tóxico à reprodução');
+  return out;
+}
+export function medidasDoPerigo(perigos) {
+  const m = [];
+  if (perigos.includes('sensibilizante')) m.push('sistema fechado na transferência, purga e limpeza; ventilação local exaustora; proteção respiratória com filtro para vapores orgânicos e particulados nas operações com aerossol; luvas e óculos compatíveis com a FDS; vigilância médica respiratória e dermatológica (NR-7)');
+  if (perigos.includes('cancerígeno')) m.push('substituição por produto menos perigoso; sistema fechado; exposição mínima e registro dos expostos');
+  if (perigos.includes('tóxico à reprodução')) m.push('substituição do produto; luvas compatíveis e higiene das mãos; orientação sobre o risco reprodutivo e afastamento de gestantes da exposição');
+  return m.length ? `${m.join('; ').replace(/^./, (c) => c.toUpperCase())}.` : '';
+}

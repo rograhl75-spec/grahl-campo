@@ -139,18 +139,19 @@ export async function ppp(caseId, dadosProntos) {
     ...exps.flatMap((e) => juntarIguais(partirNosMarcos(e.ini, e.fim, (e.agente.data.tipo || 'Químico') === 'Químico' ? MARCOS_TECNICA : []).map(([ini, fim]) => {
       const x = e.agente.data; void codigosDoAgente;
       const anexo = anexoQuantitativo(e.agente, dados.quimicos) || 'Anexo 11';
-      const tec = tecnicaNoPeriodo(e.agente, fim, { quantitativoSemMedicao: e.naoQuantificado ? anexo : '' }) || '[[técnica]]';
+      // "Decreto 53.831/64" → "Dec. 53.831/64": a coluna é estreita e o texto se repete em todas as linhas
+      const tec = (tecnicaNoPeriodo(e.agente, fim, { quantitativoSemMedicao: e.naoQuantificado ? anexo : '' }) || '[[técnica]]').replace(/\bDecretos?\s+(?=n?º?\s*\d)/g, 'Dec. ');
       const intens = (/^n[ãa]o se aplica$|^qualitativ/i.test(v(x.intensidade)) ? '' : v(x.intensidade)) || (e.naoQuantificado || /^Qualitativa/.test(tec) ? 'Não quantificada' : '[[intensidade]]');
       const epiAplica = fim > '1998-12-02';
       return [`${dataBR(ini)} a ${fimTxt(e.r, fim)}`, (x.tipo || 'Q')[0], nomeFator(x.nome), intens, tec,
         fim <= '1996-10-13' ? 'Não se aplica' : x.epcEficaz || (semEpi ? 'Não' : '[[S/N]]'),
-        epiAplica ? x.epiEficaz || (semEpi ? 'Não' : '[[S/N]]') : 'Não se aplica', epiAplica ? numeroCa(x.ca) : '—', ini, fim, e.r];
+        epiAplica ? x.epiEficaz || (semEpi ? 'Não' : '[[S/N]]') : 'Não se aplica', epiAplica && !semEpi ? numeroCa(x.ca) : '—', ini, fim, e.r];
     }))),
     ...linhasMed,
   ].sort((a, b) => isoIni(a[0]).localeCompare(isoIni(b[0])));
   d.quadro('15 – Exposição a fatores de riscos', [['Período', 'Tipo', 'Fator de risco', 'Intensidade', 'Técnica utilizada', 'EPC eficaz', 'EPI eficaz', 'CA EPI'],
     ...(linhasExp.length ? linhasExp : [['[[período]]', '', (dados.agentes || []).length ? 'Ausência de fator de risco nocivo' : '[[cadastre os agentes avaliados na etapa 2. Autos]]', '', '', '', '', '']])],
-  { larguras: [0.14, 0.07, 0.23, 0.13, 0.12, 0.09, 0.11, 0.11], tam: 8, alinhar: 'left', semNumero: true,
+  { larguras: [0.14, 0.07, 0.15, 0.13, 0.24, 0.08, 0.09, 0.1], tam: 8, alinhar: 'left', semNumero: true,
     fonte: `LTCAT do signatário, itens 5 e 6. Tipo: F – físico; Q – químico; B – biológico. "Não quantificada": avaliação qualitativa, sem medição da intensidade ou da concentração; técnica conforme o Manual de Aposentadoria Especial do INSS (2018), com as NHO da FUNDACENTRO a partir de 01/01/2004 para os agentes de avaliação quantitativa. EPC e EPI eficazes: não se aplicam até 13/10/1996 e até 02/12/1998, respectivamente (art. 285 da IN 128/2022).${exps.some((e) => !e.caracteriza) ? ' Agente de avaliação quantitativa (NR-15, Anexos 11 e 12) sem medição: consta como presente no ambiente e não caracteriza a exposição (itens 5 e 6 do LTCAT).' : ''}` });
   const comEpi = exps.some((e) => e.caracteriza && e.agente.data.epiEficaz === 'Sim');
   d.quadro('15.9 – Atendimento aos requisitos das NR-06 e NR-09 (EPI)', [['Requisito', 'S/N'],

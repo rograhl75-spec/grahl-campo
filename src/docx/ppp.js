@@ -29,9 +29,9 @@ const dia = (iso, n) => { const d = new Date(`${iso}T12:00:00`); d.setDate(d.get
 const isoData = (t) => { const x = v(t); if (/^\d{4}-\d{2}-\d{2}$/.test(x)) return x; const m = x.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : ''; };
 // marcos do preenchimento (art. 285 da IN 128/2022): EPC dispensado até 13/10/1996; EPI, até 02/12/1998
 const MARCOS_PPP = ['1996-10-13', '1998-12-02'];
-function partirNosMarcos(ini, fim, extra = []) {
+function partirNosMarcos(ini, fim, extra = [], marcosEpi = true) {
   const out = []; let a = ini;
-  for (const m of [...new Set([...MARCOS_PPP, ...extra])].sort()) if (m >= a && m < fim) { out.push([a, m]); a = dia(m, 1); }
+  for (const m of [...new Set([...(marcosEpi ? MARCOS_PPP : []), ...extra])].sort()) if (m >= a && m < fim) { out.push([a, m]); a = dia(m, 1); }
   out.push([a, fim]);
   return out;
 }
@@ -135,25 +135,34 @@ export async function ppp(caseId, dadosProntos) {
     .map((i) => [`${dataBR(s.ini)} a ${fimTxt(r, s.fim)}`, 'F', i.t.split(':')[0], i.t.replace(/^[^:]+:\s*/, '').replace(/\s[>≤].*$/, ''), /Ruído/.test(i.t) ? (s.fim <= '2003-11-18' ? 'NR-15, Anexo 1' : 'NHO-01') : 'NHO', '[[S/N]]', s.fim < '1998-12-03' ? 'Não se aplica' : '[[S/N]]', '—'])));
   // uma linha por janela de exposição, partida em 13/10/1996 (EPC) e 02/12/1998 (EPI): antes desses marcos os campos
   // não se aplicam (art. 285 da IN 128/2022)
+  // Quebras de período só onde algo do formulário muda:
+  //  - 05/03/1997 (troca de decreto: código e técnica) – sempre;
+  //  - 13/10/1996 e 02/12/1998 (EPC e EPI passam a ser informados) – só quando há EPC ou EPI a declarar (fichas de EPI ou
+  //    algum "Sim"); sem eles, "Não" vale para o período todo e a quebra só repetiria as linhas;
+  //  - 31/12/2003 (NHO) e 07/10/2014 (LINACH) – só quando a técnica muda (linhas iguais se juntam).
+  const comMarcosEpi = !semEpi || exps.some((e) => e.agente.data.epcEficaz === 'Sim' || e.agente.data.epiEficaz === 'Sim');
   const linhasExp = [
-    // químicos: também em 31/12/2003 (NHO a partir de 2004) e 07/10/2014 (LINACH), quando a técnica muda
-    ...exps.flatMap((e) => juntarIguais(partirNosMarcos(e.ini, e.fim, (e.agente.data.tipo || 'Químico') === 'Químico' ? MARCOS_TECNICA : []).map(([ini, fim]) => {
+    ...exps.flatMap((e) => juntarIguais(partirNosMarcos(e.ini, e.fim, (e.agente.data.tipo || 'Químico') === 'Químico' ? MARCOS_TECNICA : [], comMarcosEpi).map(([ini, fim]) => {
       const x = e.agente.data; void codigosDoAgente;
       const anexo = anexoQuantitativo(e.agente, dados.quimicos) || 'Anexo 11';
       // "Decreto 53.831/64" → "Dec. 53.831/64": a coluna é estreita e o texto se repete em todas as linhas
       const tec = (tecnicaNoPeriodo(e.agente, fim, { quantitativoSemMedicao: e.naoQuantificado ? anexo : '' }) || '[[técnica]]').replace(/\bDecretos?\s+(?=n?º?\s*\d)/g, 'Dec. ');
-      const intens = (/^n[ãa]o se aplica$|^qualitativ/i.test(v(x.intensidade)) ? '' : v(x.intensidade)) || (e.naoQuantificado || /^Qualitativa/.test(tec) ? 'Não quantificada' : '[[intensidade]]');
+      // intensidade: avaliação qualitativa → "Qualitativa" (não há o que quantificar); agente de avaliação quantitativa
+      // sem medição → "Não quantificada"; medição digitada no agente prevalece
+      const digitada = /^n[ãa]o se aplica$|^qualitativ|^n[ãa]o quantificad/i.test(v(x.intensidade)) ? '' : v(x.intensidade);
+      const intens = digitada || (e.naoQuantificado || /^Quantitativa/.test(tec) ? 'Não quantificada' : /^Qualitativa/.test(tec) ? 'Qualitativa' : '[[intensidade]]');
       const epiAplica = fim > '1998-12-02';
+      const epcSemMarco = !comMarcosEpi;
       return [`${dataBR(ini)} a ${fimTxt(e.r, fim)}`, (x.tipo || 'Q')[0], nomeFator(x.nome), intens, tec,
-        fim <= '1996-10-13' ? 'Não se aplica' : x.epcEficaz || (semEpi ? 'Não' : '[[S/N]]'),
-        epiAplica ? x.epiEficaz || (semEpi ? 'Não' : '[[S/N]]') : 'Não se aplica', epiAplica && !semEpi ? numeroCa(x.ca) : '—', ini, fim, e.r];
+        !epcSemMarco && fim <= '1996-10-13' ? 'Não se aplica' : x.epcEficaz || (semEpi ? 'Não' : '[[S/N]]'),
+        epcSemMarco || epiAplica ? x.epiEficaz || (semEpi ? 'Não' : '[[S/N]]') : 'Não se aplica', epiAplica && !semEpi ? numeroCa(x.ca) : '—', ini, fim, e.r];
     }))),
     ...linhasMed,
   ].sort((a, b) => isoIni(a[0]).localeCompare(isoIni(b[0])));
   d.quadro('15 – Exposição a fatores de riscos', [['Período', 'Tipo', 'Fator de risco', 'Intensidade', 'Técnica utilizada', 'EPC eficaz', 'EPI eficaz', 'CA EPI'],
     ...(linhasExp.length ? linhasExp : [['[[período]]', '', (dados.agentes || []).length ? 'Ausência de fator de risco nocivo' : '[[cadastre os agentes avaliados na etapa 2. Autos]]', '', '', '', '', '']])],
   { larguras: [0.14, 0.07, 0.15, 0.13, 0.24, 0.08, 0.09, 0.1], tam: 8, alinhar: 'left', semNumero: true,
-    fonte: `LTCAT do signatário, itens 5 e 6. Tipo: F – físico; Q – químico; B – biológico. "Não quantificada": avaliação qualitativa, sem medição da intensidade ou da concentração; técnica conforme o Manual de Aposentadoria Especial do INSS (2018), com as NHO da FUNDACENTRO a partir de 01/01/2004 para os agentes de avaliação quantitativa. EPC e EPI eficazes: não se aplicam até 13/10/1996 e até 02/12/1998, respectivamente (art. 285 da IN 128/2022).${exps.some((e) => !e.caracteriza) ? ' Agente de avaliação quantitativa (NR-15, Anexos 11 e 12) sem medição: consta como presente no ambiente e não caracteriza a exposição (itens 5 e 6 do LTCAT).' : ''}` });
+    fonte: `LTCAT do signatário, itens 5 e 6. Tipo: F – físico; Q – químico; B – biológico. Intensidade "Qualitativa": agente de avaliação qualitativa, sem limite de tolerância a medir; técnica conforme o Manual de Aposentadoria Especial do INSS (2018). ${comMarcosEpi ? 'EPC e EPI eficazes: não se aplicam até 13/10/1996 e até 02/12/1998, respectivamente (art. 285 da IN 128/2022).' : 'EPC e EPI eficazes: "Não" em todo o período, por não haver EPC nem EPI com eficácia comprovada (art. 291 da IN 128/2022).'}${exps.some((e) => !e.caracteriza) ? ' Intensidade "Não quantificada": agente de avaliação quantitativa (NR-15, Anexos 5, 11 e 12) sem medição, que consta como presente no ambiente e não caracteriza a exposição (itens 5 e 6 do LTCAT).' : ''}` });
   const comEpi = exps.some((e) => e.caracteriza && e.agente.data.epiEficaz === 'Sim');
   d.quadro('15.9 – Atendimento aos requisitos das NR-06 e NR-09 (EPI)', [['Requisito', 'S/N'],
     ...['Foi tentada a implementação de medidas de proteção coletiva, de caráter administrativo ou de organização, optando-se pelo EPI por inviabilidade técnica, insuficiência ou interinidade, ou ainda em caráter complementar ou emergencial?',

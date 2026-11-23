@@ -146,15 +146,16 @@ describe('LTCAT e PPP do contribuinte individual sócio, avaliação remota', ()
     expect(t).toMatch(/Tema 1291[^\n]*Tema 1447/);
     expect(t).toContain('LINACH');
   });
-  it('PPP: CBO, cargo e setor limpos, linhas partidas em 1996 e 1998, CA só número, data de emissão', async () => {
+  it('PPP: CBO, cargo e setor limpos, sem quebra em 1996 e 1998 quando não há EPC/EPI a declarar, data de emissão', async () => {
     const r = await ltcatPpp('m1');
     const t = await texto(r.extras[0]);
     expect(t).toContain('9503-05');
     expect(t).not.toContain('(PGR 2026)');
-    expect(t).toContain('01/05/1989 a 13/10/1996');
-    expect(t).toContain('14/10/1996 a 05/03/1997');
-    expect(t).toContain('06/03/1997 a 02/12/1998');
-    expect(t).toContain('03/12/1998 a');
+    // sem fichas de EPI nem EPC/EPI eficaz: "Não" no período todo, só a quebra de 05/03/1997 (troca de decreto)
+    expect(t).toContain('01/05/1989 a 05/03/1997');
+    expect(t).toContain('06/03/1997 a');
+    expect(t).not.toContain('13/10/1996');
+    expect(t).not.toContain('02/12/1998');
     expect(t).not.toContain('Creme de proteção');
     expect(t).not.toMatch(/Isocianatos \(TDI/);
     expect(t).not.toContain('____/____');
@@ -191,7 +192,9 @@ describe('técnica e intensidade dos agentes qualitativos no PPP', () => {
     expect(t).toContain('01/01/2000 a 31/12/2024');
     expect(t).toContain('Qualitativa – NR-15, Anexo 13');
     expect(t).not.toContain('NHO 02 e NHO 07 da');
-    expect(t).toContain('Não quantificada');
+    // qualitativa: intensidade "Qualitativa" (nada a quantificar)
+    expect(t).toMatch(/Qualitativa\s*\n?\s*Qualitativa – NR-15, Anexo 13/);
+    expect(t).not.toContain('Não quantificada');
     expect(t).not.toContain('PPP eletrônico');
   });
 });

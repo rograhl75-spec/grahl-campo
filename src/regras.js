@@ -21,7 +21,7 @@ const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 const semAc = (t) => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 const curto = (n) => v(n).replace(/\s+\(.*$/, '');
 // código "por analogia" ou "enquadramento forçado" não é enquadramento: vale como "não consta"
-const RE_EVENTUAL_R = /\b(eventua(?:l|is|lmente)|ocasiona(?:l|is|lmente)|espor[aá]dic[oa]s?|esporadicamente|intermitente(?:s|mente)?|raramente|pontua(?:l|is|lmente)|sem exposi[çc][ãa]o permanente)\b/i;
+const RE_EVENTUAL_R = /\b(eventua(?:l|is|lmente)|ocasiona(?:l|is|lmente)|espor[aá]dic[oa]s?|esporadicamente|intermitente(?:s|mente)?|raramente|pontua(?:l|is|lmente)|sem exposi[çc][ãa]o permanente|volume m[íi]nimo|pequeno volume|pequena quantidade)\b/i;
 const forcado = (t) => /analogia|for[çc]ad[oa]/i.test(v(t));
 const consta = (t) => /^\s*\d/.test(v(t)) && !forcado(t);
 const naoConsta = (t) => /n[aã]o\s+(consta|h[aá])|sem c[oó]digo|fora do anexo/i.test(v(t)) || forcado(t);

@@ -22,7 +22,7 @@ export const RE_CONDICIONAL = /\b(a confirmar|se confirmad[oa]s?|caso (?:se )?co
 // "não depende de tempo mínimo", "independe de": negação, não é condição
 export const condicional = (t) => RE_CONDICIONAL.test(String(t || '').replace(/\b(?:n[aã]o\s+depende[m]?|independe[m]?)\s+d[aoe]s?\b/gi, ''));
 // "não ocasional nem intermitente" é a fórmula da permanência: não conta como exposição eventual
-export const RE_EVENTUAL = /\b(eventua(?:l|is|lmente)|ocasiona(?:l|is|lmente)|espor[aá]dic[oa]s?|esporadicamente|intermitente(?:s|mente)?|raramente|pontua(?:l|is|lmente)|sem exposi[çc][ãa]o permanente)\b/i;
+export const RE_EVENTUAL = /\b(eventua(?:l|is|lmente)|ocasiona(?:l|is|lmente)|espor[aá]dic[oa]s?|esporadicamente|intermitente(?:s|mente)?|raramente|pontua(?:l|is|lmente)|sem exposi[çc][ãa]o permanente|volume m[íi]nimo|pequeno volume|pequena quantidade)\b/i;
 const tiraPermanencia = (t) => String(t || '').replace(/n[aã]o\s+ocasional\s+nem\s+intermitente/gi, '').replace(/nem\s+intermitente/gi, '').replace(/n[aã]o\s+(?:é\s+|era\s+)?(?:eventual|ocasional|intermitente)/gi, '');
 export const RE_DOC_EMPRESA = /\b(PGR|PPRA|PCMSO|LTCAT|PCMAT|AET)\b/;
 

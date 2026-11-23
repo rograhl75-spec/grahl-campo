@@ -325,6 +325,7 @@ describe('PPP: lotação partida onde o código GFIP muda', () => {
     expect(p).toMatch(/01\/05\/1989 a\s*05\/03\/1997[\s\S]{0,200}04 \(25 anos\)/);
     expect(p).toMatch(/06\/03\/1997 a\s*16\/07\/1997[\s\S]{0,200}00 \(sem exposição\)/);
     expect(p).toMatch(/17\/07\/1997 a\s*31\/12\/2020[\s\S]{0,200}04 \(25 anos\)/);
+    expect(p).toContain('Código 00: sem exposição a agente nocivo do Anexo IV no trecho; o risco à integridade física enquadrado no LTCAT consta das observações.');
   });
 });
 

@@ -369,3 +369,6 @@ export async function marcacoesNoDocumento(gerar) {
   }
   return [...cont.values()].map((e) => ({ texto: e.texto, n: e.n, secao: e.secao, onde: e.secao, quesitos: [...e.quesitos] })).sort((a, b) => b.n - a.n);
 }
+
+// trechos [[...]] de uma resposta (o que ainda falta), um por item
+export const trechosPendentes = (txt) => [...String(txt || '').matchAll(/\[\[([\s\S]*?)\]\]/g)].map((m) => m[1].replace(/\s+/g, ' ').trim()).filter(Boolean);

@@ -78,6 +78,9 @@ export function semPartesDoApp(md) {
     out.push(l.replace(/\s*(?<=^|[.!?]\s*)(Integra(m)?|Seguem anexos)[^.]*?(Anexo|apêndice|registro fotográfico)[^.]*\./gi, ''));
   }
   return out.join('\n').replace(/\[\[\s*data de emiss[ãa]o\s*\]\]/gi, dataPorExtenso(hojeIso()))
+    // perito do Juízo apresenta conclusão técnica, não "posição"
+    .replace(/(,\s*)?\b([Aa]) posi[çc][ãa]o t[ée]cnica do perito[^:.]*?é a seguinte:/g, (m, virg, a) => (virg ? ', conclui-se' : a === 'A' ? 'Conclui-se' : 'conclui-se') + ' tecnicamente o seguinte:')
+    .replace(/posi[çc][ãa]o t[ée]cnica do perito/gi, 'conclusão técnica')
     // CNPJ / CPF em branco ("Jardelino Transportes, CNPJ [[CNPJ da Jardelino]]"): omitido, sem pendência
     .replace(/\s*\(\s*(CNPJ|CPF)\s*(n[º°.]\s*)?\[\[[^\]]*\]\]\s*\)/g, '').replace(/,?\s*(inscrita no\s+)?(CNPJ|CPF)\s*(n[º°.]\s*)?(sob o n[º°.]\s*)?\[\[[^\]]*\]\]/g, '');
 }

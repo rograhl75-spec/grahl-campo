@@ -6,7 +6,7 @@ import {
 import { useLive, ir } from './hooks.js';
 import { PROFISSOES } from '../data/profissoes.js';
 import { siglaTipo, FASE_COR } from './Casos.jsx';
-import { Campos, Chips, Opcoes, Sel, TF } from './fields.jsx';
+import { Campos, CamposCompactos, Chips, Opcoes, Sel, TF } from './fields.jsx';
 import { Preparacao } from './Preparacao.jsx';
 import { Quesitos } from './Quesitos.jsx';
 import { Campo } from './Campo.jsx';
@@ -87,11 +87,11 @@ export function Caso({ id, aba }) {
       )}
       {secao && <IrParaSecao id={secao} />}
       {aba === 'autos' && <>
-        <details id="sec-cadastro" class="secao-etapa" open={!rec.data.tipoAtuacao || !rec.data.papel || secao === 'sec-cadastro'}>
-          <summary><b>Dados do caso</b> <small class="dica">tipo, atuação, processo, partes, prazos e honorários – a extração dos autos preenche</small></summary>
-          <Resumo rec={rec} />
-        </details>
-        <Preparacao rec={rec} />
+        <Preparacao rec={rec} dadosDoCaso={
+          <details id="sec-cadastro" class="secao-etapa largo" open={!rec.data.tipoAtuacao || !rec.data.papel || secao === 'sec-cadastro'}>
+            <summary><b>Dados do caso</b> <small class="dica">{resumoCaso(rec.data)}</small></summary>
+            <Resumo rec={rec} />
+          </details>} />
         <section id="sec-quesitos" class="secao-etapa"><h2 class="titulo-secao">Quesitos</h2><Quesitos rec={rec} /></section>
       </>}
       {aba === 'campo' && <>
@@ -103,6 +103,20 @@ export function Caso({ id, aba }) {
       {aba === 'antigo' && <Antigo rec={rec} />}
     </div>
   );
+}
+
+// uma linha com o essencial do caso (no título recolhido de "Dados do caso") e o que falta
+function resumoCaso(c) {
+  const br = (d) => String(d || '').replace(/^(\d{4})-(\d{2})-(\d{2}).*$/, '$3/$2/$1');
+  const judicial = c.tipoAtuacao !== 'Extrajudicial';
+  const partes = [
+    c.classe,
+    c.dataDiligencia && `diligência ${br(c.dataDiligencia)}${c.horaDiligencia ? ` ${c.horaDiligencia}` : ''}`,
+    c.prazoLaudo && `prazo do laudo ${br(c.prazoLaudo)}`,
+    c.honorariosFixados && `honorários ${String(c.honorariosFixados).replace(/\s*\(.*$/, '')}`,
+  ].filter(Boolean);
+  const faltam = [judicial && !c.numero && 'nº do processo', judicial && !c.juizo && 'juízo', !c.autorNome && 'autor', judicial && !c.reuNome && 'réu'].filter(Boolean);
+  return `${partes.join(' · ') || 'tipo, atuação, processo, partes, prazos e honorários'}${faltam.length ? ` – falta: ${faltam.join(', ')}` : ''}`;
 }
 
 // rola até a seção pedida pelo endereço antigo (ex.: #/caso/x/quesitos → Autos, seção Quesitos)
@@ -118,64 +132,91 @@ function Resumo({ rec }) {
     avisarAlteracao();
     ir('/');
   };
+  const c = rec.data;
+  const assistente = /assistente/i.test(c.papel || '');
+  const extra = c.tipoAtuacao === 'Extrajudicial';
+  const cheio = (k) => String(c[k] ?? '').trim() !== '';
+  // só os campos que se aplicam a este tipo de trabalho (o que já estiver preenchido sempre aparece)
+  const processo = CAMPOS_PROCESSO.filter(([k]) => cheio(k)
+    || (k === 'juizoDeprecante' ? /precat/i.test(c.classe || '') : ['peritoJuizo', 'refLaudo'].includes(k) ? assistente : !extra || ['numero'].includes(k)));
+  const partes = CAMPOS_PARTES.filter(([k]) => !['autorAdv', 'reuAdv'].includes(k) && (cheio(k) || k !== 'contratante' || extra || assistente));
+  const posLaudo = ['Aguardando manifestação / esclarecimentos', 'Respondendo quesitos suplementares', 'Concluído', 'Arquivado'].includes(c.fase);
+  const prazos = CAMPOS_PRAZOS.filter(([k]) => cheio(k) || k !== 'prazoEsclarecimentos' || posLaudo);
+  const HON_PRINCIPAIS = ['honorariosFixados', 'honorariosItem', 'honorariosForma', 'similaridade', 'empresaOriginal', 'foraDomicilio', 'honorariosTabela', 'honorariosMultiplicador', 'complexidadeExtra'];
+  const honPrincipais = CAMPOS_HONORARIOS.filter(([k]) => HON_PRINCIPAIS.includes(k) && (k !== 'empresaOriginal' || c.similaridade === 'Sim' || cheio(k)));
+  const honItens = CAMPOS_HONORARIOS.filter(([k]) => !HON_PRINCIPAIS.includes(k));
+  const nItens = honItens.filter(([k]) => cheio(k)).length;
   return (
-    <div class="grade">
-      <p class="dica largo">Comece marcando o <b>tipo</b> e a <b>sua atuação</b>. Número do processo, partes e prazos são preenchidos automaticamente pela extração dos autos (logo abaixo), a partir do PDF do processo; aqui você só confere.</p>
+    <div class="grade dados-caso">
+      <p class="dica largo">A extração dos autos preenche estes dados; aqui você só confere. Aparecem os campos que se aplicam a este tipo de trabalho; os vazios ficam em "＋ campos vazios".</p>
       <section class="bloco">
         <h3>Classificação</h3>
-        <Opcoes rec={rec} k="tipoAtuacao" label="Tipo" opcoes={TIPO_ATUACAO} />
-        <Opcoes rec={rec} k="papel" label="Minha atuação" opcoes={PAPEL} />
-        <Sel rec={rec} k="justica" label="Justiça / órgão" opcoes={JUSTICA} />
-        <Sel rec={rec} k="materia" label="Matéria" opcoes={MATERIA} />
-        <Chips rec={rec} k="objeto" label="Objeto da perícia (azul = marcado; toque para marcar ou desmarcar)" opcoes={OBJETO} />
         <Sel rec={rec} k="fase" label="Fase" opcoes={FASE} vazio={false} />
-        <Sel rec={rec} k="jurisprudencia" label="Súmulas e jurisprudência nos documentos deste caso" opcoes={['Padrão (Meus dados)', 'Incluir', 'Não incluir']} vazio={false} />
-        {contextoLegal(rec.data).prev && <Sel rec={rec} k="profissao" label="Profissão (banco de profissões: agentes e critérios já estudados)" opcoes={PROFISSOES.map((p) => p.nome)} />}
-        {contextoLegal(rec.data).prev && <Sel rec={rec} k="penosidade" label="Avaliação de penosidade (motorista / cobrador)" opcoes={['Automático', 'Sim', 'Não']} vazio={false} />}
-        {rec.data.tipoAtuacao === 'Extrajudicial' && <>
+        <details class="opcoes-caso" open={!c.tipoAtuacao || !c.papel}>
+          <summary>{[c.tipoAtuacao, c.papel, c.justica, c.materia, (c.objeto || []).join(', ')].filter(Boolean).join(' · ') || 'Tipo e atuação'} – alterar</summary>
+          <Opcoes rec={rec} k="tipoAtuacao" label="Tipo" opcoes={TIPO_ATUACAO} />
+          <Opcoes rec={rec} k="papel" label="Minha atuação" opcoes={PAPEL} />
+          <div class="linha2">
+            <Sel rec={rec} k="justica" label="Justiça / órgão" opcoes={JUSTICA} />
+            <Sel rec={rec} k="materia" label="Matéria" opcoes={MATERIA} />
+          </div>
+          <Chips rec={rec} k="objeto" label="Objeto da perícia (toque para marcar ou desmarcar)" opcoes={OBJETO} />
+        </details>
+        {extra && <>
           <Sel rec={rec} k="contratadoPor" label="Quem contratou" opcoes={CONTRATADO_POR} />
           <TF rec={rec} k="art" label="Nº da ART" />
-          {(ehParecerTecnico(rec.data) || (rec.data.objeto || []).includes('Penosidade (motorista)')) && <Sel rec={rec} k="finalidade" label="Finalidade do parecer" opcoes={FINALIDADE_PARECER} />}
+          {(ehParecerTecnico(c) || (c.objeto || []).includes('Penosidade (motorista)')) && <Sel rec={rec} k="finalidade" label="Finalidade do parecer" opcoes={FINALIDADE_PARECER} />}
           <p class="dica">Extrajudicial: o objeto define o documento. Aposentadoria especial, LTCAT ou PPP → LTCAT e parecer previdenciário; Insalubridade ou Periculosidade → laudo de insalubridade e periculosidade; Acidente → laudo de acidente. "Parecer técnico extrajudicial" com motorista ou o objeto "Penosidade (motorista)" → parecer técnico de condições de trabalho e penosidade.</p>
         </>}
-        {rec.data.faseLegado && <p class="dica">Fase no app antigo: {rec.data.faseLegado}</p>}
+        <details class="opcoes-caso">
+          <summary>Opções do caso (jurisprudência{contextoLegal(c).prev ? ', profissão, penosidade' : ''})</summary>
+          <Sel rec={rec} k="jurisprudencia" label="Súmulas e jurisprudência nos documentos deste caso" opcoes={['Padrão (Meus dados)', 'Incluir', 'Não incluir']} vazio={false} />
+          {contextoLegal(c).prev && <Sel rec={rec} k="profissao" label="Profissão (banco de profissões: agentes e critérios já estudados)" opcoes={PROFISSOES.map((p) => p.nome)} />}
+          {contextoLegal(c).prev && <Sel rec={rec} k="penosidade" label="Avaliação de penosidade (motorista / cobrador)" opcoes={['Automático', 'Sim', 'Não']} vazio={false} />}
+          {c.faseLegado && <p class="dica">Fase no app antigo: {c.faseLegado}</p>}
+        </details>
       </section>
-      {ehAcidente(rec.data) && (
+      {ehAcidente(c) && (
         <section class="bloco">
           <h3>Acidente do trabalho</h3>
           <p class="dica">Usado no laudo de acidente. Pode vir preenchido pela extração dos autos com o Claude.</p>
-          <Campos rec={rec} campos={CAMPOS_ACIDENTE} />
+          <CamposCompactos rec={rec} campos={CAMPOS_ACIDENTE} sempre={['acidenteData', 'acidenteLocal']} />
         </section>
       )}
       <section class="bloco">
-        <h3>Processo</h3>
-        <Campos rec={rec} campos={CAMPOS_PROCESSO} />
+        <h3>{extra ? 'Identificação' : 'Processo'}</h3>
+        <CamposCompactos rec={rec} campos={processo} sempre={extra ? [] : ['numero', 'juizo', 'despachoRef']} />
       </section>
       <section class="bloco">
         <h3>Partes</h3>
-        <Campos rec={rec} campos={CAMPOS_PARTES} />
+        <CamposCompactos rec={rec} campos={partes} sempre={['autorNome', 'reuNome']} />
+        <details class="opcoes-caso"><summary>Advogados (uso interno, não saem nos documentos)</summary>
+          <Campos rec={rec} campos={CAMPOS_PARTES.filter(([k]) => ['autorAdv', 'reuAdv'].includes(k))} />
+        </details>
       </section>
       <section class="bloco">
         <h3>Datas e prazos</h3>
-        <Campos rec={rec} campos={CAMPOS_PRAZOS} />
+        <CamposCompactos rec={rec} campos={prazos} sempre={['dataDiligencia', 'horaDiligencia', 'prazoLaudo']} />
       </section>
-      {rec.data.tipoAtuacao === 'Extrajudicial' && contextoLegal(rec.data).prev && !ehParecerTecnico(rec.data) && (
+      {extra && contextoLegal(c).prev && !ehParecerTecnico(c) && (
         <section class="bloco">
           <h3>PPP (LTCAT + PPP)</h3>
           <p class="dica">Quem emite o PPP e os dados administrativos do formulário. Cooperativa: o PPP sai só com os vínculos de cooperado; os demais ficam no LTCAT. Próprio segurado: contribuinte individual sem empresa.</p>
-          <Campos rec={rec} campos={CAMPOS_PPP} />
+          <CamposCompactos rec={rec} campos={CAMPOS_PPP} sempre={['pppEmitente', 'pppEmitenteNome']} />
         </section>
       )}
-      {rec.data.papel === 'Perito do Juízo' && (
+      {c.papel === 'Perito do Juízo' && (
         <section class="bloco">
-          <h3>Honorários e itens do despacho</h3>
-          <p class="dica">Usados nas petições de honorários (proposta, majoração e aceite) e de agendamento da vistoria.</p>
-          <Campos rec={rec} campos={CAMPOS_HONORARIOS} />
+          <h3>Honorários e despacho</h3>
+          <CamposCompactos rec={rec} campos={honPrincipais} sempre={['honorariosFixados', 'similaridade']} />
+          <details class="opcoes-caso">
+            <summary>Itens do despacho usados nas petições ({nItens} de {honItens.length} preenchidos)</summary>
+            <p class="dica">Números dos itens do despacho (depósito, aceite, alvará, data da perícia, ofício, prazo do laudo): a extração dos autos preenche.</p>
+            <Campos rec={rec} campos={honItens} />
+          </details>
         </section>
       )}
-      <section class="bloco perigo-zona">
-        <button type="button" class="perigo" onClick={excluir}>Mover caso para a lixeira</button>
-      </section>
+      <div class="largo linha-botoes"><button type="button" class="mini perigo" onClick={excluir}>Mover caso para a lixeira</button></div>
     </div>
   );
 }

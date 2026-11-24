@@ -105,13 +105,15 @@ const REGRAS_EXTRACAO = `REGRAS DE EXTRAÇÃO
 6. PROCESSO EM ANDAMENTO: se os autos já contêm laudo pericial, parecer, registro ou ata de diligência, preencha também "andamento", "diligencia", "postos" (com as medições de cada posto) e, em cada quesito, a "resposta" dada no laudo, transcrita fielmente (sem resumir). Se não houver laudo nem diligência, deixe esses blocos vazios. Medições: um item por medição, com os valores exatamente como no laudo (número com vírgula ou ponto, sem unidade) e o equipamento (marca, modelo, série, certificado) em "equipamento". Traga a data e os horários de início e fim de cada medição como constam no laudo ou no relatório do equipamento: eles são usados para conferir o horário da diligência.
 7. LOCAL DA PERÍCIA: se o despacho ou os autos indicarem onde será feita a vistoria (a empresa empregadora ou, na perícia por similaridade, a empresa paradigma) e o endereço, preencha "diligencia.vistoriaLocal" (razão social), "diligencia.vistoriaEndereco" (rua, número, bairro, cidade/UF, CEP) e "diligencia.vistoriaCnpj", mesmo que a diligência ainda não tenha ocorrido. Na perícia por similaridade, preencha também "processo.similaridade" = "Sim" e "processo.empresaOriginal" com a empregadora original. Se a vistoria for em bem de pessoa física, sem empresa (por exemplo, veículo paradigma de um particular), deixe "vistoriaLocal" e "vistoriaCnpj" vazios e preencha "diligencia.vistoriaProprietario" com o NOME COMPLETO do proprietário como consta nos autos, "diligencia.vistoriaVeiculo" (marca, modelo, ano) e "diligencia.vistoriaContato" (telefone indicado nos autos).
 8. FOTOS: use o nome do arquivo e o conteúdo da imagem para a legenda. Em "identificacao", só o que estiver legível na foto (plaqueta, rótulo, display, CA); leitura de display de equipamento serve apenas para conferência com o relatório do equipamento, nunca como resultado de medição.
-9. ${REGRAS_FDS.replace(/\n- /g, '\n   - ')}`;
+9. ${REGRAS_FDS.replace(/\n- /g, '\n   - ')}
+10. DESPACHO DE NOMEAÇÃO (perito do juízo): preencha "despacho" com o que o despacho/decisão fixar – honorários (valor, item, forma de pagamento, adiantamento, quem deposita, limite da tabela para recursos públicos), os números dos itens (depósito, aceite, alvará, data da perícia, vistoria e partes, ofício à empresa, prazo do laudo), a antecedência para informar a data e o prazo do laudo em dias. Use o número do item como está no despacho (ex.: "7, b"). Datas-limite (prazoLaudo, prazoManifestacao, prazoEsclarecimentos) só se estiverem expressas nos autos (AAAA-MM-DD). Em "processo.classe", a classe da ação na capa (ex.: Procedimento Comum); em "processo.juizoDeprecante", só em carta precatória.`;
 
 const PRODUTO_FDS = FORMATO_PRODUTO.replace(/\s*\n\s*/g, ' ');
 const FORMATO = `FORMATO DA RESPOSTA
 Responda SOMENTE com um bloco JSON válido, sem texto antes ou depois, neste formato:
 {
-  "processo": {"numero": "", "juizo": "", "comarca": "", "dataAjuizamento": "", "valorCausa": "", "rito": "", "peritoJuizo": "", "refLaudo": "", "despachoRef": "", "similaridade": "Sim | Não", "empresaOriginal": ""},
+  "processo": {"classe": "", "numero": "", "juizo": "", "juizoDeprecante": "", "comarca": "", "dataAjuizamento": "", "valorCausa": "", "rito": "", "peritoJuizo": "", "refLaudo": "", "despachoRef": "", "similaridade": "Sim | Não", "empresaOriginal": ""},
+  "despacho": {"honorariosFixados": "", "honorariosItem": "", "honorariosTabela": "valor máximo da tabela citado no despacho", "honorariosForma": "Adiantamento no início e saldo ao final | Integral após a entrega do laudo (sem adiantamento) | Ao final, pela parte sucumbente (Justiça do Trabalho)", "honorariosAdiantamento": "", "honorariosDepositante": "", "limiteTabelaPublico": "Sim | Não", "itemDeposito": "", "itemAceite": "", "itemAlvara": "", "itemDataPericia": "", "antecedenciaDias": "", "itensVistoria": "", "itemOficio": "", "prazoLaudoDias": "", "itemPrazoLaudo": "", "prazoLaudo": "", "prazoManifestacao": "", "prazoEsclarecimentos": ""},
   "partes": {"autorNome": "", "autorCpf": "", "autorNascimento": "", "reuNome": "", "reuCnpj": ""},
   "sintese": {
     "funcoes": "cargos, funções, admissão, demissão, períodos",
@@ -272,12 +274,16 @@ export function montarPrompt(situacaoId, c = {}, perfil = {}) {
 export const PROMPT_IA = montarPrompt('perito-trab');
 
 const CAMPOS_CASO = {
-  processo: ['numero', 'juizo', 'comarca', 'dataAjuizamento', 'valorCausa', 'rito', 'peritoJuizo', 'refLaudo', 'despachoRef', 'similaridade', 'empresaOriginal'],
+  processo: ['classe', 'numero', 'juizo', 'juizoDeprecante', 'comarca', 'dataAjuizamento', 'valorCausa', 'rito', 'peritoJuizo', 'refLaudo', 'despachoRef', 'similaridade', 'empresaOriginal'],
+  despacho: ['honorariosFixados', 'honorariosItem', 'honorariosTabela', 'honorariosForma', 'honorariosAdiantamento', 'honorariosDepositante', 'limiteTabelaPublico', 'itemDeposito', 'itemAceite', 'itemAlvara',
+    'itemDataPericia', 'antecedenciaDias', 'itensVistoria', 'itemOficio', 'prazoLaudoDias', 'itemPrazoLaudo', 'prazoLaudo', 'prazoManifestacao', 'prazoEsclarecimentos'],
   partes: ['autorNome', 'autorCpf', 'autorNascimento', 'reuNome', 'reuCnpj'],
   sintese: ['funcoes', 'atividadesAlegadas', 'agentesAlegados', 'pedidos', 'defesa', 'preliminares', 'analiseEpi', 'roteiro', 'observacoes'],
   acidente: CAMPOS_ACIDENTE.map(([k]) => k),
   ppp: [...CAMPOS_PPP.map(([k]) => k), 'art'],
 };
+
+const DATAS_CASO = new Set(['dataAjuizamento', 'autorNascimento', 'prazoLaudo', 'prazoManifestacao', 'prazoEsclarecimentos', 'acidenteData']);
 
 export function lerJsonIA(texto) {
   let t = String(texto || '').trim();
@@ -290,7 +296,9 @@ export function lerJsonIA(texto) {
   const lista = (v) => (Array.isArray(v) ? v.filter((x) => x && typeof x === 'object') : []);
   const caso = {};
   for (const [grupo, ks] of Object.entries(CAMPOS_CASO)) for (const k of ks) {
-    const v = s((obj[grupo] || {})[k]);
+    let v = s((obj[grupo] || {})[k]);
+    // campo de data escrito dd/mm/aaaa → AAAA-MM-DD (o seletor de data só aceita ISO)
+    if (v && DATAS_CASO.has(k)) { const m = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); if (m) v = `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`; else if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) v = ''; }
     if (v) caso[k] = v;
   }
   const origem = origemQuesito;

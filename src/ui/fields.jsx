@@ -133,9 +133,10 @@ export function TF({ rec, k, label, type = 'text', area = false, rows = 3, place
 }
 
 export function Sel({ rec, k, label, opcoes, vazio = true }) {
-  const v = rec ? rec.data[k] ?? '' : '';
   // opção simples ("Sim") ou par [valor gravado, rótulo exibido]
   const lista = opcoes.map((o) => (Array.isArray(o) ? o : [o, o]));
+  // sem a opção vazia, um campo nunca preenchido mostra o padrão (a 1ª opção) em vez de ficar em branco
+  const v = (rec ? rec.data[k] ?? '' : '') || (vazio ? '' : (lista[0] || [''])[0]);
   if (v && !lista.some(([x]) => x === v)) lista.push([v, v]);
   return (
     <label class="campo">
@@ -180,6 +181,20 @@ export function Opcoes({ rec, k, label, opcoes }) {
       </div>
     </div>
   );
+}
+
+// Só os campos preenchidos (e os essenciais, em "sempre"); os vazios ficam atrás de "＋ N campos vazios".
+// Um campo aberto continua na tela enquanto ela estiver aberta, mesmo antes de ser preenchido.
+export function CamposCompactos({ rec, campos, sempre = [] }) {
+  const [ver, setVer] = useState(false);
+  const cheio = (k) => String(rec.data[k] ?? '').trim() !== '';
+  const [mostrados] = useState(() => new Set(campos.filter(([k]) => cheio(k) || sempre.includes(k)).map(([k]) => k)));
+  const visiveis = campos.filter(([k]) => ver || mostrados.has(k) || cheio(k));
+  const ocultos = campos.length - visiveis.length;
+  return <>
+    <Campos rec={rec} campos={visiveis} />
+    {ocultos > 0 && <button type="button" class="mini sec campos-vazios" onClick={() => setVer(true)}>＋ {ocultos} campo(s) vazio(s): {campos.filter(([k]) => !visiveis.some(([x]) => x === k)).map(([, l]) => l.replace(/\s*\(.*$/, '').replace(/\s*–.*$/, '')).slice(0, 3).join(', ')}{ocultos > 3 ? '…' : ''}</button>}
+  </>;
 }
 
 export function Campos({ rec, campos }) {

@@ -234,6 +234,18 @@ function VinculosDoPosto({ rec, caseId }) {
         {periodos.map((r) => <button type="button" class={`chip ${atual.includes(r.id) ? 'on' : ''}`} onClick={() => alterna(r.id)}>{rot(r)}</button>)}
       </div>
       {!atual.length && <small class="dica">Sem marcação, o app liga pelo nome da empresa no nome do posto ou, havendo um só posto e um só vínculo, liga os dois.</small>}
+      {atual.length > 0 && (
+        <details class="opcoes-caso" open={periodos.some((r) => atual.includes(r.id) && r.data.soPenosidadeDesde)}>
+          <summary>Em algum vínculo marcado o autor trocou para um veículo sem similar medido? (a partir da troca, só penosidade)</summary>
+          <p class="dica">Informe a data da troca só no vínculo em que ela ocorreu: o posto representa o vínculo até a véspera; depois, o laudo não avalia ruído nem vibração e conclui só pela penosidade.</p>
+          {periodos.filter((r) => atual.includes(r.id)).map((r) => (
+            <div class="linha2" key={r.id}>
+              <TF rec={r} k="soPenosidadeDesde" label={`${rot(r)} – troca a partir de`} type="date" />
+              <TF rec={r} k="veiculoDepois" label="Veículo depois da troca" />
+            </div>
+          ))}
+        </details>
+      )}
     </div>
   );
 }

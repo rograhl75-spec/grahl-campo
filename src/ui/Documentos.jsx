@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'preact/hooks';
-import { pendenciasDoCaso, marcacoesNoDocumento } from '../pendencias.js';
+import { pendenciasDoCaso, marcacoesNoDocumento, trechosPendentes } from '../pendencias.js';
 import { horasDia, horasForaTexto, fmtHoras } from '../calc.js';
 import { avisarAlteracao } from '../sync.js';
 import { confirmar } from './dialogo.jsx';
@@ -413,6 +413,7 @@ function RespostasClaude({ rec }) {
       {q.pend > 0 && <>
         <p class="alerta-txt">{q.pend} resposta(s) com [[pendência]] – escritas antes de o caso ter todos os dados (medições, relatórios, entrevista).</p>
         <p class="dica">O Claude refaz só essas respostas com os dados atuais; as demais não mudam. O que realmente não estiver no caso continua como pendência, uma vez só.</p>
+        <QuesitosPendentes rec={rec} />
         {temClaude() && <BotaoClaude rec={rec} tipo="respostasPendentes" rotulo={`Refazer as ${q.pend} resposta(s) com pendência`} soDireto />}
       </>}
       <ModoManual>
@@ -425,6 +426,34 @@ function RespostasClaude({ rec }) {
     </div>
   );
 }
+
+// Só os quesitos com [[pendência]]: o que falta em cada um e a resposta para corrigir ali mesmo
+function QuesitosPendentes({ rec }) {
+  const [abertos, setAbertos] = useState(null); // ids fixos enquanto edita (a resposta corrigida não some da lista)
+  const lista = useLive(async () => (await db.records.where('[caseId+kind]').equals([rec.id, 'quesito']).toArray())
+    .filter((r) => !r.deleted && r.data.suplementar !== 'Sim').sort(byOrdem), [rec.id], []);
+  const pend = lista.filter((r) => /\[\[/.test(r.data.resposta || ''));
+  const ids = abertos || pend.map((r) => r.id);
+  const itens = lista.filter((r) => ids.includes(r.id));
+  if (!itens.length) return null;
+  return (
+    <details class="pend-quesitos" onToggle={(e) => { if (e.currentTarget.open && !abertos) setAbertos(pend.map((r) => r.id)); }}>
+      <summary>Ver só os quesitos pendentes e o que falta em cada um</summary>
+      {itens.map((r) => {
+        const tr = trechosPendentes(r.data.resposta);
+        const texto = String(r.data.texto || '').replace(/\s+/g, ' ');
+        return (
+          <div key={r.id} class="pend-quesito">
+            <p><b>{r.data.origem || 'Quesito'}{r.data.numero ? ` – ${r.data.numero}` : ''}</b>{tr.length ? '' : ' ✓ sem pendência'}: {texto.slice(0, 220)}{texto.length > 220 ? '…' : ''}</p>
+            {tr.length > 0 && <ul class="pend-trechos">{tr.map((t, i) => <li key={i}><mark>{t}</mark></li>)}</ul>}
+            <TF rec={r} k="resposta" label="Resposta (complete o dado e apague os [[ ]] da pendência resolvida)" area rows={Math.min(14, Math.max(4, Math.ceil(String(r.data.resposta || '').length / 100)))} />
+          </div>
+        );
+      })}
+    </details>
+  );
+}
+const byOrdem = (a, b) => (parseFloat(a.data.numero) || 0) - (parseFloat(b.data.numero) || 0) || String(a.data.origem || '').localeCompare(String(b.data.origem || ''));
 
 // Texto redigido pelo Claude → Word no timbrado (capa, sumário, quadros, fluxos, fontes e assinatura do padrão)
 function MontarDoClaude({ rec }) {

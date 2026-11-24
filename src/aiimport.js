@@ -335,6 +335,8 @@ export function lerJsonIA(texto) {
     ...pegar(x, CAMPOS_POSTO.map(([k]) => k)),
     medicoes: lista(x.medicoes).map((m) => {
       const r = { agente: agenteOk(m.agente), ...pegar(m, KS_MED) };
+      // vibração: a jornada do aparelho vai em "tempoExposicao" (o campo da tela), não em "jornada"
+      if (/Vibra/i.test(r.agente || '') && r.jornada) { if (!r.tempoExposicao) r.tempoExposicao = r.jornada; delete r.jornada; }
       if (r.q) r.q = String(r.q).trim().startsWith('3') ? '3 (NHO-01)' : '5 (NR-15, Anexo 1)';
       const obs = [s(m.equipamento) && `Equipamento: ${s(m.equipamento)}`, s(m.obs)].filter(Boolean).join('\n');
       if (obs) r.obs = obs;

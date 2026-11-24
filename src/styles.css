@@ -432,3 +432,9 @@ details.secao-etapa[open] > summary { margin-bottom: 10px; }
 .importar-fotos { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--borda); }
 .importar-fotos h4 { margin: 0 0 4px; }
 details.secao-etapa > .importar-fotos { border: 0; background: var(--cartao); border-radius: var(--raio); padding: 14px 16px; }
+/* etapa 3: passos numerados */
+.passo-laudo > h3 { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.passo-laudo > h3 small { font-weight: 500; font-size: .85rem; }
+.passo-laudo.passo-ok .num-passo { background: #2E7D4F; }
+.passo-laudo .doc-principal { max-width: none; box-shadow: none; }
+.conferir-amarelo + .conferir-amarelo { margin-top: 10px; }

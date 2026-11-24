@@ -132,3 +132,12 @@ describe('corretor ortográfico no Word do Claude', () => {
     for (const w of ['DoseMax', 'Teslab', 'AxPro']) expect(xml).toMatch(new RegExp(`<w:noProof/>.{0,300}>${w}<`));
   });
 });
+
+describe('CNPJ de terceiro em branco', () => {
+  it('é omitido, sem pendência', async () => {
+    const { semPartesDoApp } = await import('../src/docx/claudeDoc.js');
+    expect(semPartesDoApp('Empresa similar: Jardelino Transportes, CNPJ [[CNPJ da Jardelino Transportes]].')).toBe('Empresa similar: Jardelino Transportes.');
+    expect(semPartesDoApp('Transportes Alfa (CNPJ [[conferir]]), em Cidade A.')).toBe('Transportes Alfa, em Cidade A.');
+    expect(semPartesDoApp('Transportes Alfa (CNPJ 00.000.000/0001-00).')).toBe('Transportes Alfa (CNPJ 00.000.000/0001-00).');
+  });
+});

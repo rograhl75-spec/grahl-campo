@@ -9,6 +9,15 @@ import JSZip from 'jszip';
 import { carregar } from './docx/base.js';
 import { vinculosMotorista, tempoConducao, jornadaDia, matrizIAC } from './docx/penosidade.js';
 import { sugerirParaVinculo, paradigmasPermitidos } from './paradigmas.js';
+import { periodosDoPosto } from './docx/base.js';
+
+// texto próprio da conclusão da penosidade que diz o contrário do resultado escolhido (Sim / Não)
+export function contradizResultado(resultado, texto) {
+  const res = String(resultado || '').trim(), t = String(texto || '').replace(/\s+/g, ' ');
+  if (!res || !t.trim()) return false;
+  const nega = /n[ãa]o\s+(se\s+)?(caracteriz|restou caracterizad|está caracterizad|ficou caracterizad|configur)|descaracteriz|n[ãa]o h[áa] penosidade/i.test(t);
+  return /^sim/i.test(res) ? nega : /^n[ãa]o/i.test(res) ? !nega && /caracteriz|configur/i.test(t) : false;
+}
 import { fmtHoras, horasDia, horasForaTexto } from './calc.js';
 import { vistoriasDoCaso, contextoLegal, ehParecerTecnico, EMITENTE_PPP, CATEGORIAS_SEGURADO, RESULTADO_AGENTE, MODALIDADE_AVALIACAO, AUTORIA_FOTOS } from './schema.js';
 import { categoriaDoVinculo } from './enquadramento.js';
@@ -71,11 +80,15 @@ export async function pendenciasDoCaso(caseId) {
         titulo: 'Tempo diário de condução (h)', explicacao: isFinite(tc.J) ? `Jornada identificada: ${fmtHoras(tc.J)}. Informe as horas de direção ou preencha a regra do caso acima.` : 'A jornada deste vínculo não foi identificada na entrevista: informe as horas de direção por dia.' });
     }
     const pos1995 = !r.data.fim || r.data.fim > '1995-04-28';
-    if (pos1995 && paradigmasPermitidos(c) && (!r.data.paradigmaRuido || !r.data.paradigmaVibracao)) {
+    // paradigma só para o agente sem medição neste processo: o posto que representa o vínculo, com a medição do agente,
+    // dispensa o paradigma (vale também o trecho "só penosidade" depois da troca de veículo, que não usa medição)
+    const medidoAqui = (re) => dados.postos.filter((ps) => periodosDoPosto(ps, dados).some((x) => x.id === r.id)).some((ps) => dados.medicoes.some((m) => m.data.postoId === ps.id && re.test(m.data.agente || '')));
+    const falta = { paradigmaRuido: !r.data.paradigmaRuido && !medidoAqui(/^Ru[íi]do/i), paradigmaVibracao: !r.data.paradigmaVibracao && !medidoAqui(/corpo inteiro|VCI/i) };
+    if (pos1995 && paradigmasPermitidos(c) && (falta.paradigmaRuido || falta.paradigmaVibracao)) {
       let s = null;
       try { s = await sugerirParaVinculo(r); } catch { s = null; }
       for (const [campo, rot, cand] of [['paradigmaRuido', 'ruído', s?.ruido], ['paradigmaVibracao', 'vibração', s?.vibracao]]) {
-        if (r.data[campo]) continue;
+        if (!falta[campo]) continue;
         const opcoes = (s?.ranking?.[campo === 'paradigmaRuido' ? 'ruido' : 'vibracao'] || []).slice(0, 3)
           .map((x) => ({ valor: x.p.data.codigo, rotulo: `${x.p.data.codigo} – ${x.p.data.marca || ''} ${x.p.data.modelo || ''} ${x.p.data.ano || ''} (${x.pontos} pts: ${x.motivos.slice(0, 3).join(', ')})`.replace(/\s+/g, ' ') }));
         itens.push({ id: `${campo}-${r.id}`, grupo, rec: r.id, campo, tipo: 'escolha', valor: '', opcoes,
@@ -94,7 +107,12 @@ export async function pendenciasDoCaso(caseId) {
     // conclusão: escolha Sim / Não (texto padrão igual em todos os vínculos); também quando o texto gravado é
     // uma proposta antiga do app adotada como estava
     const propostaAntiga = /^(Pela convergência cumulativa dos fatores de desgaste apurados \(|Os fatores apurados \()/.test(String(r.data.penosidadeConclusao || ''));
-    if (!String(r.data.penosidadeResultado || '').trim() && (m.sugerida || propostaAntiga)) {
+    const contradiz = contradizResultado(r.data.penosidadeResultado, r.data.penosidadeConclusao);
+    if (contradiz) {
+      itens.push({ id: `conc-${r.id}`, grupo, rec: r.id, campo: 'penosidadeResultado', tipo: 'simnao', limpar: 'penosidadeConclusao',
+        titulo: 'Conclusão da penosidade: o texto próprio contradiz o resultado escolhido',
+        explicacao: `O resultado é "${r.data.penosidadeResultado}", mas o texto próprio da conclusão diz o contrário ("${String(r.data.penosidadeConclusao).replace(/\s+/g, ' ').slice(0, 140)}…"). Escolha Sim ou Não aqui: o texto próprio é apagado e vale o texto padrão.` });
+    } else if (!String(r.data.penosidadeResultado || '').trim() && (m.sugerida || propostaAntiga)) {
       conclusoes.push(r);
       itens.push({ id: `conc-${r.id}`, grupo, rec: r.id, campo: 'penosidadeResultado', tipo: 'simnao', limpar: 'penosidadeConclusao',
         titulo: 'Conclusão da penosidade',

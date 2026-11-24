@@ -6,7 +6,7 @@ import { baixarArquivo } from '../backup.js';
 import { iniciarGravacao, pararGravacao as pararGravador, ouvir as ouvirGravador, estado as estadoGravador } from '../gravador.js';
 import { db, createRecord, softDelete, updateFields } from '../db.js';
 import { avisarAlteracao } from '../sync.js';
-import { CAMPOS_POSTO, AGENTES_MEDICAO, contextoLegal } from '../schema.js';
+import { CAMPOS_POSTO, AGENTES_MEDICAO, contextoLegal, camposDoPosto } from '../schema.js';
 import { CAMPOS_MEDICAO, CAMPOS_MEDICAO_COMUNS, calculados } from '../medicoes.js';
 import { confrontoAnexo11 } from '../quimicos.js';
 import { FormaPrev } from './Quimicos.jsx';
@@ -90,9 +90,9 @@ export function Campo({ rec }) {
           </div>
           {aberto === p.id && (
             <div class="item-corpo">
-              <CamposCompactos rec={p} campos={CAMPOS_POSTO} sempre={['nome', 'descricao', 'agentes']} />
+              <CamposCompactos rec={p} campos={camposDoPosto(CAMPOS_POSTO, { motorista, ltcat: rec.data.tipoAtuacao === 'Extrajudicial', dados: p.data })} sempre={['nome', 'descricao', 'agentes']} />
               <PadraoMotorista p={p} />
-              <VinculosDoPosto rec={p} caseId={rec.id} />
+              <VinculosDoPosto rec={p} caseId={rec.id} motorista={motorista} />
               <Medicoes caseId={rec.id} postoId={p.id} ctx={contextoLegal(rec.data)} caso={rec} />
               <div class="campo">
                 <span class="rotulo">Fotos deste posto</span>
@@ -215,7 +215,7 @@ function QuesitosNaMao({ rec }) {
 }
 
 // Vínculos (períodos) que o posto representa: liga as medições à conclusão por período
-function VinculosDoPosto({ rec, caseId }) {
+function VinculosDoPosto({ rec, caseId, motorista = false }) {
   const periodos = useLive(async () => (await db.records.where('[caseId+kind]').equals([caseId, 'periodo']).toArray()).filter((r) => !r.deleted)
     .sort((a, b) => String(a.data.inicio || '').localeCompare(String(b.data.inicio || ''))), [caseId], []);
   if (!periodos.length) return null;
@@ -229,7 +229,8 @@ function VinculosDoPosto({ rec, caseId }) {
         {periodos.map((r) => <button type="button" class={`chip ${atual.includes(r.id) ? 'on' : ''}`} onClick={() => alterna(r.id)}>{rot(r)}</button>)}
       </div>
       {!atual.length && <small class="dica">Sem marcação, o app liga pelo nome da empresa no nome do posto ou, havendo um só posto e um só vínculo, liga os dois.</small>}
-      {atual.length > 0 && (
+      {/* troca de veículo (só penosidade a partir dela): só para motorista / cobrador / operador */}
+      {atual.length > 0 && (motorista || periodos.some((r) => atual.includes(r.id) && r.data.soPenosidadeDesde)) && (
         <details class="opcoes-caso" open={periodos.some((r) => atual.includes(r.id) && r.data.soPenosidadeDesde)}>
           <summary>Em algum vínculo marcado o autor trocou para um veículo sem similar medido? (a partir da troca, só penosidade)</summary>
           <p class="dica">Informe a data da troca só no vínculo em que ela ocorreu: o posto representa o vínculo até a véspera; depois, o laudo não avalia ruído nem vibração e conclui só pela penosidade.</p>

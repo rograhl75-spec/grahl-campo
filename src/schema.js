@@ -276,6 +276,13 @@ export const CAMPOS_POSTO = [
   ['epi', 'EPI observados (tipo, CA, uso efetivo)', 'area'],
 ];
 
+// Campos do posto conforme o caso: placa e veículo avaliado só para motorista / operador; via e periodicidade
+// (LTCAT, art. 276, VII) só no extrajudicial. Campo já preenchido aparece sempre.
+export function camposDoPosto(campos, { motorista = false, ltcat = false, dados = {} } = {}) {
+  const cheio = (k) => String(dados[k] ?? '').trim() !== '';
+  return campos.filter(([k]) => cheio(k) || ((k !== 'placa' && k !== 'veiculoAvaliado') || motorista) && (k !== 'viaPeriodicidade' || ltcat));
+}
+
 export const CATEGORIAS_SEGURADO = ['Empregado', 'Contribuinte individual', 'Cooperado (cooperativa de trabalho)', 'Avulso'];
 export const CAMPOS_PERIODO = [
   ['empresa', 'Empresa', 'text'],

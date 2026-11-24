@@ -75,3 +75,15 @@ describe('texto do caso para o Claude', () => {
     expect((texto.match(/\[Ruído\]/g) || []).length).toBe(1);
   });
 });
+
+describe('jornada da medição de vibração', () => {
+  it('vale o tempo de exposição da tela, não a "jornada" antiga escondida', async () => {
+    const { pendenciasDoCaso } = await import('../src/pendencias.js');
+    await put('jv', 'caso', null, { papel: 'Perito do Juízo', justica: 'Justiça Federal', materia: 'Previdenciária', vistoriaData: '2026-09-29', vistoriaPresentes: 'Fulano', vistoriaIntimacao: 'ev. 1' });
+    await put('jvv', 'periodo', 'jv', { empresa: 'Transportes Eta', inicio: '2014-09-01', fim: '2019-07-31', cargo: 'Motorista de carreta', conducaoH: '12' });
+    await put('jvp', 'posto', 'jv', { nome: 'Motorista – carreta', vinculos: ['jvv'] });
+    await put('jvm', 'medicao', 'jv', { agente: 'Vibração de corpo inteiro (VCI)', postoId: 'jvp', aren: '1.07', vdv: '15.74', jornada: '15:00', tempoExposicao: '12:00:00', dataMedicao: '2026-09-29', horaInicio: '11:35' });
+    const t = (await pendenciasDoCaso('jv')).map((i) => i.titulo).join(' | ');
+    expect(t).not.toContain('normalizado para');
+  });
+});

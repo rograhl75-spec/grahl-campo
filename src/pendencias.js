@@ -136,7 +136,8 @@ export async function pendenciasDoCaso(caseId) {
       itens.push({ id: `med-data-${m.id}`, grupo: 'Diligência', tipo: 'aviso', titulo: `${rot}: data ${x.dataMedicao.split('-').reverse().join('/')} fora das datas da vistoria`,
         explicacao: 'Confira o relógio do aparelho e o relatório; corrija a data da medição em 2. Campo → posto → medição.' });
     }
-    const jRel = horasDia(x.jornada || x.tempoExposicao);
+    // vibração: vale o "Tempo de exposição diária" (o campo da tela); ruído: a "Jornada" do dosímetro
+    const jRel = horasDia(/Vibra/i.test(x.agente || '') ? (x.tempoExposicao || x.jornada) : (x.jornada || x.tempoExposicao));
     const ps = dados.postos.find((p) => p.id === x.postoId);
     if (!isFinite(jRel) || !ps) continue;
     const Ts = [...new Set(dados.periodos.filter((r) => (ps.data.vinculos || []).includes(r.id)).map((r) => tempoConducao(r, dados).T).filter((T) => isFinite(T)))];

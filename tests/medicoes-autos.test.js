@@ -34,10 +34,16 @@ describe('somente as medições dos laudos juntados aos autos', () => {
     await caso('ca', { papel: 'Perito do Juízo', justica: 'Justiça Federal', materia: 'Previdenciária', numero: '5000000-11.2022.4.04.0000/PR' });
     await filho('va', 'periodo', 'ca', { empresa: 'Transportes Teste', inicio: '2005-01-01', fim: '2010-12-31', veiculoTipo: 'Cavalo', veiculoMarca: 'Alfa', veiculoModelo: 'Modelo X', familiaVeiculo: 'F6', conducaoH: '8' });
 
+    // perícia judicial sem indicação do juízo: sem paradigma
+    const bloq = await sugerirParaVinculo(await db.records.get('va'));
+    expect(bloq.bloqueado).toBe(true);
+    expect(bloq.ruido).toBe(null);
+    // juízo indicou a similaridade: o banco todo
+    await db.records.update('ca', { 'data.similaridade': 'Sim' });
     const antes = await sugerirParaVinculo(await db.records.get('va'));
-    expect(antes.ruido.p.data.marca).toBe('Alfa'); // opção desligada: o banco todo
+    expect(antes.ruido.p.data.marca).toBe('Alfa');
 
-    await db.records.update('ca', { 'data.somenteMedicoesAutos': true });
+    await db.records.update('ca', { 'data.similaridade': 'Não', 'data.somenteMedicoesAutos': true });
     const s = await sugerirParaVinculo(await db.records.get('va'));
     expect(s.ruido.p.data.codigo).toBe(cod);
     expect(s.criterio).toContain('somente medições dos laudos juntados aos autos');
@@ -62,5 +68,17 @@ describe('somente as medições dos laudos juntados aos autos', () => {
     expect(PROMPT_LAUDOS_DOS_AUTOS).toContain('"paginas_autos": ""');
     expect(PROMPT_LAUDOS_DOS_AUTOS).toContain('processo DE ORIGEM');
     expect(PROMPT_LAUDOS_DOS_AUTOS).not.toContain('elaborados por mim');
+  });
+});
+
+describe('revisão da coleta em campo pelo Claude', () => {
+  it('a instrução leva as pendências do app e os dados do caso, e não pede a redação do laudo', async () => {
+    const { promptRevisaoCampo } = await import('../src/aiimport.js');
+    await caso('cr', { papel: 'Perito do Juízo', justica: 'Justiça Federal', materia: 'Previdenciária', autorNome: 'Segurado Teste' });
+    const p = await promptRevisaoCampo('cr', [{ grupo: 'V1', titulo: 'Tempo diário de condução (h)', explicacao: 'informe as horas' }]);
+    expect(p).toContain('Coletar agora (antes de sair do local)');
+    expect(p).toContain('- V1: Tempo diário de condução (h) – informe as horas');
+    expect(p).toContain('Segurado Teste');
+    expect(p).toContain('não redija o laudo');
   });
 });

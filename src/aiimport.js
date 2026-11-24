@@ -560,6 +560,39 @@ ${texto}`;
   return instr;
 }
 
+// Revisão da coleta em campo: o Claude confere o que foi registrado (cadastro, entrevista, postos, medições, fotos)
+// contra os autos e os quesitos, e diz o que ainda falta coletar antes de sair do local – não redige o laudo
+const INSTR_REVISAO_CAMPO = `Sou o perito e estou em campo (diligência em andamento ou recém-terminada). Revise a coleta de informações registrada no app (abaixo) e, se anexados, os autos e os relatórios dos medidores. O objetivo é saber, AINDA NO LOCAL, se falta alguma informação para responder a todos os quesitos e concluir cada vínculo/posto.
+
+REGRAS
+- Não invente dados e não redija o laudo. Não conclua o enquadramento: diga apenas se os elementos coletados são suficientes.
+- Seja objetivo, em português, com listas curtas e acionáveis. Cite o vínculo, posto, agente ou quesito de cada item.
+- Considere as pendências que o app já apontou (lista "Pendências do app") e acrescente as que ele não pegou.
+- Perícia judicial: avaliação direta, sem paradigmas, salvo indicação do juízo ou medições de laudos juntados aos autos.
+
+RESPONDA NESTA ORDEM
+1. Coletar agora (antes de sair do local) – lista de verificação, do mais importante ao menos importante.
+2. Perguntas a fazer (ao segurado, à empresa ou aos acompanhantes), com o motivo de cada uma.
+3. Medições – requisitos a conferir (NHO-01: tempo de amostragem representativo da jornada, calibração antes e depois, q e critério; NHO-09: eixo dominante, posição, tempo de exposição; certificados de calibração dentro do prazo; outros agentes conforme a NHO aplicável).
+4. Inconsistências entre os autos, a entrevista, as medições e o cadastro (datas, funções, setores, produtos, EPI).
+5. Quesitos ainda sem elementos para resposta (número e o que falta).
+6. Fotos que faltam (agentes, EPC/EPI, máquinas, produtos e rótulos, local).
+7. Avaliação geral da coleta: para cada vínculo/posto, "suficiente" ou "insuficiente", em uma linha, com o motivo.`;
+
+export async function promptRevisaoCampo(caseId, pendencias = []) {
+  const { c, texto } = await textoDoCaso(caseId);
+  const pend = pendencias.length ? pendencias.map((p) => `- ${p.grupo ? `${p.grupo}: ` : ''}${p.titulo}${p.explicacao ? ` – ${p.explicacao}` : ''}`).join('\n') : '- nenhuma';
+  return `${INSTR_REVISAO_CAMPO}
+
+${criteriosPara(c, '', ((await db.records.get('perfil')) || {}).data || {})}
+
+---
+## Pendências do app
+${pend}
+
+${texto}`;
+}
+
 // Todo o caso em texto (markdown), para levar ao Claude
 export async function textoDoCaso(caseId) {
   const caso = await db.records.get(caseId);

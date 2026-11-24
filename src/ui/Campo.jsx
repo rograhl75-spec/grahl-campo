@@ -23,7 +23,9 @@ import { guardarAnexo, LIMITE_NUVEM } from '../paradigmas.js';
 import { obterAnexo } from '../sync.js';
 import { DESC_APENDICE, DESC_ANEXO_DOC, LETRAS, tituloSugerido } from '../apendices.js';
 import { lerAnotacao, promptAnotacoes } from '../notas.js';
-import { lerJsonIA, aplicarIA, faseAvanca } from '../aiimport.js';
+import { lerJsonIA, aplicarIA, faseAvanca, promptRevisaoCampo } from '../aiimport.js';
+import { anexosDosAutos } from './ClaudeDireto.jsx';
+import { pendenciasDoCaso } from '../pendencias.js';
 import { BotoesFoto, Miniaturas } from './Fotos.jsx';
 import { Icone } from './Icone.jsx';
 import { confirmar, avisar } from './dialogo.jsx';
@@ -140,6 +142,8 @@ export function Campo({ rec }) {
       <section class="bloco largo">
         <TF rec={rec} k="vistoriaNotas" label="Anotações gerais da diligência" area rows={4} />
       </section>
+
+      <RevisaoDaColeta rec={rec} />
 
       <details class="bloco largo recolhido">
         <summary><b>No escritório</b> <small class="dica">relatórios dos medidores (apêndices), anexos do documento (ART, CNIS…) e importação das anotações</small></summary>
@@ -629,6 +633,39 @@ export function RelatoriosMedicao({ rec, desc = DESC_APENDICE, rotulo = 'Apêndi
 }
 
 // Perícia já feita e laudo por escrever: anotações do Google Keep, Word ou PDF -> instrução para o Claude -> JSON -> caso
+// Revisão da coleta pelo Claude, ainda em campo: o que falta coletar, perguntas, requisitos das medições,
+// inconsistências, quesitos sem elementos e fotos que faltam. A última revisão fica guardada no caso.
+function RevisaoDaColeta({ rec }) {
+  const [comAutos, setComAutos] = useState(true);
+  const [copiado, setCopiado] = useState('');
+  const instrucao = async () => promptRevisaoCampo(rec.id, await pendenciasDoCaso(rec.id).catch(() => []));
+  const copiar = async () => {
+    try { await navigator.clipboard.writeText(await instrucao()); setCopiado('✓ Instrução copiada com os dados do caso. Cole no Claude (anexe os autos e os relatórios dos medidores, se quiser).'); }
+    catch { setCopiado('Não foi possível copiar.'); }
+  };
+  const r = rec.data.revisaoCampo;
+  return (
+    <section class="bloco largo destaque">
+      <h3>Revisar a coleta com o Claude</h3>
+      <p class="dica">Antes de sair do local: o Claude confere o que foi registrado (cadastro, entrevista, postos, medições, fotos e as pendências do app) contra os autos e os quesitos, e diz o que ainda falta coletar, o que perguntar e o que conferir nas medições. Não redige o laudo nem conclui o enquadramento.</p>
+      <label class="check"><input type="checkbox" checked={comAutos} onChange={(e) => setComAutos(e.currentTarget.checked)} /> Enviar também os autos (reaproveitados do cache, quando já enviados)</label>
+      <div class="linha-botoes">
+        <BotaoClaudeDireto rotulo="Revisar a coleta" instrucao={instrucao} maxTokens={16000} permitirArquivos rotuloArquivos="Anexar relatórios dos medidores ou fotos (opcional)"
+          anexos={async () => (comAutos ? anexosDosAutos(rec.id) : [])}
+          onResposta={async (t) => { await updateFields(rec.id, { revisaoCampo: { texto: t, em: new Date().toISOString() } }); avisarAlteracao(); return 'Revisão guardada no caso (abaixo).'; }} />
+        <button type="button" class="sec" onClick={copiar}>Copiar instrução</button>
+      </div>
+      {copiado && <p class="ok-msg">{copiado}</p>}
+      {r?.texto && (
+        <details open>
+          <summary><b>Última revisão</b> <small class="dica">{new Date(r.em).toLocaleString('pt-BR')}</small></summary>
+          <pre class="transcricao-viva revisao-campo">{r.texto}</pre>
+        </details>
+      )}
+    </section>
+  );
+}
+
 function AnotacoesDiligencia({ rec }) {
   const [aberto, setAberto] = useState(false);
   const [textos, setTextos] = useState([]); // {nome, texto, aviso}

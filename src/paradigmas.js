@@ -382,6 +382,13 @@ export function citacaoDe(p) {
   return [base, perito && !base.toLowerCase().includes(perito.toLowerCase()) && `perito ${perito}`, nosAutos && `juntado aos autos (${nosAutos})`].filter(Boolean).join(' – ');
 }
 
+// Perícia judicial (perito do juízo): paradigma só com indicação do juízo (perícia por similaridade = Sim) ou
+// com as medições dos laudos juntados aos autos; extrajudicial e assistência técnica usam o banco normalmente
+export function paradigmasPermitidos(c = {}) {
+  const peritoJudicial = c.tipoAtuacao !== 'Extrajudicial' && (c.papel || 'Perito do Juízo') === 'Perito do Juízo';
+  return !peritoJudicial || c.similaridade === 'Sim' || !!c.somenteMedicoesAutos;
+}
+
 // medição de outro perito (laudo juntado aos autos), e não do signatário
 export const deTerceiro = (p) => !!String((p?.data || p || {}).peritoOrigem || '').trim();
 const soDigitos = (t) => String(t || '').replace(/\D/g, '');
@@ -469,6 +476,8 @@ export async function sugerirParaVinculo(r) {
   const caso = r.caseId ? await db.records.get(r.caseId) : null;
   const soAutos = !!caso?.data?.somenteMedicoesAutos;
   if (soAutos) ativos = ativos.filter((p) => doProcesso(p, caso.data.numero));
+  // perícia judicial sem indicação do juízo: nenhuma sugestão
+  if (caso && !paradigmasPermitidos(caso.data)) return { ruido: null, vibracao: null, criterio: '', familia: '', origemFamilia: '', bloqueado: true, ranking: { ruido: [], vibracao: [] } };
   const sim = melhorSimilar(sims.filter((y) => !y.deleted), x.veiculoMarca || '', x.veiculoModelo || '');
   const daTabela = new Set(sim ? [sim.data.paradigmaRuido, sim.data.paradigmaRuidoAlt, sim.data.paradigmaVibracao].filter(Boolean) : []);
   const veic = { familia, marca: x.veiculoMarca, modelo: x.veiculoModelo, ano: x.veiculoAno || String(x.inicio || '').slice(0, 4), tipo: x.veiculoTipo || tipoDoGrupo(x.grupoVeiculo), grupo: x.grupoVeiculo, cabine: x.cabine };

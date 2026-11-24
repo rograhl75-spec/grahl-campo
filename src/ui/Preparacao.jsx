@@ -10,7 +10,7 @@ import { TF, salvar } from './fields.jsx';
 import { RecordList } from './RecordList.jsx';
 import { useLive } from './hooks.js';
 import { Campos } from './fields.jsx';
-import { sugerirParaVinculo, paraResultadoBusca, fichaPesquisa, fichaPesquisaTexto, rotuloParadigma, PROMPT_LAUDOS_DOS_AUTOS, lerJsonVeiculos, adicionarParadigmas, doProcesso, citacaoDe } from '../paradigmas.js';
+import { sugerirParaVinculo, paraResultadoBusca, fichaPesquisa, fichaPesquisaTexto, rotuloParadigma, paradigmasPermitidos, PROMPT_LAUDOS_DOS_AUTOS, lerJsonVeiculos, adicionarParadigmas, doProcesso, citacaoDe } from '../paradigmas.js';
 import { familiaDoGrupo, tipoDoGrupo, CAMPOS_VEICULO_COPIAVEIS } from '../schema.js';
 import { CAMPOS_PENOSIDADE } from '../docx/penosidade.js';
 import { ResultadoBusca } from './Paradigmas.jsx';
@@ -285,7 +285,10 @@ export function VeiculoDoPeriodo({ r, abertoInicial }) {
   const tipoBusca = () => r.data.veiculoTipo || tipoDoGrupo(r.data.grupoVeiculo);
   // o grupo do veículo indica a família técnica do banco (ex.: cavalo antigo sem ar → F5); a família digitada prevalece
   // comparação por pontos com o banco (família provável pelo veículo, similares, modelo, marca, tipo, ar, época)
-  const buscar = async () => setRes(paraResultadoBusca(await sugerirParaVinculo({ caseId: r.caseId, data: { ...r.data, veiculoTipo: tipoBusca() } })));
+  const buscar = async () => {
+    const s = await sugerirParaVinculo({ caseId: r.caseId, data: { ...r.data, veiculoTipo: tipoBusca() } });
+    setRes(s.bloqueado ? { bloqueado: true } : paraResultadoBusca(s));
+  };
   const escolher = async (tipo, p) => {
     await updateFields(r.id, tipo === 'ruido' ? { paradigmaRuido: p.data.codigo } : { paradigmaVibracao: p.data.codigo });
     avisarAlteracao();
@@ -307,8 +310,9 @@ export function VeiculoDoPeriodo({ r, abertoInicial }) {
         <button type="button" onClick={buscar}>Sugerir paradigmas pelo banco</button>
         <CopiarDoVinculo r={r} />
       </div>
-      {res && <ResultadoBusca res={res} onEscolher={escolher} />}
-      {res && !res.ruido.length && !res.vibracao.length && <FichaPesquisa r={r} familia={res.familia || familiaDoGrupo(r.data.grupoVeiculo)} />}
+      {res?.bloqueado && <p class="dica">Perícia judicial sem indicação do juízo para similaridade: o app não sugere paradigmas. Para usar, marque "Perícia por similaridade" = Sim no cadastro do caso ou use as medições dos laudos juntados aos autos.</p>}
+      {res && !res.bloqueado && <ResultadoBusca res={res} onEscolher={escolher} />}
+      {res && !res.bloqueado && !res.ruido.length && !res.vibracao.length && <FichaPesquisa r={r} familia={res.familia || familiaDoGrupo(r.data.grupoVeiculo)} />}
       <details class="mt" open={!!(r.data.jornadaSemanal || r.data.penosidadeConclusao)}>
         <summary><b>Penosidade (motorista / cobrador – a partir de 29/04/1995)</b></summary>
         <p class="dica">Fatores concretos de desgaste, vínculo a vínculo. Até 28/04/1995 basta a categoria profissional; depois, a penosidade depende de perícia técnica individualizada. Os dados saem no quadro de penosidade do laudo, do parecer e do LTCAT.</p>
@@ -448,6 +452,13 @@ export function ParadigmasDosVinculos({ rec }) {
   };
   const rot = (x) => (x ? `${rotuloParadigma(x.p)} (${x.papel})` : '—');
   const soAutos = !!rec.data.somenteMedicoesAutos;
+  if (!paradigmasPermitidos(rec.data)) return (
+    <section class="bloco largo">
+      <h3>Paradigmas dos vínculos</h3>
+      <p class="dica">Perícia judicial: a avaliação é feita sem paradigmas. Eles só entram com indicação do juízo – marque "Perícia por similaridade" = Sim no cadastro do caso – ou com as medições dos laudos juntados aos autos (abaixo).</p>
+      <MedicoesDosAutos rec={rec} />
+    </section>
+  );
   return (
     <section class="bloco largo">
       <div class="linha-botoes entre"><h3>Paradigmas dos vínculos</h3>

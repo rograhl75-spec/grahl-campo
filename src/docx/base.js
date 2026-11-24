@@ -8,7 +8,7 @@ import { nen, num, fmt, fatorQ, doseJornada, horasDia, fmtHoras } from '../calc.
 import { ORIGEM_QUESITO, contextoLegal, ehSuplementar , reuEhInss, localVistoria, vistoriasDoCaso, datasDasVistorias, variasVistorias, semDocsEmpresa } from '../schema.js';
 import { tempoConducao } from './penosidade.js';
 import { Doc, p, run, rich, montarDocx, ordinalDia1, FONTES_EMBUTIDAS, M, semRevisao } from './ooxml.js';
-import { nenParaJornada, certificadoVencido, rotuloParadigma, citacaoDe, num as numP, vibracaoDoParadigma, semNotas } from '../paradigmas.js';
+import { nenParaJornada, certificadoVencido, rotuloParadigma, citacaoDe, num as numP, vibracaoDoParadigma, semNotas, deTerceiro, fonteDosParadigmas } from '../paradigmas.js';
 
 export const PERFIL_ID = 'perfil';
 
@@ -785,11 +785,22 @@ const per = (r) => `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim)
 export function usaParadigmas(dados) {
   return dados.periodos.some((r) => r.data.paradigmaRuido || r.data.paradigmaVibracao);
 }
+// de onde vêm os paradigmas vinculados: 'terceiros' (só laudos juntados aos autos), 'misto' ou 'signatario'
+export function origemParadigmas(dados) {
+  const u = paradigmasUsados(dados); const t = u.filter(deTerceiro).length;
+  return !u.length ? '' : t === u.length ? 'terceiros' : t ? 'misto' : 'signatario';
+}
 
 export function quadrosParadigmasMetodologia(d, dados) {
   if (!usaParadigmas(dados)) return false;
   const P = dados.paradigmas;
-  d.texto('A quantificação do ruído e da vibração usa medições realizadas pelo signatário em veículos com as mesmas características técnicas dos conduzidos pelo requerente (prova emprestada, art. 372 do CPC). A similaridade considera, nesta ordem: posição do motor, geração e isolamento da cabine, suspensão da cabine e do assento, configuração do veículo e tipo de via predominante.');
+  const todosUsados = paradigmasUsados(dados);
+  const terceiros = todosUsados.filter(deTerceiro);
+  const peritos = [...new Set(terceiros.map((p) => String(p.data.peritoOrigem).trim()))];
+  const listaPeritos = peritos.length > 1 ? `${peritos.slice(0, -1).join(', ')} e ${peritos.at(-1)}` : peritos[0];
+  if (terceiros.length && terceiros.length === todosUsados.length) d.texto(`A quantificação do ruído e da vibração usa exclusivamente as medições constantes dos laudos periciais juntados aos autos (prova emprestada, art. 372 do CPC), elaborados ${peritos.length > 1 ? 'pelos peritos' : 'pelo perito'} ${listaPeritos} em outros processos, em veículos com características técnicas semelhantes às dos conduzidos pelo requerente. A similaridade considera, nesta ordem: posição do motor, geração e isolamento da cabine, suspensão da cabine e do assento, configuração do veículo e tipo de via predominante. Os valores e as condições de medição são os registrados nos laudos de origem; o que eles não informam consta como não informado.`);
+  else if (terceiros.length) d.texto(`A quantificação do ruído e da vibração usa medições realizadas pelo signatário e medições constantes dos laudos periciais juntados aos autos, elaborados ${peritos.length > 1 ? 'pelos peritos' : 'pelo perito'} ${listaPeritos} (prova emprestada, art. 372 do CPC), em veículos com as mesmas características técnicas dos conduzidos pelo requerente. A similaridade considera, nesta ordem: posição do motor, geração e isolamento da cabine, suspensão da cabine e do assento, configuração do veículo e tipo de via predominante.`);
+  else d.texto('A quantificação do ruído e da vibração usa medições realizadas pelo signatário em veículos com as mesmas características técnicas dos conduzidos pelo requerente (prova emprestada, art. 372 do CPC). A similaridade considera, nesta ordem: posição do motor, geração e isolamento da cabine, suspensão da cabine e do assento, configuração do veículo e tipo de via predominante.');
   d.quadro('Veículos do requerente e paradigmas de medição', [['Vínculo', 'Veículo do requerente', 'Família', 'Veículo efetivamente medido', 'Fonte (processo e data)', 'Jornada (h)'],
     ...dados.periodos.map((r, i) => {
       const pr = P.get(r.data.paradigmaRuido), pv = P.get(r.data.paradigmaVibracao);
@@ -800,7 +811,7 @@ export function quadrosParadigmasMetodologia(d, dados) {
       const fontes = [...new Set([pr, pv].filter(Boolean).map((x) => citacaoDe(x)))].join('\n');
       return [vinculoNome(r, i), [r.data.veiculoMarca, r.data.veiculoModelo, r.data.veiculoAno].filter(Boolean).join(' ') || r.data.grupoVeiculo || (soCategoria ? '—' : '[[veículo]]'),
         (pr || pv) ? `${(pr || pv).data.familia}` : '', medido, fontes, (pr || pv) ? `${(pr || pv).data.jornadaLaudo || '?'} h` : ''];
-    })], { larguras: [0.15, 0.17, 0.1, 0.22, 0.26, 0.1], tam: 8.5, alinhar: 'left', semRevisao: true, fonte: 'Banco de paradigmas do signatário.' });
+    })], { larguras: [0.15, 0.17, 0.1, 0.22, 0.26, 0.1], tam: 8.5, alinhar: 'left', semRevisao: true, fonte: fonteDosParadigmas(todosUsados) });
   // equações em notação matemática do Word (Office Math), não em texto
   const T8 = M.frac(M.t('T'), M.n('8'));
   d.quadro('Equações de normalização pela jornada', [['Grandeza', 'Equação'],
@@ -821,7 +832,7 @@ export function quadrosParadigmasMetodologia(d, dados) {
         if (x.ruidoEquip) partes.push(`${x.ruidoEquip}${x.ruidoSerie ? `, SN ${x.ruidoSerie}` : ''}${x.ruidoCert ? `, certificado ${x.ruidoCert}` : ''}${x.ruidoCertData ? ` (${x.ruidoCertData})` : ''}${certificadoVencido(x.ruidoCertData, x.dataMedicao, dados.regraCertMeses) ? ` [[VERIFICAR: certificado com mais de ${dados.regraCertMeses} meses na data da medição]]` : ''}`);
         if (x.calibEquip) partes.push(`${/^calibrador/i.test(x.calibEquip) ? '' : 'calibrador '}${x.calibEquip}${x.calibSerie ? `, SN ${x.calibSerie}` : ''}${x.calibCertData ? ` (${x.calibCertData})` : ''}`);
         if (x.vibEquip) partes.push(`${x.vibEquip}${x.vibSerie ? `, série ${x.vibSerie}` : ''}${x.vibCertData ? ` (calibrado em ${x.vibCertData})` : ''}${certificadoVencido(x.vibCertData, x.dataMedicao, dados.regraCertMeses) ? ` [[VERIFICAR: certificado com mais de ${dados.regraCertMeses} meses]]` : ''}`);
-        return [rotuloParadigma(p), citacaoDe(p) || '', partes.join('; ') || '[[instrumentação]]'];
+        return [rotuloParadigma(p), citacaoDe(p) || '', partes.join('; ') || (deTerceiro(p) ? 'não informada no laudo de origem' : '[[instrumentação]]')];
       })], { larguras: [0.22, 0.28, 0.5], tam: 8.5, alinhar: 'left', semRevisao: true, fonte: 'Relatórios de medição dos laudos de origem.' });
   }
   return true;
@@ -1113,7 +1124,7 @@ export function fichaParadigma(d, p, dados) {
   ].filter(([, v]) => String(v || '').trim());
   return d.quadro(`Ficha do paradigma ${rotuloParadigma(p)}`, [['Item', 'Registro'], ...linhas],
     { larguras: [0.26, 0.74], tam: 9, alinhar: 'left', semRevisao: true,
-      fonte: 'Banco de paradigmas do signatário. Valores normalizados (NEN, aren, VDVR) referem-se à jornada do laudo de origem; a aplicação a este caso está na memória de cálculo.' });
+      fonte: `${deTerceiro(p) ? 'Laudo pericial juntado aos autos (prova emprestada)' : 'Banco de paradigmas do signatário'}. Valores normalizados (NEN, aren, VDVR) referem-se à jornada do laudo de origem; a aplicação a este caso está na memória de cálculo.` });
 }
 
 // "Integram o presente laudo o Anexo I – ... e os Apêndices A a C – ..."
@@ -1155,7 +1166,9 @@ export function inserirApendices(d, apendices, dados) {
   for (const a of apendices) {
     d.h1('', `Apêndice ${a.letra} – ${a.titulo}`);
     if (a.fichas) {
-      d.texto('Dados das medições usadas como paradigma neste documento, como registrados no banco do signatário. Os relatórios de medição originais, quando disponíveis, seguem nos apêndices seguintes.');
+      const nTerc = a.fichas.filter(deTerceiro).length;
+      const origem = nTerc === a.fichas.length ? 'como constam dos laudos periciais juntados aos autos' : nTerc ? 'como registrados no banco do signatário ou nos laudos periciais juntados aos autos' : 'como registrados no banco do signatário';
+      d.texto(`Dados das medições usadas como paradigma neste documento, ${origem}. Os relatórios de medição originais, quando disponíveis, seguem nos apêndices seguintes.`);
       for (const p of a.fichas) fichaParadigma(d, p, dados);
     } else d.paginasInteiras(a.paginas, { nota: `Apêndice ${a.letra}` });
   }

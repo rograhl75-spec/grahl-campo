@@ -8,7 +8,7 @@
 import JSZip from 'jszip';
 import { carregar } from './docx/base.js';
 import { vinculosMotorista, tempoConducao, jornadaDia, matrizIAC } from './docx/penosidade.js';
-import { sugerirParaVinculo } from './paradigmas.js';
+import { sugerirParaVinculo, paradigmasPermitidos } from './paradigmas.js';
 import { fmtHoras, horasDia, horasForaTexto } from './calc.js';
 import { contextoLegal, ehParecerTecnico, EMITENTE_PPP, CATEGORIAS_SEGURADO, RESULTADO_AGENTE, MODALIDADE_AVALIACAO, AUTORIA_FOTOS } from './schema.js';
 import { categoriaDoVinculo } from './enquadramento.js';
@@ -71,7 +71,7 @@ export async function pendenciasDoCaso(caseId) {
         titulo: 'Tempo diário de condução (h)', explicacao: isFinite(tc.J) ? `Jornada identificada: ${fmtHoras(tc.J)}. Informe as horas de direção ou preencha a regra do caso acima.` : 'A jornada deste vínculo não foi identificada na entrevista: informe as horas de direção por dia.' });
     }
     const pos1995 = !r.data.fim || r.data.fim > '1995-04-28';
-    if (pos1995 && (!r.data.paradigmaRuido || !r.data.paradigmaVibracao)) {
+    if (pos1995 && paradigmasPermitidos(c) && (!r.data.paradigmaRuido || !r.data.paradigmaVibracao)) {
       let s = null;
       try { s = await sugerirParaVinculo(r); } catch { s = null; }
       for (const [campo, rot, cand] of [['paradigmaRuido', 'ruído', s?.ruido], ['paradigmaVibracao', 'vibração', s?.vibracao]]) {

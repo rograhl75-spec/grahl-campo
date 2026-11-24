@@ -5,6 +5,7 @@
 // ======================================================================
 import { Doc, carregar, finalizar, capaTecnica, blocoAssinatura, partes, enderecamentoTexto, linhasProcesso, figurasDoCaso, apendicesDoCaso, anexosDoCaso, textoIntegram, inserirAnexos, inserirApendices, dataPorExtenso } from './base.js';
 import { datasDasVistorias } from '../schema.js';
+import { semRevisao } from './ooxml.js';
 
 export const CONVENCOES_CLAUDE = `FORMATO DA RESPOSTA (o app monta o Word no meu papel timbrado, com capa, sumário, numeração de quadros e figuras e assinatura; não faça capa, sumário nem assinatura):
 - Comece com as linhas "Título: ..." e "Subtítulo: ..." (o subtítulo é opcional).
@@ -77,12 +78,23 @@ export function semPartesDoApp(md) {
   return out.join('\n').replace(/\[\[\s*data de emiss[ãa]o\s*\]\]/gi, dataPorExtenso(hojeIso()));
 }
 
+// Corretor do Word: título de norma em inglês ("ISO 2631-1:1997 – Mechanical vibration…") sai como inglês;
+// siglas, marcas e nomes próprios no meio da frase (Teslab, DoseMax, Jardelino) saem sem revisão ortográfica
+const RE_NORMA_EN = /((?:ISO|IEC|ANSI|ACGIH|NIOSH|OSHA)[\w /-]*?\d[\d.-]*(?::\d{4})?\s*[–—-]\s*)([A-Z][A-Za-z0-9 ,'’()/:–—-]*?\b(?:and|of|to|the|for)\b[A-Za-z0-9 ,'’()/:–—-]*?)(?=\.\s|\.$|;|$)/g;
+export const inglesDasNormas = (s) => String(s).replace(RE_NORMA_EN, (m, a, b) => (/\{\{/.test(m) ? m : `${a}{{en:${b.trim()}}}`));
+export function nomesSemRevisao(md) {
+  const t = String(md || '').replace(/\$[^$\n]*\$/g, ' ');
+  const siglas = t.match(/(?<![\p{L}])[\p{Lu}][\p{L}]*[\p{Lu}][\p{L}\d]*(?![\p{L}])/gu) || []; // NEN, DoseMax, CalPro, CRLV
+  const meio = [...t.matchAll(/[\p{Ll},;:)\d]\s+(\p{Lu}[\p{Ll}]{2,})(?![\p{L}])/gu)].map((m) => m[1]); // nome próprio no meio da frase
+  semRevisao([...siglas, ...meio]);
+}
+
 // Converte o Markdown do Claude e devolve { titulo, subtitulo }; o corpo vai para d
 export function markdownParaDoc(md, d) {
   const L = String(md || '').replace(/\r\n?/g, '\n').split('\n');
   let titulo = '', subtitulo = '';
   let par = [];
-  const soltaPar = () => { if (par.length) { d.texto(formulasDoTexto(par.join(' '))); par = []; } };
+  const soltaPar = () => { if (par.length) { d.texto(inglesDasNormas(formulasDoTexto(par.join(' ')))); par = []; } };
   for (let i = 0; i < L.length; i++) {
     const l = L[i];
     const t = l.trim();
@@ -140,7 +152,7 @@ export function markdownParaDoc(md, d) {
       i = j - 1;
       continue;
     }
-    if (/^[-•*]\s+/.test(t) || /^[a-z]\)\s+/i.test(t)) { soltaPar(); d.texto(formulasDoTexto(t.replace(/^\*\s+/, '- '))); continue; }
+    if (/^[-•*]\s+/.test(t) || /^[a-z]\)\s+/i.test(t)) { soltaPar(); d.texto(inglesDasNormas(formulasDoTexto(t.replace(/^\*\s+/, '- ')))); continue; }
     if (/^(---|\*\*\*)$/.test(t)) { soltaPar(); continue; }
     par.push(t);
   }
@@ -154,6 +166,7 @@ export async function documentoDoClaude(caseId, md) {
   const { c, perfil } = dados;
   const pt = partes(c);
   const corpo = new Doc();
+  nomesSemRevisao(md);
   const { titulo, subtitulo } = markdownParaDoc(semPartesDoApp(md), corpo);
   const d = new Doc();
   const extra = c.tipoAtuacao === 'Extrajudicial';

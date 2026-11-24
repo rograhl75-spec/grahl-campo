@@ -118,3 +118,17 @@ Foto 1 – Legenda escrita pelo Claude.
     expect(Object.keys(zip.files).some((k) => k.startsWith('word/media/'))).toBe(true);
   });
 });
+
+describe('corretor ortográfico no Word do Claude', () => {
+  it('título de norma em inglês marcado como inglês', async () => {
+    const { inglesDasNormas } = await import('../src/docx/claudeDoc.js');
+    expect(inglesDasNormas('ISO 2631-1:1997 – Mechanical vibration and shock – Evaluation of human exposure to whole-body vibration – Part 1: General requirements.'))
+      .toBe('ISO 2631-1:1997 – {{en:Mechanical vibration and shock – Evaluation of human exposure to whole-body vibration – Part 1: General requirements}}.');
+    expect(inglesDasNormas('Conforme a ISO 2631-1, o aren foi medido.')).toBe('Conforme a ISO 2631-1, o aren foi medido.');
+  });
+  it('marcas e nomes no meio da frase saem sem revisão', async () => {
+    const r = await documentoDoClaude('cd1', 'Título: Laudo técnico pericial\n\n# 1 Instrumentos\nO dosímetro DoseMax foi calibrado pela Teslab e o medidor AxPro também.\n');
+    const xml = await (await JSZip.loadAsync(await r.blob.arrayBuffer())).file('word/document.xml').async('string');
+    for (const w of ['DoseMax', 'Teslab', 'AxPro']) expect(xml).toMatch(new RegExp(`<w:noProof/>.{0,300}>${w}<`));
+  });
+});

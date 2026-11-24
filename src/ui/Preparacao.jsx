@@ -309,6 +309,14 @@ export function VeiculoDoPeriodo({ r, abertoInicial }) {
     <div class="bloco destaque mt-p">
       <h4>Veículo do requerente neste período</h4>
       <div class="linha2"><Campos rec={r} campos={CAMPOS_VEICULO_PERIODO} /></div>
+      <details class="opcoes-caso" open={!!r.data.soPenosidadeDesde}>
+        <summary>Trocou de veículo no vínculo, por outro sem similar medido?{r.data.soPenosidadeDesde ? ` – a partir de ${dataBR(r.data.soPenosidadeDesde)}, somente penosidade` : ''}</summary>
+        <p class="dica">O posto medido representa o vínculo até a véspera desta data; dali em diante, o laudo não avalia ruído nem vibração (sem pendência) e conclui só pela penosidade.</p>
+        <div class="linha2">
+          <TF rec={r} k="soPenosidadeDesde" label="A partir de (data da troca)" type="date" />
+          <TF rec={r} k="veiculoDepois" label="Veículo depois da troca (ex.: Volvo FH 460, câmbio automático, com ar-condicionado)" />
+        </div>
+      </details>
       {String(r.data.conducaoH || '').trim() && (isFinite(horasDia(r.data.conducaoH))
         ? <small class="dica">Tempo de condução usado nos cálculos: <b>{fmtHoras(horasDia(r.data.conducaoH))}/dia</b>.</small>
         : <small class="erro-msg">"{r.data.conducaoH}" não é um número de horas: os cálculos ficam pendentes. Escreva, por exemplo, 10, 8,5 ou 8h30.</small>)}

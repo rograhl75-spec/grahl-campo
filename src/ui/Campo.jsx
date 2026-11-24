@@ -92,6 +92,7 @@ export function Campo({ rec }) {
           {aberto === p.id && (
             <div class="item-corpo">
               <CamposCompactos rec={p} campos={CAMPOS_POSTO} sempre={['nome', 'descricao', 'agentes']} />
+              <PadraoMotorista p={p} />
               <VinculosDoPosto rec={p} caseId={rec.id} />
               <Medicoes caseId={rec.id} postoId={p.id} ctx={contextoLegal(rec.data)} caso={rec} />
               <div class="campo">
@@ -154,6 +155,20 @@ export function Campo({ rec }) {
 
 // Assistente técnico: o que verificar no trabalho do perito, por item, com a constatação e a observação
 // para a manifestação. Sai preenchido no "Relatório de acompanhamento da diligência".
+
+// Posto de motorista: fontes geradoras e via/periodicidade são sempre as mesmas – texto padrão com um toque
+const RE_POSTO_MOTORISTA = /motorista|caminh|carreteir|carreta|bitrem|scania|volvo|mercedes|ônibus|onibus|cabine/i;
+const PADRAO_MOTORISTA = {
+  fontes: 'Motor, transmissão e rodagem do veículo (ruído no interior da cabine) e irregularidades da via transmitidas pelo assento e pelo piso da cabine (vibração de corpo inteiro) – posto do motorista, na cabine.',
+  viaPeriodicidade: 'Ruído: via auditiva. Vibração: corpo inteiro, transmitida pelo assento. Exposição habitual e permanente durante a condução, em toda a jornada de direção.',
+};
+function PadraoMotorista({ p }) {
+  const vazios = Object.keys(PADRAO_MOTORISTA).filter((k) => !String(p.data[k] || '').trim());
+  if (!vazios.length || !RE_POSTO_MOTORISTA.test(`${p.data.nome || ''} ${p.data.descricao || ''}`)) return null;
+  const preencher = async () => { await updateFields(p.id, Object.fromEntries(vazios.map((k) => [k, PADRAO_MOTORISTA[k]]))); avisarAlteracao(); };
+  return <div class="linha-botoes"><button type="button" class="mini sec" onClick={preencher}>Preencher fontes geradoras e via/periodicidade (texto padrão de motorista)</button>
+    <small class="dica">Os demais campos vazios (empresa/acompanhante, EPC, EPI) são opcionais: vazios, não saem no laudo nem viram pendência.</small></div>;
+}
 
 // Medições sem posto: só aparecem quando existem; senão, um botão abre o quadro
 function MedicoesSemPosto({ rec }) {

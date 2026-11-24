@@ -119,7 +119,9 @@ export function avaliarPeriodos(dados) {
     // afastamentos por benefício que não contam como tempo especial saem dos subperíodos
     const temRuido = isFinite(val.lavg) || !!r.data.paradigmaRuido || motorista || tratorista;
     const temVib = isFinite(val.aren) || !!r.data.paradigmaVibracao || motorista || tratorista;
-    const cortes = [...new Set([...CORTES.filter((c) => (c !== '2003-11-18' || temRuido) && (c !== '2014-08-13' || temVib)), ...cortesDosAgentes(agentes, idx)])].sort();
+    // troca por veículo sem similar medido: a partir da data, só a penosidade (o posto não representa esse trecho)
+    const soPen = /^\d{4}-\d{2}-\d{2}$/.test(r.data.soPenosidadeDesde || '') && r.data.soPenosidadeDesde > (r.data.inicio || '') ? r.data.soPenosidadeDesde : '';
+    const cortes = [...new Set([...CORTES.filter((c) => (c !== '2003-11-18' || temRuido) && (c !== '2014-08-13' || temVib)), ...cortesDosAgentes(agentes, idx), ...(soPen ? [dia(soPen, -1)] : [])])].sort();
     const { segs: partes, excluidos } = recortarAfastamentos(segmentos(r, cortes), lerAfastamentos(r.data.afastamentos));
     const segs = partes.map(([a, b]) => {
       const itens = []; let algum = false; let dadosOk = false;
@@ -134,7 +136,11 @@ export function avaliarPeriodos(dados) {
         else itens.push({ t: 'Categoria profissional de motorista – enquadramento por presunção', cod: '2.4.4 (Dec. 53.831/64) / 2.4.2 (Dec. 83.080/79)', sup: true, categoria: true });
         algum = true; dadosOk = true;
       }
-      if (isFinite(val.lavg)) {
+      if (soPen && a >= soPen) {
+        // trecho com o veículo sem similar: ruído e vibração não avaliados; a penosidade segue a matriz do vínculo
+        dadosOk = true;
+        itens.push({ t: 'Ruído e VCI: não avaliados – veículo sem similar medido (somente penosidade)', cod: '', sup: false });
+      } else if (isFinite(val.lavg)) {
         dadosOk = true;
         const [crit, lim, cod] = b <= '1997-03-05' ? ['Lavg', 80, '1.1.6'] : b <= '2003-11-18' ? ['Lavg', 90, '2.0.1'] : ['NEN', 85, '2.0.1'];
         const x = crit === 'Lavg' ? val.lavg : val.nen;
@@ -149,11 +155,11 @@ export function avaliarPeriodos(dados) {
           if (sup) algum = true;
         }
       }
-      if (!isFinite(val.aren) && val.semT && r.data.paradigmaVibracao && b > '1997-03-05') {
+      if (!isFinite(val.aren) && val.semT && r.data.paradigmaVibracao && b > '1997-03-05' && !(soPen && a >= soPen)) {
         dadosOk = true;
         itens.push({ t: 'VCI: [[informe o tempo diário de condução do vínculo para normalizar a vibração do paradigma]]', cod: '2.0.2', sup: false, pendente: true });
       }
-      if (isFinite(val.aren)) {
+      if (isFinite(val.aren) && !(soPen && a >= soPen)) {
         dadosOk = true;
         const vdv = isFinite(val.vdv) ? `; VDVR ${fmt(val.vdv, 2)}` : '';
         if (b <= '1997-03-05') itens.push({ t: `VCI: aren ${fmt(val.aren, 2)} m/s²${vdv} – cód. 1.1.5 (Dec. 53.831/64) e 1.1.4 (Dec. 83.080/79): perfuratrizes e marteletes pneumáticos`, cod: '1.1.5', sup: false });

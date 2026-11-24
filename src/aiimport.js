@@ -693,7 +693,7 @@ export async function textoDoCaso(caseId) {
       }
     }
   }
-  const comPar = periodos.filter((p) => p.data.paradigmaRuido || p.data.paradigmaVibracao || p.data.veiculoModelo);
+  const comPar = periodos.filter((p) => p.data.paradigmaRuido || p.data.paradigmaVibracao || p.data.veiculoModelo || p.data.soPenosidadeDesde);
   if (comPar.length) {
     const pars = new Map((await db.records.where('kind').equals('paradigma').toArray()).filter((r) => !r.deleted).map((r) => [r.data.codigo, r.data]));
     const caso = await db.records.get(caseId);
@@ -701,7 +701,7 @@ export async function textoDoCaso(caseId) {
     L.push('Normalização: NEN = Lavg + 16,61·log(T/8); aren(T) = arep·√(T/8); VDVR(T) = VDVR·(T/Tlaudo)^0,25. Até 18/11/2003 compara-se o Lavg; depois, o NEN para a jornada efetiva. Fonte extrajudicial é citada sem nome do segurado.');
     comPar.forEach((p) => {
       const x = p.data;
-      L.push(`- ${x.empresa || ''} (${x.inicio || '?'} a ${x.fim || 'atual'}): veículo ${[x.veiculoTipo, x.veiculoMarca, x.veiculoModelo, x.veiculoAno].filter(Boolean).join(' ') || '?'}; condução ${x.conducaoH || '?'} h (${x.conducaoBase || 'base não informada'})`);
+      L.push(`- ${x.empresa || ''} (${x.inicio || '?'} a ${x.fim || 'atual'}): veículo ${[x.veiculoTipo, x.veiculoMarca, x.veiculoModelo, x.veiculoAno].filter(Boolean).join(' ') || '?'}; condução ${x.conducaoH || '?'} h (${x.conducaoBase || 'base não informada'})${x.soPenosidadeDesde ? `; A PARTIR DE ${x.soPenosidadeDesde}: ${x.veiculoDepois || 'outro veículo'}, sem similar medido – ruído e vibração NÃO avaliados nesse trecho (sem pendência), somente a penosidade` : ''}`);
       for (const [rot, cod] of [['ruído', x.paradigmaRuido], ['vibração', x.paradigmaVibracao]]) {
         if (!cod) continue;
         const q = pars.get(cod);

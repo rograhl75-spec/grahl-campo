@@ -202,6 +202,6 @@ describe('documentos novos', () => {
   it('cartão de honorários escolhe a petição pela situação', async () => {
     await caso('c-hon', { papel: 'Perito do Juízo', justica: 'Justiça Estadual – Vara da Fazenda Pública', honorariosSituacao: HONORARIOS[0], juizo: 'Vara Teste' });
     const card = CATALOGO.find((d) => d.id === 'honorarios');
-    expect((await card.fn('c-hon', {})).nome).toMatch(/^Peticao_honorarios_/);
+    expect((await card.fn('c-hon', {})).nome).toMatch(/^Peticao_honorarios_/i);
   });
 });

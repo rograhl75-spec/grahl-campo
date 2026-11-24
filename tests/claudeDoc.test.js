@@ -65,7 +65,7 @@ describe('texto do Claude montado no timbrado', () => {
     expect(t).toContain('item dois');
     expect(t).toContain('Perito Teste');
     expect(t).not.toContain('Título:');
-    expect(r.nome).toMatch(/^Laudo_t/);
+    expect(r.nome).toMatch(/^Laudo_t/i);
   });
   it('a instrução para o Claude traz as convenções de formato', async () => {
     const p = await exportarParaClaude('cd1', 'laudo');

@@ -126,15 +126,28 @@ export async function promptRelatoriosMedicao(caso) {
 - Vibração de corpo inteiro: "aren" = AREN do relatório (aceleração resultante de exposição normalizada; se só houver AREP, use-o), "vdv" = VDVR do relatório (pode aparecer como "VDVR", "VDV R", "VDVexp resultante" ou "VDV da exposição"; se só houver VDV por eixo, use o do eixo dominante) – NUNCA deixe "vdv" vazio se o relatório trouxer qualquer um desses valores. "eixo" dominante, "tempoAmostragem", "tempoExposicao" (a jornada configurada no relatório, ex.: "12:00:00"), "veiculo" (se constar), "dataMedicao", "horaInicio", "horaFim" e "equipamento".
 - Em cada medição, "relatorio" = o nome do arquivo de onde ela saiu (como na lista de anexos).
 - Em "obs", só o que for útil ao laudo (outros resultados por eixo, classificação do aparelho). Não escreva dúvidas nem "pontos a verificar" na medição.
-- DISCREPÂNCIAS: compare cada relatório com os dados da vistoria abaixo (data, horários, jornada ou tempo de condução, veículo, série do equipamento) e liste em "alertas" (lista de frases curtas, fora de "postos") o que não bate e precisa de correção – ex.: "Relatório de vibração: jornada configurada 15 h; na vistoria, 12 h de condução – refaça o relatório com 12 h"; "Data no cabeçalho 29/09/2025 × medição e vistoria em 29/09/2026". Sem discrepância, "alertas": [].
+- DISCREPÂNCIAS: compare cada relatório com os dados da vistoria abaixo e liste em "alertas" (lista de frases curtas, fora de "postos") só o que não bate e precisa de correção:
+  • data da medição diferente da data da vistoria (ex.: "Data no cabeçalho 29/09/2025 × medição e vistoria em 29/09/2026");
+  • jornada / tempo de exposição configurado no relatório diferente do TEMPO DE CONDUÇÃO informado abaixo (ex.: "Relatório de vibração: 15 h configuradas; tempo de condução do caso: 12 h – refaça o relatório com 12 h");
+  • número de série do relatório diferente do equipamento cadastrado.
+  NÃO são discrepâncias (não alerte): horários da diligência × horários das medições (a diligência inclui a entrevista e outras etapas e dura mais que as medições); diferença de minutos entre a "data da avaliação" do cabeçalho e o início da medição; certificado de calibração ausente no relatório (vale o certificado cadastrado, lista abaixo); calibração com até 24 meses na data da medição (critério do signatário; o fabricante recomenda 12 meses); ausência de aferição inicial e final do dosímetro. Sem discrepância, "alertas": [].
 - Calor: "tbn", "tbs", "tg" e "ibutgLido".
 - Um item de medição por resultado (cada arquivo de relatório costuma ser uma medição). O certificado de calibração não é medição: o número e a data dele vão em "equipamento".
 - POSTO: use o nome de um posto já cadastrado (lista abaixo) quando a medição for dele; havendo um só posto, use-o. Sem posto cadastrado, crie um com o veículo ou setor medido (ex.: "Motorista – Scania R124 2008").
 - Preencha só "postos" (com as "medicoes") e, se constar, "diligencia.vistoriaData". Não preencha vínculos, quesitos nem agentes.`);
   if (postos.length) L.push(`POSTOS / VEÍCULOS JÁ CADASTRADOS:\n${postos.map((p) => `- ${p.data.nome || ''}${p.data.descricao ? ` – ${p.data.descricao}` : ''}${p.data.jornada ? ` (jornada: ${p.data.jornada})` : ''}`).join('\n')}`);
-  if (periodos.length) L.push(`VÍNCULOS DO CASO (para referência): ${periodos.map((r) => `${r.data.empresa || ''} (${r.data.inicio || ''} a ${r.data.fim || 'atual'}${r.data.conducaoH ? `; condução ${r.data.conducaoH} h/dia` : ''})`).join('; ')}`);
+  if (periodos.length) {
+    const { carregar } = await import('./docx/base.js');
+    const { tempoConducao } = await import('./docx/penosidade.js');
+    const dados = await carregar(caso.id);
+    L.push(`VÍNCULOS DO CASO E TEMPO DE CONDUÇÃO ADOTADO: ${dados.periodos.map((r) => { const t = tempoConducao(r, dados); return `${r.data.empresa || ''} (${r.data.inicio || ''} a ${r.data.fim || 'atual'}${isFinite(t.T) ? `; condução ${String(t.T).replace('.', ',')} h/dia${t.base ? ` – ${t.base}` : ''}` : ''})`; }).join('; ')}`);
+  }
   const vs = vistoriasDoCaso(c).filter((x) => x.data);
   L.push(`DADOS DA VISTORIA (para conferir os relatórios): ${vs.length ? vs.map((x) => `${x.rotulo} em ${x.data}${x.inicio ? `, das ${x.inicio}${x.fim ? ` às ${x.fim}` : ''}` : ''}${x.local ? `, ${x.local}` : ''}`).join('; ') : 'sem data cadastrada'}${c.foraDirecaoH ? `; horas fora da direção por dia: ${c.foraDirecaoH}` : ''}${c.conducaoPadrao ? `; condução padrão: ${c.conducaoPadrao} h/dia` : ''}.`);
+  // equipamentos cadastrados (com certificado): o relatório sem certificado usa estes
+  const { db } = await import('./db.js');
+  const equips = (await db.records.where('kind').equals('equip').toArray()).filter((e) => !e.deleted);
+  if (equips.length) L.push(`EQUIPAMENTOS CADASTRADOS (valem os certificados daqui): ${equips.map((e) => `${e.data.nome} ${e.data.modelo || ''}, série ${e.data.serie || '?'}, certificado ${e.data.certificado || '?'} de ${e.data.dataCalibracao || '?'}`).join('; ')}`);
   L.push(FORMATO_DILIGENCIA);
   L.push('Acrescente ao JSON, no nível de cima, "alertas": [] com as discrepâncias encontradas.');
   return L.join('\n\n');

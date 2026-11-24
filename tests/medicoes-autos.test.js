@@ -38,12 +38,15 @@ describe('somente as medições dos laudos juntados aos autos', () => {
     const bloq = await sugerirParaVinculo(await db.records.get('va'));
     expect(bloq.bloqueado).toBe(true);
     expect(bloq.ruido).toBe(null);
-    // juízo indicou a similaridade: o banco todo
+    // perícia por similaridade (empresa paradigma) não libera o banco
     await db.records.update('ca', { 'data.similaridade': 'Sim' });
+    expect((await sugerirParaVinculo(await db.records.get('va'))).bloqueado).toBe(true);
+    // juízo indicou medições anteriores: o banco todo
+    await db.records.update('ca', { 'data.usarBancoParadigmas': true });
     const antes = await sugerirParaVinculo(await db.records.get('va'));
     expect(antes.ruido.p.data.marca).toBe('Alfa');
 
-    await db.records.update('ca', { 'data.similaridade': 'Não', 'data.somenteMedicoesAutos': true });
+    await db.records.update('ca', { 'data.usarBancoParadigmas': false, 'data.somenteMedicoesAutos': true });
     const s = await sugerirParaVinculo(await db.records.get('va'));
     expect(s.ruido.p.data.codigo).toBe(cod);
     expect(s.criterio).toContain('somente medições dos laudos juntados aos autos');

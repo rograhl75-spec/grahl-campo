@@ -310,7 +310,7 @@ export function VeiculoDoPeriodo({ r, abertoInicial }) {
         <button type="button" onClick={buscar}>Sugerir paradigmas pelo banco</button>
         <CopiarDoVinculo r={r} />
       </div>
-      {res?.bloqueado && <p class="dica">Perícia judicial sem indicação do juízo para similaridade: o app não sugere paradigmas. Para usar, marque "Perícia por similaridade" = Sim no cadastro do caso ou use as medições dos laudos juntados aos autos.</p>}
+      {res?.bloqueado && <p class="dica">Perícia judicial: o app não sugere paradigmas do banco. Para usar, marque em "Paradigmas dos vínculos" que o juízo indicou o uso de medições anteriores, ou use as medições dos laudos juntados aos autos.</p>}
       {res && !res.bloqueado && <ResultadoBusca res={res} onEscolher={escolher} />}
       {res && !res.bloqueado && !res.ruido.length && !res.vibracao.length && <FichaPesquisa r={r} familia={res.familia || familiaDoGrupo(r.data.grupoVeiculo)} />}
       <details class="mt" open={!!(r.data.jornadaSemanal || r.data.penosidadeConclusao)}>
@@ -455,7 +455,8 @@ export function ParadigmasDosVinculos({ rec }) {
   if (!paradigmasPermitidos(rec.data)) return (
     <section class="bloco largo">
       <h3>Paradigmas dos vínculos</h3>
-      <p class="dica">Perícia judicial: a avaliação é feita sem paradigmas. Eles só entram com indicação do juízo – marque "Perícia por similaridade" = Sim no cadastro do caso – ou com as medições dos laudos juntados aos autos (abaixo).</p>
+      <p class="dica">Perícia judicial: a avaliação usa as suas medições (inclusive em empresa paradigma, na perícia por similaridade), sem o banco de paradigmas. O banco só entra se o juízo indicar o uso de medições anteriores; as medições dos laudos juntados aos autos ficam abaixo.</p>
+      <label class="check"><input type="checkbox" checked={!!rec.data.usarBancoParadigmas} onChange={async (e) => { await updateFields(rec.id, { usarBancoParadigmas: e.currentTarget.checked }); avisarAlteracao(); }} /> O juízo indicou o uso de medições anteriores (banco de paradigmas do signatário)</label>
       <MedicoesDosAutos rec={rec} />
     </section>
   );

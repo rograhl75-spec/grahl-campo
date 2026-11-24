@@ -149,7 +149,7 @@ export async function gerarRegistroDiligencia(caseId) {
   sec('Dados da diligência');
   quadroDiligencia(d, c);
   sec('Equipamentos utilizados');
-  quadroEquipamentos(d, equipamentosUsados(dados));
+  quadroEquipamentos(d, equipamentosUsados(dados), undefined, dados.c.vistoriaData);
   const sp = sec('Postos e atividades avaliados');
   profissiografia(d, dados.postos, dados, { base: sp });
   const g = medicoesPorAgente(dados);

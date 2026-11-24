@@ -26,3 +26,25 @@ describe('nova extração dos autos não recria o que foi excluído', () => {
     expect(montarPrompt('perito-prev', {}, {})).toContain('VÍNCULOS OBJETO DA PERÍCIA');
   });
 });
+
+describe('medições lidas dos relatórios', () => {
+  it('cada medição fica ligada ao equipamento (pela série ou pelo padrão do agente)', async () => {
+    await db.records.put({ id: 'cm', kind: 'caso', caseId: null, ts: {}, data: { papel: 'Perito do Juízo' } });
+    await db.records.put({ id: 'eqd', kind: 'equip', caseId: null, ts: {}, data: { nome: 'Dosímetro de ruído', modelo: 'DoseMax V2', serie: 'SN111' } });
+    await db.records.put({ id: 'eqv', kind: 'equip', caseId: null, ts: {}, data: { nome: 'Medidor de vibração', modelo: 'AxPro', serie: 'SN222' } });
+    const dados = lerJsonIA(JSON.stringify({ postos: [{ nome: 'Motorista – carreta', medicoes: [
+      { agente: 'Ruído', lavg: '86.1', equipamento: 'DoseMax V2 SN111' },
+      { agente: 'Vibração de corpo inteiro (VCI)', aren: '0.9', vdv: '15.2' },
+    ] }] }));
+    await aplicarIA('cm', dados, { criarPeriodos: false });
+    const meds = (await db.records.where('[caseId+kind]').equals(['cm', 'medicao']).toArray()).filter((x) => !x.deleted);
+    expect(meds.find((m) => m.data.agente === 'Ruído').data.equipamentoId).toBe('eqd');
+    expect(meds.find((m) => /Vibra/.test(m.data.agente)).data.equipamentoId).toBe('eqv');
+  });
+  it('critérios para o Claude: calibração até 24 meses, aferição só se registrada, veículo só da entrevista', () => {
+    const p = montarPrompt('perito-prev', {}, {});
+    expect(p).toContain('até 24 meses');
+    expect(p).toContain('sem registro, não mencione');
+    expect(p).toContain('não confirmados na entrevista');
+  });
+});

@@ -22,7 +22,7 @@ import { dataBR } from '../docx/reports.js';
 import { guardarAnexo, LIMITE_NUVEM } from '../paradigmas.js';
 import { obterAnexo } from '../sync.js';
 import { DESC_APENDICE, DESC_ANEXO_DOC, LETRAS, tituloSugerido } from '../apendices.js';
-import { lerAnotacao, promptAnotacoes } from '../notas.js';
+import { lerAnotacao, promptAnotacoes, promptRelatoriosMedicao } from '../notas.js';
 import { lerJsonIA, aplicarIA, faseAvanca, promptRevisaoCampo } from '../aiimport.js';
 import { anexosDosAutos } from './ClaudeDireto.jsx';
 import { pendenciasDoCaso } from '../pendencias.js';
@@ -68,6 +68,10 @@ export function Campo({ rec }) {
     await softDelete(p.id); avisarAlteracao();
   };
 
+  const relatoriosSemMedicao = useLive(async () => {
+    const todos = await db.records.where('caseId').equals(rec.id).toArray();
+    return todos.some((r) => !r.deleted && r.kind === 'anexo' && r.data.descricao === DESC_APENDICE) && !todos.some((r) => !r.deleted && r.kind === 'medicao');
+  }, [rec.id], false);
   const papel = rec.data.papel || '';
   const at = /Assistente técnico/i.test(papel);
   const entrevista = ehEntrevistaMotorista(rec.data);
@@ -137,7 +141,7 @@ export function Campo({ rec }) {
 
       <RevisaoDaColeta rec={rec} />
 
-      <details class="bloco largo recolhido">
+      <details class="bloco largo recolhido" open={relatoriosSemMedicao}>
         <summary><b>Relatórios dos medidores e anexos do documento</b> <small class="dica">relatórios (DoseMax, AxPro…) que saem como apêndices; ART, CNIS, certidões que saem como anexos</small></summary>
         <RelatoriosMedicao rec={rec} />
         <RelatoriosMedicao rec={rec} desc={DESC_ANEXO_DOC} rotulo="Anexo" titulo="Anexos do documento (ART, CNIS, certidões, declarações)"
@@ -632,7 +636,27 @@ export function RelatoriosMedicao({ rec, desc = DESC_APENDICE, rotulo = 'Apêndi
       ))}
       <label class="botao-arquivo">{botao}<input type="file" accept="application/pdf,.pdf,image/*" multiple hidden onChange={anexar} /></label>
       {msg && <p class="alerta-txt">{msg}</p>}
+      {desc === DESC_APENDICE && lista.length > 0 && <LerMedicoesDosRelatorios rec={rec} lista={lista} />}
     </section>
+  );
+}
+
+// Os apêndices só juntam as páginas ao laudo: os números (Lavg, NEN, aren, VDVR) vêm das medições cadastradas.
+// Este botão manda os relatórios ao Claude e cadastra as medições nos postos (sem duplicar as já cadastradas).
+function LerMedicoesDosRelatorios({ rec, lista }) {
+  const nMed = useLive(async () => (await db.records.where('[caseId+kind]').equals([rec.id, 'medicao']).toArray()).filter((r) => !r.deleted).length, [rec.id], 0);
+  return (
+    <div class="ler-relatorios">
+      {!nMed && <p class="alerta-txt">Os relatórios anexados só entram no fim do laudo como apêndices: os valores de ruído e vibração do laudo vêm das medições cadastradas nos postos, e ainda não há nenhuma. Use o botão abaixo para o Claude ler os relatórios e cadastrar as medições.</p>}
+      <BotaoClaudeDireto rotulo={`Ler as medições destes ${lista.length} relatório(s) com o Claude`} sec={nMed > 0}
+        instrucao={() => promptRelatoriosMedicao(rec)}
+        anexos={async () => Promise.all(lista.map(async (r) => ({ blob: await obterAnexo(r.id), nome: r.data.titulo || r.data.nome, mime: r.data.mime || 'application/pdf' })))}
+        onResposta={async (t) => {
+          const r = await aplicarIA(rec.id, lerJsonIA(t), { substituir: false, criarPeriodos: false });
+          avisarAlteracao();
+          return `${r.medicoes} medição(ões) cadastrada(s)${r.postos ? ` em ${r.postos} posto(s)` : ''} (as já cadastradas não se repetem). Confira em Postos / atividades e marque, em cada posto, os vínculos que ele representa.`;
+        }} />
+    </div>
   );
 }
 

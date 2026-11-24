@@ -405,11 +405,19 @@ export function equipamentosUsados(dados) {
   return equipamentos.filter((e) => ids.has(e.id));
 }
 
-export function quadroEquipamentos(d, lista, titulo = 'Instrumentos utilizados') {
+// validade da calibração adotada pelo signatário: 24 meses (o fabricante recomenda 12; o alerta de 12 meses fica em
+// Configurações → Equipamentos). No documento, só acima de 24 meses na data da vistoria.
+function vencidoNaVistoria(dataCal, dataVis) {
+  if (!dataCal || !dataVis) return false;
+  const lim = new Date(`${dataCal}T12:00:00`); lim.setMonth(lim.getMonth() + 24);
+  return new Date(`${dataVis}T12:00:00`) > lim;
+}
+export function quadroEquipamentos(d, lista, titulo = 'Instrumentos utilizados', dataVistoria = '') {
   if (!lista.length) return d.texto('[[Selecionar os equipamentos utilizados na aba Campo do caso.]]');
   return d.quadro(titulo, [['Equipamento', 'Marca / modelo', 'Nº de série', 'Certificado / laboratório', 'Calibração'],
     ...lista.map((e) => [e.data.nome, `${e.data.fabricante || ''} ${e.data.modelo || ''}`.trim(), ou(e.data.serie, 'série'),
-      [e.data.certificado, e.data.laboratorio].filter(Boolean).join(' – ') || '[[certificado]]', dataBR(e.data.dataCalibracao) || '[[data]]'])],
+      [e.data.certificado, e.data.laboratorio].filter(Boolean).join(' – ') || '[[certificado]]',
+      `${dataBR(e.data.dataCalibracao) || '[[data]]'}${vencidoNaVistoria(e.data.dataCalibracao, dataVistoria) ? ' [[VERIFICAR: certificado com mais de 24 meses na data da vistoria]]' : ''}`])],
   { larguras: [0.21, 0.17, 0.17, 0.29, 0.16], alinhar: 'left', tam: 9 });
 }
 
@@ -1041,6 +1049,17 @@ export async function apendicesDoCaso(dados) {
       const paginas = await paginasDoArquivo(blob, r.data.mime);
       out.push({ letra: LETRAS[out.length] || String(out.length + 1), titulo: r.data.titulo || r.data.nome, paginas });
     } catch (e) { falhas++; }
+  }
+  // certificados de calibração dos equipamentos usados (anexados em Configurações → Equipamentos)
+  for (const e of equipamentosUsados(dados)) {
+    if (!e.data.certificadoAnexoId) continue;
+    try {
+      const reg = await db.records.get(e.data.certificadoAnexoId);
+      if (!reg || reg.deleted) continue;
+      const blob = await obterAnexo(reg.id);
+      const paginas = await paginasDoArquivo(blob, reg.data.mime || blob.type);
+      out.push({ letra: LETRAS[out.length] || String(out.length + 1), titulo: `Certificado de calibração – ${[e.data.nome, e.data.modelo].filter(Boolean).join(' ')}${e.data.serie ? ` (série ${e.data.serie})` : ''}`, paginas });
+    } catch (err) { falhas++; }
   }
   // paradigmas usados: a ficha de cada um (dados da base) e os relatórios de medição originais anexados ao paradigma
   const usados = paradigmasUsados(dados);

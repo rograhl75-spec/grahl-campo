@@ -137,7 +137,7 @@ export async function parecerPenosidade(caseId) {
     ? 'O laudo não contemporâneo é apto à comprovação da atividade especial (TNU, Súmula 68) e, quando impossível a perícia no local de trabalho, admite-se a prova em empresa ou veículo similar (TRF4, Súmula 106). Na via administrativa, o INSS não aceita laudo de empresa diversa (IN PRES/INSS 128/2022, art. 277, parágrafo único): o parecer serve, nesse caso, para instruir o pedido de revisão ou a ação judicial.'
     : 'Na via administrativa, o INSS não aceita laudo de empresa diversa (IN PRES/INSS 128/2022, art. 277, parágrafo único): a avaliação por similaridade destina-se, nesse caso, a instruir o pedido de revisão ou a ação judicial.');
   if (!quadrosParadigmasMetodologia(d, dados)) {
-    if (equipamentosUsados(dados).length) quadroEquipamentos(d, equipamentosUsados(dados));
+    if (equipamentosUsados(dados).length) quadroEquipamentos(d, equipamentosUsados(dados), undefined, dados.c.vistoriaData);
     else d.redigir('vincule os paradigmas de ruído e vibração aos vínculos (2. Autos → vínculo → Sugerir paradigmas), ou inclua no banco os que pesquisar.');
   }
   d.h2('1.2', 'Critérios de penosidade');

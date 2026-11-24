@@ -9,10 +9,10 @@ import { Suplementares } from './Quesitos.jsx';
 import { DESC_ANEXO_DOC } from '../apendices.js';
 import { CATALOGO, HONORARIOS, situacaoHonorarios, PETICOES_PERITO, PETICOES_AT, POSICOES_AT } from '../docx/reports.js';
 import { exportarBackup, baixarArquivo, carimbo } from '../backup.js';
-import { exportarParaClaude, lerJsonIA, aplicarIA } from '../aiimport.js';
+import { exportarParaClaude, lerJsonIA, aplicarIA, promptPeticaoLivre } from '../aiimport.js';
 import { BotaoClaudeDireto, anexosDosAutos, ModoManual } from './ClaudeDireto.jsx';
 import { temClaude } from '../claudeApi.js';
-import { documentoDoClaude, temConteudo } from '../docx/claudeDoc.js';
+import { documentoDoClaude, peticaoDoClaude, temConteudo } from '../docx/claudeDoc.js';
 import { gravarTudoAgora, salvar, TF, Sel } from './fields.jsx';
 import { FORMAS_PAGAMENTO, localVistoria } from '../schema.js';
 import { db } from '../db.js';
@@ -110,19 +110,52 @@ export function Documentos({ rec, modo = 'laudo' }) {
 }
 
 // Uma petição de cada vez: escolhe na lista e o cartão mostra só os campos dela
+const LIVRE = 'livre';
 function CartaoPeticoes({ lista, ...props }) {
   const { rec } = props;
-  const sel = lista.find((d) => d.id === rec.data.peticaoSel) || lista[0];
+  const sel = rec.data.peticaoSel === LIVRE ? null : lista.find((d) => d.id === rec.data.peticaoSel) || lista[0];
   return (
     <section class="bloco largo doc-peticoes">
       <h3>Petições</h3>
       <label class="campo"><span class="rotulo">Qual petição?</span>
-        <select value={sel.id} onChange={(e) => salvar(rec.id, 'peticaoSel', e.currentTarget.value)}>
+        <select value={sel ? sel.id : LIVRE} onChange={(e) => salvar(rec.id, 'peticaoSel', e.currentTarget.value)}>
           {lista.map((d) => <option value={d.id}>{d.titulo}</option>)}
+          <option value={LIVRE}>Outra petição – redigir com o Claude (pelo despacho ou pela sua necessidade)</option>
         </select>
       </label>
-      <CartaoDoc d={sel} embutido {...props} />
+      {sel ? <CartaoDoc d={sel} embutido {...props} /> : <PeticaoLivre rec={rec} />}
     </section>
+  );
+}
+
+// Petição fora dos modelos: o Claude redige pelo despacho (anexado ou nos autos) e/ou pelo que você descrever
+function PeticaoLivre({ rec }) {
+  const [md, setMd] = useState('');
+  const [msg, setMsg] = useState('');
+  const gerarDoTexto = async (t) => { const r = await peticaoDoClaude(rec.id, t); baixarArquivo(r.blob, r.nome); return r.nome; };
+  const copiar = async () => {
+    gravarTudoAgora();
+    const t = await promptPeticaoLivre(rec.id, rec.data.peticaoLivrePedido);
+    try { await navigator.clipboard.writeText(t); setMsg('✓ Instrução copiada. Cole no Claude com o despacho anexado e traga a resposta para o campo abaixo.'); }
+    catch { baixarArquivo(new Blob([t], { type: 'text/markdown' }), `Peticao_para_Claude_${carimbo()}.md`); setMsg('Não foi possível copiar; a instrução foi baixada como .md.'); }
+  };
+  return (
+    <div class="doc-embutido">
+      <p class="dica">Para o que não tem modelo: resposta a despacho, manifestação, juntada de documentos, pedido de dilação, de diligência complementar, de esclarecimentos à empresa… O Claude lê os autos guardados e o despacho que você anexar, e redige a petição; o Word sai no seu timbrado, com endereçamento, processo, fecho e assinatura.</p>
+      <TF rec={rec} k="peticaoLivrePedido" label="O que a petição precisa pedir ou informar (em branco: o Claude atende à última determinação dirigida a você no despacho)" area rows={3} />
+      <BotaoClaudeDireto rotulo="Redigir a petição com o Claude (gera o Word)" permitirArquivos rotuloArquivos="Anexar o despacho / decisão (PDF ou foto), se não estiver nos autos guardados"
+        instrucao={async () => { gravarTudoAgora(); return promptPeticaoLivre(rec.id, (await db.records.get(rec.id))?.data?.peticaoLivrePedido); }}
+        anexos={() => anexosDosAutos(rec.id)}
+        onResposta={async (t) => { setMd(t); return `${await gerarDoTexto(t)} gerado e baixado. Confira as pendências em amarelo.`; }} />
+      <ModoManual>
+        <div class="linha-botoes"><button type="button" class="sec" onClick={copiar}>Copiar instrução (claude.ai)</button></div>
+        <label class="campo campo-area"><span class="rotulo">Texto da petição redigido pelo Claude</span>
+          <textarea rows={6} value={md} onInput={(e) => setMd(e.currentTarget.value)} />
+        </label>
+        <div class="linha-botoes"><button type="button" class="primario" disabled={!temConteudo(md)} onClick={async () => { try { setMsg(`✓ ${await gerarDoTexto(md)} gerado.`); } catch (e) { setMsg(`Erro: ${e.message}`); } }}>Gerar Word da petição</button></div>
+      </ModoManual>
+      {msg && <p class="ok-msg">{msg}</p>}
+    </div>
   );
 }
 

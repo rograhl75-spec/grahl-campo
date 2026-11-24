@@ -637,11 +637,19 @@ ${texto}`;
   if (tipo === 'respostas') {
     return `${INSTR_RESPOSTAS}\n\n${criteriosPara(c, '', ((await db.records.get('perfil')) || {}).data || {})}\n\n---\n${texto}`;
   }
+  const perfilDoc = ((await db.records.get('perfil')) || {}).data || {};
+  const { credencial, registrosCrq } = await import('./docx/base.js');
+  const regs = [credencial(perfilDoc), registrosCrq(perfilDoc)].filter(Boolean).join('; ');
   const instr = `${REDACAO[tipo] || REDACAO.laudo}
 
 Use os dados do caso abaixo (coletados por mim nos autos e na diligência) como base factual. Não invente dados: o que faltar, marque como [[pendência]] para eu completar.
 
 ${CONVENCOES_CLAUDE}
+${regs ? `- Meus registros profissionais, se precisar citá-los: ${regs} (copie exatamente, sem reformatar o número).
+` : ''}- Fotos: o app monta o Anexo I com as fotos na ordem da lista "Fotos" do caso, numeradas Foto 1, Foto 2… Cite-as assim ("Anexo I, Foto 3"), conferindo o número pela legenda.
+- Coerência: as respostas aos quesitos repetem os mesmos valores, datas, classificações e conclusões do corpo do laudo (confira cada número antes de responder). Classificação da NHO-09 por grandeza: aren e VDVR têm faixas próprias; não atribua a um a faixa do outro.
+- Entrevista: o que o segurado relatou sobre os vínculos é relato dele; o representante da empresa similar confirma só as condições da empresa e do veículo avaliado (cargas, rotas e jornada atuais), não o passado do segurado nas empregadoras.
+- Jurisprudência: só o que trata do enquadramento técnico (agente, metodologia, EPI, penosidade, similaridade); temas sobre concessão, DER ou pagamento do benefício ficam fora.
 
 ${criteriosPara(c, tipo === 'ltcat' || tipo === 'parprev' || tipo === 'parPenosidade' ? 'extra-ltcat' : '', ((await db.records.get('perfil')) || {}).data || {})}
 
@@ -702,6 +710,9 @@ export async function textoDoCaso(caseId) {
     ['dataAjuizamento', 'Ajuizamento'], ['peritoJuizo', 'Perito do Juízo'], ['refLaudo', 'Laudo analisado'], ['autorNome', 'Autor / segurado'], ['autorCpf', 'CPF / NIT'],
     ['reuNome', 'Réu / empresa'], ['reuCnpj', 'CNPJ']]) campo(r, c[k]);
   campo('Objeto', (c.objeto || []).join(', '));
+  // ART escolhida (Configurações → ARTs): o número sai no documento; o PDF o app anexa
+  const artCad = c.artId ? await db.records.get(c.artId) : null;
+  campo('ART deste documento', artCad && !artCad.deleted ? `nº ${artCad.data.numero || '?'}${artCad.data.conselho ? ` (${artCad.data.conselho})` : ''} – ${artCad.data.finalidade || ''} (o PDF o app anexa; não liste)` : c.art);
   L.push('\n## Síntese dos autos');
   for (const [k, r] of [['funcoes', 'Funções e períodos'], ['atividadesAlegadas', 'Atividades alegadas'], ['agentesAlegados', 'Agentes alegados'], ['pedidos', 'Pedidos'],
     ['defesa', 'Defesa'], ['preliminares', 'Pontos de atenção'], ['analiseEpi', 'Análise dos EPIs'], ['observacoes', 'Observações'], ['conclusaoLaudo', 'Conclusão do laudo já apresentado']]) campo(r, c[k]);

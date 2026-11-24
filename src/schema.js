@@ -371,6 +371,23 @@ export const CAMPOS_EQUIP = [
   ['obs', 'Observações', 'area'],
 ];
 
+// ARTs do signatário (Configurações → ARTs): uma por finalidade; o caso escolhe a sua (Laudo → Redigir e gerar)
+export const FINALIDADES_ART = ['Perícias judiciais (perito do juízo)', 'Assistência técnica', 'LTCAT / PPP', 'Laudos e pareceres extrajudiciais', 'Outra'];
+export const CAMPOS_ART = [
+  ['numero', 'Nº da ART', 'text'],
+  ['finalidade', 'Finalidade', 'select', FINALIDADES_ART],
+  ['conselho', 'Conselho (ex.: CREA-PR)', 'text'],
+  ['descricao', 'Descrição / atividades cobertas', 'area'],
+  ['inicio', 'Início da vigência', 'date'],
+  ['fim', 'Fim da vigência (em branco = sem prazo)', 'date'],
+];
+// finalidade que combina com o caso: sugestão na escolha da ART
+export function finalidadeArtDoCaso(c = {}) {
+  if (c.tipoAtuacao === 'Extrajudicial') return /ltcat|ppp/i.test(`${c.objeto || ''} ${c.tipoTrabalho || ''}`) ? 'LTCAT / PPP' : 'Laudos e pareceres extrajudiciais';
+  return /assistente/i.test(c.papel || '') ? 'Assistência técnica' : 'Perícias judiciais (perito do juízo)';
+}
+export const rotuloArt = (a) => [a.data.numero && `ART nº ${a.data.numero}`, a.data.finalidade, a.data.conselho].filter(Boolean).join(' – ') || 'ART';
+
 export const EQUIPAMENTOS_INICIAIS = [
   {
     nome: 'Dosímetro de ruído', fabricante: 'Inlite', modelo: 'DoseMax V2', serie: '2504040190AA',

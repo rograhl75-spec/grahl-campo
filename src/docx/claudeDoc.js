@@ -73,7 +73,7 @@ export function semPartesDoApp(md) {
     if (RE_ANEXO_FOTOS.test(t)) { pulando = true; continue; }
     if (pulando) { if (/^#\s/.test(t) && !/foto/i.test(t)) pulando = false; else continue; }
     if (RE_LOCAL_DATA.test(t) || RE_INTEGRAM.test(t)) continue;
-    out.push(l);
+    out.push(l.replace(/\s*(?<=^|[.!?]\s*)(Integra(m)?|Seguem anexos)[^.]*?(Anexo|apêndice|registro fotográfico)[^.]*\./gi, ''));
   }
   return out.join('\n').replace(/\[\[\s*data de emiss[ãa]o\s*\]\]/gi, dataPorExtenso(hojeIso()))
     // CNPJ / CPF em branco ("Jardelino Transportes, CNPJ [[CNPJ da Jardelino]]"): omitido, sem pendência
@@ -192,7 +192,7 @@ export async function documentoDoClaude(caseId, md) {
   const doc = /parecer/i.test(titulo) ? 'parecer' : /laudo|ltcat/i.test(titulo) ? 'laudo' : 'documento';
   textoIntegram(d, { fotos: lista.length > 0, anexos, apendices, doc });
   blocoAssinatura(d, dados);
-  if (lista.length) { d.h1('', 'Anexo I – Relatório fotográfico da diligência'); d.figuras(lista); }
+  if (lista.length) { d.h1('', 'Anexo I – Relatório fotográfico da diligência'); d.figuras(lista, { rotulo: 'Foto' }); }
   inserirAnexos(d, anexos);
   inserirApendices(d, apendices, dados);
   const r = await finalizar(d, { titulo: titulo || 'Documento técnico', arquivo: (titulo || 'Documento').replace(/[^\wÀ-ú]+/g, '_').slice(0, 40), c });

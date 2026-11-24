@@ -176,7 +176,7 @@ export async function pendenciasDoCaso(caseId) {
         titulo: `${nomeVinculo(r, i)} está dentro do período de ${nomeVinculo(dados.periodos[dentro], dentro)}`,
         explicacao: 'Se for o mesmo trabalho (vínculos sequenciais unidos num só), exclua este vínculo; senão, ele sai duplicado no laudo e no PPP.' });
     });
-    if (!String(c.art || '').trim()) txt('art', caseId, 'art', 'Nº da ART', 'Sai na capa, no item 1.4 e na assinatura do LTCAT.');
+    if (!String(c.art || '').trim() && !c.artId) txt('art', caseId, 'art', 'Nº da ART', 'Sai na capa, no item 1.4 e na assinatura do LTCAT. Ou escolha uma ART cadastrada em Configurações → ARTs (Laudo → Redigir e gerar).');
     if (!String(c.pppNit || '').trim()) txt('pppNit', caseId, 'pppNit', 'NIT do segurado', 'Campo 6 do PPP.');
     if (!String(c.pppSexo || '').trim()) {
       itens.push({ id: 'pppSexo', grupo: g, rec: caseId, campo: 'pppSexo', tipo: 'escolha', valor: '', opcoes: [{ valor: 'Masculino', rotulo: 'Masculino' }, { valor: 'Feminino', rotulo: 'Feminino' }],

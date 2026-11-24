@@ -3,7 +3,7 @@ import { db, getMeta, setMeta, restore } from '../db.js';
 import { onSyncState, parseConfig, iniciarSync, entrar, sair, sincronizarAgora, avisarAlteracao } from '../sync.js';
 import { exportarBackup, importarBackup, baixarArquivo, carimbo } from '../backup.js';
 import { migrarDoFirebase, migrarDeZip } from '../migrate.js';
-import { CAMPOS_EQUIP, CAMPOS_PERFIL, tituloCaso } from '../schema.js';
+import { CAMPOS_EQUIP, CAMPOS_PERFIL, CAMPOS_ART, tituloCaso } from '../schema.js';
 import { listarSugestoes, aplicarSugestoes } from '../organizar.js';
 import { PERFIL_ID, credencial, registrosCrq } from '../docx/base.js';
 import { Icone } from './Icone.jsx';
@@ -17,7 +17,7 @@ import { obterAnexo } from '../sync.js';
 import { updateFields, softDelete } from '../db.js';
 import { configClaude, salvarConfigClaude, testarClaude, MODELOS_CLAUDE, ESFORCOS, OPCOES_CACHE } from '../claudeApi.js';
 
-const ABAS = [['meus-dados', 'Meus dados'], ['claude', 'Claude (API)'], ['nuvem', 'Nuvem'], ['backup', 'Backup'], ['antigo', 'App antigo'], ['equipamentos', 'Equipamentos'], ['lixeira', 'Lixeira'], ['aparelho', 'Este aparelho']];
+const ABAS = [['meus-dados', 'Meus dados'], ['claude', 'Claude (API)'], ['nuvem', 'Nuvem'], ['backup', 'Backup'], ['antigo', 'App antigo'], ['equipamentos', 'Equipamentos'], ['arts', 'ARTs'], ['lixeira', 'Lixeira'], ['aparelho', 'Este aparelho']];
 
 // Validade da calibração: a data informada em "Próxima calibração" ou, na falta dela, 12 meses (prática dos laboratórios RBC)
 export function situacaoCalibracao(d) {
@@ -53,6 +53,31 @@ function CertificadoDoEquip({ r }) {
   );
 }
 
+// PDF guardado num registro de configuração (ART etc.)
+function ArquivoDoRegistro({ r, campo, desc, rotulo, ok }) {
+  const [msg, setMsg] = useState('');
+  const reg = useLive(async () => (r.data[campo] ? db.records.get(r.data[campo]) : null), [r.data[campo]], null);
+  const anexar = async (e) => {
+    const f = e.currentTarget.files[0]; e.currentTarget.value = '';
+    if (!f) return;
+    if (r.data[campo]) await softDelete(r.data[campo]);
+    const id = await guardarAnexo(f, desc, null);
+    await updateFields(r.id, { [campo]: id }); avisarAlteracao();
+    setMsg(ok);
+  };
+  const abrir = async () => { try { window.open(URL.createObjectURL(await obterAnexo(r.data[campo])), '_blank'); } catch (err) { setMsg(err.message); } };
+  return (
+    <div class="campo">
+      <span class="rotulo">{rotulo}</span>
+      <div class="linha-botoes">
+        {reg && !reg.deleted && <><span>{reg.data.nome}</span><button type="button" class="mini" onClick={abrir}>Abrir</button></>}
+        <label class="botao-arquivo mini">{reg && !reg.deleted ? 'Trocar o PDF' : '＋ Anexar o PDF'}<input type="file" accept="application/pdf,.pdf,image/*" hidden onChange={anexar} /></label>
+      </div>
+      {msg && <small class="ok-msg">{msg}</small>}
+    </div>
+  );
+}
+
 function AlertaCalibracao() {
   const lista = useLive(async () => (await db.records.where('kind').equals('equip').toArray()).filter((r) => !r.deleted), [], []);
   const venc = lista.map((r) => [r, situacaoCalibracao(r.data)]).filter(([, x]) => x);
@@ -81,6 +106,14 @@ export function Config({ aba }) {
           <RecordList kind="equip" caseId={null} campos={CAMPOS_EQUIP} titulo="Equipamentos e certificados" novo="Adicionar equipamento"
             resumo={(r) => [r.data.nome, r.data.modelo, r.data.serie && `série ${r.data.serie}`, r.data.dataCalibracao && `cal. ${dataBR(r.data.dataCalibracao)}`, r.data.certificadoAnexoId ? 'certificado anexado' : 'sem PDF do certificado', situacaoCalibracao(r.data)].filter(Boolean).join(' · ')}
             extra={(r) => <CertificadoDoEquip r={r} />} />
+        </div></div>
+      )}
+      {aba === 'arts' && (
+        <div class="grade"><div class="largo">
+          <p class="dica">Cadastre aqui as suas ARTs (uma por finalidade: perícias judiciais, LTCAT, laudos extrajudiciais…), com o PDF. Em cada caso, escolha a ART em Laudo → Redigir e gerar → "ART deste documento": o número sai no documento e o PDF, como anexo.</p>
+          <RecordList kind="artCad" caseId={null} campos={CAMPOS_ART} titulo="ARTs" novo="Adicionar ART"
+            resumo={(r) => [r.data.numero && `nº ${r.data.numero}`, r.data.finalidade, r.data.conselho, r.data.fim ? `até ${dataBR(r.data.fim)}` : '', r.data.anexoId ? 'PDF anexado' : 'sem PDF'].filter(Boolean).join(' · ')}
+            extra={(r) => <ArquivoDoRegistro r={r} campo="anexoId" desc="ART" rotulo="PDF da ART – sai como anexo nos documentos dos casos que a escolherem" ok="✓ PDF anexado." />} />
         </div></div>
       )}
       {aba === 'lixeira' && <Lixeira />}

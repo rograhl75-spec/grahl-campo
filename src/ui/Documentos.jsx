@@ -14,7 +14,7 @@ import { BotaoClaudeDireto, anexosDosAutos, ModoManual } from './ClaudeDireto.js
 import { temClaude } from '../claudeApi.js';
 import { documentoDoClaude, peticaoDoClaude, temConteudo } from '../docx/claudeDoc.js';
 import { gravarTudoAgora, salvar, TF, Sel } from './fields.jsx';
-import { FORMAS_PAGAMENTO, localVistoria } from '../schema.js';
+import { FORMAS_PAGAMENTO, localVistoria, finalidadeArtDoCaso, rotuloArt } from '../schema.js';
 import { db } from '../db.js';
 import { PERFIL_ID, contasDoPerfil, PERFIL_PADRAO, ehSimilaridade, empresaDoDespacho } from '../docx/base.js';
 import { useLive } from './hooks.js';
@@ -236,6 +236,27 @@ function PeticaoLivre({ rec }) {
   );
 }
 
+// ART do caso: escolhida entre as cadastradas em Configurações → ARTs (sugestão pela finalidade do caso)
+function EscolherArt({ rec }) {
+  const arts = useLive(async () => (await db.records.where('kind').equals('artCad').toArray()).filter((r) => !r.deleted), [], []);
+  const c = rec.data;
+  const sug = finalidadeArtDoCaso(c);
+  const ordem = [...arts].sort((a, b) => (b.data.finalidade === sug) - (a.data.finalidade === sug));
+  const escolher = async (id) => {
+    const a = arts.find((x) => x.id === id);
+    await updateFields(rec.id, { artId: id || '', ...(a ? { art: a.data.numero || '' } : {}) }); avisarAlteracao();
+  };
+  if (!arts.length) return <p class="dica">ART: cadastre as suas ARTs (com o PDF) em Configurações → ARTs e escolha aqui a deste caso.{c.art ? ` Nº informado no caso: ${c.art}.` : ''}</p>;
+  return (
+    <label class="campo"><span class="rotulo">ART deste documento (o número sai no documento e o PDF, como anexo)</span>
+      <select value={c.artId || ''} onChange={(e) => escolher(e.currentTarget.value)}>
+        <option value="">— sem ART anexada —</option>
+        {ordem.map((a) => <option value={a.id}>{rotuloArt(a)}{a.data.finalidade === sug ? ' (sugerida para este caso)' : ''}{a.data.anexoId ? '' : ' – sem PDF'}</option>)}
+      </select>
+    </label>
+  );
+}
+
 function CartaoDoc({ d, ocupado, gerar, contas = [], contaSel, recId, rec, principal = false, embutido = false }) {
   return (
     <div class={`${embutido ? 'doc-embutido' : 'bloco doc'} ${principal ? 'doc-principal' : ''}`}>
@@ -249,9 +270,13 @@ function CartaoDoc({ d, ocupado, gerar, contas = [], contaSel, recId, rec, princ
         </label>
       ) : <p class="alerta-txt">Cadastre as contas em Configurações → Meus dados.</p>)}
       {d.id === 'agenda' && rec && <DadosAgendamento rec={rec} />}
-      {['ltcat', 'laudoprev', 'parprev'].includes(d.id) && rec && (
+      {/* anexos (ART etc.): em todo documento principal do passo "Redigir e gerar" e nos que já os usavam */}
+      {(principal || ['ltcat', 'laudoprev', 'parprev'].includes(d.id)) && rec && (
+        <EscolherArt rec={rec} />
+      )}
+      {(principal || ['ltcat', 'laudoprev', 'parprev'].includes(d.id)) && rec && (
         <details class="anexos-doc">
-          <summary>Anexos do documento (ART, CNIS, certidões, declarações)</summary>
+          <summary>Outros anexos do documento (CNIS, certidões, declarações)</summary>
           <RelatoriosMedicao rec={rec} desc={DESC_ANEXO_DOC} rotulo="Anexo" titulo="Anexos do documento"
             dica="Anexe aqui a ART e os documentos de terceiros (PDF ou imagem). Cada arquivo sai no fim do documento, com todas as páginas, como Anexo A, B, C… (no laudo judicial, Anexo II, III…, depois do relatório fotográfico)."
             botao="＋ Anexar documento (PDF ou imagem)" />

@@ -123,6 +123,16 @@ export async function pendenciasDoCaso(caseId) {
     itens.push({ id: 'presentes', grupo: 'Diligência', rec: caseId, campo: 'vistoriaPresentes', tipo: 'texto', valor: '',
       titulo: 'Pessoas presentes na vistoria', explicacao: 'Uma por linha: nome – função – quem representa.' });
   }
+  // ART escolhida (Configurações → ARTs) e outro arquivo "ART…" nos anexos do caso: sai duas vezes
+  if (c.artId) {
+    const outrasArt = (await (await import('./db.js')).db.records.where('[caseId+kind]').equals([caseId, 'anexo']).toArray())
+      .filter((r) => !r.deleted && r.data.descricao === 'anexoDoc' && /^\s*ART\b/i.test(r.data.titulo || r.data.nome || ''));
+    for (const r of outrasArt) {
+      itens.push({ id: `art-dup-${r.id}`, grupo: 'Documento', tipo: 'aviso', rec: r.id, respondido: false, excluir: 'Excluir este anexo',
+        titulo: `ART escolhida no caso e outro anexo "${r.data.titulo || r.data.nome}"`,
+        explicacao: 'A ART escolhida em "ART deste documento" já sai como anexo. Se este arquivo for a mesma ART (ou não for deste trabalho), exclua-o para não sair duas vezes.' });
+    }
+  }
   // relatórios dos medidores anexados (apêndices) e nenhuma medição cadastrada: o laudo sai sem os valores
   const { db: dbAp } = await import('./db.js');
   const apendices = (await dbAp.records.where('[caseId+kind]').equals([caseId, 'anexo']).toArray()).filter((r) => !r.deleted && r.data.descricao === 'apendice');

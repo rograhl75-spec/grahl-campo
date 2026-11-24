@@ -226,7 +226,7 @@ function ImportarIA({ rec, abertoInicial = false }) {
     const r = await aplicarIA(rec.id, previa, { substituir });
     avisarAlteracao();
     setMsg(`Aplicado: ${r.campos} campo(s), ${r.periodos} período(s), ${r.documentos} documento(s), ${r.epis} EPI(s), ${r.agentesAvaliados ? `${r.agentesAvaliados} agente(s) avaliado(s), ` : ''}${r.fotos ? `${r.fotos} foto(s) com legenda ou identificação, ` : ''}${r.produtos ? `${r.produtos} produto(s) químico(s) com ficha da FDS, ` : ''}${r.quesitos} quesito(s)`
-      + (r.respostas ? `, ${r.respostas} resposta(s) do laudo` : '') + (r.postos || r.medicoes ? `, ${r.postos} posto(s) e ${r.medicoes} medição(ões) da diligência (veja em 4. Campo)` : '') + '.');
+      + (r.respostas ? `, ${r.respostas} resposta(s) do laudo` : '') + (r.postos || r.medicoes ? `, ${r.postos} posto(s) e ${r.medicoes} medição(ões) da diligência (veja em 2. Campo)` : '') + (r.ignorados ? `. ${r.ignorados} item(ns) que você já tinha excluído (ex.: vínculo fora do despacho) não foram recriados` : '') + '.');
     setPrevia(null); setTexto('');
   };
 

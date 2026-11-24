@@ -410,10 +410,10 @@ function ClaudeApi() {
             {OPCOES_CACHE.map(([v, r]) => <option value={v}>{r}</option>)}
           </select>
         </label>
-        <p class="dica">Com o reaproveitamento, os PDFs dos autos ficam na sua conta da Anthropic por até 7 dias e, dentro do prazo escolhido, cada novo envio do mesmo caso (extração, quesitos, redação…) paga só 10% da leitura dos autos. O primeiro envio custa um pouco mais na parte dos autos (1,25 vez com 5 minutos; 2 vezes com 1 hora). Vale a pena quando você usa duas ou mais etapas seguidas no mesmo caso.</p>
+        <p class="dica">Com o reaproveitamento, dentro do prazo escolhido cada novo envio do mesmo caso (extração, quesitos, redação, revisão de campo…) paga só 10% da leitura dos autos. O primeiro envio custa um pouco mais na parte dos autos (1,25 vez com 5 minutos; 2 vezes com 1 hora). Vale a pena quando você usa duas ou mais etapas seguidas no mesmo caso.</p>
         <div class="linha-botoes"><button type="button" class="primario" disabled={!cfg.chave || testando} onClick={testar}>{testando ? 'Testando…' : 'Testar conexão'}</button></div>
         {msg && <p class={msg.startsWith('✓') ? 'ok-msg' : 'erro-msg'}>{msg}</p>}
-        <p class="dica">A chave fica guardada só neste aparelho (não vai para a nuvem do app nem para o backup): configure em cada aparelho que for usar. Os PDFs dos autos ficam na conta da Anthropic por até 7 dias para o reaproveitamento (com ele desligado, são apagados logo depois da resposta); os demais anexos são apagados logo depois. Custo aproximado com o Opus 5.5: LTCAT com cerca de 50 páginas de documentos, US$ 0,30 a 0,60; autos com cerca de 300 páginas, US$ 2 a 4. Cada envio mostra o custo estimado.</p>
+        <p class="dica">A chave fica guardada só neste aparelho (não vai para a nuvem do app nem para o backup): configure em cada aparelho que for usar. Os arquivos vão dentro da própria pergunta e não ficam guardados na conta da Anthropic. PDFs de até ~22 MB e 550 páginas vão inteiros (texto e imagens); acima disso vai o texto extraído, e páginas digitalizadas sem texto ficam de fora (o app avisa). Custo aproximado com o Opus 5.5: LTCAT com cerca de 50 páginas de documentos, US$ 0,30 a 0,60; autos com cerca de 300 páginas, US$ 2 a 4. Cada envio mostra o custo estimado.</p>
       </section>
     </div>
   );

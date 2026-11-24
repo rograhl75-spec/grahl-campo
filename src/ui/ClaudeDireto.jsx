@@ -40,7 +40,7 @@ export function BotaoClaudeDireto({ instrucao, anexos, permitirArquivos = false,
       const extra = await onResposta(r.texto, r);
       const modelo = (MODELOS_CLAUDE.find((m) => m.id === configClaude().modelo) || {}).nome?.replace(/\s*\(.*$/, '') || r.modelo;
       const lidoTxt = r.uso.lido ? ` ${Math.round(r.uso.lido / 1000)} mil tokens dos autos reaproveitados (economia de cerca de ${brl(r.economia)}).` : r.uso.gravado ? ' Autos guardados para reaproveitamento nos próximos envios deste caso.' : '';
-      setMsg(`✓ Resposta do ${modelo} recebida – ${Math.round((r.uso.entrada + r.uso.gravado + r.uso.lido) / 1000)} mil tokens de entrada e ${Math.round(r.uso.saida / 1000)} mil de saída, cerca de ${brl(r.custo)}.${lidoTxt}${r.cortada ? ' A resposta atingiu o limite de tamanho e pode estar incompleta.' : ''}${extra ? ` ${extra}` : ''}`);
+      setMsg(`✓ Resposta do ${modelo} recebida – ${Math.round((r.uso.entrada + r.uso.gravado + r.uso.lido) / 1000)} mil tokens de entrada e ${Math.round(r.uso.saida / 1000)} mil de saída, cerca de ${brl(r.custo)}.${lidoTxt}${r.cortada ? ' A resposta atingiu o limite de tamanho e pode estar incompleta.' : ''}${r.avisos?.length ? ` Atenção: ${r.avisos.join(' ')}` : ''}${extra ? ` ${extra}` : ''}`);
       setArquivos([]);
     } catch (e) {
       setEtapa(''); setErro(e.message || String(e));

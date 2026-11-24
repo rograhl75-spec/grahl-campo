@@ -371,9 +371,10 @@ function DadosAgendamento({ rec }) {
 function LinkAgenda({ c }) {
   if (!c.dataDiligencia || !c.horaDiligencia) return <small class="dica">Com data e horário preenchidos, aparece aqui o botão para criar o evento no Google Agenda.</small>;
   const ini = `${c.dataDiligencia.replace(/-/g, '')}T${c.horaDiligencia.replace(':', '')}00`;
+  // duração de 1 h 30 min
   const [h, m] = c.horaDiligencia.split(':').map(Number);
-  const fimH = String(Math.min(23, h + 3)).padStart(2, '0');
-  const fim = `${c.dataDiligencia.replace(/-/g, '')}T${fimH}${String(m).padStart(2, '0')}00`;
+  const tf = Math.min(23 * 60 + 59, h * 60 + m + 90);
+  const fim = `${c.dataDiligencia.replace(/-/g, '')}T${String(Math.floor(tf / 60)).padStart(2, '0')}${String(tf % 60).padStart(2, '0')}00`;
   const local = [localVistoria(c), String(c.vistoriaEndereco || '').replace(/\n/g, ' – ')].filter(Boolean).join(' – ');
   const det = [`Vistoria pericial – processo ${c.numero || ''}`, c.autorNome && `Autor: ${c.autorNome}`, c.reuNome && `Réu: ${c.reuNome}`,
     c.similaridade === 'Sim' && 'Perícia por similaridade', 'Levar: dosímetro, medidor de vibração, IBUTG, calibrador, trena, câmera.'].filter(Boolean).join('\n');

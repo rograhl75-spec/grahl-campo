@@ -1,8 +1,8 @@
 import { useEffect } from 'preact/hooks';
-import { db, softDelete } from '../db.js';
+import { db, softDelete, updateFields } from '../db.js';
 import { avisarAlteracao } from '../sync.js';
 import {
-  TIPO_ATUACAO, JUSTICA, MATERIA, PAPEL, OBJETO, FASE, CONTRATADO_POR, CAMPOS_ACIDENTE, ehAcidente, CAMPOS_PROCESSO, CAMPOS_PARTES, CAMPOS_PRAZOS, CAMPOS_HONORARIOS, CAMPOS_PPP, tituloCaso, contextoLegal, ehParecerTecnico, FINALIDADE_PARECER } from '../schema.js';
+  TIPO_ATUACAO, JUSTICA, MATERIA, PAPEL, OBJETO, FASE, CONTRATADO_POR, CAMPOS_ACIDENTE, ehAcidente, CAMPOS_PROCESSO, CAMPOS_PARTES, CAMPOS_PRAZOS, CAMPOS_HONORARIOS, CAMPOS_PPP, tituloCaso, contextoLegal, ehParecerTecnico, FINALIDADE_PARECER, faseComVistoriaMarcada } from '../schema.js';
 import { useLive, ir } from './hooks.js';
 import { PROFISSOES } from '../data/profissoes.js';
 import { siglaTipo, FASE_COR } from './Casos.jsx';
@@ -49,6 +49,9 @@ export function Caso({ id, aba }) {
     }
     return c;
   }, [id], {});
+  // data da vistoria preenchida (petição de agendamento, prazos ou leitura dos autos): a fase avança sozinha
+  const novaFase = rec ? faseComVistoriaMarcada(rec.data) : null;
+  useEffect(() => { if (novaFase) { updateFields(rec.id, { fase: novaFase }); avisarAlteracao(); } }, [rec?.id, novaFase]);
   if (rec === null) return <p class="vazio">Carregando…</p>;
   if (!rec) return <div class="pagina"><p class="vazio grande">Caso não encontrado neste aparelho. <a href="#/">Voltar</a></p></div>;
   if (rec.deleted) return <div class="pagina"><p class="vazio grande">Este caso está na lixeira. Restaure em <a href="#/config/lixeira">Configurações → Lixeira</a>.</p></div>;

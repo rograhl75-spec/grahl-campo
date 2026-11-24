@@ -1,4 +1,4 @@
-import { BotaoClaudeDireto } from './ClaudeDireto.jsx';
+import { BotaoClaudeDireto, ModoManual } from './ClaudeDireto.jsx';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { db, softDelete, updateFields } from '../db.js';
 import { avisarAlteracao } from '../sync.js';
@@ -73,6 +73,7 @@ export function Fotos({ rec }) {
   const fotos = useFotos(rec.id, undefined);
   const postos = useLive(async () => (await db.records.where('[caseId+kind]').equals([rec.id, 'posto']).toArray()).filter((r) => !r.deleted), [rec.id], []);
   const [sel, setSel] = useState(null);
+  const [todas, setTodas] = useState(false);
   const nomePosto = Object.fromEntries(postos.map((p) => [p.id, p.data.nome || 'posto sem nome']));
   const mover = async (idx, dir) => {
     const a = fotos[idx], b = fotos[idx + dir];
@@ -82,18 +83,20 @@ export function Fotos({ rec }) {
     await updateFields(b.id, { ordem: ob === oa ? oa + dir : oa });
     avisarAlteracao();
   };
+  const semLegenda = fotos.filter((f) => !String(f.data.legenda || '').trim()).length;
+  const mostrar = todas || fotos.length <= 12 ? fotos : fotos.slice(0, 12);
   return (
     <div class="grade">
       <section class="bloco largo">
+        <h3>Fotos <span class="contador">{fotos.length}</span>{semLegenda > 0 && <small class="alerta-txt"> · {semLegenda} sem legenda</small>}</h3>
         <BotoesFoto caseId={rec.id} postoId="" />
-        <p class="dica">As fotos ficam gravadas no aparelho no momento em que são tiradas e são enviadas à nuvem quando houver internet. A ordem aqui é a ordem do relatório fotográfico.</p>
+        <p class="dica">Gravadas no aparelho na hora e enviadas à nuvem quando houver internet. A ordem aqui é a do relatório fotográfico; fotos de um posto também podem ser tiradas dentro do posto.</p>
+        {!fotos.length && <ImportarFotos rec={rec} />}
       </section>
-      <ImportarFotos rec={rec} />
       <IdentificarFotos rec={rec} fotos={fotos} nomePosto={nomePosto} />
-      <section class="bloco largo">
-        {!fotos.length && <p class="vazio">Nenhuma foto.</p>}
+      {fotos.length > 0 && <section class="bloco largo">
         <div class="galeria">
-          {fotos.map((f, idx) => (
+          {mostrar.map((f, idx) => (
             <div class="galeria-item" key={f.id}>
               <Mini id={f.id} legenda={f.data.legenda} onClick={() => setSel(f.id)} />
               <div class="galeria-info">
@@ -109,7 +112,9 @@ export function Fotos({ rec }) {
             </div>
           ))}
         </div>
-      </section>
+        {mostrar.length < fotos.length && <button type="button" class="mini sec" onClick={() => setTodas(true)}>Ver todas as fotos ({fotos.length})</button>}
+      </section>}
+      {fotos.length > 0 && <details class="secao-etapa largo"><summary><b>Importar mais fotos</b> <small class="dica">de laudo já feito (Word ou PDF) ou de arquivos</small></summary><ImportarFotos rec={rec} /></details>}
       {sel && <EditorFoto caseId={rec.id} id={sel} fechar={() => setSel(null)} postos={postos} />}
     </div>
   );
@@ -192,13 +197,13 @@ function ImportarFotos({ rec }) {
     setOcupado(false);
   };
   return (
-    <section class="bloco largo">
-      <h3>Importar fotos de laudo já feito ou de arquivos</h3>
+    <div class="importar-fotos">
+      <h4>Importar fotos de laudo já feito ou de arquivos</h4>
       <p class="dica">Escolha o laudo em <b>Word (.docx)</b> ou <b>PDF</b>, ou as próprias fotos (JPG). O app separa as fotos, ignora o timbrado e os logotipos, aproveita as legendas "Foto n – …" / "Figura n – …" e lê a data, a hora e o GPS gravados na foto quando ainda existem (o Word costuma manter; o PDF quase sempre apaga). Se tiver as fotos originais do celular, prefira elas.</p>
       <label class={`botao-arquivo ${ocupado ? 'desativado' : ''}`}>{ocupado ? 'Importando…' : '＋ Escolher laudo ou fotos'}
         <input type="file" accept=".docx,.pdf,application/pdf,image/*" multiple hidden disabled={ocupado} onChange={receber} /></label>
       {msg && <p class={msg.startsWith('Erro') ? 'erro-msg' : 'ok-msg'}>{msg}</p>}
-    </section>
+    </div>
   );
 }
 
@@ -247,22 +252,29 @@ function IdentificarFotos({ rec, fotos, nomePosto }) {
       {peloNome.length > 0 && (
         <div class="linha-botoes"><button type="button" class="sec" onClick={legendasDoNome}>Preencher {peloNome.length} legenda(s) vazia(s) pelo nome do arquivo</button></div>
       )}
-      <p class="dica">O Claude lê plaquetas (marca, modelo, série, ano), rótulos de produtos (e busca a FDS), CA de EPI e displays de equipamentos. Leitura de display serve só para conferir com o relatório do equipamento. Os números das fotos são os desta tela.</p>
+      <p class="dica">O Claude escreve as legendas e lê plaquetas (marca, modelo, série, ano), rótulos de produtos (e busca a FDS), CA de EPI e displays de equipamentos. Leitura de display serve só para conferir com o relatório do equipamento.</p>
       <label class="check"><input type="checkbox" checked={soSem} onChange={(e) => setSoSem(e.currentTarget.checked)} /> Só as fotos sem legenda ou sem identificação ({alvo.length} de {fotos.length})</label>
-      <div class="linha-botoes">
-        <button type="button" class="sec" disabled={ocupado || !alvo.length} onClick={() => enviar(false)}>1a. Enviar fotos numeradas</button>
-        <button type="button" class="sec" disabled={ocupado || !alvo.length} onClick={() => enviar(true)}>1b. Folhas de contato (12 por folha)</button>
-        <button type="button" class="primario" disabled={!alvo.length} onClick={copiar}>2. Copiar instrução</button>
-      </div>
-      <small class="dica">Muitas fotos: mande as folhas de contato para a legenda geral e, em tamanho original, só as de plaquetas, rótulos e displays.</small>
-      <BotaoClaudeDireto rotulo={`Identificar ${alvo.length} foto(s) direto com o Claude`}
+      <label class="check"><input type="checkbox" checked={substituir} onChange={(e) => setSubstituir(e.currentTarget.checked)} /> Substituir legendas já preenchidas</label>
+      <BotaoClaudeDireto rotulo={`Legendar e identificar ${alvo.length} foto(s) com o Claude`}
         instrucao={() => { if (!alvo.length) throw new Error('Nenhuma foto para identificar.'); const contexto = [rec.data.vistoriaLocal || rec.data.reuNome, rec.data.funcoes && String(rec.data.funcoes).split('\n')[0].slice(0, 160)].filter(Boolean).join(' – '); return promptFotos(alvo, { nomePosto, contexto }); }}
         anexos={async () => (alvo.length > 60 ? await folhasDeContato(alvo) : await arquivosNumerados(alvo)).map((f) => ({ blob: f, nome: f.name.replace(/\.\w+$/, ''), mime: f.type || 'image/jpeg' }))}
-        web onResposta={(t) => { setJson(t); return 'Confira o JSON abaixo e toque em "Aplicar".'; }} />
-      <label class="campo"><span class="rotulo">3. Cole aqui o JSON devolvido pelo Claude</span>
-        <textarea rows={3} value={json} onInput={(e) => setJson(e.currentTarget.value)} /></label>
-      <label class="check"><input type="checkbox" checked={substituir} onChange={(e) => setSubstituir(e.currentTarget.checked)} /> Substituir legendas já preenchidas</label>
-      <div class="linha-botoes"><button type="button" class="primario" disabled={!json.trim()} onClick={aplicar}>Aplicar</button></div>
+        web onResposta={async (t) => {
+          setJson(t);
+          const r = await aplicarFotosIA(rec.id, lerJsonFotos(t), { substituir });
+          avisarAlteracao();
+          return `${r.fotos} foto(s) com legenda ou identificação${r.produtos ? `; ${r.produtos} produto(s) químico(s) com ficha da FDS` : ''}. Tudo entra "a conferir".`;
+        }} />
+      <ModoManual>
+        <div class="linha-botoes">
+          <button type="button" class="sec" disabled={ocupado || !alvo.length} onClick={() => enviar(false)}>1a. Enviar fotos numeradas</button>
+          <button type="button" class="sec" disabled={ocupado || !alvo.length} onClick={() => enviar(true)}>1b. Folhas de contato (12 por folha)</button>
+          <button type="button" class="sec" disabled={!alvo.length} onClick={copiar}>2. Copiar instrução</button>
+        </div>
+        <small class="dica">Muitas fotos: mande as folhas de contato para a legenda geral e, em tamanho original, só as de plaquetas, rótulos e displays.</small>
+        <label class="campo"><span class="rotulo">3. Cole aqui o JSON devolvido pelo Claude</span>
+          <textarea rows={3} value={json} onInput={(e) => setJson(e.currentTarget.value)} /></label>
+        <div class="linha-botoes"><button type="button" class="primario" disabled={!json.trim()} onClick={aplicar}>Aplicar</button></div>
+      </ModoManual>
       {msg && <p class="ok-msg">{msg}</p>}
     </section>
   );

@@ -14,7 +14,7 @@ import { fmt } from '../calc.js';
 import { lerGpsDetalhado, AJUDA_GPS } from '../photos.js';
 import { promoverMedicao } from '../paradigmas.js';
 import { evidenciasDaDiligencia, aplicarEvidencias } from '../fotosLaudo.js';
-import { TF, Campos, salvar } from './fields.jsx';
+import { TF, Campos, CamposCompactos, salvar } from './fields.jsx';
 import { useLive } from './hooks.js';
 import { EquipamentosCaso, VeiculoDoPeriodo, ParadigmasDosVinculos } from './Preparacao.jsx';
 import { ehParecerTecnico, chaveVistoria, qtdVistorias, vistoriasDoCaso, CAMPOS_VISTORIA, DESC_AUDIO, reuEhInss, ITENS_ACOMPANHAMENTO } from '../schema.js';
@@ -26,7 +26,7 @@ import { lerAnotacao, promptAnotacoes } from '../notas.js';
 import { lerJsonIA, aplicarIA, faseAvanca, promptRevisaoCampo } from '../aiimport.js';
 import { anexosDosAutos } from './ClaudeDireto.jsx';
 import { pendenciasDoCaso } from '../pendencias.js';
-import { BotoesFoto, Miniaturas } from './Fotos.jsx';
+import { BotoesFoto, Miniaturas, Fotos } from './Fotos.jsx';
 import { Icone } from './Icone.jsx';
 import { confirmar, avisar } from './dialogo.jsx';
 
@@ -87,7 +87,7 @@ export function Campo({ rec }) {
           </div>
           {aberto === p.id && (
             <div class="item-corpo">
-              <Campos rec={p} campos={CAMPOS_POSTO} />
+              <CamposCompactos rec={p} campos={CAMPOS_POSTO} sempre={['nome', 'descricao', 'agentes']} />
               <VinculosDoPosto rec={p} caseId={rec.id} />
               <Medicoes caseId={rec.id} postoId={p.id} ctx={contextoLegal(rec.data)} caso={rec} />
               <div class="campo">
@@ -118,36 +118,27 @@ export function Campo({ rec }) {
         <details class="bloco largo recolhido">
           <summary><b>Postos e medições próprias</b> <span class="contador">{postos.length}</span> <small class="dica">{at ? 'se a assistência também medir' : 'se houver avaliação no local'}</small></summary>
           {blocoPostos}
-          <h4 class="mt">Medições sem posto vinculado</h4>
-          <Medicoes caseId={rec.id} postoId="" ctx={contextoLegal(rec.data)} caso={rec} />
+          <MedicoesSemPosto rec={rec} />
         </details>
       ) : (
-        <>
-          <section class="bloco largo">
-            <h3>Postos / atividades avaliados <span class="contador">{postos.length}</span></h3>
-            {blocoPostos}
-          </section>
-          <section class="bloco largo">
-            <h3>Medições sem posto vinculado</h3>
-            <Medicoes caseId={rec.id} postoId="" ctx={contextoLegal(rec.data)} caso={rec} />
-          </section>
-        </>
+        <section class="bloco largo">
+          <h3>Postos / atividades avaliados <span class="contador">{postos.length}</span></h3>
+          <p class="dica">Cada posto (setor, função ou veículo avaliado) reúne a descrição, as medições e as fotos dele.</p>
+          {blocoPostos}
+          <MedicoesSemPosto rec={rec} />
+        </section>
       )}
 
-      <section class="bloco largo">
-        <h3>Fotos gerais</h3>
-        <BotoesFoto caseId={rec.id} postoId="" />
-        <Miniaturas caseId={rec.id} postoId="" />
-      </section>
+      <section id="sec-fotos" class="largo secao-etapa"><Fotos rec={rec} /></section>
 
       <section class="bloco largo">
-        <TF rec={rec} k="vistoriaNotas" label="Anotações gerais da diligência" area rows={4} />
+        <TF rec={rec} k="vistoriaNotas" label="Anotações gerais da diligência" area rows={3} />
       </section>
 
       <RevisaoDaColeta rec={rec} />
 
       <details class="bloco largo recolhido">
-        <summary><b>No escritório</b> <small class="dica">relatórios dos medidores (apêndices), anexos do documento (ART, CNIS…) e importação das anotações</small></summary>
+        <summary><b>Relatórios dos medidores e anexos do documento</b> <small class="dica">relatórios (DoseMax, AxPro…) que saem como apêndices; ART, CNIS, certidões que saem como anexos</small></summary>
         <RelatoriosMedicao rec={rec} />
         <RelatoriosMedicao rec={rec} desc={DESC_ANEXO_DOC} rotulo="Anexo" titulo="Anexos do documento (ART, CNIS, certidões, declarações)"
           dica="Documentos de terceiros que acompanham o LTCAT, o laudo previdenciário e o parecer previdenciário: ART, CNIS, certidões, declarações assinadas, fichas de dados de segurança. Cada arquivo sai no fim, com todas as páginas, como Anexo A, B, C… (no laudo judicial, Anexo II, III…, depois do relatório fotográfico)."
@@ -159,6 +150,14 @@ export function Campo({ rec }) {
 
 // Assistente técnico: o que verificar no trabalho do perito, por item, com a constatação e a observação
 // para a manifestação. Sai preenchido no "Relatório de acompanhamento da diligência".
+
+// Medições sem posto: só aparecem quando existem; senão, um botão abre o quadro
+function MedicoesSemPosto({ rec }) {
+  const n = useLive(async () => (await db.records.where('[caseId+kind]').equals([rec.id, 'medicao']).toArray()).filter((r) => !r.deleted && !r.data.postoId).length, [rec.id], 0);
+  const [abrir, setAbrir] = useState(false);
+  if (!n && !abrir) return <div class="linha-botoes mt"><button type="button" class="mini sec" onClick={() => setAbrir(true)}>＋ Medição sem posto vinculado</button></div>;
+  return <><h4 class="mt">Medições sem posto vinculado <span class="contador">{n}</span></h4><Medicoes caseId={rec.id} postoId="" ctx={contextoLegal(rec.data)} caso={rec} /></>;
+}
 
 function AcompanhamentoPerito({ rec }) {
   const c = rec.data;
@@ -409,28 +408,33 @@ function Diligencia({ rec, iniciar, pegarGps, gpsMsg }) {
         <div class="com-botao"><TF rec={rec} k={k('Fim')} label="Término" type="time" />
           <button type="button" class="mini" onClick={() => salvar(rec.id, k('Fim'), agoraHM())}>Agora</button></div>
       </div>
-      <TF rec={rec} k={k('Local')} label={n > 1 ? 'Local (empresa / unidade) – em branco = o da 1ª vistoria' : 'Local (empresa / unidade)'} />
-      <TF rec={rec} k={k('Endereco')} label="Endereço" />
-      <div class="com-botao"><TF rec={rec} k={k('Gps')} label="Coordenadas GPS" />
-        <button type="button" class="mini" onClick={() => pegarGps(n)}><Icone nome="pin" /> GPS</button></div>
-      {gpsMsg && <small class={/^Não/.test(gpsMsg) ? "erro-msg" : "dica"} role="status">{gpsMsg}</small>}
-      {n === 1 && <HorariosPelasEvidencias rec={rec} />}
-      <TF rec={rec} k={k('Presentes')} label="Pessoas presentes (nome – função – quem representa)" area />
-      {n === 1 && c.papel === 'Perito do Juízo' && <TF rec={rec} k="vistoriaIntimacao" label='Comunicação da data às partes e aos assistentes (art. 474 do CPC) – ex.: "intimação do evento 52, de 10/10/2026"' />}
+      <div class="linha2">
+        <TF rec={rec} k={k('Local')} label={n > 1 ? 'Local (empresa / unidade) – em branco = o da 1ª vistoria' : 'Local (empresa / unidade)'} />
+        <TF rec={rec} k={k('Endereco')} label="Endereço" />
+      </div>
+      <TF rec={rec} k={k('Presentes')} label="Pessoas presentes (nome – função – quem representa)" area rows={3} />
       {n > 1 && anterior && !String(c[k('Presentes')] || '').trim() && (
         <div class="linha-botoes"><button type="button" class="mini" onClick={async () => { await salvar(rec.id, k('Presentes'), anterior); avisarAlteracao(); }}>
           Copiar os presentes da {n - 1}ª vistoria</button><small class="dica">depois, ajuste quem não veio ou quem chegou</small></div>
       )}
-      <TF rec={rec} k={k('Condicoes')} label="Condições do dia (produção normal?, clima, paradas)" area rows={2} />
-      <AudioVistoria rec={rec} n={n} key={`audio-${n}`} />
+      {n === 1 && c.papel === 'Perito do Juízo' && <TF rec={rec} k="vistoriaIntimacao" label='Comunicação da data às partes (art. 474 do CPC) – ex.: "intimação do evento 52, de 10/10/2026"' />}
       {n === 1 && <EquipamentosCaso rec={rec} titulo="Equipamentos utilizados" />}
       {n > 1 && <p class="dica">Os equipamentos ficam na 1ª vistoria e valem para o caso todo. Medições e fotos ficam nos postos, com a data de cada uma.</p>}
+      <details class="opcoes-caso" open={!!String(c[k('Gps')] || c[k('Condicoes')] || '').trim()}>
+        <summary>GPS, condições do dia e áudio da vistoria{String(c[k('Gps')] || '').trim() ? ` · GPS ${c[k('Gps')]}` : ''}</summary>
+        <div class="com-botao"><TF rec={rec} k={k('Gps')} label="Coordenadas GPS" />
+          <button type="button" class="mini" onClick={() => pegarGps(n)}><Icone nome="pin" /> GPS</button></div>
+        {n === 1 && <HorariosPelasEvidencias rec={rec} />}
+        <TF rec={rec} k={k('Condicoes')} label="Condições do dia (produção normal?, clima, paradas)" area rows={2} />
+        <AudioVistoria rec={rec} n={n} key={`audio-${n}`} />
+        <p class="dica">Para ditar, use o microfone do teclado do tablet. Tudo é gravado automaticamente enquanto você digita.</p>
+      </details>
+      {gpsMsg && <small class={/^Não/.test(gpsMsg) ? "erro-msg" : "dica"} role="status">{gpsMsg}</small>}
       <div class="linha-botoes">
         {!/Assistente técnico/i.test(c.papel || '') && <button type="button" class="mini" onClick={termo}><Icone nome="doc" /> Termo de presença da {n}ª vistoria</button>}
         {n > 1 && n === qtd && <button type="button" class="mini perigo" onClick={excluirUltima}>Excluir a {n}ª vistoria</button>}
       </div>
       </div>
-      <p class="dica">Para ditar, use o microfone do teclado do tablet. Tudo é gravado automaticamente enquanto você digita.</p>
     </section>
   );
 }

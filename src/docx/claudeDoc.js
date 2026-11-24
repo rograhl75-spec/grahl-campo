@@ -75,7 +75,9 @@ export function semPartesDoApp(md) {
     if (RE_LOCAL_DATA.test(t) || RE_INTEGRAM.test(t)) continue;
     out.push(l);
   }
-  return out.join('\n').replace(/\[\[\s*data de emiss[ãa]o\s*\]\]/gi, dataPorExtenso(hojeIso()));
+  return out.join('\n').replace(/\[\[\s*data de emiss[ãa]o\s*\]\]/gi, dataPorExtenso(hojeIso()))
+    // CNPJ / CPF em branco ("Jardelino Transportes, CNPJ [[CNPJ da Jardelino]]"): omitido, sem pendência
+    .replace(/\s*\(\s*(CNPJ|CPF)\s*(n[º°.]\s*)?\[\[[^\]]*\]\]\s*\)/g, '').replace(/,?\s*(inscrita no\s+)?(CNPJ|CPF)\s*(n[º°.]\s*)?(sob o n[º°.]\s*)?\[\[[^\]]*\]\]/g, '');
 }
 
 // Corretor do Word: título de norma em inglês ("ISO 2631-1:1997 – Mechanical vibration…") sai como inglês;

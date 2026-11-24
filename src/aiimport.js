@@ -55,6 +55,7 @@ export const CRITERIOS_GERAIS = `CRITÉRIOS GERAIS DO SIGNATÁRIO
 - Validade da calibração: o fabricante recomenda 12 meses; o signatário adota até 24 meses da data do certificado. Dentro de 24 meses na data da medição, a calibração é válida: não aponte pendência nem ressalva.
 - Aferição de campo do dosímetro antes e depois da medição: cite somente se estiver registrada nas medições; sem registro, não mencione nem marque pendência.
 - Veículos, máquinas ou fatos citados apenas em petições e não confirmados na entrevista ou na diligência ficam fora do laudo (não viram pendência).
+- CNPJ, CPF e endereço de terceiros (empresa similar ou paradigma, proprietário do veículo avaliado): cite só se estiverem no caso ou nos autos; se não estiverem, omita, sem pendência. Pendência só para dado que muda a conclusão ou que a lei exige.
 - Veículo avaliado sem o documento (CRLV): use os dados da consulta pública da placa lançados no posto, citando a fonte e a data (ex.: "conforme consulta da placa AFD-9436 no Sinesp Cidadão em 25/11/2026"). Se ainda não houver, uma pendência só: "[[consultar a placa X no Sinesp Cidadão: marca, modelo e ano]]".
 - Hierarquia das fontes: 1) lei, decreto, NR e IN na redação vigente no período; 2) Normas de Higiene Ocupacional (NHO) da FUNDACENTRO; 3) normas técnicas (ISO, ABNT); 4) somente como apoio técnico, nunca como critério de enquadramento quando houver norma brasileira: ACGIH (TLVs/BEIs – referência da NR-9, item 9.6.1.1, para prevenção), NIOSH, OSHA e convenções da OIT ratificadas pelo Brasil (148 e 155, consolidadas no Decreto 10.088/2019). Cite edição e ano de cada fonte.`;
 
@@ -721,7 +722,9 @@ export async function textoDoCaso(caseId) {
       for (const r of vincs) {
         const tc = pen.tempoConducao(r, dados);
         const esc = String(r.data.penosidadeResultado || '');
-        const conc = String(r.data.penosidadeConclusao || '').trim() || (/^(sim|n[ãa]o)/i.test(esc) ? pen.textoPadraoPenosidade(/^sim/i.test(esc), dados.perfil) : '');
+        const { contradizResultado } = await import('./pendencias.js');
+        const proprio = contradizResultado(esc, r.data.penosidadeConclusao) ? '' : String(r.data.penosidadeConclusao || '').trim();
+        const conc = proprio || (/^(sim|n[ãa]o)/i.test(esc) ? pen.textoPadraoPenosidade(/^sim/i.test(esc), dados.perfil) : '');
         L.push(`- ${r.data.empresa || 'Vínculo'} (${r.data.inicio || '?'} a ${r.data.fim || 'atual'}): tempo diário de condução ${isFinite(tc.T) ? `${String(tc.T).replace('.', ',')} h${tc.base ? ` (${tc.base})` : ''}` : '[[pendente]]'}`
           + `${r.data.vias ? `; trajetos: ${capitalizarCidades(r.data.vias)}` : ''}${conc ? `; conclusão da penosidade adotada: "${conc}"` : '; conclusão da penosidade: [[escolher Sim ou Não]]'}`);
       }

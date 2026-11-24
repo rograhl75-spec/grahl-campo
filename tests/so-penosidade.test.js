@@ -87,3 +87,24 @@ describe('jornada da medição de vibração', () => {
     expect(t).not.toContain('normalizado para');
   });
 });
+
+describe('pendências de paradigma e conclusão da penosidade', () => {
+  it('vínculo medido neste processo não pede paradigma, mesmo com o banco liberado', async () => {
+    const { pendenciasDoCaso } = await import('../src/pendencias.js');
+    await put('pg', 'caso', null, { papel: 'Perito do Juízo', justica: 'Justiça Federal', materia: 'Previdenciária', usarBancoParadigmas: true, vistoriaData: '2026-09-29', vistoriaPresentes: 'Fulano', vistoriaIntimacao: 'ev. 1' });
+    await put('pgv', 'periodo', 'pg', { empresa: 'Transportes Teta', inicio: '2010-02-01', fim: '2011-12-21', cargo: 'Motorista de carreta', conducaoH: '12', penosidadeResultado: 'Sim – caracteriza' });
+    await put('pgp', 'posto', 'pg', { nome: 'Motorista – carreta', vinculos: ['pgv'] });
+    await put('pgm1', 'medicao', 'pg', { agente: 'Ruído', postoId: 'pgp', lavg: '93.1', jornada: '12:00', dataMedicao: '2026-09-29' });
+    await put('pgm2', 'medicao', 'pg', { agente: 'Vibração de corpo inteiro (VCI)', postoId: 'pgp', aren: '1.07', vdv: '15.74', tempoExposicao: '12:00:00', dataMedicao: '2026-09-29' });
+    const t = (await pendenciasDoCaso('pg')).map((i) => i.titulo).join(' | ');
+    expect(t).not.toContain('Paradigma de');
+  });
+  it('texto próprio que contradiz o resultado escolhido vira pendência', async () => {
+    const { contradizResultado } = await import('../src/pendencias.js');
+    expect(contradizResultado('Sim – caracteriza', 'Os fatores apurados não caracterizam a penosidade.')).toBe(true);
+    expect(contradizResultado('Sim – caracteriza', 'A penosidade não restou caracterizada.')).toBe(true);
+    expect(contradizResultado('Sim – caracteriza', 'Não se caracteriza a penosidade.')).toBe(true);
+    expect(contradizResultado('Sim – caracteriza', 'A penosidade fica caracterizada.')).toBe(false);
+    expect(contradizResultado('Não – não caracteriza', 'A penosidade fica caracterizada pela convergência.')).toBe(true);
+  });
+});

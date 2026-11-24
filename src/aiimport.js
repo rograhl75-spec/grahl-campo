@@ -710,6 +710,9 @@ export async function textoDoCaso(caseId) {
     ['dataAjuizamento', 'Ajuizamento'], ['peritoJuizo', 'Perito do Juízo'], ['refLaudo', 'Laudo analisado'], ['autorNome', 'Autor / segurado'], ['autorCpf', 'CPF / NIT'],
     ['reuNome', 'Réu / empresa'], ['reuCnpj', 'CNPJ']]) campo(r, c[k]);
   campo('Objeto', (c.objeto || []).join(', '));
+  // ART escolhida (Configurações → ARTs): o número sai no documento; o PDF o app anexa
+  const artCad = c.artId ? await db.records.get(c.artId) : null;
+  campo('ART deste documento', artCad && !artCad.deleted ? `nº ${artCad.data.numero || '?'}${artCad.data.conselho ? ` (${artCad.data.conselho})` : ''} – ${artCad.data.finalidade || ''} (o PDF o app anexa; não liste)` : c.art);
   L.push('\n## Síntese dos autos');
   for (const [k, r] of [['funcoes', 'Funções e períodos'], ['atividadesAlegadas', 'Atividades alegadas'], ['agentesAlegados', 'Agentes alegados'], ['pedidos', 'Pedidos'],
     ['defesa', 'Defesa'], ['preliminares', 'Pontos de atenção'], ['analiseEpi', 'Análise dos EPIs'], ['observacoes', 'Observações'], ['conclusaoLaudo', 'Conclusão do laudo já apresentado']]) campo(r, c[k]);

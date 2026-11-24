@@ -131,6 +131,11 @@ export async function carregar(caseId) {
   const cfgPar = await db.records.get('cfg-paradigmas');
   const perfilRec = await db.records.get(PERFIL_ID);
   const perfil = { ...PERFIL_PADRAO, ...(perfilRec ? perfilRec.data : {}) };
+  // número da ART escolhida no caso, quando o campo "art" do caso está vazio
+  if (caso.data.artId && !v(caso.data.art)) {
+    const a = await db.records.get(caso.data.artId);
+    if (a && !a.deleted && v(a.data.numero)) caso.data = { ...caso.data, art: a.data.numero };
+  }
   // duplicados de extrações repetidas não entram nos documentos
   const pers = unicos(periodos, (x) => [normTxt(x.empresa).slice(0, 30), x.inicio, x.fim]);
   pers.sort((a, b) => String(a.data.inicio || '').localeCompare(String(b.data.inicio || '')));
@@ -1200,7 +1205,16 @@ export async function anexosDoCaso(dados, { romanos = false, inicio = 0 } = {}) 
   const { apendicesRegistros, paginasDoArquivo, LETRAS, DESC_ANEXO_DOC } = await import('../apendices.js');
   const { obterAnexo } = await import('../sync.js');
   const out = []; let falhas = 0;
+  // ART escolhida no caso (Configurações → ARTs): primeiro anexo
+  const art = dados.c.artId ? await db.records.get(dados.c.artId) : null;
+  if (art && !art.deleted && art.data.anexoId) {
+    try {
+      const reg = await db.records.get(art.data.anexoId);
+      out.push({ letra: (romanos ? ROMANOS : LETRAS)[inicio] || String(inicio + 1), titulo: `ART${art.data.numero ? ` nº ${art.data.numero}` : ''}${art.data.conselho ? ` (${art.data.conselho})` : ''}`, paginas: await paginasDoArquivo(await obterAnexo(art.data.anexoId), reg?.data?.mime, { recortar: true }) });
+    } catch (e) { falhas++; }
+  }
   for (const r of await apendicesRegistros(dados.id, DESC_ANEXO_DOC)) {
+    if (art && art.data.anexoId && r.id === art.data.anexoId) continue;
     try { out.push({ letra: (romanos ? ROMANOS : LETRAS)[inicio + out.length] || String(inicio + out.length + 1), titulo: acentuar(r.data.titulo || r.data.nome).replace(/^\p{Ll}/u, (c) => c.toUpperCase()), paginas: await paginasDoArquivo(await obterAnexo(r.id), r.data.mime, { recortar: true }) }); } catch (e) { falhas++; }
   }
   return { anexos: out, falhasAnexo: falhas };

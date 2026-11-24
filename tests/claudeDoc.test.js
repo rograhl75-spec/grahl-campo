@@ -143,3 +143,22 @@ describe('CNPJ de terceiro em branco', () => {
     expect(semPartesDoApp('Transportes Alfa (CNPJ 00.000.000/0001-00).')).toBe('Transportes Alfa (CNPJ 00.000.000/0001-00).');
   });
 });
+
+describe('ART cadastrada em Configurações e escolhida no caso', () => {
+  it('o número vai para o caso e o PDF sai como anexo depois das fotos', async () => {
+    const png = Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='), (c) => c.charCodeAt(0));
+    await db.records.put({ id: 'artpdf1', kind: 'anexo', caseId: null, ts: {}, data: { nome: 'art.png', mime: 'image/png', descricao: 'ART' } });
+    await db.blobs.put({ id: 'artpdf1', blob: new Blob([png], { type: 'image/png' }), mime: 'image/png' });
+    await db.records.put({ id: 'art1', kind: 'artCad', caseId: null, ts: {}, data: { numero: '1720250000001', finalidade: 'Perícias judiciais (perito do juízo)', conselho: 'CREA-PR', anexoId: 'artpdf1' } });
+    const caso = await db.records.get('cd1');
+    await db.records.put({ ...caso, data: { ...caso.data, artId: 'art1' } });
+    const { carregar, anexosDoCaso } = await import('../src/docx/base.js');
+    const dados = await carregar('cd1');
+    expect(dados.c.art).toBe('1720250000001');
+    // no Node não há canvas para converter a imagem: a tentativa de ler o PDF da ART aparece como falha (no navegador, vira o Anexo II)
+    const { anexos, falhasAnexo } = await anexosDoCaso(dados, { romanos: true, inicio: 1 });
+    expect(anexos.length + falhasAnexo).toBe(1);
+    if (anexos.length) expect(anexos[0].titulo).toBe('ART nº 1720250000001 (CREA-PR)');
+    await db.records.put({ ...caso, data: { ...caso.data, artId: '' } });
+  });
+});

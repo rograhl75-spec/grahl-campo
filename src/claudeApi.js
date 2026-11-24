@@ -58,10 +58,15 @@ async function reduzirImagem(blob) {
 
 const tipoDo = (a) => a.mime || a.blob?.type || (/\.pdf$/i.test(a.nome || '') ? 'application/pdf' : /\.(jpe?g|png|webp|gif|heic)$/i.test(a.nome || '') ? 'image/jpeg' : 'text/plain');
 
-// Limites de uma pergunta: 32 MB no total (PDF em base64 cresce ~33%) e 600 páginas de PDF por pedido
+// Limites de uma pergunta: 32 MB no total e 1 milhão de tokens (entrada + resposta). Cada página de PDF enviada
+// inteira custa texto + imagem (~2 a 3 mil tokens): autos grandes estouram o limite. Por isso, o PDF inteiro só vai
+// até ~100 páginas no total; acima disso vai o texto página a página (~500 tokens por página) e as páginas
+// digitalizadas (sem texto: CTPS, documentos em imagem) vão como imagem reduzida, até 40 por pergunta.
 const MAX_PDF_BYTES = 22 * 1024 * 1024;
-const MAX_PDF_PAGINAS = 550;
-const textoExtraido = new Map(); // chave do PDF → texto já extraído nesta sessão (o mesmo texto mantém o cache)
+const MAX_PAGINAS_PDF_INTEIRO = 100;
+const MAX_IMAGENS_ESCANEADAS = 40;
+const ORCAMENTO_TOKENS = 850000;
+const extraido = new Map(); // chave do PDF → { blocos, avisos } já preparados nesta sessão (a mesma forma mantém o cache)
 
 async function paraBase64(blob) {
   const buf = new Uint8Array(await blob.arrayBuffer());
@@ -73,49 +78,73 @@ async function abrirPdf(blob) {
   const pdfjs = await carregarPdfjs();
   return pdfjs.getDocument({ data: new Uint8Array(await blob.arrayBuffer()) }).promise;
 }
-// texto do PDF, página a página ("[Página N]"); conta as páginas sem texto (digitalizadas sem OCR)
-async function textoDoPdf(pdf, onEtapa, nome) {
-  const partes = []; let semTexto = 0;
-  for (let i = 1; i <= pdf.numPages; i += 1) {
-    if (i % 25 === 1) onEtapa?.(`Lendo o texto de ${nome} – página ${i} de ${pdf.numPages}…`);
-    const tc = await (await pdf.getPage(i)).getTextContent();
-    const t = tc.items.map((x) => `${x.str}${x.hasEOL ? '\n' : ' '}`).join('').replace(/[ \t]+/g, ' ').trim();
-    if (t.length < 20) semTexto += 1;
-    partes.push(`[Página ${i}]\n${t || '(página sem texto – provavelmente digitalizada)'}`);
-  }
-  return { texto: partes.join('\n\n'), semTexto, paginas: pdf.numPages };
+// página do PDF → JPEG reduzido (base64), para as páginas digitalizadas
+async function paginaComoImagem(page) {
+  const v0 = page.getViewport({ scale: 1 });
+  const escala = Math.min(2, 1100 / Math.max(v0.width, v0.height));
+  const vp = page.getViewport({ scale: escala });
+  const c = document.createElement('canvas');
+  c.width = Math.round(vp.width); c.height = Math.round(vp.height);
+  await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+  const out = await new Promise((res) => c.toBlob(res, 'image/jpeg', 0.7));
+  return paraBase64(out);
 }
+// texto do PDF página a página ("[Página N]"); as páginas sem texto viram imagem (até "vagas")
+async function textoDoPdf(pdf, onEtapa, nome, vagas) {
+  const partes = []; const imagens = []; let semTexto = 0; let semImagem = 0;
+  for (let i = 1; i <= pdf.numPages; i += 1) {
+    if (i % 25 === 1) onEtapa?.(`Lendo ${nome} – página ${i} de ${pdf.numPages}…`);
+    const page = await pdf.getPage(i);
+    const tc = await page.getTextContent();
+    const t = tc.items.map((x) => `${x.str}${x.hasEOL ? '\n' : ' '}`).join('').replace(/[ \t]+/g, ' ').trim();
+    if (t.length < 40) {
+      semTexto += 1;
+      if (imagens.length < vagas && typeof document !== 'undefined') {
+        try { imagens.push({ pagina: i, data: await paginaComoImagem(page) }); partes.push(`[Página ${i}]\n(página digitalizada – enviada como imagem, logo após este texto)`); continue; } catch { /* sem canvas */ }
+      }
+      semImagem += 1;
+      partes.push(`[Página ${i}]\n${t || '(página digitalizada, sem texto)'}`);
+      continue;
+    }
+    partes.push(`[Página ${i}]\n${t}`);
+  }
+  return { texto: partes.join('\n\n'), imagens, semTexto, semImagem, paginas: pdf.numPages };
+}
+const tokensDe = (blocos) => blocos.reduce((s, b) => s + (b.type === 'text' ? b.text.length / 3.2 : b.type === 'image' ? 1600 : b.type === 'document' ? (b._paginas || 1) * 2500 : 0), 0);
 
 // anexos: [{ blob, nome, mime, chave? }] → blocos de conteúdo. Os PDFs com "chave" (autos do caso) vão primeiro e
-// sempre na mesma ordem e forma, com a marca de cache no último deles: o começo da pergunta fica igual entre os
-// envios do caso e a API reaproveita a leitura (cache de prompt). Devolve também os avisos (texto em vez de PDF).
+// sempre na mesma ordem e forma, com a marca de cache no último bloco deles: o começo da pergunta fica igual entre
+// os envios do caso e a API reaproveita a leitura (cache de prompt). Devolve também os avisos.
 async function blocosDosAnexos(anexos, onEtapa, cache) {
   const blocos = []; const avisos = [];
   const ordem = [...anexos.filter((a) => a.chave).sort((x, y) => String(x.chave).localeCompare(String(y.chave))), ...anexos.filter((a) => !a.chave)];
-  let ultimoFixo = -1; let bytes = 0;
+  // páginas de todos os PDFs: decide se cabem inteiros
+  const pdfs = new Map();
+  for (const a of ordem) if (/pdf/i.test(tipoDo(a)) && !(a.chave && extraido.get(a.chave))) { onEtapa?.(`Abrindo ${a.nome || 'PDF'}…`); pdfs.set(a, await abrirPdf(a.blob)); }
+  const totalPaginas = [...pdfs.values()].reduce((s, p) => s + p.numPages, 0);
+  const totalBytes = [...pdfs.keys()].reduce((s, a) => s + a.blob.size, 0);
+  const inteiros = totalPaginas <= MAX_PAGINAS_PDF_INTEIRO && totalBytes <= MAX_PDF_BYTES;
+  let vagas = MAX_IMAGENS_ESCANEADAS;
+  let ultimoFixo = -1;
   for (const a of ordem) {
     const mime = tipoDo(a);
     const nome = a.nome || 'documento.pdf';
     if (/pdf/i.test(mime)) {
-      onEtapa?.(`Preparando ${nome}…`);
-      let bloco;
-      const jaTexto = a.chave && textoExtraido.get(a.chave);
-      const pdf = jaTexto ? null : await abrirPdf(a.blob);
-      if (!jaTexto && a.blob.size <= MAX_PDF_BYTES && bytes + a.blob.size <= MAX_PDF_BYTES && pdf.numPages <= MAX_PDF_PAGINAS) {
-        bytes += a.blob.size;
-        bloco = { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: await paraBase64(a.blob) }, title: nome };
-      } else {
-        // grande demais para ir como PDF: vai o texto (o mesmo texto nos próximos envios, para o cache)
-        let t = jaTexto;
-        if (!t) {
-          const r = await textoDoPdf(pdf, onEtapa, nome);
-          t = `Documento "${nome}" (${r.paginas} páginas) – texto extraído página a página:\n\n${r.texto}`;
-          if (r.semTexto) avisos.push(`${nome}: ${r.semTexto} de ${r.paginas} página(s) sem texto (digitalizadas) não puderam ser lidas – o PDF é grande demais para ir inteiro (limite de ~22 MB e ${MAX_PDF_PAGINAS} páginas).`);
-          if (a.chave) textoExtraido.set(a.chave, t);
+      let prontos = a.chave && extraido.get(a.chave);
+      if (!prontos) {
+        const pdf = pdfs.get(a);
+        if (inteiros) {
+          prontos = { blocos: [{ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: await paraBase64(a.blob) }, title: nome, _paginas: pdf.numPages }], avisos: [] };
+        } else {
+          const r = await textoDoPdf(pdf, onEtapa, nome, vagas);
+          vagas -= r.imagens.length;
+          const bs = [{ type: 'text', text: `Documento "${nome}" (${r.paginas} páginas) – texto extraído página a página${r.imagens.length ? `; as ${r.imagens.length} página(s) digitalizada(s) seguem como imagem` : ''}:\n\n${r.texto}` }];
+          for (const im of r.imagens) bs.push({ type: 'text', text: `${nome} – página ${im.pagina} (imagem):` }, { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: im.data } });
+          prontos = { blocos: bs, avisos: r.semImagem ? [`${nome}: ${r.semImagem} página(s) digitalizada(s) não couberam como imagem (limite de ${MAX_IMAGENS_ESCANEADAS} por envio) e ficaram sem leitura.`] : [] };
         }
-        bloco = { type: 'text', text: t };
+        if (a.chave) extraido.set(a.chave, prontos);
       }
-      blocos.push(bloco);
+      blocos.push(...prontos.blocos); avisos.push(...prontos.avisos);
       if (a.chave) ultimoFixo = blocos.length - 1;
     } else if (/^image\//i.test(mime)) {
       // o nome vai antes da imagem ("Foto 01"), para o Claude saber qual é qual
@@ -127,8 +156,12 @@ async function blocosDosAnexos(anexos, onEtapa, cache) {
       throw new Error(`O arquivo "${a.nome}" não pode ir direto ao Claude (envie em PDF, imagem ou texto). Arquivos do Word: salve como PDF.`);
     }
   }
-  if (ultimoFixo >= 0 && cache !== 'nao') blocos[ultimoFixo].cache_control = { type: 'ephemeral', ...(cache === '1h' ? { ttl: '1h' } : {}) };
-  return { blocos, avisos };
+  const tokens = tokensDe(blocos);
+  if (tokens > ORCAMENTO_TOKENS) throw new Error(`Os anexos somam cerca de ${Math.round(tokens / 1000)} mil tokens, acima do limite de uma pergunta ao Claude (~${Math.round(ORCAMENTO_TOKENS / 1000)} mil). Separe dos autos só as peças necessárias (inicial, despachos, PPP/LTCAT, CTPS/CNIS, laudos) num PDF menor e anexe-o no item A.`);
+  // cópias (os blocos preparados ficam guardados para o próximo envio): sem o campo interno e com a marca de cache
+  const saida = blocos.map(({ _paginas, cache_control, ...b }) => b);
+  if (ultimoFixo >= 0 && cache !== 'nao') saida[ultimoFixo].cache_control = { type: 'ephemeral', ...(cache === '1h' ? { ttl: '1h' } : {}) };
+  return { blocos: saida, avisos };
 }
 
 // texto final da resposta: os blocos de texto, sem a fala que antecede cada pesquisa na internet
@@ -214,7 +247,7 @@ function mensagemDeErro(e) {
   if (e instanceof Anthropic.BadRequestError) {
     const m = String(e.message || '');
     if (/credit|balance|billing/i.test(m)) return 'Sem créditos na conta de API. Adicione créditos na plataforma da Anthropic (Billing).';
-    if (/too long|too large|pages|exceed|prompt is too long/i.test(m)) return 'Os anexos excedem o limite de uma pergunta. Envie só as peças necessárias (ou desmarque os autos).';
+    if (/too long|too large|pages|exceed|prompt is too long/i.test(m)) return `Os anexos excedem o limite de uma pergunta ao Claude. Separe dos autos só as peças necessárias (inicial, despachos, PPP/LTCAT, CTPS/CNIS, laudos) num PDF menor. (Detalhe da API: ${m.slice(0, 160)})`;
     return `Pedido recusado pela API: ${m}`;
   }
   if (e instanceof Anthropic.APIConnectionTimeoutError) return 'A resposta demorou demais. Tente de novo (com autos grandes, prefira o Wi-Fi).';

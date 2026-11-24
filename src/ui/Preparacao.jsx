@@ -113,21 +113,21 @@ export function Preparacao({ rec, dadosDoCaso = null }) {
       <Duplicados rec={rec} />
       <section class="bloco largo">
         <h3>Síntese dos autos</h3>
-        <div class="linha2"><CamposCompactos rec={rec} campos={sintese} sempre={['funcoes', 'agentesAlegados', 'pedidos']} /></div>
+        <CamposCompactos rec={rec} campos={sintese} sempre={['funcoes', 'agentesAlegados', 'pedidos']} />
       </section>
-      <RecordList kind="periodo" caseId={rec.id} campos={CAMPOS_PERIODO} titulo="Contratos / períodos" novo="Adicionar período"
+      <RecordList kind="periodo" largo caseId={rec.id} campos={CAMPOS_PERIODO} titulo="Contratos / períodos" novo="Adicionar período"
         resumo={(r) => [r.data.empresa, r.data.inicio && `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`, r.data.cargo,
           (r.data.paradigmaRuido || r.data.paradigmaVibracao) && `paradigmas ${[r.data.paradigmaRuido, r.data.paradigmaVibracao].filter(Boolean).join('/')}`].filter(Boolean).join(' · ')}
         extra={(r) => <VeiculoDoPeriodo r={r} />} />
       {motorista && <ParadigmasDosVinculos rec={rec} />}
       {contextoLegal(rec.data).prev && <CarregarProfissao rec={rec} />}
       {contextoLegal(rec.data).prev && (
-        <RecordList kind="agenteAvaliado" caseId={rec.id} campos={CAMPOS_AGENTE_AVALIADO} titulo="Agentes avaliados (sem medição: biológicos, químicos e físicos)" novo="Adicionar agente"
+        <RecordList kind="agenteAvaliado" largo caseId={rec.id} campos={CAMPOS_AGENTE_AVALIADO} titulo="Agentes avaliados (sem medição: biológicos, químicos e físicos)" novo="Adicionar agente"
           inicial={{ tipo: 'Químico' }} compacto
           resumo={(r) => [r.data.tipo, r.data.nome, r.data.vinculos && `vínculos ${r.data.vinculos}`,
             [r.data.resAte97 && `até 1997: ${r.data.resAte97}`, r.data.resDesde97 && `desde 1997: ${r.data.resDesde97}`].filter(Boolean).join(' / ')].filter(Boolean).join(' · ')} />
       )}
-      <RecordList kind="fds" caseId={rec.id} campos={CAMPOS_FDS} titulo="Produtos químicos – fichas das FDS (uma por produto)" novo="Adicionar produto"
+      <RecordList kind="fds" largo caseId={rec.id} campos={CAMPOS_FDS} titulo="Produtos químicos – fichas das FDS (uma por produto)" novo="Adicionar produto"
         inicial={{ situacao: 'A conferir' }} compacto vazio="Nenhum produto. Cadastre os produtos químicos do caso ou peça ao Claude a ficha da FDS (abaixo)."
         resumo={(r) => [r.data.nome, r.data.fabricante, r.data.revisao && `FDS ${r.data.revisao}`, componentesDoTexto(r.data.s3Componentes).length && `${componentesDoTexto(r.data.s3Componentes).length} componente(s)`,
           r.data.fonteFds, r.data.situacao !== 'Conferido' && 'a conferir'].filter(Boolean).join(' · ')} />
@@ -135,9 +135,9 @@ export function Preparacao({ rec, dadosDoCaso = null }) {
         <summary><b>Ficha da FDS pelo Claude</b> <small class="dica">produtos químicos: lê a FDS anexada ou pesquisa a do fabricante</small></summary>
         <PesquisarFds rec={rec} />
       </details>
-      <RecordList kind="documento" caseId={rec.id} campos={CAMPOS_DOC} titulo="Documentos técnicos analisados" novo="Adicionar documento" limite={5}
+      <RecordList kind="documento" largo caseId={rec.id} campos={CAMPOS_DOC} titulo="Documentos técnicos analisados" novo="Adicionar documento" limite={5}
         resumo={(r) => [r.data.tipo, r.data.identificacao].filter(Boolean).join(' – ')} />
-      <RecordList kind="epi" caseId={rec.id} campos={CAMPOS_EPI} titulo="Ficha de EPIs" novo="Adicionar EPI" compacto
+      <RecordList kind="epi" largo caseId={rec.id} campos={CAMPOS_EPI} titulo="Ficha de EPIs" novo="Adicionar EPI" compacto
         resumo={(r) => [r.data.descricao, r.data.ca && `CA ${r.data.ca}`, r.data.dataEntrega].filter(Boolean).join(' · ')} />
       <details class="secao-etapa largo" open={planejado}>
         <summary><b>Planejamento da diligência e análise dos EPIs</b> <small class="dica">roteiro da vistoria, documentos a solicitar, equipamentos a levar</small></summary>

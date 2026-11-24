@@ -7,7 +7,7 @@ import { confirmar } from './dialogo.jsx';
 
 // Lista editável de registros de um caso (períodos, documentos, EPIs...)
 // compacto: lista vazia vira uma linha (título + adicionar); limite: mostra os primeiros N e "ver todos"
-export function RecordList({ kind, caseId, campos, titulo, novo = 'Adicionar', resumo, vazio = 'Nenhum item.', extra, inicial = {}, abrirNovo = true, filtro, compacto = false, limite = 0 }) {
+export function RecordList({ kind, caseId, campos, titulo, novo = 'Adicionar', resumo, vazio = 'Nenhum item.', extra, inicial = {}, abrirNovo = true, filtro, compacto = false, limite = 0, largo = false }) {
   const itens = useLive(async () => {
     const l = caseId
       ? await db.records.where('[caseId+kind]').equals([caseId, kind]).toArray()
@@ -47,7 +47,7 @@ export function RecordList({ kind, caseId, campos, titulo, novo = 'Adicionar', r
   }
   const mostrar = limite && !todos && itens.length > limite + 1 ? itens.slice(0, limite) : itens;
   return (
-    <section class="bloco">
+    <section class={`bloco ${largo && itens.length ? 'largo' : ''}`}>
       {titulo && <h3>{titulo} <span class="contador">{itens.length}</span></h3>}
       {!itens.length && <p class="vazio">{vazio}</p>}
       {mostrar.map((r, idx) => (

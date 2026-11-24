@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 const mem = {};
 globalThis.localStorage = { getItem: (k) => mem[k] ?? null, setItem: (k, v) => { mem[k] = String(v); }, removeItem: (k) => { delete mem[k]; } };
-vi.mock('../src/apendices.js', () => ({ carregarPdfjs: async () => ({ getDocument: () => ({ promise: Promise.resolve({ numPages: 3, getPage: async (i) => ({ getTextContent: async () => ({ items: [{ str: `texto da página ${i} com conteúdo suficiente`, hasEOL: true }] }) }) }) }) }) }));
+vi.mock('../src/apendices.js', () => ({ carregarPdfjs: async () => ({ getDocument: () => ({ promise: Promise.resolve({ numPages: globalThis.__paginas || 3, getPage: async (i) => ({ getTextContent: async () => ({ items: [{ str: `texto da página ${i} com conteúdo suficiente`, hasEOL: true }] }) }) }) }) }) }));
 
 const chamadas = [];
 function sse(uso) {
@@ -62,5 +62,14 @@ describe('envio direto: PDF na pergunta e cache dos autos', () => {
     expect(c0.type).toBe('text');
     expect(c0.text).toContain('[Página 2]');
     expect(c0.cache_control).toEqual({ type: 'ephemeral', ttl: '1h' });
+  });
+  it('autos com muitas páginas (mesmo leves) vão como texto, para não estourar o limite de tokens', async () => {
+    globalThis.__paginas = 300;
+    salvarConfigClaude({ cache: '1h' });
+    await perguntarClaude({ instrucao: 'x', anexos: [{ blob: new Blob(['%PDF leve']), nome: 'autos.pdf', mime: 'application/pdf', chave: 'autos:4:p' }] });
+    const c0 = chamadas.find((c) => c.u.includes('/messages')).corpo.messages[0].content[0];
+    expect(c0.type).toBe('text');
+    expect(c0.text).toContain('[Página 300]');
+    globalThis.__paginas = 0;
   });
 });

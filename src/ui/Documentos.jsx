@@ -249,7 +249,8 @@ function CartaoDoc({ d, ocupado, gerar, contas = [], contaSel, recId, rec, princ
         </label>
       ) : <p class="alerta-txt">Cadastre as contas em Configurações → Meus dados.</p>)}
       {d.id === 'agenda' && rec && <DadosAgendamento rec={rec} />}
-      {['ltcat', 'laudoprev', 'parprev'].includes(d.id) && rec && (
+      {/* anexos (ART etc.): em todo documento principal do passo "Redigir e gerar" e nos que já os usavam */}
+      {(principal || ['ltcat', 'laudoprev', 'parprev'].includes(d.id)) && rec && (
         <details class="anexos-doc">
           <summary>Anexos do documento (ART, CNIS, certidões, declarações)</summary>
           <RelatoriosMedicao rec={rec} desc={DESC_ANEXO_DOC} rotulo="Anexo" titulo="Anexos do documento"

@@ -106,7 +106,8 @@ const REGRAS_EXTRACAO = `REGRAS DE EXTRAÇÃO
 7. LOCAL DA PERÍCIA: se o despacho ou os autos indicarem onde será feita a vistoria (a empresa empregadora ou, na perícia por similaridade, a empresa paradigma) e o endereço, preencha "diligencia.vistoriaLocal" (razão social), "diligencia.vistoriaEndereco" (rua, número, bairro, cidade/UF, CEP) e "diligencia.vistoriaCnpj", mesmo que a diligência ainda não tenha ocorrido. Na perícia por similaridade, preencha também "processo.similaridade" = "Sim" e "processo.empresaOriginal" com a empregadora original. Se a vistoria for em bem de pessoa física, sem empresa (por exemplo, veículo paradigma de um particular), deixe "vistoriaLocal" e "vistoriaCnpj" vazios e preencha "diligencia.vistoriaProprietario" com o NOME COMPLETO do proprietário como consta nos autos, "diligencia.vistoriaVeiculo" (marca, modelo, ano) e "diligencia.vistoriaContato" (telefone indicado nos autos).
 8. FOTOS: use o nome do arquivo e o conteúdo da imagem para a legenda. Em "identificacao", só o que estiver legível na foto (plaqueta, rótulo, display, CA); leitura de display de equipamento serve apenas para conferência com o relatório do equipamento, nunca como resultado de medição.
 9. ${REGRAS_FDS.replace(/\n- /g, '\n   - ')}
-10. DESPACHO DE NOMEAÇÃO (perito do juízo): preencha "despacho" com o que o despacho/decisão fixar – honorários (valor, item, forma de pagamento, adiantamento, quem deposita, limite da tabela para recursos públicos), os números dos itens (depósito, aceite, alvará, data da perícia, vistoria e partes, ofício à empresa, prazo do laudo), a antecedência para informar a data e o prazo do laudo em dias. Use o número do item como está no despacho (ex.: "7, b"). Datas-limite (prazoLaudo, prazoManifestacao, prazoEsclarecimentos) só se estiverem expressas nos autos (AAAA-MM-DD). Em "processo.classe", a classe da ação na capa (ex.: Procedimento Comum); em "processo.juizoDeprecante", só em carta precatória.`;
+10. DESPACHO DE NOMEAÇÃO (perito do juízo): preencha "despacho" com o que o despacho/decisão fixar – honorários (valor, item, forma de pagamento, adiantamento, quem deposita, limite da tabela para recursos públicos), os números dos itens (depósito, aceite, alvará, data da perícia, vistoria e partes, ofício à empresa, prazo do laudo), a antecedência para informar a data e o prazo do laudo em dias. Use o número do item como está no despacho (ex.: "7, b"). Datas-limite (prazoLaudo, prazoManifestacao, prazoEsclarecimentos) só se estiverem expressas nos autos (AAAA-MM-DD). Em "processo.classe", a classe da ação na capa (ex.: Procedimento Comum); em "processo.juizoDeprecante", só em carta precatória.
+11. VÍNCULOS OBJETO DA PERÍCIA: se o despacho ou a decisão que determinou a perícia delimitar empresas ou períodos, "periodos" traz SOMENTE esses. Os vínculos pedidos na inicial e não incluídos no despacho NÃO entram em "periodos": registre-os em "sintese.preliminares" (empresa, período e "não está no despacho do evento X"). Sem delimitação no despacho, liste os períodos pedidos na inicial.`;
 
 const PRODUTO_FDS = FORMATO_PRODUTO.replace(/\s*\n\s*/g, ' ');
 const FORMATO = `FORMATO DA RESPOSTA
@@ -395,6 +396,8 @@ export async function aplicarIA(caseId, dados, { substituir = false, criarPeriod
   for (const [lista, kind] of Object.entries(kinds)) {
     if (!(dados[lista] || []).length) continue;
     const existentes = await caseChildren(caseId, kind);
+    // o que o usuário excluiu (lixeira) não volta numa nova extração: ex.: vínculo pedido na inicial e fora do despacho
+    const excluidos = (await db.records.where('[caseId+kind]').equals([caseId, kind]).toArray()).filter((r) => r.deleted);
     // identidade pelos campos essenciais; o que vier a mais completa o registro existente
     const KS = { periodos: ['empresa', 'inicio', 'fim'], documentos: ['tipo', 'identificacao'], epis: ['descricao', 'ca', 'dataEntrega'], agentesAvaliados: ['nome', 'vinculos'] }[lista];
     const chave = (d) => JSON.stringify(KS.map((k) => (k === 'empresa' ? normTxt(d[k]).slice(0, 30) : String(d[k] ?? '').toLowerCase().replace(/\s+/g, ' ').trim())));
@@ -409,12 +412,16 @@ export async function aplicarIA(caseId, dados, { substituir = false, criarPeriod
     const contagem = new Map();
     if (lista === 'agentesAvaliados') for (const r of existentes) contagem.set(base(r.data.nome), (contagem.get(base(r.data.nome)) || 0) + 1);
     const porNome = new Map(lista === 'agentesAvaliados' ? existentes.filter((r) => contagem.get(base(r.data.nome)) === 1).map((r) => [base(r.data.nome), r]) : []);
+    const chavesExcluidas = new Set(excluidos.map((r) => chave(r.data)));
+    const datasExcluidas = new Set(lista === 'periodos' ? excluidos.filter((r) => r.data.inicio).flatMap((r) => [`${r.data.inicio}|${r.data.fim || ''}`, `${normTxt(r.data.empresa).slice(0, 30)}|${r.data.inicio}`]) : []);
     let ordem = existentes.length;
     for (const item of dados[lista]) {
       const ja = vistos.get(chave(item)) || (lista === 'periodos' && item.inicio
         ? porDatas.get(`${item.inicio}|${item.fim || ''}`) || porInicio.get(`${normTxt(item.empresa).slice(0, 30)}|${item.inicio}`) : undefined)
         || (lista === 'agentesAvaliados' && base(item.nome) ? porNome.get(base(item.nome)) : undefined);
       if (!ja && lista === 'periodos' && !criarPeriodos) continue;
+      if (!ja && (chavesExcluidas.has(chave(item)) || (lista === 'periodos' && item.inicio
+        && (datasExcluidas.has(`${item.inicio}|${item.fim || ''}`) || datasExcluidas.has(`${normTxt(item.empresa).slice(0, 30)}|${item.inicio}`))))) { cont.ignorados = (cont.ignorados || 0) + 1; continue; }
       if (lista === 'agentesAvaliados' && item.excluir) { if (ja) { await softDelete(ja.id); cont.excluidos = (cont.excluidos || 0) + 1; } continue; }
       if (ja) {
         // "substituir": o que vier preenchido corrige o registro existente; senão, só completa o que está vazio

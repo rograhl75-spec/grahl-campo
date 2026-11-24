@@ -200,7 +200,8 @@ export function CamposCompactos({ rec, campos, sempre = [] }) {
 export function Campos({ rec, campos }) {
   return campos.map(([k, label, tipo, opcoes]) => {
     if (tipo === 'select') return <Sel key={k} rec={rec} k={k} label={label} opcoes={opcoes} />;
-    if (tipo === 'area') return <TF key={k} rec={rec} k={k} label={label} area />;
+    // caixa de texto do tamanho do conteúdo (3 a 12 linhas)
+    if (tipo === 'area') return <TF key={k} rec={rec} k={k} label={label} area rows={Math.min(12, Math.max(3, Math.ceil(String(rec.data[k] ?? '').length / 110) + String(rec.data[k] ?? '').split('\n').length - 1))} />;
     return <TF key={k} rec={rec} k={k} label={label} type={tipo} />;
   });
 }

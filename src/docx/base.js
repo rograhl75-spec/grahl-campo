@@ -135,7 +135,9 @@ export async function carregar(caseId) {
   const pers = unicos(periodos, (x) => [normTxt(x.empresa).slice(0, 30), x.inicio, x.fim]);
   pers.sort((a, b) => String(a.data.inicio || '').localeCompare(String(b.data.inicio || '')));
   // medição repetida: fica a mais recente (a última extração costuma ser a mais completa)
-  const meds = unicos(medicoes, (x) => [x.agente, x.lavg, x.dose, x.aren, x.vdv, x.tbn, x.valor, x.dataMedicao, x.horaInicio], true);
+  // medição sem nenhum valor (aberta e não preenchida) não entra: senão ela seria a "medição representativa" do posto
+  const comValor = (x) => ['lavg', 'dose', 'aren', 'vdv', 'tbn', 'tg', 'ibutgLido', 'valor'].some((k) => v(x[k]));
+  const meds = unicos(medicoes.filter((m) => comValor(m.data)), (x) => [x.agente, x.lavg, x.dose, x.aren, x.vdv, x.tbn, x.valor, x.dataMedicao, x.horaInicio], true);
   const comMed = new Set(meds.map((m) => m.data.postoId));
   // posto sem medição que repete o veículo/posto de outro com medição = duplicado
   const chaveP = (x) => normTxt(x.nome).split(' ').slice(0, 2).join(' ');
@@ -485,6 +487,20 @@ export function quadroCriteriosRuido(d) {
   { larguras: [0.27, 0.73], fonte: 'Elaborado pelo signatário com base em Brasil (2022, art. 292).' });
 }
 
+// vínculo com troca por veículo sem similar medido ("soPenosidadeDesde"): o subperíodo é cortado na data, e o trecho
+// seguinte é marcado "somente penosidade" (o posto medido não o representa)
+export function cortarSoPenosidade(subs) {
+  const out = [];
+  for (const s of subs) {
+    const d = s.periodo.data.soPenosidadeDesde;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d || '') || d > s.fim) { out.push(s); continue; }
+    if (d <= s.ini) { out.push({ ...s, soPen: true }); continue; }
+    const antes = new Date(`${d}T12:00:00`); antes.setDate(antes.getDate() - 1);
+    out.push({ ...s, fim: antes.toISOString().slice(0, 10) }, { ...s, ini: d, soPen: true });
+  }
+  return out;
+}
+
 // divide cada período cadastrado pelas janelas legais do ruído
 export function subperiodosRuido(periodos) {
   const out = [];
@@ -503,7 +519,7 @@ export function subperiodosRuido(periodos) {
 export function quadroConfrontoRuido(d, dados) {
   const ruido = dados.medicoes.filter((m) => m.data.agente === 'Ruído');
   // vínculos com paradigma de ruído saem na memória de cálculo dos paradigmas
-  const subs = subperiodosRuido(dados.periodos.filter((r) => !r.data.paradigmaRuido));
+  const subs = cortarSoPenosidade(subperiodosRuido(dados.periodos.filter((r) => !r.data.paradigmaRuido)));
   if (!subs.length) return d;
   const nomeP = nomePostoFn(dados.postos);
   let semVinculo = false;
@@ -516,6 +532,7 @@ export function quadroConfrontoRuido(d, dados) {
   };
   return d.quadro('Confronto do ruído com o limite de cada período', [['Vínculo / subperíodo', 'Medição representativa', 'Critério', 'Valor', 'Limite', 'Resultado'],
     ...subs.map((s) => {
+      if (s.soPen) return [`${s.periodo.data.empresa || ''}\n${dataBR(s.ini)} a ${dataBR(s.fim)}`, '—', s.janela.crit, 'Não avaliado', `${s.janela.lim} dB(A)`, 'Somente penosidade (veículo sem similar medido)'];
       const ref = refDo(s.periodo);
       const q = ref ? fatorQ(ref) : 5;
       const q3antes = ref && q === 3 && s.janela.crit === 'Lavg';
@@ -1230,6 +1247,7 @@ export function descricaoVinculo(d, r, dados, { refVistoria = '' } = {}) {
     isFinite(tempoConducao(r, dados).T) && `tempo diário de condução: cerca de ${fmtHoras(tempoConducao(r, dados).T)}${tempoConducao(r, dados).regra ? ` (${tempoConducao(r, dados).base})` : ''}`].filter(Boolean);
   if (comp.length) d.texto(`Informações complementares do vínculo – ${comp.join('; ')}.`);
   const ps = postosDoPeriodo(r, dados);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(x.soPenosidadeDesde || '')) d.texto(`A partir de ${dataBR(x.soPenosidadeDesde)}, o autor passou a conduzir ${v(x.veiculoDepois) || 'outro veículo'}, sem similar avaliado nesta perícia; nesse trecho, o ruído e a vibração não foram avaliados, e a análise se limita à penosidade.`);
   if (ps.length) d.texto(`Na perícia, este vínculo é representado ${ps.length > 1 ? 'pelos veículos/postos' : 'pelo veículo/posto'} ${ps.map((p) => nomeCurto(p.data.nome)).join('; ')}${refVistoria ? `, descrito${ps.length > 1 ? 's' : ''} no item ${refVistoria}` : ''}.`);
 }
 

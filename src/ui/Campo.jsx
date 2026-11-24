@@ -831,6 +831,7 @@ function EntrevistaVinculos({ rec }) {
     [x.veiculoMarca, x.veiculoModelo, x.veiculoAno].filter(Boolean).join(' ') || x.grupoVeiculo,
     x.tipoCarga && `carga: ${x.tipoCarga}`, x.vias && `trajetos: ${x.vias}`, x.jornadaSemanal && `jornada: ${x.jornadaSemanal}`,
     x.noturnoPernoite && `pernoite: ${x.noturnoPernoite}`,
+    x.penosidadeResultado && `penosidade: ${String(x.penosidadeResultado).split(' –')[0]}`,
   ].filter(Boolean).join(' · ');
   const faltando = (x) => [!x.grupoVeiculo && 'grupo do veículo', !x.tipoCarga && 'carga', !x.vias && 'trajetos', !x.jornadaSemanal && !x.conducaoH && 'jornada', !isFinite(horasDia(x.conducaoH)) && !(rec.data.foraDirecaoH && x.jornadaSemanal) && 'horas de condução por dia', paradigmasPermitidos(rec.data) && (x.paradigmaRuido || x.paradigmaVibracao) && !x.paradigmaVibracao && 'paradigma de vibração',
     !x.noturnoPernoite && 'pernoite', paradigmasPermitidos(rec.data) && !x.paradigmaRuido && !(x.fim && x.fim <= '1995-04-28') && 'paradigma'].filter(Boolean);

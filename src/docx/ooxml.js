@@ -40,7 +40,7 @@ function rPr({ b, i, size = 12, color, caps, hl, sup, tit, np, lang = 'pt-BR' } 
 }
 
 // unidade do VDV (m/s elevado a 1,75), escrita de várias formas nos textos, sai sempre com o expoente sobrescrito
-const RE_VDV = /m\/s(?:\^\s*\{?1[,.]75\}?|¹[·,.]?⁷⁵)/g;
+const RE_VDV = /m\/s(?:\^\s*\{?1[,.]75\}?|¹[·,.]?⁷⁵|1[,.]75(?!\d))/g;
 // tabulação literal dentro de <w:t> não é válida no Word: vira <w:tab/>
 const tx = (t) => esc(t).replace(/\t/g, '</w:t><w:tab/><w:t xml:space="preserve">');
 // Termos técnicos, abreviaturas e nomes próprios que o dicionário do Word não conhece saem sem revisão
@@ -100,7 +100,7 @@ export function run(text, opts = {}) {
 // Texto com marcações: **negrito**, *itálico* e [[pendência]] (amarelo, para conferir)
 export function rich(text, base = {}) {
   const out = [];
-  const re = /(\*\*([^*]+)\*\*|\[\[([^\]]+)\]\]|\*([^*]+)\*|\{\{(en|es|fr|de):([^}]+)\}\})/g;
+  const re = /(\*\*([^*]+)\*\*|\[\[([^\]]+)\]\]|\*([^*]+)\*|\{\{(en|es|fr|de):([^}]+)\}\}|(?<![\p{L}\d])\$(?!\s)([^$\n]+?)(?<!\s)\$)/gu;
   let last = 0, m;
   const s = String(text ?? '');
   while ((m = re.exec(s))) {
@@ -108,6 +108,7 @@ export function rich(text, base = {}) {
     if (m[2] !== undefined) out.push(run(m[2], { ...base, b: true }));
     else if (m[3] !== undefined) out.push(run(m[3], { ...base, b: true, hl: true }));
     else if (m[4] !== undefined) out.push(run(m[4], { ...base, i: true }));
+    else if (m[7] !== undefined) out.push(`<m:oMath>${formulaOmml(m[7], base.size)}</m:oMath>`);
     else out.push(run(m[6], { ...base, np: false, lang: { en: 'en-US', es: 'es-ES', fr: 'fr-FR', de: 'de-DE' }[m[5]] }));
     last = m.index + m[0].length;
   }
@@ -116,7 +117,8 @@ export function rich(text, base = {}) {
 }
 
 // ---------- Fórmulas (Office Math / OMML): equações de verdade no Word, não texto ----------
-const mt = (t, { normal = false } = {}) => `<m:r>${normal ? '<m:rPr><m:sty m:val="p"/></m:rPr>' : ''}<w:rPr><w:rFonts w:ascii="Cambria Math" w:hAnsi="Cambria Math"/><w:lang w:val="pt-BR"/></w:rPr><m:t xml:space="preserve">${esc(t)}</m:t></m:r>`;
+// número com vírgula decimal ("16,61"): texto normal (<m:nor/>), senão o editor de equações separa "16 , 61"
+const mt = (t, { normal = false, size } = {}) => `<m:r>${normal ? `<m:rPr>${/\d,\d/.test(t) ? '<m:nor/>' : ''}<m:sty m:val="p"/></m:rPr>` : ''}<w:rPr><w:rFonts w:ascii="Cambria Math" w:hAnsi="Cambria Math"/>${size ? `<w:sz w:val="${Math.round(size * 2)}"/><w:szCs w:val="${Math.round(size * 2)}"/>` : ''}<w:lang w:val="pt-BR"/></w:rPr><m:t xml:space="preserve">${esc(t)}</m:t></m:r>`;
 export const M = {
   t: (x) => mt(x),
   n: (x) => mt(x, { normal: true }), // texto reto (números, operadores, palavras)
@@ -127,6 +129,52 @@ export const M = {
   par: (x) => `<m:d><m:e>${x}</m:e></m:d>`,
   log: (x) => `<m:func><m:fName>${mt('log', { normal: true })}</m:fName><m:e>${x}</m:e></m:func>`,
 };
+
+// Fórmula em notação simples (estilo LaTeX) → OMML: L_{avg}, T^{0,25}, \sqrt{T/8}, \frac{a}{b}, \cdot, \log, \text{…}
+// Palavras de 2+ letras saem retas (NEN, VDV, log); letras isoladas, em itálico (T, a, L), como no editor do Word.
+const SIMBOLOS = { cdot: '·', times: '×', le: '≤', leq: '≤', ge: '≥', geq: '≥', approx: '≈', pm: '±', Delta: 'Δ', mu: 'μ', log: 'log', ln: 'ln', sum: '∑' };
+export function formulaOmml(src, size) {
+  const s = String(src); let i = 0;
+  const run = (x, normal) => mt(x, { normal, size });
+  const grupo = () => { // {…} ou um átomo
+    if (s[i] === '{') { i++; const r = seq('}'); i++; return r; }
+    return atomo() || '';
+  };
+  const atomo = () => {
+    const c = s[i];
+    if (c === undefined) return null;
+    if (c === '\\') {
+      const m = s.slice(i + 1).match(/^[A-Za-z]+/); const nome = m ? m[0] : s[i + 1] || ''; i += 1 + nome.length;
+      if (nome === 'sqrt') return M.raiz(grupo());
+      if (nome === 'frac') { const a = grupo(); return M.frac(a, grupo()); }
+      if (nome === 'text' || nome === 'mathrm') { i++; const ini = i; let n = 1; while (i < s.length && n) { if (s[i] === '{') n++; else if (s[i] === '}') n--; i++; } return run(s.slice(ini, i - 1), true); }
+      if (nome === 'left' || nome === 'right') return '';
+      return run(SIMBOLOS[nome] ?? nome, true);
+    }
+    if (c === '{') { i++; const r = seq('}'); i++; return r; }
+    let m;
+    if ((m = s.slice(i).match(/^\d+(?:[.,]\d+)*/))) { i += m[0].length; return run(m[0], true); }
+    if ((m = s.slice(i).match(/^\p{L}+/u))) { i += m[0].length; return run(m[0], m[0].length > 1); }
+    if (c === ' ') { i++; return ''; }
+    i++;
+    return run({ '*': '·', '-': '−' }[c] || (/[=+<>≤≥]/.test(c) ? ` ${c} ` : c), true);
+  };
+  const seq = (fim) => {
+    let out = '';
+    while (i < s.length && s[i] !== fim) {
+      let base = atomo();
+      if (base === null) break;
+      let sub = null, sup = null;
+      while (s[i] === '_' || s[i] === '^') { const k = s[i++]; if (k === '_') sub = grupo(); else sup = grupo(); }
+      if (sub !== null && sup !== null) base = `<m:sSubSup><m:e>${base}</m:e><m:sub>${sub}</m:sub><m:sup>${sup}</m:sup></m:sSubSup>`;
+      else if (sub !== null) base = M.sub(base, sub);
+      else if (sup !== null) base = M.sup(base, sup);
+      out += base;
+    }
+    return out;
+  };
+  return seq(undefined);
+}
 
 export const NUM_MARCADOR = 901; // numId da lista com marcador ▪ azul (acrescentada em montarDocx)
 function pPr({ style, align = 'both', before = 0, after = 120, line = 360, keepNext, keepLines, pageBreakBefore, left, hanging, first, outline, lista } = {}) {

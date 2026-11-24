@@ -73,3 +73,48 @@ describe('texto do Claude montado no timbrado', () => {
     expect(p).toContain('Fluxo: título');
   });
 });
+
+describe('partes que o app monta e fórmulas', () => {
+  it('fórmula em texto simples vira notação do app; $...$ vira equação do Word', async () => {
+    const { formulasDoTexto } = await import('../src/docx/claudeDoc.js');
+    expect(formulasDoTexto('Ruído (q = 5): NEN = Lavg + 16,61·log(T/8), com T em horas.')).toBe('Ruído (q = 5): $NEN = L_{avg} + 16,61·\\log(T/8)$, com T em horas.');
+    expect(formulasDoTexto('Vibração: aren(T) = arep·√(T/8).')).toBe('Vibração: $a_{ren}(T) = a_{rep}·\\sqrt{T/8}$.');
+    expect(formulasDoTexto('Vibração: VDVR(T) = VDVR(medido)·(T/Tmedição)^0,25.')).toBe('Vibração: $VDV_{R}(T) = VDV_{R}(medido)·(T/T_{medição})^{0,25}$.');
+    expect(formulasDoTexto('O cálculo foi NEN = 93,1 + 16,61·log(12/8) = 93,1 + 2,9 = 96,0 dB(A).')).toBe('O cálculo foi $NEN = 93,1 + 16,61·\\log(12/8) = 93,1 + 2,9 = 96,0$ dB(A).');
+    expect(formulasDoTexto('O NEN = 96,0 dB(A) supera o limite.')).toBe('O NEN = 96,0 dB(A) supera o limite.');
+    expect(formulasDoTexto('Honorários de R$ 3.000,00 e R$ 500,00.')).toBe('Honorários de R$ 3.000,00 e R$ 500,00.');
+  });
+  it('sem anexo fotográfico escrito pelo Claude, sem "data de emissão"; fotos do caso no Anexo I; equações e R$ intactos', async () => {
+    await db.records.put({ id: 'cdf1', kind: 'foto', caseId: 'cd1', ts: {}, data: { legenda: 'Cabine do caminhão-trator durante a medição', largura: 4, altura: 3 } });
+    const png = Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='), (c) => c.charCodeAt(0));
+    await db.blobs.put({ id: 'cdf1', blob: new Blob([png], { type: 'image/png' }) });
+    const md = `Título: Laudo técnico pericial
+
+# 1 Avaliação
+Fórmula: $NEN = L_{avg} + 16,61 \\cdot \\log(T/8)$ e honorários de R$ 3.000,00. Unidade 21,0 m/s1,75.
+
+# 8 Encerramento
+O laudo segue acompanhado do Anexo I (registro fotográfico) e dos apêndices.
+
+Santa Mariana/PR e Londrina/PR, [[data de emissão]].
+
+# ANEXO I – REGISTRO FOTOGRÁFICO
+Foto 1 – Legenda escrita pelo Claude.
+`;
+    const r = await documentoDoClaude('cd1', md);
+    const zip = await JSZip.loadAsync(await r.blob.arrayBuffer());
+    const xml = await zip.file('word/document.xml').async('string');
+    const t = xml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+    expect(t).not.toContain('Legenda escrita pelo Claude');
+    expect(t).not.toContain('data de emissão');
+    expect(t).not.toContain('segue acompanhado');
+    expect(t).toContain('Cabine do caminhão-trator durante a medição');
+    expect(t).toMatch(/Anexo I – Relatório fotográfico/i);
+    expect(r.nFotos).toBe(1);
+    expect(xml).toContain('<m:oMath>');
+    expect(xml).toMatch(/<m:sSub><m:e>.*?>L<\/m:t>.*?<m:sub>.*?>avg<\/m:t>/);
+    expect(t).toContain('R$ 3.000,00');
+    expect(xml).toMatch(/vertAlign w:val="superscript"\/>.{0,80}1,75/);
+    expect(Object.keys(zip.files).some((k) => k.startsWith('word/media/'))).toBe(true);
+  });
+});

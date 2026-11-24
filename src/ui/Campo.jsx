@@ -12,7 +12,7 @@ import { confrontoAnexo11 } from '../quimicos.js';
 import { FormaPrev } from './Quimicos.jsx';
 import { fmt } from '../calc.js';
 import { lerGpsDetalhado, AJUDA_GPS } from '../photos.js';
-import { promoverMedicao } from '../paradigmas.js';
+import { promoverMedicao, paradigmasPermitidos } from '../paradigmas.js';
 import { evidenciasDaDiligencia, aplicarEvidencias } from '../fotosLaudo.js';
 import { TF, Campos, CamposCompactos, salvar } from './fields.jsx';
 import { useLive } from './hooks.js';
@@ -71,6 +71,9 @@ export function Campo({ rec }) {
   const papel = rec.data.papel || '';
   const at = /Assistente técnico/i.test(papel);
   const entrevista = ehEntrevistaMotorista(rec.data);
+  // motorista / operador: a entrevista por vínculo (veículo, carga, trajetos, jornada, penosidade) é colhida em campo
+  const motorista = useLive(async () => RE_MOT_CAMPO.test(rec.data.funcoes || '') || (await db.records.where('[caseId+kind]').equals([rec.id, 'periodo']).toArray())
+    .some((r) => !r.deleted && RE_MOT_CAMPO.test(`${r.data.cargo || ''} ${r.data.atividades || ''} ${r.data.veiculoTipo || ''}`)), [rec.id, rec.data.funcoes], false);
   // assistente técnico e parecer por entrevista: postos e medições ficam recolhidos (não são o centro do trabalho)
   const secundario = at || entrevista;
   const blocoPostos = (
@@ -110,6 +113,8 @@ export function Campo({ rec }) {
       {entrevista && <EntrevistaVinculos rec={rec} />}
 
       <Diligencia rec={rec} iniciar={iniciar} pegarGps={pegarGps} gpsMsg={gpsMsg} />
+
+      {!entrevista && motorista && <EntrevistaVinculos rec={rec} />}
 
       {at && <AcompanhamentoPerito rec={rec} />}
 
@@ -816,6 +821,7 @@ function AnotacoesDiligencia({ rec }) {
 
 // Parecer de motorista: o "campo" é a entrevista do segurado, vínculo a vínculo
 const ehEntrevistaMotorista = (c) => ehParecerTecnico(c) || (c.objeto || []).includes('Penosidade (motorista)');
+const RE_MOT_CAMPO = /motorista|caminh|carreteir|cobrador|ônibus|onibus|carreta|bitrem|rodotrem|operador de m[áa]quina|tratorista/i;
 
 function EntrevistaVinculos({ rec }) {
   const ps = useLive(async () => (await db.records.where('[caseId+kind]').equals([rec.id, 'periodo']).toArray())
@@ -826,13 +832,13 @@ function EntrevistaVinculos({ rec }) {
     x.tipoCarga && `carga: ${x.tipoCarga}`, x.vias && `trajetos: ${x.vias}`, x.jornadaSemanal && `jornada: ${x.jornadaSemanal}`,
     x.noturnoPernoite && `pernoite: ${x.noturnoPernoite}`,
   ].filter(Boolean).join(' · ');
-  const faltando = (x) => [!x.grupoVeiculo && 'grupo do veículo', !x.tipoCarga && 'carga', !x.vias && 'trajetos', !x.jornadaSemanal && !x.conducaoH && 'jornada', !isFinite(horasDia(x.conducaoH)) && !(rec.data.foraDirecaoH && x.jornadaSemanal) && 'horas de condução por dia', (x.paradigmaRuido || x.paradigmaVibracao) && !x.paradigmaVibracao && 'paradigma de vibração',
-    !x.noturnoPernoite && 'pernoite', !x.paradigmaRuido && !(x.fim && x.fim <= '1995-04-28') && 'paradigma'].filter(Boolean);
+  const faltando = (x) => [!x.grupoVeiculo && 'grupo do veículo', !x.tipoCarga && 'carga', !x.vias && 'trajetos', !x.jornadaSemanal && !x.conducaoH && 'jornada', !isFinite(horasDia(x.conducaoH)) && !(rec.data.foraDirecaoH && x.jornadaSemanal) && 'horas de condução por dia', paradigmasPermitidos(rec.data) && (x.paradigmaRuido || x.paradigmaVibracao) && !x.paradigmaVibracao && 'paradigma de vibração',
+    !x.noturnoPernoite && 'pernoite', paradigmasPermitidos(rec.data) && !x.paradigmaRuido && !(x.fim && x.fim <= '1995-04-28') && 'paradigma'].filter(Boolean);
   return (
     <section class="bloco largo destaque">
       <div class="linha-botoes entre"><h3>Entrevista do segurado – vínculos <span class="contador">{ps.length}</span></h3>
-        <a class="botao sec" href={`#/caso/${encodeURIComponent(rec.id)}/preparacao`}>Ver na etapa 1. Autos</a></div>
-      <p class="dica">Neste parecer, o trabalho de campo é a entrevista. Toque no vínculo para registrar ou corrigir as respostas; elas vão direto para o parecer. Os vínculos vêm da CTPS/CNIS (etapa 1. Autos).</p>
+      </div>
+      <p class="dica">Toque no vínculo para registrar ou corrigir a entrevista: veículo da época (e a troca de veículo, se houve), carga, trajetos, jornada, pernoite, horas de condução e os fatores de penosidade. As respostas vão direto para o laudo ou o parecer. Os vínculos (empresa e datas) vêm da CTPS/CNIS, na etapa 1. Autos.</p>
       <div class="regra-caso">
         <TF rec={rec} k="foraDirecaoH" label="Regra do caso: horas por dia fora da direção (carga, descarga, paradas) – ex.: 5" inputMode="decimal" />
         <small class="dica">Com a regra, o tempo de condução de cada vínculo sem horas digitadas = jornada da entrevista − estas horas (sai no parecer com a explicação).</small>

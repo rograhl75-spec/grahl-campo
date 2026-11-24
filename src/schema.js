@@ -56,7 +56,7 @@ export const FAMILIA_DO_GRUPO = ['F3', '', '', 'F5', 'F6', 'F8', 'F2', 'F3', '']
 // campos que "Copiar do vínculo" leva de um vínculo para outro com as mesmas atividades
 export const CAMPOS_VEICULO_COPIAVEIS = ['veiculoTipo', 'veiculoMarca', 'veiculoModelo', 'veiculoAno', 'conducaoH', 'conducaoBase', 'grupoVeiculo', 'familiaVeiculo', 'carroceria', 'tipoCarga',
   'carregaDescarrega', 'abastecimento', 'acidenteVinculo', 'assaltoVinculo', 'tipoTransporte', 'jornadaSemanal', 'pausas', 'noturnoPernoite', 'cargaDescarga', 'vias', 'cabine', 'riscoAcidente', 'pressao', 'fisiologicas',
-  'paradigmaRuido', 'paradigmaVibracao'];
+  'paradigmaRuido', 'paradigmaVibracao', 'cambio', 'segundoMotorista', 'lavagemManutencao', 'tanqueSuplementar', 'inflamaveis'];
 export const familiaDoGrupo = (g) => FAMILIA_DO_GRUPO[GRUPOS_VEICULO.indexOf(g)] || '';
 export const tipoDoGrupo = (g) => TIPO_DO_GRUPO[GRUPOS_VEICULO.indexOf(g)] || '';
 
@@ -70,6 +70,12 @@ export const CAMPOS_ENTREVISTA_MOTORISTA = [
   ['abastecimento', 'Onde abastecia', 'text'],
   ['acidenteVinculo', 'Acidente de trânsito no vínculo (Não, ou descreva)', 'text'],
   ['assaltoVinculo', 'Assalto / roubo de carga no vínculo (Não, ou descreva)', 'text'],
+  // perguntas que os quesitos do INSS para motorista sempre fazem
+  ['cambio', 'Câmbio e direção (ex.: manual 13 marchas, direção hidráulica; automático)', 'text'],
+  ['segundoMotorista', 'Segundo motorista (revezamento)?', 'select', ['Não', 'Sim']],
+  ['lavagemManutencao', 'Lavagem, limpeza e manutenção do veículo – quem fazia', 'text'],
+  ['tanqueSuplementar', 'Tanque suplementar de combustível (Não, ou capacidade)', 'text'],
+  ['inflamaveis', 'Transportava inflamáveis? (Não, ou o quê e quanto)', 'text'],
 ];
 
 export const FASE = [
@@ -249,6 +255,9 @@ export const CAMPOS_DILIGENCIA = [
 export const CAMPOS_POSTO = [
   ['nome', 'Posto / setor / função avaliada', 'text'],
   ['descricao', 'Descrição da atividade observada', 'area'],
+  // veículo avaliado (motorista): sem o CRLV, os dados vêm da consulta pública da placa (Sinesp Cidadão), com a data
+  ['placa', 'Placa do veículo avaliado (motorista / operador)', 'text'],
+  ['veiculoAvaliado', 'Veículo avaliado – marca, modelo, ano e fonte (CRLV, ou "consulta da placa no Sinesp Cidadão em dd/mm/aaaa")', 'text'],
   ['infoTrabalhador', 'Informações do trabalhador / segurado', 'area'],
   ['infoEmpresa', 'Informações da empresa / acompanhante', 'area'],
   ['agentes', 'Agentes identificados no local', 'area'],

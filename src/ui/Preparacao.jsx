@@ -118,8 +118,10 @@ export function Preparacao({ rec, dadosDoCaso = null }) {
       <RecordList kind="periodo" largo caseId={rec.id} campos={CAMPOS_PERIODO} titulo="Contratos / períodos" novo="Adicionar período"
         resumo={(r) => [r.data.empresa, r.data.inicio && `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`, r.data.cargo,
           (r.data.paradigmaRuido || r.data.paradigmaVibracao) && `paradigmas ${[r.data.paradigmaRuido, r.data.paradigmaVibracao].filter(Boolean).join('/')}`].filter(Boolean).join(' · ')}
-        extra={(r) => <VeiculoDoPeriodo r={r} />} />
-      {motorista && <ParadigmasDosVinculos rec={rec} />}
+        extra={(r) => (motorista
+          ? <p class="dica">Veículo, entrevista do motorista e penosidade deste vínculo: em <a href={`#/caso/${encodeURIComponent(rec.id)}/campo`}>2. Campo → Entrevista do segurado – vínculos</a>.</p>
+          : <VeiculoDoPeriodo r={r} />)} />
+      {/* motorista: paradigmas e medições dos laudos dos autos ficam junto da entrevista, em 2. Campo */}
       {contextoLegal(rec.data).prev && <CarregarProfissao rec={rec} />}
       {contextoLegal(rec.data).prev && (
         <RecordList kind="agenteAvaliado" largo caseId={rec.id} campos={CAMPOS_AGENTE_AVALIADO} titulo="Agentes avaliados (sem medição: biológicos, químicos e físicos)" novo="Adicionar agente"

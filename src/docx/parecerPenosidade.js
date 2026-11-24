@@ -81,7 +81,7 @@ function penosidadeDoVinculo(r, dados, m) {
   const fatos = m.criterios.map((c) => [c, c.linhas.filter((l) => !JA.test(l))]).filter(([, ls]) => ls.length)
     .map(([c, ls]) => `**${c.titulo.replace(/^\d\. Análise d[oa]s? /, '').replace(/^./, (k) => k.toUpperCase())}** – ${ls.map((l) => l.replace(/^./, (k) => k.toLowerCase())).join('; ')}`);
   const algum = m.criterios.some((c) => c.linhas.length);
-  return [fatos.join('.\n') + (fatos.length ? '.' : '') || (algum ? 'Fatores descritos nas linhas anteriores deste quadro.' : '') || '[[preencher a entrevista do vínculo (etapa 1. Autos → vínculo → Entrevista do motorista e Penosidade)]]', m.conclusao].filter(Boolean).join('\n');
+  return [fatos.join('.\n') + (fatos.length ? '.' : '') || (algum ? 'Fatores descritos nas linhas anteriores deste quadro.' : '') || '[[preencher a entrevista do vínculo (etapa 2. Campo → Entrevista do segurado → vínculo e Penosidade)]]', m.conclusao].filter(Boolean).join('\n');
 }
 
 function enquadramentoDoVinculo(r, segs, m) {
@@ -138,7 +138,7 @@ export async function parecerPenosidade(caseId) {
     : 'Na via administrativa, o INSS não aceita laudo de empresa diversa (IN PRES/INSS 128/2022, art. 277, parágrafo único): a avaliação por similaridade destina-se, nesse caso, a instruir o pedido de revisão ou a ação judicial.');
   if (!quadrosParadigmasMetodologia(d, dados)) {
     if (equipamentosUsados(dados).length) quadroEquipamentos(d, equipamentosUsados(dados), undefined, dados.c.vistoriaData);
-    else d.redigir('vincule os paradigmas de ruído e vibração aos vínculos (2. Autos → vínculo → Sugerir paradigmas), ou inclua no banco os que pesquisar.');
+    else d.redigir('vincule os paradigmas de ruído e vibração aos vínculos (2. Campo → Entrevista do segurado → vínculo → Sugerir paradigmas), ou inclua no banco os que pesquisar.');
   }
   d.h2('1.2', 'Critérios de penosidade');
   d.texto('A partir de 29/04/1995 (Lei nº 9.032/1995), a penosidade da atividade de motorista não consta do Anexo IV do Regulamento da Previdência Social e só pode ser reconhecida mediante perícia técnica individualizada que demonstre a exposição habitual e permanente a condições concretas de desgaste à saúde. Este parecer avalia, vínculo a vínculo, os fatores apurados na entrevista do segurado:');

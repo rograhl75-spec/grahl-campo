@@ -119,6 +119,14 @@ export async function pendenciasDoCaso(caseId) {
       titulo: `${apendices.length} relatório(s) de medição anexado(s), mas nenhuma medição cadastrada`,
       explicacao: 'Os relatórios só entram no fim do laudo como apêndices; os valores de ruído e vibração vêm das medições dos postos. No passo "Relatórios dos medidores", acima, toque em "Ler as medições destes relatórios com o Claude".' });
   }
+  // veículo avaliado identificado só pela placa: consulta pública (Sinesp Cidadão) para marca, modelo e ano
+  for (const ps of dados.postos) {
+    const placa = String(ps.data.placa || '').trim();
+    if (!placa || String(ps.data.veiculoAvaliado || '').trim()) continue;
+    itens.push({ id: `placa-${ps.id}`, grupo: 'Diligência', rec: ps.id, campo: 'veiculoAvaliado', tipo: 'texto', valor: '',
+      titulo: `Veículo avaliado (placa ${placa}): marca, modelo, ano e fonte`,
+      explicacao: `Sem o CRLV, consulte a placa ${placa} no aplicativo Sinesp Cidadão (Consulta de veículos) e escreva aqui, com a data. Ex.: "Scania R 124 GA 4x2 NZ 360, 2008 – consulta da placa no Sinesp Cidadão em 25/11/2026". Os sites de consulta de placa bloqueiam a busca automática.` });
+  }
   // medição × vistoria: data fora das vistorias e jornada do relatório diferente do tempo de condução dos vínculos
   const datasVist = new Set(vistoriasDoCaso(c).map((x) => x.data).filter(Boolean));
   for (const m of dados.medicoes) {

@@ -45,7 +45,8 @@ export function valores(r, dados) {
     // sem o Lavg digitado, usa o nível equivalente calculado pela dose e pelo tempo de amostragem
     const lv = isFinite(num(mr.data.lavg)) ? num(mr.data.lavg) : lavgDaDose(mr.data.dose, mr.data.tempoAmostragem, out.q);
     out.lavg = lv;
-    out.nen = isFinite(T) ? nen(lv, `${T}h`, out.q) : nen(lv, mr.data.jornada, out.q);
+    // NEN do relatório do dosímetro (já normalizado pelo aparelho): usado como está
+    out.nen = isFinite(num(mr.data.nen)) ? num(mr.data.nen) : isFinite(T) ? nen(lv, `${T}h`, out.q) : nen(lv, mr.data.jornada, out.q);
     if (!isFinite(num(mr.data.lavg)) && isFinite(lv)) out.lavgPelaDose = true;
     out.fonteR = nomeCurto(dados.postos.find((p) => p.id === mr.data.postoId)?.data.nome);
   }

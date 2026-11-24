@@ -10,7 +10,7 @@ import { carregar } from './docx/base.js';
 import { vinculosMotorista, tempoConducao, jornadaDia, matrizIAC } from './docx/penosidade.js';
 import { sugerirParaVinculo, paradigmasPermitidos } from './paradigmas.js';
 import { fmtHoras, horasDia, horasForaTexto } from './calc.js';
-import { contextoLegal, ehParecerTecnico, EMITENTE_PPP, CATEGORIAS_SEGURADO, RESULTADO_AGENTE, MODALIDADE_AVALIACAO, AUTORIA_FOTOS } from './schema.js';
+import { vistoriasDoCaso, contextoLegal, ehParecerTecnico, EMITENTE_PPP, CATEGORIAS_SEGURADO, RESULTADO_AGENTE, MODALIDADE_AVALIACAO, AUTORIA_FOTOS } from './schema.js';
 import { categoriaDoVinculo } from './enquadramento.js';
 import { agentesDoArt68, bancoDoAgente, viasPadrao, efeitosDaFds } from './docx/agentesQuadros.js';
 import { carregarCbo, sugerirCbo, codigoCbo } from './cbo.js';
@@ -115,9 +115,27 @@ export async function pendenciasDoCaso(caseId) {
   const { db: dbAp } = await import('./db.js');
   const apendices = (await dbAp.records.where('[caseId+kind]').equals([caseId, 'anexo']).toArray()).filter((r) => !r.deleted && r.data.descricao === 'apendice');
   if (apendices.length && !dados.medicoes.length) {
-    itens.push({ id: 'relatorios-sem-medicao', grupo: 'Diligência', tipo: 'aviso', link: `#/caso/${encodeURIComponent(caseId)}/campo`, rotuloLink: 'Ir para 2. Campo',
+    itens.push({ id: 'relatorios-sem-medicao', grupo: 'Diligência', tipo: 'aviso',
       titulo: `${apendices.length} relatório(s) de medição anexado(s), mas nenhuma medição cadastrada`,
-      explicacao: 'Os relatórios só entram no fim do laudo como apêndices; os valores de ruído e vibração vêm das medições dos postos. Em 2. Campo → Relatórios dos medidores, toque em "Ler as medições destes relatórios com o Claude".' });
+      explicacao: 'Os relatórios só entram no fim do laudo como apêndices; os valores de ruído e vibração vêm das medições dos postos. No passo "Relatórios dos medidores", acima, toque em "Ler as medições destes relatórios com o Claude".' });
+  }
+  // medição × vistoria: data fora das vistorias e jornada do relatório diferente do tempo de condução dos vínculos
+  const datasVist = new Set(vistoriasDoCaso(c).map((x) => x.data).filter(Boolean));
+  for (const m of dados.medicoes) {
+    const x = m.data;
+    const rot = `${x.agente || 'Medição'}${x.horaInicio ? ` das ${String(x.horaInicio).slice(0, 5)}` : ''}`;
+    if (x.dataMedicao && datasVist.size && !datasVist.has(x.dataMedicao)) {
+      itens.push({ id: `med-data-${m.id}`, grupo: 'Diligência', tipo: 'aviso', titulo: `${rot}: data ${x.dataMedicao.split('-').reverse().join('/')} fora das datas da vistoria`,
+        explicacao: 'Confira o relógio do aparelho e o relatório; corrija a data da medição em 2. Campo → posto → medição.' });
+    }
+    const jRel = horasDia(x.jornada || x.tempoExposicao);
+    const ps = dados.postos.find((p) => p.id === x.postoId);
+    if (!isFinite(jRel) || !ps) continue;
+    const Ts = [...new Set(dados.periodos.filter((r) => (ps.data.vinculos || []).includes(r.id)).map((r) => tempoConducao(r, dados).T).filter((T) => isFinite(T)))];
+    if (Ts.length && Ts.every((T) => Math.abs(T - jRel) > 0.25) && (isFinite(Number(String(x.nen || '').replace(',', '.'))) || String(x.aren || x.vdv || '').trim())) {
+      itens.push({ id: `med-jornada-${m.id}`, grupo: 'Diligência', tipo: 'aviso', titulo: `${rot}: relatório normalizado para ${fmtHoras(jRel)}, mas o tempo de condução dos vínculos é ${Ts.map(fmtHoras).join(' / ')}`,
+        explicacao: 'O NEN, o AREN e o VDVR do relatório valem para a jornada configurada no aparelho: refaça o relatório com o tempo correto e leia de novo (passo "Relatórios dos medidores").' });
+    }
   }
   // LTCAT + PPP: quem emite, categoria do segurado por vínculo e resultado dos agentes avaliados
   const ltcat = c.tipoAtuacao === 'Extrajudicial' && contextoLegal(c).prev && !ehParecerTecnico(c);

@@ -48,3 +48,17 @@ describe('medições lidas dos relatórios', () => {
     expect(p).toContain('não confirmados na entrevista');
   });
 });
+
+describe('nova leitura dos relatórios atualiza a medição, sem duplicar', () => {
+  it('mesma medição (agente e horário de início): completa o VDVR e corrige o AREN', async () => {
+    await db.records.put({ id: 'cu', kind: 'caso', caseId: null, ts: {}, data: { papel: 'Perito do Juízo' } });
+    const ler = (med) => lerJsonIA(JSON.stringify({ postos: [{ nome: 'Motorista – carreta', medicoes: [med] }] }));
+    await aplicarIA('cu', ler({ agente: 'Vibração de corpo inteiro (VCI)', aren: '1.20', horaInicio: '11:35:03', dataMedicao: '2026-09-29' }), { criarPeriodos: false, atualizarMedicoes: true });
+    const r = await aplicarIA('cu', ler({ agente: 'Vibração de corpo inteiro (VCI)', aren: '1.07', vdv: '15.74', horaInicio: '11:35', dataMedicao: '2026-09-29' }), { criarPeriodos: false, atualizarMedicoes: true });
+    const meds = (await db.records.where('[caseId+kind]').equals(['cu', 'medicao']).toArray()).filter((x) => !x.deleted);
+    expect(meds).toHaveLength(1);
+    expect(r.medicoesAtualizadas).toBe(1);
+    expect(meds[0].data.aren).toBe('1.07');
+    expect(meds[0].data.vdv).toBe('15.74');
+  });
+});

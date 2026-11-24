@@ -68,10 +68,6 @@ export function Campo({ rec }) {
     await softDelete(p.id); avisarAlteracao();
   };
 
-  const relatoriosSemMedicao = useLive(async () => {
-    const todos = await db.records.where('caseId').equals(rec.id).toArray();
-    return todos.some((r) => !r.deleted && r.kind === 'anexo' && r.data.descricao === DESC_APENDICE) && !todos.some((r) => !r.deleted && r.kind === 'medicao');
-  }, [rec.id], false);
   const papel = rec.data.papel || '';
   const at = /Assistente técnico/i.test(papel);
   const entrevista = ehEntrevistaMotorista(rec.data);
@@ -142,13 +138,7 @@ export function Campo({ rec }) {
 
       <RevisaoDaColeta rec={rec} />
 
-      <details class="bloco largo recolhido" open={relatoriosSemMedicao}>
-        <summary><b>Relatórios dos medidores e anexos do documento</b> <small class="dica">relatórios (DoseMax, AxPro…) que saem como apêndices; ART, CNIS, certidões que saem como anexos</small></summary>
-        <RelatoriosMedicao rec={rec} />
-        <RelatoriosMedicao rec={rec} desc={DESC_ANEXO_DOC} rotulo="Anexo" titulo="Anexos do documento (ART, CNIS, certidões, declarações)"
-          dica="Documentos de terceiros que acompanham o LTCAT, o laudo previdenciário e o parecer previdenciário: ART, CNIS, certidões, declarações assinadas, fichas de dados de segurança. Cada arquivo sai no fim, com todas as páginas, como Anexo A, B, C… (no laudo judicial, Anexo II, III…, depois do relatório fotográfico)."
-          botao="＋ Anexar documento (PDF ou imagem)" />
-      </details>
+      <p class="dica largo">Relatórios dos medidores (DoseMax, AxPro…) e anexos do documento (ART, CNIS…): no escritório, em <a href={`#/caso/${encodeURIComponent(rec.id)}/laudo`}>3. Laudo</a>.</p>
     </div>
   );
 }
@@ -644,9 +634,9 @@ export function RelatoriosMedicao({ rec, desc = DESC_APENDICE, rotulo = 'Apêndi
     avisarAlteracao();
   };
   return (
-    <section class="bloco largo">
-      <h3>{titulo}</h3>
-      <p class="dica">{dica}</p>
+    <section class={titulo ? 'bloco largo' : 'largo'}>
+      {titulo && <h3>{titulo}</h3>}
+      {titulo && <p class="dica">{dica}</p>}
       {lista.map((r, i) => (
         <div class="linha-arquivo quebra">
           <b>{rotulo} {LETRAS[i]}</b>
@@ -671,17 +661,29 @@ export function RelatoriosMedicao({ rec, desc = DESC_APENDICE, rotulo = 'Apêndi
 // Os apêndices só juntam as páginas ao laudo: os números (Lavg, NEN, aren, VDVR) vêm das medições cadastradas.
 // Este botão manda os relatórios ao Claude e cadastra as medições nos postos (sem duplicar as já cadastradas).
 function LerMedicoesDosRelatorios({ rec, lista }) {
+  const alertas = String(rec.data.alertasRelatorios || '').split('\n').filter(Boolean);
   const nMed = useLive(async () => (await db.records.where('[caseId+kind]').equals([rec.id, 'medicao']).toArray()).filter((r) => !r.deleted).length, [rec.id], 0);
   return (
     <div class="ler-relatorios">
       {!nMed && <p class="alerta-txt">Os relatórios anexados só entram no fim do laudo como apêndices: os valores de ruído e vibração do laudo vêm das medições cadastradas nos postos, e ainda não há nenhuma. Use o botão abaixo para o Claude ler os relatórios e cadastrar as medições.</p>}
+      {alertas.length > 0 && (
+        <div class="evidencias alerta" role="status">
+          <b>Discrepâncias entre os relatórios e a vistoria – corrija o relatório ou o cadastro e leia de novo:</b>
+          {alertas.map((a) => <span>{a}</span>)}
+          <span class="linha-botoes"><button type="button" class="mini sec" onClick={async () => { await updateFields(rec.id, { alertasRelatorios: '' }); avisarAlteracao(); }}>Corrigido – limpar os alertas</button></span>
+        </div>
+      )}
       <BotaoClaudeDireto rotulo={`Ler as medições destes ${lista.length} relatório(s) com o Claude`} sec={nMed > 0}
         instrucao={() => promptRelatoriosMedicao(rec)}
         anexos={async () => Promise.all(lista.map(async (r) => ({ blob: await obterAnexo(r.id), nome: r.data.titulo || r.data.nome, mime: r.data.mime || 'application/pdf' })))}
         onResposta={async (t) => {
-          const r = await aplicarIA(rec.id, lerJsonIA(t), { substituir: false, criarPeriodos: false });
+          const r = await aplicarIA(rec.id, lerJsonIA(t), { substituir: false, criarPeriodos: false, atualizarMedicoes: true });
+          // discrepâncias entre os relatórios e a vistoria: ficam no caso até você marcar como corrigidas
+          let alertas = [];
+          try { const b = t.match(/```(?:json)?\s*([\s\S]*?)```/i); const j = b ? b[1] : t; alertas = (JSON.parse(j.slice(j.indexOf('{'), j.lastIndexOf('}') + 1)).alertas || []).map(String).filter(Boolean); } catch { alertas = []; }
+          await updateFields(rec.id, { alertasRelatorios: alertas.join('\n') });
           avisarAlteracao();
-          return `${r.medicoes} medição(ões) cadastrada(s)${r.postos ? ` em ${r.postos} posto(s)` : ''} (as já cadastradas não se repetem). Confira em Postos / atividades e marque, em cada posto, os vínculos que ele representa.`;
+          return `${alertas.length ? `ATENÇÃO – ${alertas.length} discrepância(s) entre os relatórios e a vistoria (abaixo). ` : ''}${r.medicoes} medição(ões) nova(s)${r.medicoesAtualizadas ? ` e ${r.medicoesAtualizadas} atualizada(s) pela nova leitura` : ''}${r.postos ? ` em ${r.postos} posto(s)` : ''}. Confira em 2. Campo → Postos / atividades e marque, em cada posto, os vínculos que ele representa.`;
         }} />
     </div>
   );
@@ -705,7 +707,7 @@ function RevisaoDaColeta({ rec }) {
       <p class="dica">Antes de sair do local: o Claude confere o que foi registrado (cadastro, entrevista, postos, medições, fotos e as pendências do app) contra os autos e os quesitos, e diz o que ainda falta coletar, o que perguntar e o que conferir nas medições. Não redige o laudo nem conclui o enquadramento.</p>
       <label class="check"><input type="checkbox" checked={comAutos} onChange={(e) => setComAutos(e.currentTarget.checked)} /> Enviar também os autos (reaproveitados do cache, quando já enviados)</label>
       <div class="linha-botoes">
-        <BotaoClaudeDireto rotulo="Revisar a coleta" instrucao={instrucao} maxTokens={16000} permitirArquivos rotuloArquivos="Anexar relatórios dos medidores ou fotos (opcional)"
+        <BotaoClaudeDireto rotulo="Revisar a coleta" instrucao={instrucao} maxTokens={16000} permitirArquivos rotuloArquivos="Anexar fotos ou documentos (opcional)"
           anexos={async () => (comAutos ? anexosDosAutos(rec.id) : [])}
           onResposta={async (t) => { await updateFields(rec.id, { revisaoCampo: { texto: t, em: new Date().toISOString() } }); avisarAlteracao(); return 'Revisão guardada no caso (abaixo).'; }} />
       </div>
@@ -776,7 +778,7 @@ function AnotacoesDiligencia({ rec }) {
   return (
     <section class="bloco largo destaque">
       <h3>Importar anotações da diligência</h3>
-      <p class="dica">Anexe as anotações (Word, PDF, texto ou a exportação do Google Keep) ou cole o texto da nota; junte, se tiver, os relatórios dos medidores (DoseMax, AxPro, iTemp) e fotos de anotações em papel. O Claude organiza diligência, postos, medições, entrevista e anotações dos quesitos; você confere a prévia e aplica.</p>
+      <p class="dica">Anexe as anotações (Word, PDF, texto ou a exportação do Google Keep) ou cole o texto da nota; junte, se tiver, fotos de anotações em papel. O Claude organiza diligência, postos, entrevista e anotações dos quesitos; você confere a prévia e aplica. Os relatórios dos medidores entram depois, no escritório, em 3. Laudo.</p>
       <label class="botao-arquivo">{lendo ? 'Lendo…' : '＋ Anexar anotações (Word, PDF, texto, Keep)'}<input type="file" multiple hidden accept=".docx,.doc,.pdf,.txt,.html,.htm,.json,.md,image/*,application/pdf" onChange={anexar} /></label>
       {textos.map((t, i) => (
         <div class="linha-arquivo"><span><Icone nome="nota" /> {t.nome} <small>({t.texto ? `${t.texto.length.toLocaleString('pt-BR')} caracteres` : 'sem texto'}{t.aviso ? ` · ${t.aviso}` : ''})</small></span>
@@ -786,7 +788,7 @@ function AnotacoesDiligencia({ rec }) {
       <label class="campo campo-area"><span class="rotulo">Texto da nota do Google Keep (ou outro texto)</span>
         <textarea rows={5} value={colado} onInput={(e) => setColado(e.currentTarget.value)} placeholder="No Keep: abra a nota, selecione todo o texto, copie e cole aqui." />
       </label>
-      <BotaoClaudeDireto rotulo="Enviar as anotações direto ao Claude" permitirArquivos rotuloArquivos="Anexar relatórios dos medidores e fotos de anotações em papel"
+      <BotaoClaudeDireto rotulo="Enviar as anotações direto ao Claude" permitirArquivos rotuloArquivos="Anexar fotos de anotações em papel (opcional)"
         instrucao={async () => { const lista = todos(); if (!lista.length) throw new Error('Anexe um arquivo ou cole o texto das anotações.'); return promptAnotacoes(rec, lista); }}
         onResposta={(t) => { setJson(t); try { setPrevia(lerJsonIA(t)); setErro(''); return 'Confira a prévia abaixo e toque em "Aplicar ao caso".'; } catch (err) { setPrevia(null); setErro(err.message); return ''; } }} />
       <ModoManual rotulo="Alternativa sem a chave de API (ou para colar uma resposta do claude.ai)">

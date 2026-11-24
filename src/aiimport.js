@@ -137,8 +137,8 @@ Responda SOMENTE com um bloco JSON válido, sem texto antes ou depois, neste for
   "andamento": {"fase": "A preparar | Diligência agendada | Diligência realizada | Laudo / parecer em elaboração | Aguardando manifestação / esclarecimentos | Respondendo quesitos suplementares | Concluído", "laudoRefPerito": "ID/mov. do laudo", "laudoData": "", "conclusaoLaudo": "conclusão do laudo por agente e período, com as folhas", "honorariosFixados": "", "honorariosItem": "", "dataDiligencia": "", "horaDiligencia": ""},
   "diligencia": {"vistoriaData": "", "vistoriaInicio": "HH:MM", "vistoriaFim": "HH:MM", "vistoriaLocal": "empresa onde será / foi a vistoria", "vistoriaProprietario": "nome completo, se pessoa física sem empresa", "vistoriaVeiculo": "", "vistoriaContato": "", "vistoriaEndereco": "", "vistoriaCnpj": "", "vistoriaPresentes": "nome – função – quem representa, um por linha", "vistoriaIntimacao": "evento/mov. e data da intimação das partes sobre a data da diligência", "vistoriaCondicoes": "", "vistoriaNotas": "outras anotações da diligência e a folha do laudo onde está"},
   "postos": [{"nome": "", "descricao": "", "infoTrabalhador": "", "infoEmpresa": "", "agentes": "", "jornada": "", "epc": "", "epi": "",
-    "medicoes": [{"agente": "Ruído | Calor (IBUTG) | Vibração de corpo inteiro (VCI) | Vibração de mãos e braços (VMB) | Agente químico | Outro", "dataMedicao": "", "horaInicio": "", "horaFim": "", "equipamento": "",
-      "tempoAmostragem": "", "jornada": "", "dose": "", "lavg": "", "lmax": "", "calibInicial": "", "calibFinal": "", "posicao": "",
+    "medicoes": [{"agente": "Ruído | Calor (IBUTG) | Vibração de corpo inteiro (VCI) | Vibração de mãos e braços (VMB) | Agente químico | Outro", "dataMedicao": "", "horaInicio": "", "horaFim": "", "equipamento": "", "relatorio": "",
+      "tempoAmostragem": "", "jornada": "", "dose": "", "lavg": "", "nen": "", "lmax": "", "calibInicial": "", "calibFinal": "", "posicao": "",
       "tbn": "", "tbs": "", "tg": "", "ibutgLido": "", "atividade": "", "regime": "",
       "veiculo": "", "aren": "", "vdv": "", "eixo": "", "tempoExposicao": "",
       "descricao": "", "metodo": "", "valor": "", "unidade": "", "limite": "", "obs": ""}]}],
@@ -154,8 +154,8 @@ Responda SOMENTE com um bloco JSON válido, sem texto antes ou depois, neste for
   "periodos": [{"empresa": "igual à lista", "inicio": "igual à lista", "fim": "igual à lista", "atividades": "", "tipoTransporte": "", "jornadaSemanal": "", "noturnoPernoite": "", "cargaDescarga": "", "vias": "", "riscoAcidente": "", "cabine": "", "pausas": "", "pressao": "", "fisiologicas": ""}],
   "quesitos": [{"origem": "", "numero": "", "texto": "", "resposta": ""}],
   "postos": [{"nome": "", "descricao": "", "infoTrabalhador": "", "infoEmpresa": "", "agentes": "", "fontes": "", "viaPeriodicidade": "", "jornada": "", "epc": "", "epi": "",
-    "medicoes": [{"agente": "Ruído | Calor (IBUTG) | Vibração de corpo inteiro (VCI) | Vibração de mãos e braços (VMB) | Agente químico | Outro", "dataMedicao": "", "horaInicio": "", "horaFim": "", "equipamento": "",
-      "tempoAmostragem": "", "jornada": "", "dose": "", "lavg": "", "lmax": "", "calibInicial": "", "calibFinal": "", "posicao": "",
+    "medicoes": [{"agente": "Ruído | Calor (IBUTG) | Vibração de corpo inteiro (VCI) | Vibração de mãos e braços (VMB) | Agente químico | Outro", "dataMedicao": "", "horaInicio": "", "horaFim": "", "equipamento": "", "relatorio": "",
+      "tempoAmostragem": "", "jornada": "", "dose": "", "lavg": "", "nen": "", "lmax": "", "calibInicial": "", "calibFinal": "", "posicao": "",
       "tbn": "", "tbs": "", "tg": "", "ibutgLido": "", "atividade": "", "regime": "", "veiculo": "", "aren": "", "vdv": "", "eixo": "", "tempoExposicao": "",
       "descricao": "", "metodo": "", "valor": "", "unidade": "", "limite": "", "obs": ""}]}]
 }`;
@@ -328,7 +328,7 @@ export function lerJsonIA(texto) {
   if (caso.similaridade && !/^(sim|não|nao)$/i.test(caso.similaridade)) delete caso.similaridade;
   if (caso.similaridade) caso.similaridade = /^sim$/i.test(caso.similaridade) ? 'Sim' : 'Não';
   const agenteOk = agenteMedicao;
-  const KS_MED = ['dataMedicao', 'horaInicio', 'horaFim', 'tempoAmostragem', 'jornada', 'dose', 'q', 'lavg', 'lmax', 'calibInicial', 'calibFinal', 'posicao',
+  const KS_MED = ['dataMedicao', 'horaInicio', 'horaFim', 'tempoAmostragem', 'jornada', 'dose', 'q', 'lavg', 'nen', 'relatorio', 'lmax', 'calibInicial', 'calibFinal', 'posicao',
     'tbn', 'tbs', 'tg', 'ibutgLido', 'atividade', 'regime', 'veiculo', 'aren', 'vdv', 'eixo', 'tempoExposicao', 'descricao', 'metodo', 'valor', 'unidade', 'limite'];
   const postos = lista(obj.postos).map((x) => ({
     ...pegar(x, CAMPOS_POSTO.map(([k]) => k)),
@@ -375,7 +375,7 @@ export function lerJsonIA(texto) {
 }
 
 // Campos preenchidos não são sobrescritos (a menos que "substituir" esteja marcado).
-export async function aplicarIA(caseId, dados, { substituir = false, criarPeriodos = true } = {}) {
+export async function aplicarIA(caseId, dados, { substituir = false, criarPeriodos = true, atualizarMedicoes = false } = {}) {
   const caso = await db.records.get(caseId);
   const mudancas = {};
   // anotações de outra vistoria (2ª diligência, continuação): vão para a aba dela, sem mexer na 1ª
@@ -508,7 +508,7 @@ export async function aplicarIA(caseId, dados, { substituir = false, criarPeriod
       // equipamento da medição: pela série ou pelo modelo citados; senão, o padrão do agente (dosímetro, AxPro, iTemp)
       const equips = (await db.records.where('kind').equals('equip').toArray()).filter((e) => !e.deleted);
       const equipDe = (m) => {
-        const txt = normTxt(m.equipamento || '');
+        const txt = normTxt(`${m.equipamento || ''} ${m.obs || ''}`);
         const pelaSerie = equips.find((e) => e.data.serie && txt.includes(normTxt(e.data.serie)));
         if (pelaSerie) return pelaSerie.id;
         const peloModelo = equips.find((e) => e.data.modelo && txt && txt.includes(normTxt(e.data.modelo)));
@@ -520,6 +520,18 @@ export async function aplicarIA(caseId, dados, { substituir = false, criarPeriod
       const chaveM = (m) => JSON.stringify([m.agente, m.lavg, m.aren, m.tbn, m.valor, m.dataMedicao].map((v) => String(v || '')));
       const vistas = new Set(meds.map((m) => chaveM(m.data)));
       for (const m of medicoes) {
+        // nova leitura do mesmo relatório (ou da mesma medição: agente, data e horário de início): atualiza, sem duplicar
+        if (atualizarMedicoes) {
+          const hora = (x) => String(x || '').slice(0, 5);
+          const mesma = meds.find((e) => e.data.agente === m.agente && ((m.relatorio && e.data.relatorio === m.relatorio)
+            || (m.horaInicio && hora(e.data.horaInicio) === hora(m.horaInicio) && (!m.dataMedicao || !e.data.dataMedicao || e.data.dataMedicao === m.dataMedicao))));
+          if (mesma) {
+            const novos = Object.fromEntries(Object.entries(m).filter(([k, val]) => String(val ?? '').trim() && String(val).trim() !== String(mesma.data[k] ?? '').trim()));
+            if (!mesma.data.equipamentoId) novos.equipamentoId = equipDe(m);
+            if (Object.keys(novos).length) { await updateFields(mesma.id, novos); cont.medicoesAtualizadas = (cont.medicoesAtualizadas || 0) + 1; }
+            continue;
+          }
+        }
         if (vistas.has(chaveM(m))) continue;
         vistas.add(chaveM(m));
         await createRecord('medicao', caseId, { ...m, postoId: posto.id, ...(m.equipamentoId ? {} : { equipamentoId: equipDe(m) }) });

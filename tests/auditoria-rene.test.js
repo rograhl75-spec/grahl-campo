@@ -28,3 +28,14 @@ describe('encerramento: frase sobre onde estão os anexos', () => {
     expect(r).toContain('Concluídos os trabalhos.');
   });
 });
+
+describe('auditoria do laudo do padeiro', () => {
+  it('título de apêndice sem "Relatório X" repetido', () => {
+    expect(tituloApendice('Relatório de calor (IBUTG) – Relatorio Calor Fulano Teste')).toBe('Relatório de calor (IBUTG) – Fulano Teste');
+    expect(tituloApendice('Relatório de dosimetria de ruído – Relatorio Ruido Fulano Teste')).toBe('Relatório de dosimetria de ruído – Fulano Teste');
+  });
+  it('"posição técnica do perito" vira conclusão técnica', () => {
+    expect(semPartesDoApp('Com base na perícia, a posição técnica do perito é a seguinte:')).toBe('Com base na perícia, conclui-se tecnicamente o seguinte:');
+    expect(semPartesDoApp('Resposta: A posição técnica do perito, com base na perícia por similaridade, é a seguinte:')).toBe('Resposta: Conclui-se tecnicamente o seguinte:');
+  });
+});

@@ -151,6 +151,8 @@ const semAcento = (t) => String(t).normalize('NFD').replace(/[\u0300-\u036f]/g, 
 export function tituloApendice(t = '') {
   let s = String(t).replace(/\s{2,}/g, ' ').trim();
   if (/\d{4}\s?\d{2}\s?\d{2}T\d|\breport\b/i.test(s) && !/^relat[óo]rio de|^certificado/i.test(s)) s = tituloSugerido(s);
+  // "Relatório de calor (IBUTG) – Relatorio Calor Fulano" → "Relatório de calor (IBUTG) – Fulano"
+  s = s.replace(/^(relat[óo]rio de ([\p{L}]+)[^–]*–\s*)relat[óo]rio\s+\2\s+/iu, '$1').replace(/^(relat[óo]rio de dosimetria de ru[íi]do[^–]*–\s*)relat[óo]rio\s+ru[íi]do\s+/iu, '$1');
   const m = s.match(/^(.*\S)\s+(\p{L}+)$/u);
   if (m && semAcento(m[1]).includes(semAcento(m[2])) && m[2].length > 3) s = m[1];
   return s.replace(/\s+[–-]\s*$/, '');

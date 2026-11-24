@@ -145,9 +145,25 @@ export async function apendicesRegistros(caseId, desc = DESC_APENDICE) {
     .sort((a, b) => (Number(a.data.ordem) || 0) - (Number(b.data.ordem) || 0) || a.createdAt - b.createdAt);
 }
 
+// título já gravado que é nome de arquivo ("Inlite Report 2026 11 24T12 35 25.793Z") ou que repete a palavra final
+// ("… – Rene Arcanjo   ruido"): limpo na hora de montar o documento
+const semAcento = (t) => String(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+export function tituloApendice(t = '') {
+  let s = String(t).replace(/\s{2,}/g, ' ').trim();
+  if (/\d{4}\s?\d{2}\s?\d{2}T\d|\breport\b/i.test(s) && !/^relat[óo]rio de|^certificado/i.test(s)) s = tituloSugerido(s);
+  const m = s.match(/^(.*\S)\s+(\p{L}+)$/u);
+  if (m && semAcento(m[1]).includes(semAcento(m[2])) && m[2].length > 3) s = m[1];
+  return s.replace(/\s+[–-]\s*$/, '');
+}
+
 // título padrão a partir do nome do arquivo
 export function tituloSugerido(nome = '') {
   const n = nome.replace(/\.[a-z0-9]+$/i, '').replace(/[_-]+/g, ' ').trim();
+  // nome de arquivo gerado pelo aparelho (data/hora, "Report"): só o tipo do relatório
+  if (/\d{4}\s?\d{2}\s?\d{2}T\d|report|relat[óo]rio\s*\d|^\d+$/i.test(n) || /^(inlite|axpro|dosemax)\b/i.test(n)) {
+    if (/ru[ií]do|dosim|dose/i.test(n)) return 'Relatório de dosimetria de ruído';
+    if (/vibra|vci|vmb|axpro|inlite report/i.test(n)) return 'Relatório de medição de vibração';
+  }
   if (/ru[ií]do|dosim|dose/i.test(n)) return `Relatório de dosimetria de ruído – ${n}`;
   if (/vibra|vci|vmb|axpro/i.test(n)) return `Relatório de vibração – ${n}`;
   if (/ibutg|calor|itemp/i.test(n)) return `Relatório de calor (IBUTG) – ${n}`;

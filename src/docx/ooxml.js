@@ -288,22 +288,25 @@ export class Doc {
     return this.add(`<w:tbl><w:tblPr><w:tblW w:w="${LARGURA}" w:type="dxa"/><w:tblLayout w:type="fixed"/>${MARGEM_CELULA}</w:tblPr><w:tblGrid><w:gridCol w:w="2600"/><w:gridCol w:w="${LARGURA - 2600}"/></w:tblGrid>${rows}</w:tbl>`, p('', { after: 200, line: 240 }));
   }
   // Figuras, duas por linha, legenda acima
-  figuras(lista) {
+  // rotulo 'Foto': numeração própria (Foto 1, 2…), fora da lista de figuras – é como o texto do Claude cita as fotos
+  figuras(lista, { rotulo = 'Figura' } = {}) {
     if (!lista.length) return this;
+    const foto = rotulo !== 'Figura';
     const meia = Math.floor(LARGURA / 2);
     for (let i = 0; i < lista.length; i += 2) {
       const par = lista.slice(i, i + 2);
       const cells = par.map((f) => {
-        this.nFig += 1;
-        const n = this.nFig;
+        let n;
+        if (foto) { this.nFoto = (this.nFoto || 0) + 1; n = 3000 + this.nFoto; } else { this.nFig += 1; n = this.nFig; }
         const rId = `rIdImg${n}`;
         this.imagens.push({ rId, nome: `figura${n}.jpg`, bytes: f.bytes });
         const larg = 7.2;
         let alt = (larg * f.h) / f.w;
         let lg = larg;
         if (alt > 9.5) { alt = 9.5; lg = (9.5 * f.w) / f.h; }
-        const [af, zf] = this.marca('Figura', `Figura ${n} – ${String(f.legenda || 'Registro fotográfico.').replace(/\*\*|\[\[|\]\]/g, '')}`);
-        const cap = `<w:p>${pPr({ align: 'center', after: 60, line: 240, keepNext: true })}${af}${zf}${run('Figura ', { b: true, size: 9 })}${campoSeq('Figura', n, { b: true, size: 9 })}${run(' – ', { b: true, size: 9 })}${rich(f.legenda || 'Registro fotográfico.', { size: 9 })}</w:p>`;
+        const [af, zf] = foto ? ['', ''] : this.marca('Figura', `Figura ${n} – ${String(f.legenda || 'Registro fotográfico.').replace(/\*\*|\[\[|\]\]/g, '')}`);
+        const rot = foto ? run(`${rotulo} ${this.nFoto} – `, { b: true, size: 9 }) : `${run('Figura ', { b: true, size: 9 })}${campoSeq('Figura', n, { b: true, size: 9 })}${run(' – ', { b: true, size: 9 })}`;
+        const cap = `<w:p>${pPr({ align: 'center', after: 60, line: 240, keepNext: true })}${af}${zf}${rot}${rich(f.legenda || 'Registro fotográfico.', { size: 9 })}</w:p>`;
         const det = f.detalhe ? p([run(f.detalhe, { size: 8, color: CINZA })], { align: 'center', after: 0, line: 240 }) : '';
         return `<w:tc><w:tcPr><w:tcW w:w="${meia}" w:type="dxa"/>${bordas('all')}</w:tcPr>${cap}${imagemXml(rId, 2000 + n, lg, alt)}${det}</w:tc>`;
       });

@@ -1075,7 +1075,7 @@ export function textoDeterminacao(dados, prev) {
 
 // ---------- Apêndices: relatórios das medições anexados na aba Campo ----------
 export async function apendicesDoCaso(dados) {
-  const { apendicesRegistros, paginasDoArquivo, LETRAS, lerFaixaPaginas, paginasDeRelatorio, textosDoPdf } = await import('../apendices.js');
+  const { apendicesRegistros, paginasDoArquivo, LETRAS, lerFaixaPaginas, paginasDeRelatorio, textosDoPdf, tituloApendice } = await import('../apendices.js');
   const { obterAnexo } = await import('../sync.js');
   const regs = await apendicesRegistros(dados.id);
   const out = []; let falhas = 0; const semRelatorios = []; const semRelatoriosLgpd = [];
@@ -1083,7 +1083,7 @@ export async function apendicesDoCaso(dados) {
     try {
       const blob = await obterAnexo(r.id);
       const paginas = await paginasDoArquivo(blob, r.data.mime);
-      out.push({ letra: LETRAS[out.length] || String(out.length + 1), titulo: r.data.titulo || r.data.nome, paginas });
+      out.push({ letra: LETRAS[out.length] || String(out.length + 1), titulo: tituloApendice(r.data.titulo || r.data.nome), paginas });
     } catch (e) { falhas++; }
   }
   // certificados de calibração dos equipamentos usados (anexados em Configurações → Equipamentos)

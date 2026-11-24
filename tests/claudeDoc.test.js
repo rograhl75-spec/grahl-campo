@@ -111,6 +111,8 @@ Foto 1 – Legenda escrita pelo Claude.
     expect(t).toContain('Cabine do caminhão-trator durante a medição');
     expect(t).toMatch(/Anexo I – Relatório fotográfico/i);
     expect(r.nFotos).toBe(1);
+    expect(t).toMatch(/Foto 1 – Cabine do caminhão-trator/);
+    expect(t).not.toMatch(/Figura \d+ – Cabine/);
     expect(xml).toContain('<m:oMath>');
     expect(xml).toMatch(/<m:sSub><m:e>.*?>L<\/m:t>.*?<m:sub>.*?>avg<\/m:t>/);
     expect(t).toContain('R$ 3.000,00');

@@ -10,14 +10,8 @@ import { carregar } from './docx/base.js';
 import { vinculosMotorista, tempoConducao, jornadaDia, matrizIAC } from './docx/penosidade.js';
 import { sugerirParaVinculo, paradigmasPermitidos } from './paradigmas.js';
 import { periodosDoPosto } from './docx/base.js';
-
-// texto próprio da conclusão da penosidade que diz o contrário do resultado escolhido (Sim / Não)
-export function contradizResultado(resultado, texto) {
-  const res = String(resultado || '').trim(), t = String(texto || '').replace(/\s+/g, ' ');
-  if (!res || !t.trim()) return false;
-  const nega = /n[ãa]o\s+(se\s+)?(caracteriz|restou caracterizad|está caracterizad|ficou caracterizad|configur)|descaracteriz|n[ãa]o h[áa] penosidade/i.test(t);
-  return /^sim/i.test(res) ? nega : /^n[ãa]o/i.test(res) ? !nega && /caracteriz|configur/i.test(t) : false;
-}
+import { contradizResultado, soSimNao } from './docx/penosidade.js';
+export { contradizResultado, soSimNao };
 import { fmtHoras, horasDia, horasForaTexto } from './calc.js';
 import { vistoriasDoCaso, contextoLegal, ehParecerTecnico, EMITENTE_PPP, CATEGORIAS_SEGURADO, RESULTADO_AGENTE, MODALIDADE_AVALIACAO, AUTORIA_FOTOS } from './schema.js';
 import { categoriaDoVinculo } from './enquadramento.js';
@@ -107,11 +101,11 @@ export async function pendenciasDoCaso(caseId) {
     // conclusão: escolha Sim / Não (texto padrão igual em todos os vínculos); também quando o texto gravado é
     // uma proposta antiga do app adotada como estava
     const propostaAntiga = /^(Pela convergência cumulativa dos fatores de desgaste apurados \(|Os fatores apurados \()/.test(String(r.data.penosidadeConclusao || ''));
-    const contradiz = contradizResultado(r.data.penosidadeResultado, r.data.penosidadeConclusao);
+    const contradiz = contradizResultado(r.data.penosidadeResultado, r.data.penosidadeConclusao) || soSimNao(r.data.penosidadeConclusao);
     if (contradiz) {
       itens.push({ id: `conc-${r.id}`, grupo, rec: r.id, campo: 'penosidadeResultado', tipo: 'simnao', limpar: 'penosidadeConclusao',
-        titulo: 'Conclusão da penosidade: o texto próprio contradiz o resultado escolhido',
-        explicacao: `O resultado é "${r.data.penosidadeResultado}", mas o texto próprio da conclusão diz o contrário ("${String(r.data.penosidadeConclusao).replace(/\s+/g, ' ').slice(0, 140)}…"). Escolha Sim ou Não aqui: o texto próprio é apagado e vale o texto padrão.` });
+        titulo: soSimNao(r.data.penosidadeConclusao) ? `Conclusão da penosidade: o texto próprio é só "${String(r.data.penosidadeConclusao).trim()}"` : 'Conclusão da penosidade: o texto próprio contradiz o resultado escolhido',
+        explicacao: soSimNao(r.data.penosidadeConclusao) ? 'O campo de texto próprio serve para uma conclusão redigida. Escolha Sim ou Não aqui: o campo é apagado e vale o texto padrão.' : `O resultado é "${r.data.penosidadeResultado || '(não escolhido)'}", mas o texto próprio da conclusão diz o contrário ("${String(r.data.penosidadeConclusao).replace(/\s+/g, ' ').slice(0, 140)}…"). Escolha Sim ou Não aqui: o texto próprio é apagado e vale o texto padrão.` });
     } else if (!String(r.data.penosidadeResultado || '').trim() && (m.sugerida || propostaAntiga)) {
       conclusoes.push(r);
       itens.push({ id: `conc-${r.id}`, grupo, rec: r.id, campo: 'penosidadeResultado', tipo: 'simnao', limpar: 'penosidadeConclusao',

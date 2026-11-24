@@ -375,7 +375,7 @@ export function lerJsonIA(texto) {
 }
 
 // Campos preenchidos não são sobrescritos (a menos que "substituir" esteja marcado).
-export async function aplicarIA(caseId, dados, { substituir = false, criarPeriodos = true, atualizarMedicoes = false } = {}) {
+export async function aplicarIA(caseId, dados, { substituir = false, criarPeriodos = true, atualizarMedicoes = false, refazerPendentes = false } = {}) {
   const caso = await db.records.get(caseId);
   const mudancas = {};
   // anotações de outra vistoria (2ª diligência, continuação): vão para a aba dela, sem mexer na 1ª
@@ -476,7 +476,8 @@ export async function aplicarIA(caseId, dados, { substituir = false, criarPeriod
     for (const q of dados.quesitos) {
       const ex = mapa.get(chaveQ(q)) || (String(q.numero || '').trim() ? porNumero.get(`${q.origem}|${normTxt(q.numero)}`) : undefined);
       if (ex) {
-        if (q.resposta && (substituir || !String(ex.data.resposta || '').trim())) { await updateFields(ex.id, { resposta: q.resposta }); cont.respostas += 1; }
+        // "refazer pendentes": a resposta antiga com [[pendência]] é trocada pela nova, feita com os dados atuais
+        if (q.resposta && (substituir || !String(ex.data.resposta || '').trim() || (refazerPendentes && /\[\[/.test(ex.data.resposta || '')))) { await updateFields(ex.id, { resposta: q.resposta }); cont.respostas += 1; }
         continue;
       }
       ordem += 1;
@@ -613,6 +614,22 @@ ${texto}`;
 
 export async function exportarParaClaude(caseId, tipo) {
   const { c, texto } = await textoDoCaso(caseId);
+  if (tipo === 'respostasPendentes') {
+    const pend = (await caseChildren(caseId, 'quesito')).filter((q) => q.data.suplementar !== 'Sim' && /\[\[/.test(q.data.resposta || ''));
+    return `Refaça SOMENTE as respostas dos quesitos abaixo, que ficaram com [[pendência]] porque foram escritas antes de o caso ter todos os dados. Use os dados ATUAIS do caso (medições, relatórios, entrevista, vínculos, veículos) e os meus critérios técnicos.
+- Resolva toda pendência cujo dado já está no caso. Mantenha [[pendência: …]] só para o que realmente não está no caso, uma por resposta, curta e específica (ex.: "[[pendência: ano de fabricação do Scania 113 HW]]"), sem repetir a mesma pendência em vários quesitos (use "Vide resposta ao quesito X").
+- Certificados de calibração e relatórios dos medidores estão nos apêndices do laudo: cite-os, não peça para anexá-los.
+- Resposta técnica, direta e conclusiva (art. 473, IV, do CPC).
+- Devolva SOMENTE um bloco JSON: {"quesitos": [{"origem": "", "numero": "", "texto": "texto do quesito exatamente como abaixo", "resposta": ""}]}
+
+QUESITOS A REFAZER (${pend.length}), com a resposta atual:
+${pend.map((q) => `- [${q.data.origem || ''} ${q.data.numero || ''}] ${q.data.texto || ''}\n  RESPOSTA ATUAL: ${q.data.resposta}`).join('\n')}
+
+${criteriosPara(c, '', ((await db.records.get('perfil')) || {}).data || {})}
+
+---
+${texto}`;
+  }
   if (tipo === 'respostas') {
     return `${INSTR_RESPOSTAS}\n\n${criteriosPara(c, '', ((await db.records.get('perfil')) || {}).data || {})}\n\n---\n${texto}`;
   }
@@ -666,8 +683,10 @@ ${texto}`;
 export async function textoDoCaso(caseId) {
   const caso = await db.records.get(caseId);
   const c = caso.data;
-  const [quesitos, periodos, documentos, epis, postos, medicoes, fotos] = await Promise.all(
+  const [quesitos, periodos, documentos, epis, postos, medicoesTodas, fotos] = await Promise.all(
     ['quesito', 'periodo', 'documento', 'epi', 'posto', 'medicao', 'foto'].map((k) => caseChildren(caseId, k)));
+  // medição aberta e não preenchida não vai para o Claude (confundiria qual é a medição do posto)
+  const medicoes = medicoesTodas.filter((m) => ['lavg', 'nen', 'dose', 'aren', 'vdv', 'tbn', 'tg', 'ibutgLido', 'valor'].some((k) => String(m.data[k] ?? '').trim()));
   const equip = (await db.records.where('kind').equals('equip').toArray()).filter((e) => !e.deleted);
   const eq = new Map(equip.map((e) => [e.id, e.data]));
   const nomePosto = new Map(postos.map((p) => [p.id, p.data.nome]));
@@ -749,8 +768,27 @@ export async function textoDoCaso(caseId) {
       L.push(`\n### ${p.data.nome || 'Posto'}`);
       for (const [k, r] of [['descricao', 'Atividade observada'], ['infoTrabalhador', 'Informações do trabalhador'], ['infoEmpresa', 'Informações da empresa'],
         ['agentes', 'Agentes'], ['jornada', 'Jornada'], ['epc', 'EPC'], ['epi', 'EPI']]) campo(r, p.data[k]);
+      // vínculos que o posto (veículo medido) representa: é o que liga a medição a cada período
+      const vs = periodos.filter((r) => (p.data.vinculos || []).includes(r.id));
+      if (vs.length) campo('Representa os vínculos (similaridade definida pelo perito)', vs.map((r) => `${r.data.empresa || ''} (${r.data.inicio || ''} a ${r.data.fim || 'atual'})${r.data.soPenosidadeDesde ? ` – só até ${r.data.soPenosidadeDesde} (exclusive); depois, ${r.data.veiculoDepois || 'outro veículo'} sem similar medido: somente penosidade` : ''}`).join('; '));
     });
   }
+  // resultado que o app calcula por vínculo e subperíodo (o mesmo do laudo): o Claude usa estes números
+  try {
+    const { carregar } = await import('./docx/base.js');
+    const { avaliarPeriodos } = await import('./docx/conclusao.js');
+    const dadosApp = await carregar(caseId);
+    const av = avaliarPeriodos(dadosApp);
+    const linhas = [];
+    av.forEach(({ segs }, i) => {
+      const r = dadosApp.periodos[i];
+      for (const s of segs || []) {
+        const fis = (s.itens || []).filter((it) => !it.categoria && !it.agente).map((it) => it.t);
+        if (fis.length) linhas.push(`- ${r.data.empresa || ''}, ${s.ini} a ${s.fim}: ${fis.join('; ')}`);
+      }
+    });
+    if (linhas.length) L.push(`\n## Resultado calculado pelo app por vínculo (use estes números; não são pendência)\n${linhas.join('\n')}`);
+  } catch { /* sem dados suficientes para o cálculo */ }
   if (medicoes.length) {
     L.push('\n## Medições');
     medicoes.forEach((m) => L.push(`- [${m.data.agente}] posto: ${nomePosto.get(m.data.postoId) || 'geral'}; equipamento: ${eq.get(m.data.equipamentoId)?.modelo || '?'}; ${resumoMedicao(m, contextoLegal(c))}${m.data.obs ? `; obs.: ${m.data.obs}` : ''}`));

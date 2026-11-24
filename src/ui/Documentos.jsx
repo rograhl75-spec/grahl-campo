@@ -68,8 +68,8 @@ export function Documentos({ rec, modo = 'laudo' }) {
   const props = { ocupado, gerar, contas, contaSel, recId: rec.id, rec };
   const quesitos = useLive(async () => {
     const l = (await db.records.where('[caseId+kind]').equals([rec.id, 'quesito']).toArray()).filter((r) => !r.deleted && r.data.suplementar !== 'Sim');
-    return { total: l.length, sem: l.filter((r) => !String(r.data.resposta || '').trim()).length };
-  }, [rec.id], { total: 0, sem: 0 });
+    return { total: l.length, sem: l.filter((r) => !String(r.data.resposta || '').trim()).length, pend: l.filter((r) => /\[\[/.test(r.data.resposta || '')).length };
+  }, [rec.id], { total: 0, sem: 0, pend: 0 });
 
   if (modo === 'laudo') {
     if (!principais.length) return <p class="vazio">Nenhum laudo ou parecer para este tipo de caso. Confira o tipo e a sua atuação em 1. Autos → Dados do caso.</p>;
@@ -84,7 +84,7 @@ export function Documentos({ rec, modo = 'laudo' }) {
           <PendenciasDoc rec={rec} onContagem={setNPend} />
         </PassoLaudo>
         {quesitos.total > 0 && (
-          <PassoLaudo n={++n} titulo="Responder os quesitos" ok={!quesitos.sem} status={quesitos.sem ? `${quesitos.sem} de ${quesitos.total} sem resposta` : `${quesitos.total} respondidos`}>
+          <PassoLaudo n={++n} titulo="Responder os quesitos" ok={!quesitos.sem && !quesitos.pend} status={[quesitos.sem && `${quesitos.sem} de ${quesitos.total} sem resposta`, quesitos.pend && `${quesitos.pend} com pendência`].filter(Boolean).join(' · ') || `${quesitos.total} respondidos`}>
             <RespostasClaude rec={rec} />
           </PassoLaudo>
         )}
@@ -375,11 +375,13 @@ function BotaoClaude({ rec, tipo, rotulo = 'Redigir com o Claude', soDireto = fa
   };
   // envio direto pela API: respostas dos quesitos → aplicadas ao caso; documento → Word no timbrado
   const responder = async (t) => {
-    if (tipo === 'respostas') {
+    if (tipo === 'respostas' || tipo === 'respostasPendentes') {
       const dados = lerJsonIA(t);
-      const r = await aplicarIA(rec.id, dados, { substituir: false });
+      const r = await aplicarIA(rec.id, dados, { substituir: false, criarPeriodos: false, refazerPendentes: tipo === 'respostasPendentes' });
       avisarAlteracao();
-      return `${r.respostas} resposta(s) preenchida(s) nos quesitos em branco (as já escritas ficaram como estavam). Confira em 1. Autos → Quesitos antes de gerar o laudo.`;
+      return tipo === 'respostasPendentes'
+        ? `${r.respostas} resposta(s) refeita(s) com os dados atuais. Confira em 1. Autos → Quesitos; o que ainda faltar continua em amarelo.`
+        : `${r.respostas} resposta(s) preenchida(s) nos quesitos em branco (as já escritas ficaram como estavam). Confira em 1. Autos → Quesitos antes de gerar o laudo.`;
     }
     const doc = await documentoDoClaude(rec.id, t);
     baixarArquivo(doc.blob, doc.nome);
@@ -387,7 +389,7 @@ function BotaoClaude({ rec, tipo, rotulo = 'Redigir com o Claude', soDireto = fa
     return `${doc.nome} gerado no timbrado e baixado. Confira no passo seguinte o que ainda sai em amarelo.`;
   };
   return <>
-    {!soCopiar && <BotaoClaudeDireto rotulo={tipo === 'respostas' ? 'Responder os quesitos com o Claude' : 'Redigir com o Claude (gera o Word)'}
+    {!soCopiar && <BotaoClaudeDireto rotulo={tipo === 'respostas' ? 'Responder os quesitos com o Claude' : tipo === 'respostasPendentes' ? (rotulo || 'Refazer as respostas com pendência') : 'Redigir com o Claude (gera o Word)'}
       instrucao={async () => { gravarTudoAgora(); return exportarParaClaude(rec.id, tipo); }} anexos={() => anexosDosAutos(rec.id)}
       permitirArquivos rotuloArquivos="Anexar outros documentos (opcional)" onResposta={responder} />}
     {!soDireto && <button type="button" class="sec" onClick={copiar}>{temClaude() ? `${rotulo} (copiar para o claude.ai)` : rotulo}</button>}
@@ -397,13 +399,22 @@ function BotaoClaude({ rec, tipo, rotulo = 'Redigir com o Claude', soDireto = fa
 
 // Respostas de todos os quesitos num JSON, que volta para o app e preenche só as respostas em branco
 function RespostasClaude({ rec }) {
-  const n = useLive(async () => (await db.records.where('[caseId+kind]').equals([rec.id, 'quesito']).toArray())
-    .filter((r) => !r.deleted && r.data.suplementar !== 'Sim' && !String(r.data.resposta || '').trim()).length, [rec.id], 0);
-  if (!n) return null;
+  const q = useLive(async () => {
+    const l = (await db.records.where('[caseId+kind]').equals([rec.id, 'quesito']).toArray()).filter((r) => !r.deleted && r.data.suplementar !== 'Sim');
+    return { sem: l.filter((r) => !String(r.data.resposta || '').trim()).length, pend: l.filter((r) => /\[\[/.test(r.data.resposta || '')).length };
+  }, [rec.id], { sem: 0, pend: 0 });
+  if (!q.sem && !q.pend) return <p class="ok-msg">✓ Todos os quesitos respondidos, sem pendência.</p>;
   return (
     <div class="bloco-interno">
-      <p class="dica">O Claude responde todos os quesitos em branco com os dados do caso e os autos; as respostas já escritas ficam como estão. Confira em 1. Autos → Quesitos.</p>
-      {temClaude() && <BotaoClaude rec={rec} tipo="respostas" soDireto />}
+      {q.sem > 0 && <>
+        <p class="dica">O Claude responde os quesitos em branco com os dados do caso e os autos; as respostas já escritas ficam como estão. Confira em 1. Autos → Quesitos.</p>
+        {temClaude() && <BotaoClaude rec={rec} tipo="respostas" soDireto />}
+      </>}
+      {q.pend > 0 && <>
+        <p class="alerta-txt">{q.pend} resposta(s) com [[pendência]] – escritas antes de o caso ter todos os dados (medições, relatórios, entrevista).</p>
+        <p class="dica">O Claude refaz só essas respostas com os dados atuais; as demais não mudam. O que realmente não estiver no caso continua como pendência, uma vez só.</p>
+        {temClaude() && <BotaoClaude rec={rec} tipo="respostasPendentes" rotulo={`Refazer as ${q.pend} resposta(s) com pendência`} soDireto />}
+      </>}
       <ModoManual>
         <ol class="passos">
           <li>Toque em <b>Copiar caso para responder os quesitos</b> e cole numa conversa nova no Claude, com os autos anexados.</li>
@@ -481,19 +492,35 @@ function PendenciasDoc({ rec, onContagem }) {
   );
 }
 
-// O que ainda sairia em amarelo no documento (gera em memória e lista os trechos)
+// O que ainda sairia em amarelo no documento: trechos agrupados pela seção, com o atalho para onde se corrige
+const ONDE_CORRIGIR = [
+  [/QUESITO/i, 'quesitos', '1. Autos → Quesitos (ou "Refazer as respostas com pendência", no passo 3)'],
+  [/DILIG|VISTORIA|INSTRUMENTO|MEDI[ÇC]|RESULTADO|RU[ÍI]DO|VIBRA/i, 'campo', '2. Campo (diligência, postos e medições)'],
+  [/V[ÍI]NCULO|PER[ÍI]ODO|AMBIENTE|PROFISSIOGRAFIA|PENOSIDADE|VE[ÍI]CULO|ATIVIDADE/i, 'autos', '1. Autos (vínculos, veículo e entrevista)'],
+  [/IDENTIFICA|PROCESSO|OBJETIVO|DESPACHO|HONOR/i, 'cadastro', '1. Autos → Dados do caso'],
+];
 function ConferirAmarelo({ rec, d, rotulo = '' }) {
   const [marcas, setMarcas] = useState(null);
   const [busy, setBusy] = useState(false);
   const conferir = async () => { gravarTudoAgora(); setBusy(true); try { setMarcas(await marcacoesNoDocumento(() => d.fn(rec.id, {}))); } finally { setBusy(false); } };
+  const secoes = marcas ? [...new Set(marcas.map((m) => m.secao || 'Outros trechos'))] : [];
   return (
     <div class="conferir-amarelo">
       <div class="linha-botoes"><button type="button" class="sec" disabled={busy} onClick={conferir}>{busy ? 'Conferindo…' : `Ver o que ainda sai em amarelo${rotulo ? ` – ${rotulo}` : ''}`}</button></div>
       {marcas && (marcas.length ? (
         <div class="pend-marcas">
-          <small class="dica">{marcas.reduce((s, m) => s + m.n, 0)} trecho(s) em amarelo, agrupados:</small>
-          <ul>{marcas.map((m) => <li key={m.texto}><span class="contador">{m.n}×</span> {m.texto}{m.onde && <small class="dica"> – em: {m.onde}</small>}</li>)}</ul>
-          <small class="dica">Complete no campo correspondente do caso (o local indicado mostra onde estão) ou direto no Word.</small>
+          <small class="dica">{marcas.reduce((s, m) => s + m.n, 0)} trecho(s) em amarelo, em {secoes.length} seção(ões):</small>
+          {secoes.map((sec) => {
+            const lista = marcas.filter((m) => (m.secao || 'Outros trechos') === sec);
+            const alvo = ONDE_CORRIGIR.find(([re]) => re.test(sec));
+            return (
+              <details class="pend-secao" open={secoes.length <= 3}>
+                <summary><b>{sec}</b> <span class="contador">{lista.reduce((s, m) => s + m.n, 0)}</span>
+                  {alvo && <> – corrigir em <a href={`#/caso/${encodeURIComponent(rec.id)}/${alvo[1]}`}>{alvo[2]}</a></>}</summary>
+                <ul>{lista.map((m) => <li key={m.texto}>{m.n > 1 && <span class="contador">{m.n}×</span>} {m.texto}{m.quesitos?.length ? <small class="dica"> – {m.quesitos.join(', ')}</small> : ''}</li>)}</ul>
+              </details>
+            );
+          })}
         </div>
       ) : <p class="ok-msg">✓ O documento sai sem trechos em amarelo.</p>)}
     </div>

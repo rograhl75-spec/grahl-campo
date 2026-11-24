@@ -51,3 +51,27 @@ describe('relatório × vistoria: alertas de discrepância nas pendências', () 
     expect(t).toContain('fora das datas da vistoria');
   });
 });
+
+describe('conferir o amarelo', () => {
+  it('trechos vizinhos formam uma marca só, agrupada pela seção, com o quesito', async () => {
+    const { marcacoesNoDocumento } = await import('../src/pendencias.js');
+    await put('am', 'caso', null, { papel: 'Perito do Juízo', justica: 'Justiça Federal', materia: 'Previdenciária' });
+    await put('amq', 'quesito', 'am', { origem: 'Juízo', numero: 'b', texto: 'Qual a configuração dos agentes?', resposta: 'Ruído medido. [[pendência: confirmar a similaridade com o **Scania 113 HW**]]' });
+    const m = await marcacoesNoDocumento(() => laudoPrevidenciario('am'));
+    const q = m.filter((x) => /QUESITO/i.test(x.secao));
+    expect(q.some((x) => /similaridade com o Scania 113 HW/.test(x.texto))).toBe(true);
+    expect(m.some((x) => x.texto === 'Scania 113 HW')).toBe(false);
+  });
+});
+
+describe('texto do caso para o Claude', () => {
+  it('leva os vínculos que o posto representa, a troca de veículo e o resultado calculado por vínculo; sem medição vazia', async () => {
+    const { textoDoCaso } = await import('../src/aiimport.js');
+    const { texto } = await textoDoCaso('sp');
+    expect(texto).toContain('Representa os vínculos');
+    expect(texto).toContain('somente penosidade');
+    expect(texto).toContain('Resultado calculado pelo app por vínculo');
+    expect(texto).toContain('NEN 96,0 dB(A)');
+    expect((texto.match(/\[Ruído\]/g) || []).length).toBe(1);
+  });
+});

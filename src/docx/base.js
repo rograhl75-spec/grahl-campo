@@ -769,8 +769,26 @@ export async function fontesEmbutidas() {
   return cacheFontes;
 }
 
+// Nome do arquivo: tipo do documento, âmbito (Judicial / Extrajudicial), nome do autor ou segurado e, no judicial,
+// o número do processo. Ex.: Laudo_Pericial_Previdenciario_Judicial_Fulano_de_Tal_0000000-00.2026.4.04.7001.docx
+const PEQUENAS = new Set(['de', 'da', 'do', 'das', 'dos', 'e', 'a', 'o', 'em', 'para', 'por']);
+export function nomeDoArquivo(arquivo, c = {}) {
+  const limpo = (t) => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w.-]+/g, '_').replace(/_+/g, '_').replace(/^[_.-]+|[_.-]+$/g, '');
+  const titulo = (t) => t.split('_').map((w, i) => (i && PEQUENAS.has(w.toLowerCase()) ? w.toLowerCase() : /^[a-z]/.test(w) ? w[0].toUpperCase() + w.slice(1) : w)).join('_');
+  // título vindo do Claude com o processo ou o nome ("Laudo Pericial – Processo nº …"): só o tipo
+  let tipo = String(arquivo || '').replace(/[_\s–-]*(processo|proc\.?|autos)(?![a-z]).*$/i, '');
+  if (c.autorNome) tipo = tipo.replace(new RegExp(`[_\\s–-]*${limpo(c.autorNome).split('_')[0]}.*$`, 'i'), '');
+  tipo = titulo(limpo(tipo)) || 'Documento';
+  const extra = c.tipoAtuacao === 'Extrajudicial';
+  const ambito = extra ? 'Extrajudicial' : 'Judicial';
+  if (!(extra ? /extrajudicial/i : /(?<!extra)judicial/i).test(tipo)) tipo += `_${ambito}`;
+  const pessoa = titulo(limpo(c.autorNome || c.reuNome || '')).slice(0, 50).replace(/_[^_]*$/, (m) => (limpo(c.autorNome || c.reuNome || '').length > 50 ? '' : m));
+  const proc = extra ? '' : limpo(c.numero);
+  return `${[tipo, pessoa, proc].filter(Boolean).join('_').slice(0, 150)}.docx`;
+}
+
 export async function finalizar(d, { titulo, arquivo, c }) {
-  const nomeArq = `${arquivo}_${(c.numero || c.autorNome || 'caso').replace(/[^\w.-]+/g, '_').slice(0, 60)}.docx`;
+  const nomeArq = nomeDoArquivo(arquivo, c);
   const blob = await montarDocx(await modelo(), d.xml(), { imagens: d.imagens, tituloDoc: titulo, comCampos: true, fontes: await fontesEmbutidas() });
   return { blob, nome: nomeArq };
 }

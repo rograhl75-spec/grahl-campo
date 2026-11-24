@@ -80,7 +80,7 @@ describe('quesitos suplementares', () => {
   it('gera a resposta com decisão, laudo, quesitos por parte, retificação e ratificação', async () => {
     const r = await respostaQuesitosSuplementares(CASO);
     const t = await textoDoDocx(r.blob);
-    expect(r.nome).toMatch(/^Resposta_quesitos_suplementares_/);
+    expect(r.nome).toMatch(/^Resposta_quesitos_suplementares_/i);
     expect(t).toContain('em atenção à decisão do mov. 60.1');
     expect(t).toContain('laudo pericial juntado aos autos (mov. 50.1) em 01/08/2026');
     expect(t).toContain('art. 477, § 2º, inciso I');

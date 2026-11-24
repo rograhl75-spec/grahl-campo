@@ -39,7 +39,7 @@ describe('aceite dos honorários arbitrados', () => {
   it('aceita o valor, divide adiantamento e saldo, indica a conta e a antecedência da data', async () => {
     const r = await peticaoAceiteArbitrados(CASO, { conta: 'conta1' });
     const t = await textoDoDocx(r.blob);
-    expect(r.nome).toMatch(/^Peticao_aceite_honorarios_arbitrados_/);
+    expect(r.nome).toMatch(/^Peticao_aceite_honorarios_arbitrados_/i);
     expect(t).toContain('R$ 2.700,00 (dois mil e setecentos reais)');
     expect(t).toContain('R$ 1.350,00 (mil trezentos e cinquenta reais)');
     expect(t).toContain('o saldo de R$ 1.350,00');

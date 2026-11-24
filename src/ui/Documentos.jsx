@@ -100,13 +100,15 @@ export function Documentos({ rec, modo = 'laudo' }) {
     );
   }
 
+  const geradas = [...peticoes, { id: LIVRE, titulo: 'Outra petição (Claude)' }, ...outrosDoCaso].map((d) => ({ d, g: String(c[`gerado_${d.id}`] || '').split('|') })).filter((x) => x.g[0])
+    .sort((a, b) => b.g[0].localeCompare(a.g[0]));
   return (
     <div class="docs">
       {peticoes.length > 0 && <CartaoPeticoes lista={peticoes} {...props} />}
-      {c.papel === 'Perito do Juízo' && (
-        <details class="secao-etapa" open={!!(c.laudoRefPerito || c.esclDecisaoRef || c.prazoEsclarecimentos)}>
-          <summary><b>Quesitos suplementares e esclarecimentos</b> <small class="dica">depois do laudo: transcrever e minutar as respostas com o Claude</small></summary>
-          <Suplementares rec={rec} />
+      {geradas.length > 0 && (
+        <details class="secao-etapa">
+          <summary><b>Já geradas neste caso</b> <span class="contador">{geradas.length}</span> <small class="dica">a mais recente: {geradas[0].d.titulo}, {new Date(geradas[0].g[0]).toLocaleDateString('pt-BR')}</small></summary>
+          <ul class="lista-geradas">{geradas.map(({ d, g }) => <li><b>{d.titulo}</b> – {new Date(g[0]).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} · {g[1]}{g[2] ? ` (${g[2]})` : ''}</li>)}</ul>
         </details>
       )}
       {outrosDoCaso.length > 0 && (
@@ -115,23 +117,35 @@ export function Documentos({ rec, modo = 'laudo' }) {
           <div class="grade-docs">{outrosDoCaso.map((d) => <CartaoDoc d={d} {...props} />)}</div>
         </details>
       )}
-      {outros.length > 0 && (
-        <section class="grupo-docs">
-          <button type="button" class="sec" onClick={() => setVerTodos(!verTodos)}>{verTodos ? 'Ocultar' : 'Mostrar'} modelos de outros tipos de trabalho ({outros.length})</button>
-          {verTodos && <div class="grade-docs">{outros.map((d) => <CartaoDoc d={d} {...props} />)}</div>}
-        </section>
-      )}
-      <section class="grupo-docs">
-        <h3>Cópia de segurança</h3>
+      <details class="secao-etapa">
+        <summary><b>Cópia de segurança e outros modelos</b> <small class="dica">ZIP do caso; modelos de outros tipos de trabalho ({outros.length})</small></summary>
         <div class="bloco doc">
           <p>ZIP com todos os dados e fotos originais deste caso, para guardar no Drive ou no PC.</p>
           <button type="button" disabled={!!ocupado} onClick={backupCaso}>{ocupado === 'zip' ? 'Gerando…' : 'Exportar caso (ZIP)'}</button>
         </div>
-      </section>
+        {outros.length > 0 && (
+          <section class="grupo-docs">
+            <button type="button" class="sec" onClick={() => setVerTodos(!verTodos)}>{verTodos ? 'Ocultar' : 'Mostrar'} modelos de outros tipos de trabalho ({outros.length})</button>
+            {verTodos && <div class="grade-docs">{outros.map((d) => <CartaoDoc d={d} {...props} />)}</div>}
+          </section>
+        )}
+      </details>
       {msg && <p class="ok-msg aviso-fixo">{msg}</p>}
     </div>
   );
 }
+
+// petições que costumam caber em cada fase do caso (sugestão; a lista completa continua no seletor)
+const SUGERIDAS_FASE = {
+  'A preparar': ['honorarios', 'indic', 'proposta', 'agenda'],
+  'Aguardando depósito dos honorários': ['honorarios'],
+  'Diligência agendada': ['agenda', 'peritoAvulsa'],
+  'Diligência realizada': ['peritoAvulsa'],
+  'Laudo / parecer em elaboração': ['peritoAvulsa'],
+  'Aguardando manifestação / esclarecimentos': ['supl', 'atAvulsa', 'pagto'],
+  'Respondendo quesitos suplementares': ['supl', 'atAvulsa'],
+  'Concluído': ['pagto'],
+};
 
 // Passo numerado da etapa 3, com o estado (✓ quando concluído)
 function PassoLaudo({ n, titulo, dica, ok = false, status = '', children }) {
@@ -160,16 +174,28 @@ function UltimoGerado({ c, d }) {
 const LIVRE = 'livre';
 function CartaoPeticoes({ lista, ...props }) {
   const { rec } = props;
-  const sel = rec.data.peticaoSel === LIVRE ? null : lista.find((d) => d.id === rec.data.peticaoSel) || lista[0];
+  const c = rec.data;
+  const sugeridas = (SUGERIDAS_FASE[c.fase || 'A preparar'] || []).map((id) => lista.find((d) => d.id === id)).filter(Boolean);
+  const padrao = sugeridas.find((d) => !c[`gerado_${d.id}`]) || sugeridas[0] || lista[0];
+  const sel = c.peticaoSel === LIVRE ? null : lista.find((d) => d.id === c.peticaoSel) || padrao;
+  const gerada = (d) => { const em = String(c[`gerado_${d.id}`] || '').split('|')[0]; return em ? ` ✓ gerada em ${new Date(em).toLocaleDateString('pt-BR')}` : ''; };
+  const escolher = (id) => salvar(rec.id, 'peticaoSel', id);
   return (
     <section class="bloco largo doc-peticoes">
       <h3>Petições</h3>
+      {sugeridas.length > 0 && (
+        <div class="chips sugeridas"><small class="dica">Para a fase "{c.fase || 'A preparar'}":</small>
+          {sugeridas.map((d) => <button type="button" class={`chip ${sel && sel.id === d.id ? 'ativo' : ''}`} onClick={() => escolher(d.id)}>{d.titulo}{c[`gerado_${d.id}`] ? ' ✓' : ''}</button>)}
+          <button type="button" class={`chip ${!sel ? 'ativo' : ''}`} onClick={() => escolher(LIVRE)}>Outra (Claude)</button>
+        </div>
+      )}
       <label class="campo"><span class="rotulo">Qual petição?</span>
-        <select value={sel ? sel.id : LIVRE} onChange={(e) => salvar(rec.id, 'peticaoSel', e.currentTarget.value)}>
-          {lista.map((d) => <option value={d.id}>{d.titulo}</option>)}
-          <option value={LIVRE}>Outra petição – redigir com o Claude (pelo despacho ou pela sua necessidade)</option>
+        <select value={sel ? sel.id : LIVRE} onChange={(e) => escolher(e.currentTarget.value)}>
+          {lista.map((d) => <option value={d.id}>{d.titulo}{gerada(d)}</option>)}
+          <option value={LIVRE}>Outra petição – redigir com o Claude (pelo despacho ou pela sua necessidade){gerada({ id: LIVRE })}</option>
         </select>
       </label>
+      {sel?.id === 'supl' && <Suplementares rec={rec} />}
       {sel ? <CartaoDoc d={sel} embutido {...props} /> : <PeticaoLivre rec={rec} />}
     </section>
   );
@@ -179,7 +205,7 @@ function CartaoPeticoes({ lista, ...props }) {
 function PeticaoLivre({ rec }) {
   const [md, setMd] = useState('');
   const [msg, setMsg] = useState('');
-  const gerarDoTexto = async (t) => { const r = await peticaoDoClaude(rec.id, t); baixarArquivo(r.blob, r.nome); return r.nome; };
+  const gerarDoTexto = async (t) => { const r = await peticaoDoClaude(rec.id, t); baixarArquivo(r.blob, r.nome); await registrarGerado(rec, { id: LIVRE, grupo: '' }, r.nome, 'redigida pelo Claude'); return r.nome; };
   const copiar = async () => {
     gravarTudoAgora();
     const t = await promptPeticaoLivre(rec.id, rec.data.peticaoLivrePedido);

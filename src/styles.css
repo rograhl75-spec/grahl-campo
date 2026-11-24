@@ -438,3 +438,8 @@ details.secao-etapa > .importar-fotos { border: 0; background: var(--cartao); bo
 .passo-laudo.passo-ok .num-passo { background: #2E7D4F; }
 .passo-laudo .doc-principal { max-width: none; box-shadow: none; }
 .conferir-amarelo + .conferir-amarelo { margin-top: 10px; }
+/* etapa 4 */
+.chips.sugeridas { align-items: center; margin-bottom: 8px; }
+.chip.ativo { background: var(--azul, #1B365D); color: #fff; border-color: transparent; }
+.lista-geradas { margin: 8px 0 0; padding-left: 18px; }
+.doc-peticoes .grade, .doc-peticoes > .grade { margin: 8px 0; }

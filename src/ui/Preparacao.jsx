@@ -6,7 +6,7 @@ import { BotaoClaudeDireto, anexosDosAutos, ModoManual } from './ClaudeDireto.js
 import { SITUACOES, situacaoDoCaso, montarPrompt, lerJsonIA, aplicarIA, limparDuplicados } from '../aiimport.js';
 import { avisarAlteracao } from '../sync.js';
 import { dataBR } from '../docx/reports.js';
-import { TF, salvar } from './fields.jsx';
+import { TF, salvar, CamposCompactos } from './fields.jsx';
 import { RecordList } from './RecordList.jsx';
 import { useLive } from './hooks.js';
 import { Campos } from './fields.jsx';
@@ -29,7 +29,8 @@ function CarregarProfissao({ rec }) {
   const periodos = useLive(async () => caseChildren(rec.id, 'periodo'), [rec.id], []);
   const [msg, setMsg] = useState('');
   const prof = profissaoDoCaso(rec.data, periodos);
-  if (!prof) return <p class="dica largo">Banco de profissões: escolha a profissão no cadastro (etapa 1. Autos → Dados do caso) para carregar os agentes e a profissiografia já estudados ({PROFISSOES.map((p) => p.nome).join(', ')}).</p>;
+  // sem profissão do banco (ex.: motorista), nada a mostrar; a profissão se escolhe em Dados do caso → Opções do caso
+  if (!prof) return null;
   const carregar = async () => {
     if (!(await confirmar(`Carregar os ${prof.agentes.length} agentes avaliados e a profissiografia padrão de ${prof.nome}? Os agentes que já estão no caso não são repetidos: só os campos vazios deles são completados; o que você já escreveu não muda. Depois, exclua os agentes que o segurado não usa.`))) return;
     const lista = await caseChildren(rec.id, 'agenteAvaliado');
@@ -93,48 +94,59 @@ function CarregarProfissao({ rec }) {
   );
 }
 
-export function Preparacao({ rec }) {
+const RE_MOTORISTA = /motorista|caminh|carreteir|cobrador|ônibus|onibus|truck|carreta|bitrem|rodotrem|condutor|operador de m[áa]quina/i;
+export function Preparacao({ rec, dadosDoCaso = null }) {
   const sintese = CAMPOS_SINTESE.filter(([k]) => k !== 'roteiro' && k !== 'analiseEpi');
   const vazio = !(rec.data.funcoes || '').trim() && !(rec.data.pedidos || '').trim();
+  const periodos = useLive(async () => caseChildren(rec.id, 'periodo'), [rec.id], []);
+  const nFds = useLive(async () => (await caseChildren(rec.id, 'fds')).length, [rec.id], 0);
+  // paradigmas (veículos e máquinas) só para motorista / operador
+  const motorista = rec.data.penosidade === 'Sim' || (rec.data.objeto || []).includes('Penosidade (motorista)') || RE_MOTORISTA.test(rec.data.funcoes || '')
+    || periodos.some((r) => r.data.paradigmaRuido || r.data.paradigmaVibracao || r.data.veiculoModelo || RE_MOTORISTA.test(`${r.data.cargo || ''} ${r.data.atividades || ''}`));
+  const planejado = !!(String(rec.data.roteiro || '').trim() || String(rec.data.analiseEpi || '').trim());
   return (
     <div class="grade">
       <ArquivoDoProcesso rec={rec} />
       <ImportarIA rec={rec} abertoInicial={vazio} />
       <h2 class="largo subtitulo-etapa">Conferência dos dados extraídos</h2>
+      {dadosDoCaso}
       <Duplicados rec={rec} />
       <section class="bloco largo">
         <h3>Síntese dos autos</h3>
-        {sintese.map(([k, label]) => <TF rec={rec} k={k} label={label} area />)}
+        <div class="linha2"><CamposCompactos rec={rec} campos={sintese} sempre={['funcoes', 'agentesAlegados', 'pedidos']} /></div>
       </section>
       <RecordList kind="periodo" caseId={rec.id} campos={CAMPOS_PERIODO} titulo="Contratos / períodos" novo="Adicionar período"
         resumo={(r) => [r.data.empresa, r.data.inicio && `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`, r.data.cargo,
           (r.data.paradigmaRuido || r.data.paradigmaVibracao) && `paradigmas ${[r.data.paradigmaRuido, r.data.paradigmaVibracao].filter(Boolean).join('/')}`].filter(Boolean).join(' · ')}
         extra={(r) => <VeiculoDoPeriodo r={r} />} />
-      <ParadigmasDosVinculos rec={rec} />
+      {motorista && <ParadigmasDosVinculos rec={rec} />}
       {contextoLegal(rec.data).prev && <CarregarProfissao rec={rec} />}
       {contextoLegal(rec.data).prev && (
         <RecordList kind="agenteAvaliado" caseId={rec.id} campos={CAMPOS_AGENTE_AVALIADO} titulo="Agentes avaliados (sem medição: biológicos, químicos e físicos)" novo="Adicionar agente"
-          inicial={{ tipo: 'Químico' }}
+          inicial={{ tipo: 'Químico' }} compacto
           resumo={(r) => [r.data.tipo, r.data.nome, r.data.vinculos && `vínculos ${r.data.vinculos}`,
             [r.data.resAte97 && `até 1997: ${r.data.resAte97}`, r.data.resDesde97 && `desde 1997: ${r.data.resDesde97}`].filter(Boolean).join(' / ')].filter(Boolean).join(' · ')} />
       )}
       <RecordList kind="fds" caseId={rec.id} campos={CAMPOS_FDS} titulo="Produtos químicos – fichas das FDS (uma por produto)" novo="Adicionar produto"
-        inicial={{ situacao: 'A conferir' }} vazio="Nenhum produto. Cadastre os produtos químicos do caso ou peça ao Claude a ficha da FDS (abaixo)."
+        inicial={{ situacao: 'A conferir' }} compacto vazio="Nenhum produto. Cadastre os produtos químicos do caso ou peça ao Claude a ficha da FDS (abaixo)."
         resumo={(r) => [r.data.nome, r.data.fabricante, r.data.revisao && `FDS ${r.data.revisao}`, componentesDoTexto(r.data.s3Componentes).length && `${componentesDoTexto(r.data.s3Componentes).length} componente(s)`,
           r.data.fonteFds, r.data.situacao !== 'Conferido' && 'a conferir'].filter(Boolean).join(' · ')} />
-      <PesquisarFds rec={rec} />
-      <RecordList kind="documento" caseId={rec.id} campos={CAMPOS_DOC} titulo="Documentos técnicos analisados" novo="Adicionar documento"
+      <details class="secao-etapa largo" open={nFds > 0}>
+        <summary><b>Ficha da FDS pelo Claude</b> <small class="dica">produtos químicos: lê a FDS anexada ou pesquisa a do fabricante</small></summary>
+        <PesquisarFds rec={rec} />
+      </details>
+      <RecordList kind="documento" caseId={rec.id} campos={CAMPOS_DOC} titulo="Documentos técnicos analisados" novo="Adicionar documento" limite={5}
         resumo={(r) => [r.data.tipo, r.data.identificacao].filter(Boolean).join(' – ')} />
-      <RecordList kind="epi" caseId={rec.id} campos={CAMPOS_EPI} titulo="Ficha de EPIs" novo="Adicionar EPI"
+      <RecordList kind="epi" caseId={rec.id} campos={CAMPOS_EPI} titulo="Ficha de EPIs" novo="Adicionar EPI" compacto
         resumo={(r) => [r.data.descricao, r.data.ca && `CA ${r.data.ca}`, r.data.dataEntrega].filter(Boolean).join(' · ')} />
-      <section class="bloco largo">
-        <TF rec={rec} k="analiseEpi" label="Análise crítica dos EPIs (fichas, CA, periodicidade)" area />
-      </section>
-      <section class="bloco largo">
-        <h3>Planejamento da diligência</h3>
-        <TF rec={rec} k="roteiro" label="Roteiro da vistoria / documentos a solicitar" area rows={5} />
-        <EquipamentosCaso rec={rec} />
-      </section>
+      <details class="secao-etapa largo" open={planejado}>
+        <summary><b>Planejamento da diligência e análise dos EPIs</b> <small class="dica">roteiro da vistoria, documentos a solicitar, equipamentos a levar</small></summary>
+        <div class="bloco">
+          <TF rec={rec} k="roteiro" label="Roteiro da vistoria / documentos a solicitar" area rows={5} />
+          <TF rec={rec} k="analiseEpi" label="Análise crítica dos EPIs (fichas, CA, periodicidade)" area />
+          <EquipamentosCaso rec={rec} />
+        </div>
+      </details>
     </div>
   );
 }

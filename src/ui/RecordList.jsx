@@ -6,7 +6,8 @@ import { Campos } from './fields.jsx';
 import { confirmar } from './dialogo.jsx';
 
 // Lista editável de registros de um caso (períodos, documentos, EPIs...)
-export function RecordList({ kind, caseId, campos, titulo, novo = 'Adicionar', resumo, vazio = 'Nenhum item.', extra, inicial = {}, abrirNovo = true, filtro }) {
+// compacto: lista vazia vira uma linha (título + adicionar); limite: mostra os primeiros N e "ver todos"
+export function RecordList({ kind, caseId, campos, titulo, novo = 'Adicionar', resumo, vazio = 'Nenhum item.', extra, inicial = {}, abrirNovo = true, filtro, compacto = false, limite = 0 }) {
   const itens = useLive(async () => {
     const l = caseId
       ? await db.records.where('[caseId+kind]').equals([caseId, kind]).toArray()
@@ -14,6 +15,7 @@ export function RecordList({ kind, caseId, campos, titulo, novo = 'Adicionar', r
     return l.filter((r) => !r.deleted && (!filtro || filtro(r))).sort((a, b) => (a.data.ordem ?? a.createdAt) - (b.data.ordem ?? b.createdAt));
   }, [caseId, kind], []);
   const [aberto, setAberto] = useState(null);
+  const [todos, setTodos] = useState(false);
 
   const adicionar = async () => {
     const ordem = itens.reduce((m, r) => Math.max(m, r.data.ordem || 0), 0) + 1;
@@ -35,11 +37,20 @@ export function RecordList({ kind, caseId, campos, titulo, novo = 'Adicionar', r
     avisarAlteracao();
   };
 
+  if (compacto && !itens.length) {
+    return (
+      <section class="bloco lista-vazia">
+        <span><b>{titulo}</b> <span class="contador">0</span></span>
+        <button type="button" class="mini sec" onClick={adicionar}>＋ {novo}</button>
+      </section>
+    );
+  }
+  const mostrar = limite && !todos && itens.length > limite + 1 ? itens.slice(0, limite) : itens;
   return (
     <section class="bloco">
       {titulo && <h3>{titulo} <span class="contador">{itens.length}</span></h3>}
       {!itens.length && <p class="vazio">{vazio}</p>}
-      {itens.map((r, idx) => (
+      {mostrar.map((r, idx) => (
         <div class={`item ${aberto === r.id ? 'aberto' : ''}`} key={r.id}>
           <div class="item-topo" onClick={() => setAberto(aberto === r.id ? null : r.id)}>
             <span class="item-titulo">{resumo(r) || <em>(sem título – toque para preencher)</em>}</span>
@@ -57,6 +68,7 @@ export function RecordList({ kind, caseId, campos, titulo, novo = 'Adicionar', r
           )}
         </div>
       ))}
+      {mostrar.length < itens.length && <button type="button" class="mini sec" onClick={() => setTodos(true)}>Ver todos ({itens.length})</button>}
       <button type="button" class="adicionar" onClick={adicionar}>＋ {novo}</button>
     </section>
   );

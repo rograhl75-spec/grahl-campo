@@ -67,9 +67,11 @@ const RE_INTEGRAM = /^(o (presente )?(laudo|parecer|documento) (segue acompanhad
 const hojeIso = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 export function semPartesDoApp(md) {
   const L = String(md || '').replace(/\r\n?/g, '\n').split('\n');
-  const out = []; let pulando = false;
+  const out = []; let pulando = false, encerramento = false;
   for (const l of L) {
     const t = l.trim();
+    if (/^#\s/.test(t)) encerramento = /encerramento/i.test(t);
+    if (encerramento && /\b(constam?|seguem|encontram-se)\b[^.]*\b(Anexo|apêndices?)\b/i.test(t) && /^[^.]*\.?\s*$/.test(t.replace(/\.$/, ''))) continue;
     if (RE_ANEXO_FOTOS.test(t)) { pulando = true; continue; }
     if (pulando) { if (/^#\s/.test(t) && !/foto/i.test(t)) pulando = false; else continue; }
     if (RE_LOCAL_DATA.test(t) || RE_INTEGRAM.test(t)) continue;

@@ -18,3 +18,13 @@ describe('encerramento escrito pelo Claude', () => {
       .toBe('Encerra-se o presente laudo pericial.');
   });
 });
+
+describe('encerramento: frase sobre onde estão os anexos', () => {
+  it('sai só na seção de encerramento', () => {
+    const md = '# 2 Instrumentos\nOs certificados constam dos apêndices deste laudo.\n\n# 8 Encerramento\nConcluídos os trabalhos.\n\nOs registros fotográficos constam do Anexo I, e os relatórios, dos apêndices deste laudo.\n';
+    const r = semPartesDoApp(md);
+    expect(r).toContain('Os certificados constam dos apêndices deste laudo.');
+    expect(r).not.toContain('Os registros fotográficos constam');
+    expect(r).toContain('Concluídos os trabalhos.');
+  });
+});

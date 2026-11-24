@@ -31,7 +31,8 @@ export const CAMPOS_MEDICAO = {
     ['vdv', 'VDVR (m/s¹·⁷⁵)', 'num'],
     ['eixo', 'Eixo dominante', 'text'],
     ['tempoExposicao', 'Tempo de exposição diária', 'text'],
-    ['condicaoVia', 'Condição da via / piso / carga', 'text'],
+    ['condicaoVia', 'Condição da via / piso', 'text'],
+    ['carga', 'Carga do conjunto durante a medição', 'select', ['Vazio', 'Carregado', 'Parcialmente carregado']],
   ],
   'Vibração de mãos e braços (VMB)': [
     ['ferramenta', 'Ferramenta / equipamento', 'text'],

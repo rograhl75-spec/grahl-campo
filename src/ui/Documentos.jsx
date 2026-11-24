@@ -465,7 +465,8 @@ function MontarDoClaude({ rec }) {
     try {
       const r = await documentoDoClaude(rec.id, md);
       baixarArquivo(r.blob, r.nome);
-      setMsg(`✓ ${r.nome} gerado no timbrado. Confira as pendências em amarelo.`);
+      const junto = [r.nFotos && `${r.nFotos} foto(s) no Anexo I`, r.nAnexos && `${r.nAnexos} anexo(s)`, r.nApendices && `${r.nApendices} apêndice(s)`].filter(Boolean).join(', ');
+      setMsg(`✓ ${r.nome} gerado no timbrado${junto ? `, com ${junto}` : ''}.${r.falhasApendice ? ` ${r.falhasApendice} arquivo(s) não puderam ser lidos – confira em Campo → Relatórios e em Configurações → Equipamentos.` : ''} Confira as pendências em amarelo.`);
     } catch (e) { setMsg(`Erro: ${e.message || e}`); } finally { setOcupado(false); }
   };
   return (
@@ -523,6 +524,7 @@ function PendenciasDoc({ rec, onContagem }) {
 
 // O que ainda sairia em amarelo no documento: trechos agrupados pela seção, com o atalho para onde se corrige
 const ONDE_CORRIGIR = [
+  [/PENOSIDADE|PERNOITE|ENTREVISTA/i, 'campo', '2. Campo → Entrevista do segurado – vínculos (toque no vínculo: pernoite, fatores e conclusão da penosidade)'],
   [/QUESITO/i, 'quesitos', '1. Autos → Quesitos (ou "Refazer as respostas com pendência", no passo 3)'],
   [/DILIG|VISTORIA|INSTRUMENTO|MEDI[ÇC]|RESULTADO|RU[ÍI]DO|VIBRA/i, 'campo', '2. Campo (diligência, postos e medições)'],
   [/V[ÍI]NCULO|PER[ÍI]ODO|AMBIENTE|PROFISSIOGRAFIA|PENOSIDADE|VE[ÍI]CULO|ATIVIDADE/i, 'autos', '1. Autos (vínculos, veículo e entrevista)'],

@@ -330,7 +330,7 @@ export function lerJsonIA(texto) {
   if (caso.similaridade) caso.similaridade = /^sim$/i.test(caso.similaridade) ? 'Sim' : 'Não';
   const agenteOk = agenteMedicao;
   const KS_MED = ['dataMedicao', 'horaInicio', 'horaFim', 'tempoAmostragem', 'jornada', 'dose', 'q', 'lavg', 'nen', 'relatorio', 'lmax', 'calibInicial', 'calibFinal', 'posicao',
-    'tbn', 'tbs', 'tg', 'ibutgLido', 'atividade', 'regime', 'veiculo', 'aren', 'vdv', 'eixo', 'tempoExposicao', 'descricao', 'metodo', 'valor', 'unidade', 'limite'];
+    'tbn', 'tbs', 'tg', 'ibutgLido', 'atividade', 'regime', 'veiculo', 'aren', 'vdv', 'eixo', 'tempoExposicao', 'condicaoVia', 'carga', 'descricao', 'metodo', 'valor', 'unidade', 'limite'];
   const postos = lista(obj.postos).map((x) => ({
     ...pegar(x, CAMPOS_POSTO.map(([k]) => k)),
     medicoes: lista(x.medicoes).map((m) => {

@@ -3,8 +3,9 @@
 // quadros e figuras numerados, assinatura). O Claude devolve o texto em Markdown com as convenções de
 // CONVENCOES_CLAUDE; o app monta o documento, sem o perito ter de formatar no Word.
 // ======================================================================
-import { Doc, carregar, finalizar, capaTecnica, blocoAssinatura, partes, enderecamentoTexto, linhasProcesso } from './base.js';
+import { Doc, carregar, finalizar, capaTecnica, blocoAssinatura, partes, enderecamentoTexto, linhasProcesso, figurasDoCaso, apendicesDoCaso, anexosDoCaso, textoIntegram, inserirAnexos, inserirApendices, dataPorExtenso } from './base.js';
 import { datasDasVistorias } from '../schema.js';
+import { semRevisao } from './ooxml.js';
 
 export const CONVENCOES_CLAUDE = `FORMATO DA RESPOSTA (o app monta o Word no meu papel timbrado, com capa, sumário, numeração de quadros e figuras e assinatura; não faça capa, sumário nem assinatura):
 - Comece com as linhas "Título: ..." e "Subtítulo: ..." (o subtítulo é opcional).
@@ -14,18 +15,86 @@ export const CONVENCOES_CLAUDE = `FORMATO DA RESPOSTA (o app monta o Word no meu
 - Quadros: uma linha "Quadro: título do quadro", a tabela em Markdown (primeira linha = cabeçalho) e, logo abaixo, "Fonte: ...". Não numere: o app numera.
 - Fluxos (etapas, metodologia, dinâmica de um acidente): uma linha "Fluxo: título" seguida das etapas numeradas "1. Etapa – descrição curta" (até 8).
 - Prefira quadros a parágrafos longos sempre que houver comparação, datas, valores, períodos ou critérios.
+- Fórmulas e cálculos entre cifrões, em notação simples: $NEN = L_{avg} + 16,61 \\cdot \\log(T/8)$, $a_{ren}(T) = a_{rep} \\cdot \\sqrt{T/8}$, $VDV_R(T) = VDV_{R,medido} \\cdot (T/T_{medição})^{0,25}$, $NEN = 93,1 + 16,61 \\cdot \\log(12/8) = 96,0$ dB(A). O app converte em equação do Word.
+- Não escreva o anexo fotográfico (legendas das fotos), a lista de anexos e apêndices, nem local e data: o app insere as fotos com as legendas, os anexos (ART etc.), os apêndices (relatórios de medição, certificados) e a data de emissão.
+- Revise a ortografia e a concordância (português do Brasil).
 - Não use emojis, HTML nem blocos de código.`;
 
 const limpa = (t) => String(t ?? '').trim();
 const celulas = (linha) => linha.trim().replace(/^\||\|$/g, '').split('|').map((x) => x.trim());
 const separador = (linha) => /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/.test(linha);
 
+// Fórmula escrita como texto ("NEN = Lavg + 16,61·log(T/8)") → notação do app ($NEN = L_{avg} + …$), que vira equação do Word
+const RE_LADO = /(?<![\p{L}\d])(NEN|Lavg|Leq|aren|arep|VDVR|VDV)(\s*\([^()]{0,20}\))?\s*=\s*/gu;
+function paraTex(f) {
+  let t = f.trim();
+  t = t.replace(/√\s*\(([^()]*(?:\([^()]*\)[^()]*)*)\)/g, '\\sqrt{$1}');
+  t = t.replace(/\^\s*\(?([\d.,]+)\)?/g, '^{$1}');
+  t = t.replace(/(?<![\p{L}])Lavg(?![\p{L}])/gu, 'L_{avg}').replace(/(?<![\p{L}])Leq(?![\p{L}])/gu, 'L_{eq}')
+    .replace(/(?<![\p{L}])aren(?![\p{L}])/gu, 'a_{ren}').replace(/(?<![\p{L}])arep(?![\p{L}])/gu, 'a_{rep}').replace(/(?<![\p{L}])VDVR(?![\p{L}])/gu, 'VDV_{R}')
+    .replace(/(?<![\p{L}])T(medição|medicao|medido|laudo|med)(?![\p{L}])/gu, 'T_{$1}')
+    .replace(/(?<![\p{L}\\])log(?![\p{L}])/gu, '\\log');
+  return t;
+}
+export function formulasDoTexto(s) {
+  if (/\$/.test(s)) return s;
+  let out = '', ultimo = 0, m;
+  RE_LADO.lastIndex = 0;
+  while ((m = RE_LADO.exec(s))) {
+    if (m.index < ultimo) continue;
+    let j = m.index + m[0].length, prof = 0;
+    for (; j < s.length; j++) {
+      const c = s[j], resto = s.slice(j);
+      if (c === '(') prof++;
+      else if (c === ')') { if (!prof) break; prof--; }
+      else if (!prof && /^\s+(dB|m\/s|h\b|horas|%)/.test(resto)) break;
+      else if (!prof && (c === ';' || c === ':' || (c === ',' && !/\d/.test(s[j + 1] || '')) || (c === '.' && !/\d/.test(s[j + 1] || '')))) break;
+      else if (!/[\p{L}\d\s·√^/+\-=×,.]/u.test(c)) break;
+    }
+    const f = s.slice(m.index, j).replace(/\s+$/, '');
+    if (!/log|√|\^|·/.test(f)) continue;
+    out += s.slice(ultimo, m.index) + `$${paraTex(f)}$`;
+    ultimo = m.index + f.length;
+    RE_LADO.lastIndex = ultimo;
+  }
+  return out + s.slice(ultimo);
+}
+
+// partes que o app monta sozinho: o Claude às vezes as escreve mesmo assim
+const RE_ANEXO_FOTOS = /^#{0,3}\s*\**\s*anexo\s+[ivx\d]*\s*[–—:-]?\s*(registro|relat[óo]rio)\s+fotogr/i;
+const RE_LOCAL_DATA = /^\**[\p{L} .'/–-]{3,90}\/[A-Z]{2}\**\s*,\s*(\[\[)?\s*(data de emiss[ãa]o|\d{1,2}(º)? de [\p{L}]+ de \d{4})\s*(\]\])?\s*\.?\**$/u;
+const RE_INTEGRAM = /^(o (presente )?(laudo|parecer|documento) (segue acompanhado|é acompanhado)|integram? o presente|seguem anexos)/i;
+const hojeIso = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+export function semPartesDoApp(md) {
+  const L = String(md || '').replace(/\r\n?/g, '\n').split('\n');
+  const out = []; let pulando = false;
+  for (const l of L) {
+    const t = l.trim();
+    if (RE_ANEXO_FOTOS.test(t)) { pulando = true; continue; }
+    if (pulando) { if (/^#\s/.test(t) && !/foto/i.test(t)) pulando = false; else continue; }
+    if (RE_LOCAL_DATA.test(t) || RE_INTEGRAM.test(t)) continue;
+    out.push(l);
+  }
+  return out.join('\n').replace(/\[\[\s*data de emiss[ãa]o\s*\]\]/gi, dataPorExtenso(hojeIso()));
+}
+
+// Corretor do Word: título de norma em inglês ("ISO 2631-1:1997 – Mechanical vibration…") sai como inglês;
+// siglas, marcas e nomes próprios no meio da frase (Teslab, DoseMax, Jardelino) saem sem revisão ortográfica
+const RE_NORMA_EN = /((?:ISO|IEC|ANSI|ACGIH|NIOSH|OSHA)[\w /-]*?\d[\d.-]*(?::\d{4})?\s*[–—-]\s*)([A-Z][A-Za-z0-9 ,'’()/:–—-]*?\b(?:and|of|to|the|for)\b[A-Za-z0-9 ,'’()/:–—-]*?)(?=\.\s|\.$|;|$)/g;
+export const inglesDasNormas = (s) => String(s).replace(RE_NORMA_EN, (m, a, b) => (/\{\{/.test(m) ? m : `${a}{{en:${b.trim()}}}`));
+export function nomesSemRevisao(md) {
+  const t = String(md || '').replace(/\$[^$\n]*\$/g, ' ');
+  const siglas = t.match(/(?<![\p{L}])[\p{Lu}][\p{L}]*[\p{Lu}][\p{L}\d]*(?![\p{L}])/gu) || []; // NEN, DoseMax, CalPro, CRLV
+  const meio = [...t.matchAll(/[\p{Ll},;:)\d]\s+(\p{Lu}[\p{Ll}]{2,})(?![\p{L}])/gu)].map((m) => m[1]); // nome próprio no meio da frase
+  semRevisao([...siglas, ...meio]);
+}
+
 // Converte o Markdown do Claude e devolve { titulo, subtitulo }; o corpo vai para d
 export function markdownParaDoc(md, d) {
   const L = String(md || '').replace(/\r\n?/g, '\n').split('\n');
   let titulo = '', subtitulo = '';
   let par = [];
-  const soltaPar = () => { if (par.length) { d.texto(par.join(' ')); par = []; } };
+  const soltaPar = () => { if (par.length) { d.texto(inglesDasNormas(formulasDoTexto(par.join(' ')))); par = []; } };
   for (let i = 0; i < L.length; i++) {
     const l = L[i];
     const t = l.trim();
@@ -83,7 +152,7 @@ export function markdownParaDoc(md, d) {
       i = j - 1;
       continue;
     }
-    if (/^[-•*]\s+/.test(t) || /^[a-z]\)\s+/i.test(t)) { soltaPar(); d.texto(t.replace(/^\*\s+/, '- ')); continue; }
+    if (/^[-•*]\s+/.test(t) || /^[a-z]\)\s+/i.test(t)) { soltaPar(); d.texto(inglesDasNormas(formulasDoTexto(t.replace(/^\*\s+/, '- ')))); continue; }
     if (/^(---|\*\*\*)$/.test(t)) { soltaPar(); continue; }
     par.push(t);
   }
@@ -97,7 +166,8 @@ export async function documentoDoClaude(caseId, md) {
   const { c, perfil } = dados;
   const pt = partes(c);
   const corpo = new Doc();
-  const { titulo, subtitulo } = markdownParaDoc(md, corpo);
+  nomesSemRevisao(md);
+  const { titulo, subtitulo } = markdownParaDoc(semPartesDoApp(md), corpo);
   const d = new Doc();
   const extra = c.tipoAtuacao === 'Extrajudicial';
   capaTecnica(d, {
@@ -112,8 +182,19 @@ export async function documentoDoClaude(caseId, md) {
   if (corpo.entradas.Figura.length) d.listaFiguras({ novaPagina: !corpo.entradas.Quadro.length });
   d.sumario();
   d.add(...corpo.x);
+  // como nos laudos do app: lista do que integra o documento, assinatura com a data de emissão, Anexo I (fotos),
+  // anexos do caso (ART, documentos) e apêndices (relatórios de medição, certificados de calibração, paradigmas)
+  const { lista, faltando } = await figurasDoCaso(dados);
+  const { apendices, falhasApendice, semRelatorios, semRelatoriosLgpd } = await apendicesDoCaso(dados);
+  const { anexos, falhasAnexo } = await anexosDoCaso(dados, { romanos: true, inicio: lista.length ? 1 : 0 });
+  const doc = /parecer/i.test(titulo) ? 'parecer' : /laudo|ltcat/i.test(titulo) ? 'laudo' : 'documento';
+  textoIntegram(d, { fotos: lista.length > 0, anexos, apendices, doc });
   blocoAssinatura(d, dados);
-  return finalizar(d, { titulo: titulo || 'Documento técnico', arquivo: (titulo || 'Documento').replace(/[^\wÀ-ú]+/g, '_').slice(0, 40), c });
+  if (lista.length) { d.h1('', 'Anexo I – Relatório fotográfico da diligência'); d.figuras(lista); }
+  inserirAnexos(d, anexos);
+  inserirApendices(d, apendices, dados);
+  const r = await finalizar(d, { titulo: titulo || 'Documento técnico', arquivo: (titulo || 'Documento').replace(/[^\wÀ-ú]+/g, '_').slice(0, 40), c });
+  return { ...r, faltando, falhasApendice: (falhasApendice || 0) + (falhasAnexo || 0), semRelatorios, semRelatoriosLgpd, nFotos: lista.length, nApendices: apendices.length, nAnexos: anexos.length };
 }
 
 export const temConteudo = (md) => limpa(md).length > 40;

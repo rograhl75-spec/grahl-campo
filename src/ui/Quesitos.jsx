@@ -1,4 +1,4 @@
-import { BotaoClaudeDireto, anexosDosAutos } from './ClaudeDireto.jsx';
+import { BotaoClaudeDireto, anexosDosAutos, ModoManual } from './ClaudeDireto.jsx';
 import { useState } from 'preact/hooks';
 import { ORIGEM_QUESITO, CAMPOS_ESCLARECIMENTOS, ehSuplementar, rotuloOrigem } from '../schema.js';
 
@@ -44,31 +44,24 @@ export function Quesitos({ rec }) {
   return (
     <div class="grade">
       <section class="bloco largo">
-        <p class="dica">Os quesitos entram automaticamente quando você extrai os dados dos autos na etapa <b>2. Autos</b>. Aqui você confere, corrige ou acrescenta. A anotação de cada quesito pode ser feita durante a vistoria e sai no Registro da diligência.</p>
+        <p class="dica">Os quesitos entram automaticamente quando você extrai os dados dos autos (acima). Aqui você confere, corrige ou acrescenta; as respostas podem ser minutadas pelo Claude na etapa <b>3. Laudo</b>. A anotação de cada quesito pode ser feita durante a vistoria e sai no Registro da diligência.</p>
         <label class="check"><input type="checkbox" checked={!!c.semQuesitos} onChange={(e) => salvar(rec.id, 'semQuesitos', e.currentTarget.checked)} /> Este caso não tem quesitos</label>
       </section>
       <div class="largo">
         <RecordList kind="quesito" caseId={rec.id} campos={CAMPOS} titulo="Quesitos do laudo" novo="Adicionar quesito" inicial={{ origem: 'Juízo' }}
           filtro={(r) => !ehSuplementar(r)} resumo={resumoQ} />
       </div>
-      {temSupl || abrirSupl ? <Suplementares rec={rec} /> : (
-        <section class="bloco largo">
-          <div class="linha-botoes entre">
-            <div><b>Depois do laudo: quesitos suplementares e esclarecimentos</b><br /><small>Use quando o Juízo mandar responder quesitos suplementares ou esclarecer o laudo (art. 477, § 2º, do CPC).</small></div>
-            <button type="button" onClick={() => setAbrirSupl(true)}>Abrir</button>
-          </div>
-        </section>
-      )}
+      {(temSupl || abrirSupl) && <p class="dica largo">Quesitos suplementares e esclarecimentos ({nSupl}): ficam em <a href={`#/caso/${encodeURIComponent(rec.id)}/peticoes`}>4. Petições</a>.</p>}
     </div>
   );
 }
 
-function Suplementares({ rec }) {
+export function Suplementares({ rec }) {
   return (
     <>
       <section class="bloco largo destaque">
         <h3>Depois do laudo: quesitos suplementares e esclarecimentos</h3>
-        <p class="dica">Os quesitos suplementares não entram no laudo nem no pré-relatório: saem na <b>Resposta aos quesitos suplementares</b> (etapa 6. Documentos). As respostas sobre a diligência devem seguir os seus registros de campo (etapa 4): horário, presentes, local e GPS.</p>
+        <p class="dica">Os quesitos suplementares não entram no laudo nem no pré-relatório: saem na <b>Resposta aos quesitos suplementares</b> (escolha na lista de petições, acima). As respostas sobre a diligência devem seguir os seus registros de campo (etapa 2. Campo): horário, presentes, local e GPS.</p>
         <div class="linha2"><Campos rec={rec} campos={CAMPOS_ESCLARECIMENTOS} /></div>
       </section>
       <ClaudeSuplementares rec={rec} />
@@ -112,19 +105,21 @@ function ClaudeSuplementares({ rec }) {
   return (
     <section class="bloco largo destaque passo-etapa">
       <h3><span class="num-passo">IA</span> Transcrever e minutar as respostas com o Claude</h3>
-      <ol class="passos">
-        <li>Toque em <b>Copiar instrução</b>. Ela já leva os dados do caso e da diligência registrados no app.</li>
-        <li>Numa conversa nova no Claude, cole a instrução e anexe a petição dos quesitos suplementares, a decisão e o laudo (ou o PDF inteiro do processo).</li>
-        <li>Copie a resposta (o bloco que começa com <code>{'{'}</code>), cole abaixo, confira a prévia e aplique. Os quesitos são criados sem duplicar e as respostas preenchem só as que estiverem vazias, a menos que marque "substituir".</li>
-      </ol>
-      <BotaoClaudeDireto rotulo="Enviar direto ao Claude (com os autos)" anexos={() => anexosDosAutos(rec.id)} permitirArquivos rotuloArquivos="Anexar a petição dos quesitos e a decisão, se não estiverem nos autos guardados"
+      <p class="dica">O Claude lê os autos guardados (e o que você anexar: petição dos quesitos, decisão, laudo), transcreve os quesitos suplementares e minuta as respostas com os seus registros de campo. Quesitos não se duplicam; respostas já escritas ficam, a menos que marque "substituir".</p>
+      <BotaoClaudeDireto rotulo="Transcrever e minutar com o Claude" anexos={() => anexosDosAutos(rec.id)} permitirArquivos rotuloArquivos="Anexar a petição dos quesitos e a decisão (se não estiverem nos autos guardados)"
         instrucao={async () => { gravarTudoAgora(); return montarPromptSuplementares(rec.id); }}
         onResposta={(t) => { setTexto(t); try { setPrevia(lerJsonSuplementares(t)); setErro(''); return 'Confira a prévia abaixo e aplique.'; } catch (e) { setPrevia(null); setErro(e.message); return ''; } }} />
-      <div class="linha-botoes"><button type="button" class="sec" onClick={copiar}>Copiar instrução (claude.ai)</button></div>
-      <label class="campo campo-area"><span class="rotulo">Resposta do Claude (JSON)</span>
-        <textarea rows={5} value={texto} onInput={(e) => setTexto(e.currentTarget.value)} placeholder='{"esclarecimentos": {...}, "quesitos": [...]}' />
-      </label>
-      <div class="linha-botoes"><button type="button" onClick={ler} disabled={!texto.trim()}>Ler e mostrar prévia</button></div>
+      <ModoManual>
+        <ol class="passos">
+          <li>Toque em <b>Copiar instrução</b> e cole numa conversa nova no Claude, anexando a petição dos quesitos, a decisão e o laudo (ou o processo inteiro).</li>
+          <li>Copie a resposta (o bloco que começa com <code>{'{'}</code>), cole abaixo e toque em <b>Ler e mostrar prévia</b>.</li>
+        </ol>
+        <div class="linha-botoes"><button type="button" class="sec" onClick={copiar}>Copiar instrução (claude.ai)</button></div>
+        <label class="campo campo-area"><span class="rotulo">Resposta do Claude (JSON)</span>
+          <textarea rows={5} value={texto} onInput={(e) => setTexto(e.currentTarget.value)} placeholder='{"esclarecimentos": {...}, "quesitos": [...]}' />
+        </label>
+        <div class="linha-botoes"><button type="button" onClick={ler} disabled={!texto.trim()}>Ler e mostrar prévia</button></div>
+      </ModoManual>
       {erro && <p class="erro-msg">{erro}</p>}
       {previa && (
         <div class="previa">

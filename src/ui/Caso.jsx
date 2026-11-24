@@ -1,3 +1,4 @@
+import { useEffect } from 'preact/hooks';
 import { db, softDelete } from '../db.js';
 import { avisarAlteracao } from '../sync.js';
 import {
@@ -15,24 +16,25 @@ import { Icone } from './Icone.jsx';
 import { confirmar } from './dialogo.jsx';
 
 // Etapas do caso, na ordem do trabalho
+// 1 Autos (dados do caso, PDF do processo, vínculos, agentes e quesitos) → 2 Campo (diligência, anotações,
+// medições e fotos) → 3 Laudo (o documento principal) → 4 Petições (honorários, agendamento, suplementares…)
 export const ETAPAS = [
-  { k: 'cadastro', n: 1, rot: 'Cadastro', o: 'confira o tipo e a sua atuação; número e partes podem vir dos autos (etapa 2)' },
-  { k: 'autos', n: 2, rot: 'Autos', o: 'anexe o PDF do processo e extraia os dados com o Claude' },
-  { k: 'quesitos', n: 3, rot: 'Quesitos', o: 'confira os quesitos das partes e do Juízo' },
-  { k: 'campo', n: 4, rot: 'Campo', o: 'registre a diligência, os postos e as medições' },
-  { k: 'fotos', n: 5, rot: 'Fotos', o: 'confira as fotos e as legendas' },
-  { k: 'documentos', n: 6, rot: 'Documentos', o: 'gere as petições, o laudo ou o parecer' },
+  { k: 'autos', n: 1, rot: 'Autos', o: 'anexe o PDF do processo e extraia tudo com o Claude (dados do caso, vínculos e quesitos)' },
+  { k: 'campo', n: 2, rot: 'Campo', o: 'registre ou importe as anotações da diligência, as medições e as fotos' },
+  { k: 'laudo', n: 3, rot: 'Laudo', o: 'responda os quesitos e redija o laudo com o Claude' },
+  { k: 'peticoes', n: 4, rot: 'Petições', o: 'honorários, agendamento, suplementares, pagamento' },
 ];
-const ALIAS = { resumo: 'cadastro', preparacao: 'autos' };
+// endereços antigos (6 etapas) → etapa nova e a seção dentro dela
+const ALIAS = { resumo: 'autos', cadastro: 'autos', preparacao: 'autos', quesitos: 'autos', fotos: 'campo', documentos: 'laudo' };
+const SECAO = { resumo: 'sec-cadastro', cadastro: 'sec-cadastro', quesitos: 'sec-quesitos', fotos: 'sec-fotos' };
 
 export function etapasFeitas(c, cont) {
+  const cadastro = !!(c.tipoAtuacao && c.papel && (c.numero || c.autorNome));
+  const autos = !!((cont.autos || 0) > 0 || (cont.periodo || 0) > 0 || (c.funcoes || '').trim());
   return {
-    cadastro: !!(c.tipoAtuacao && c.papel && (c.numero || c.autorNome)),
-    autos: !!((cont.autos || 0) > 0 || (cont.periodo || 0) > 0 || (c.funcoes || '').trim()),
-    quesitos: (cont.quesito || 0) > 0 || !!c.semQuesitos,
-    campo: !!c.vistoriaData,
-    fotos: (cont.foto || 0) > 0,
-    documentos: ['Aguardando manifestação / esclarecimentos', 'Respondendo quesitos suplementares', 'Concluído', 'Arquivado'].includes(c.fase),
+    autos: cadastro && autos && ((cont.quesito || 0) > 0 || !!c.semQuesitos || c.tipoAtuacao === 'Extrajudicial'),
+    campo: !!c.vistoriaData || (cont.foto || 0) > 0,
+    laudo: ['Aguardando manifestação / esclarecimentos', 'Respondendo quesitos suplementares', 'Concluído', 'Arquivado'].includes(c.fase),
   };
 }
 
@@ -52,10 +54,11 @@ export function Caso({ id, aba }) {
   if (!rec) return <div class="pagina"><p class="vazio grande">Caso não encontrado neste aparelho. <a href="#/">Voltar</a></p></div>;
   if (rec.deleted) return <div class="pagina"><p class="vazio grande">Este caso está na lixeira. Restaure em <a href="#/config/lixeira">Configurações → Lixeira</a>.</p></div>;
 
-  aba = ALIAS[aba] || aba;
+  const secao = SECAO[aba];
+  aba = ALIAS[aba] || aba || 'autos';
   const feitas = etapasFeitas(rec.data, contagem);
-  const proxima = ETAPAS.find((e) => !feitas[e.k]);
-  const n = { quesitos: contagem.quesito, fotos: contagem.foto, campo: (contagem.posto || 0) + (contagem.medicao || 0) || undefined };
+  const proxima = ETAPAS.find((e) => e.k !== 'peticoes' && !feitas[e.k]);
+  const n = { autos: contagem.quesito, campo: (contagem.foto || 0) + (contagem.medicao || 0) || undefined };
   return (
     <div class="pagina caso">
       <div class="caso-topo">
@@ -82,15 +85,30 @@ export function Caso({ id, aba }) {
       {proxima && proxima.k !== aba && (
         <a class="proximo-passo" href={`#/caso/${id}/${proxima.k}`}>➜ Próximo passo: <b>{proxima.n}. {proxima.rot}</b> – {proxima.o}</a>
       )}
-      {aba === 'cadastro' && <Resumo rec={rec} />}
-      {aba === 'autos' && <Preparacao rec={rec} />}
-      {aba === 'quesitos' && <Quesitos rec={rec} />}
-      {aba === 'campo' && <Campo rec={rec} />}
-      {aba === 'fotos' && <Fotos rec={rec} />}
-      {aba === 'documentos' && <Documentos rec={rec} />}
+      {secao && <IrParaSecao id={secao} />}
+      {aba === 'autos' && <>
+        <details id="sec-cadastro" class="secao-etapa" open={!rec.data.tipoAtuacao || !rec.data.papel || secao === 'sec-cadastro'}>
+          <summary><b>Dados do caso</b> <small class="dica">tipo, atuação, processo, partes, prazos e honorários – a extração dos autos preenche</small></summary>
+          <Resumo rec={rec} />
+        </details>
+        <Preparacao rec={rec} />
+        <section id="sec-quesitos" class="secao-etapa"><h2 class="titulo-secao">Quesitos</h2><Quesitos rec={rec} /></section>
+      </>}
+      {aba === 'campo' && <>
+        <Campo rec={rec} />
+        <section id="sec-fotos" class="secao-etapa"><h2 class="titulo-secao">Fotos</h2><Fotos rec={rec} /></section>
+      </>}
+      {aba === 'laudo' && <Documentos rec={rec} modo="laudo" />}
+      {aba === 'peticoes' && <Documentos rec={rec} modo="peticoes" />}
       {aba === 'antigo' && <Antigo rec={rec} />}
     </div>
   );
+}
+
+// rola até a seção pedida pelo endereço antigo (ex.: #/caso/x/quesitos → Autos, seção Quesitos)
+function IrParaSecao({ id }) {
+  useEffect(() => { const t = setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150); return () => clearTimeout(t); }, [id]);
+  return null;
 }
 
 function Resumo({ rec }) {
@@ -102,7 +120,7 @@ function Resumo({ rec }) {
   };
   return (
     <div class="grade">
-      <p class="dica largo">Comece marcando o <b>tipo</b> e a <b>sua atuação</b>. Número do processo, partes e prazos podem ser preenchidos automaticamente na etapa <b>2. Autos</b>, a partir do PDF do processo; aqui você só confere.</p>
+      <p class="dica largo">Comece marcando o <b>tipo</b> e a <b>sua atuação</b>. Número do processo, partes e prazos são preenchidos automaticamente pela extração dos autos (logo abaixo), a partir do PDF do processo; aqui você só confere.</p>
       <section class="bloco">
         <h3>Classificação</h3>
         <Opcoes rec={rec} k="tipoAtuacao" label="Tipo" opcoes={TIPO_ATUACAO} />
@@ -125,7 +143,7 @@ function Resumo({ rec }) {
       {ehAcidente(rec.data) && (
         <section class="bloco">
           <h3>Acidente do trabalho</h3>
-          <p class="dica">Usado no laudo de acidente. Pode vir preenchido pela importação dos autos com o Claude (etapa 2).</p>
+          <p class="dica">Usado no laudo de acidente. Pode vir preenchido pela extração dos autos com o Claude.</p>
           <Campos rec={rec} campos={CAMPOS_ACIDENTE} />
         </section>
       )}

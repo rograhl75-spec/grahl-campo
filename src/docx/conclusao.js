@@ -204,7 +204,7 @@ export function resultadoSubperiodo(s, penoso) {
 // penosidade: (r) => true | false | null – quando informada, a penosidade entra no resultado de cada subperíodo
 export function conclusaoPrevidenciaria(d, dados, { tituloQuadro = 'Conclusão por período', resumoPenosidade = true, penosidade = null } = {}) {
   const av = avaliarPeriodos(dados);
-  if (!av.length) { d.redigir('cadastre os vínculos na etapa 2. Autos.'); return; }
+  if (!av.length) { d.redigir('cadastre os vínculos na etapa 1. Autos.'); return; }
   const penDe = (r) => (penosidade ? penosidade(r) : null);
   // uma linha por período; uma coluna por tipo (categoria, biológicos, químicos, físicos), com os agentes que
   // caracterizam agrupados pelo código; os que não caracterizam ficam no item de avaliação (fonte do quadro)
@@ -261,7 +261,7 @@ export function conclusaoPrevidenciaria(d, dados, { tituloQuadro = 'Conclusão p
     else pendentes.push(`${r.data.empresa || 'Vínculo'}${isFinite(val.T) || !RE_MOT.test(`${r.data.cargo || ''} ${r.data.atividades || ''}`) ? '' : ' (e o tempo diário de condução)'}`);
   }
   // um aviso só para todos os vínculos ainda sem valores (antes, um "Redigir" por vínculo)
-  if (pendentes.length) d.redigir(`conclusão ${pendentes.length === 1 ? 'do vínculo' : 'dos vínculos'} ${pendentes.join('; ')} – sem valores avaliados (${(dados.agentes || []).length ? 'complete o resultado dos agentes avaliados na etapa 2. Autos' : 'cadastre os agentes avaliados na etapa 2. Autos, ou vincule o paradigma ou a medição do veículo/posto'}).`);
+  if (pendentes.length) d.redigir(`conclusão ${pendentes.length === 1 ? 'do vínculo' : 'dos vínculos'} ${pendentes.join('; ')} – sem valores avaliados (${(dados.agentes || []).length ? 'complete o resultado dos agentes avaliados na etapa 1. Autos' : 'cadastre os agentes avaliados na etapa 1. Autos, ou vincule o paradigma ou a medição do veículo/posto'}).`);
   const ruidoSup = av.some(({ segs }) => segs.some((s) => s.itens.some((i) => i.ruido && i.sup)));
   if (ruidoSup && !semEpi && comJurisprudencia(dados)) d.texto('Quanto ao ruído, a eventual declaração de eficácia do EPI (protetor auricular) não descaracteriza o tempo especial (STF, Tema 555 – ARE 664.335).');
   if (semEpi) d.texto(/Pr[oó]prio/.test(dados.c.pppEmitente || '')

@@ -387,7 +387,7 @@ export async function laudoPericial(caseId, { extra = false } = {}) {
     if (v(c.pedidos)) d.texto(c.pedidos); else d.redigir('o que foi contratado (setores, funções e agentes a caracterizar; finalidade: pagamento do adicional, revisão, defesa).');
   } else {
     d.h2('2.1', 'Determinação judicial (objeto da perícia)');
-    if (textoDeterminacao(dados, false)) d.texto(textoDeterminacao(dados, false)); else d.redigir('transcrever ou resumir o despacho que determinou a perícia (ID / mov.) – cadastre a referência do despacho na etapa 1.');
+    if (textoDeterminacao(dados, false)) d.texto(textoDeterminacao(dados, false)); else d.redigir('transcrever ou resumir o despacho que determinou a perícia (ID / mov.) – cadastre a referência do despacho em etapa 1. Autos → Dados do caso.');
   }
   d.h2('2.2', 'Objetivo técnico');
   const servidor = c.materia === 'Administrativa (servidor)' || /Fazenda/i.test(c.justica || '');
@@ -490,7 +490,7 @@ export async function laudoPrevidenciario(caseId) {
 
   d.h1('2', 'Objeto e metodologia');
   d.h2('2.1', 'Determinação judicial (objeto da perícia)');
-  if (textoDeterminacao(dados, true)) d.texto(textoDeterminacao(dados, true)); else d.redigir('transcrever ou resumir o despacho que determinou a perícia (evento / mov.) – cadastre a referência do despacho na etapa 1.');
+  if (textoDeterminacao(dados, true)) d.texto(textoDeterminacao(dados, true)); else d.redigir('transcrever ou resumir o despacho que determinou a perícia (evento / mov.) – cadastre a referência do despacho em etapa 1. Autos → Dados do caso.');
   d.h2('2.2', 'Metodologia');
   fluxoAvaliacao(d, dados, 'prev');
   d.texto('Em atendimento ao art. 473, inciso III, do Código de Processo Civil, a metodologia consistiu em análise dos autos, inspeção *in loco* e avaliações ambientais, seguindo as NHO da FUNDACENTRO e os limites de tolerância do Anexo IV do Regulamento da Previdência Social ou, na sua ausência, da NR-15 (art. 288, I e II, da IN 128/2022); a NR-15 é aplicada quando o decreto do período a ela remete.');
@@ -576,7 +576,7 @@ export async function ltcatPpp(caseId) {
 
   d.h1('1', 'Identificação');
   d.h2('1.1', 'Emitente do PPP');
-  d.identificacao([['Nome / razão social', emp], ['CNPJ / CAEPF / CPF', emit.doc], ['CNAE', c.pppCnae], ['Quem emite', c.pppEmitente || '[[defina quem emite o PPP na etapa 1. Cadastro]]'],
+  d.identificacao([['Nome / razão social', emp], ['CNPJ / CAEPF / CPF', emit.doc], ['CNAE', c.pppCnae], ['Quem emite', c.pppEmitente || '[[defina quem emite o PPP na etapa 1. Autos → Dados do caso]]'],
     ['Endereço do local avaliado', c.pppEndereco || c.vistoriaEndereco]]);
   d.h2('1.2', 'Segurado');
   d.identificacao([['Nome', seg], ['CPF', c.autorCpf], ['NIT', c.pppNit], ['Nascimento', dataBR(c.autorNascimento)], ['Cargo / função', cargos || '[[cargo]]']]);
@@ -661,7 +661,7 @@ export async function ltcatPpp(caseId) {
     ['X – Conclusão', '6'], ['XI – Assinatura e identificação do médico do trabalho ou engenheiro de segurança do trabalho', 'Encerramento'], ['XII – Data da avaliação ambiental', '2.2']],
   { larguras: [0.65, 0.35], tam: 9, alinhar: 'left', fonte: 'Elaborado pelo signatário com base em Brasil (2022, art. 276).' });
   if ((!dados.postos.some((x) => v(x.data.fontes)) && !dados.agentes.some((a) => v(a.data.fonte))) || (!dados.postos.some((x) => v(x.data.viaPeriodicidade)) && !dados.agentes.length)) {
-    d.texto('[[Preencher, em cada posto da etapa 4. Campo, as fontes geradoras e a via e periodicidade da exposição (art. 276, VI e VII), ou a fonte de cada agente avaliado (etapa 2. Autos).]]');
+    d.texto('[[Preencher, em cada posto da etapa 2. Campo, as fontes geradoras e a via e periodicidade da exposição (art. 276, VI e VII), ou a fonte de cada agente avaliado (etapa 1. Autos).]]');
   }
   blocoAssinatura(d, dados, `Responsável técnico – ART nº ${art}`);
   termoDeclaracaoAutorizacao(d, dados);
@@ -766,7 +766,7 @@ function naturezaLtcat(dados, seg) {
     return partes.join(' ');
   }
   if (vist) partes.push(`A avaliação é contemporânea quanto às condições observadas na vistoria de ${vist}${end ? `, realizada no local de trabalho (${end})` : ''}${anteriores ? ', e extemporânea quanto aos períodos anteriores, cujas condições foram reconstituídas pelas declarações do item 2.3, pelos documentos do item 1.3 e pela permanência da atividade, com as alterações registradas no item 4' : ''}.`);
-  else partes.push('[[Informe a data da vistoria (etapa 4. Campo).]]');
+  else partes.push('[[Informe a data da vistoria (etapa 2. Campo).]]');
   if (locais.length > 1 || (locais.length === 1 && end && !end.includes(locais[0]))) partes.push('Nos períodos em que o local de trabalho foi diverso do vistoriado (item 1.3), a avaliação considera a mesma atividade profissional, conforme as declarações do item 2.3.');
   return partes.join(' ');
 }
@@ -795,7 +795,7 @@ function textoCategoriaSegurado(d, dados) {
     else d.texto(`${quem(ci)}, o segurado exerceu a atividade como contribuinte individual. Este laudo é a demonstração ambiental individual que descreve esse período.`);
   }
   if (qtd(coop)) d.texto(`${quem(coop)}, o segurado era cooperado de cooperativa de trabalho, categoria à qual se aplicam as regras da aposentadoria especial (art. 1º da Lei nº 10.666/2003). ${proprio ? 'Como presta os serviços em consultório próprio, não exclusivamente pela cooperativa, o PPP é emitido pelo próprio segurado, com base neste laudo.' : 'O PPP desse período cabe à cooperativa, com base neste laudo.'}`);
-  if (per.some((x) => !x.cat)) d.texto(`[[Informe a categoria do segurado nos vínculos ${lista((x) => !x.cat)} (etapa 2. Autos).]]`);
+  if (per.some((x) => !x.cat)) d.texto(`[[Informe a categoria do segurado nos vínculos ${lista((x) => !x.cat)} (etapa 1. Autos).]]`);
   if (dados.periodos.some((r) => !r.data.fim || r.data.fim > '2019-11-13')) d.texto('A data de 13/11/2019, de entrada em vigor da Emenda Constitucional nº 103/2019, é indicada na síntese do item 6: em linha própria, quando o enquadramento muda nessa data, ou na nota do quadro, quando não muda.');
   const afs = dados.periodos.flatMap((r) => lerAfastamentos(r.data.afastamentos));
   if (afs.some((x) => x.excluido)) d.texto('Os afastamentos por benefício por incapacidade temporária de natureza previdenciária são indicados separadamente no item 6 e nas observações do PPP (art. 65, parágrafo único, do Decreto nº 3.048/1999).');
@@ -1423,7 +1423,7 @@ export async function respostaQuesitosSuplementares(caseId) {
   let n = 0;
   n += 1;
   d.h1(`${n}.`, 'Dos quesitos suplementares e pedidos de esclarecimento', { novaPagina: false });
-  if (!supl.length) d.texto('[[Cadastre os quesitos suplementares na etapa 3. Quesitos, marcando "Suplementar (após o laudo)".]]');
+  if (!supl.length) d.texto('[[Cadastre os quesitos suplementares na etapa 4. Petições → Quesitos suplementares e esclarecimentos.]]');
   let g = 0;
   for (const origem of ORIGEM_QUESITO) {
     const lista = supl.filter((q) => (q.data.origem || 'Outro') === origem);

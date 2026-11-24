@@ -180,7 +180,7 @@ export async function ppp(caseId, dadosProntos) {
     ...linhasMed,
   ].sort((a, b) => isoIni(a[0]).localeCompare(isoIni(b[0])));
   d.quadro('15 – Exposição a fatores de riscos', [['Período', 'Tipo', 'Fator de risco', 'Intensidade', 'Técnica utilizada', 'EPC eficaz', 'EPI eficaz', 'CA EPI'],
-    ...(linhasExp.length ? linhasExp : [['[[período]]', '', (dados.agentes || []).length ? 'Ausência de fator de risco nocivo' : '[[cadastre os agentes avaliados na etapa 2. Autos]]', '', '', '', '', '']])],
+    ...(linhasExp.length ? linhasExp : [['[[período]]', '', (dados.agentes || []).length ? 'Ausência de fator de risco nocivo' : '[[cadastre os agentes avaliados na etapa 1. Autos]]', '', '', '', '', '']])],
   { larguras: [0.14, 0.07, 0.15, 0.13, 0.24, 0.08, 0.09, 0.1], tam: 8, alinhar: 'left', semNumero: true,
     fonte: `LTCAT do signatário, itens 5 e 6. Tipo: F – físico; Q – químico; B – biológico. Intensidade "Qualitativa": agente de avaliação qualitativa, sem limite de tolerância a medir; técnica conforme o Manual de Aposentadoria Especial do INSS (2018). ${comMarcosEpi ? 'EPC e EPI eficazes: não se aplicam até 13/10/1996 e até 02/12/1998, respectivamente (art. 285 da IN 128/2022).' : 'EPC e EPI eficazes: "Não" em todo o período, por não haver EPC nem EPI com eficácia comprovada (art. 291 da IN 128/2022).'}${exps.some((e) => !e.caracteriza) ? ' Intensidade "Não quantificada": agente de avaliação quantitativa (NR-15, Anexos 5, 11 e 12) sem medição, que consta como presente no ambiente e não caracteriza a exposição (itens 5 e 6 do LTCAT).' : ''}` });
   const comEpi = exps.some((e) => e.caracteriza && e.agente.data.epiEficaz === 'Sim');

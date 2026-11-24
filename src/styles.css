@@ -406,3 +406,19 @@ details.recolhido[open] > summary { margin-bottom: 12px; }
 /* etapa concluída: o número continua visível (as instruções citam "etapa 2", "etapa 4"…) e o ✓ vai ao lado do nome */
 .abas.etapas .feita-ok { color: #2E7D4F; font-weight: 700; margin-left: 4px; }
 .abas.etapas a.ativo .feita-ok { color: #9BE3B5; }
+/* etapas: seções dentro da mesma etapa (Autos: dados do caso e quesitos; Campo: fotos) */
+.secao-etapa { margin: 18px 0; scroll-margin-top: 12px; }
+details.secao-etapa > summary { cursor: pointer; padding: 12px 14px; background: var(--fundo-bloco, #fff); border: 1px solid var(--borda); border-radius: 12px; }
+details.secao-etapa[open] > summary { margin-bottom: 10px; }
+.titulo-secao { font-size: 1.15rem; margin: 26px 0 10px; padding-top: 14px; border-top: 2px solid var(--borda); }
+/* etapa 3. Laudo: cartão principal e pendências enxutas */
+.doc-principal { max-width: 980px; }
+.doc-principal > h3 { margin: 0 0 4px; }
+.doc-principal .pendencias { margin: 12px 0; }
+.pend-grupo-tit { display: block; width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px dashed var(--borda); padding: 8px 2px; font-weight: 600; color: var(--texto); cursor: pointer; border-radius: 0; }
+.pend-grupo-tit small { font-weight: 400; }
+.modo-manual { margin: 10px 0; padding: 8px 12px; border: 1px dashed var(--borda); border-radius: 10px; }
+.modo-manual > summary { cursor: pointer; color: var(--suave); font-size: .9rem; }
+.doc-embutido > p.dica { margin-top: 4px; }
+.doc-peticoes { max-width: 980px; }
+.bloco-interno { margin: 8px 0 4px; }

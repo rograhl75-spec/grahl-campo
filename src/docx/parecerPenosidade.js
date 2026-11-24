@@ -81,7 +81,7 @@ function penosidadeDoVinculo(r, dados, m) {
   const fatos = m.criterios.map((c) => [c, c.linhas.filter((l) => !JA.test(l))]).filter(([, ls]) => ls.length)
     .map(([c, ls]) => `**${c.titulo.replace(/^\d\. Análise d[oa]s? /, '').replace(/^./, (k) => k.toUpperCase())}** – ${ls.map((l) => l.replace(/^./, (k) => k.toLowerCase())).join('; ')}`);
   const algum = m.criterios.some((c) => c.linhas.length);
-  return [fatos.join('.\n') + (fatos.length ? '.' : '') || (algum ? 'Fatores descritos nas linhas anteriores deste quadro.' : '') || '[[preencher a entrevista do vínculo (etapa 2 → vínculo → Entrevista do motorista e Penosidade)]]', m.conclusao].filter(Boolean).join('\n');
+  return [fatos.join('.\n') + (fatos.length ? '.' : '') || (algum ? 'Fatores descritos nas linhas anteriores deste quadro.' : '') || '[[preencher a entrevista do vínculo (etapa 1. Autos → vínculo → Entrevista do motorista e Penosidade)]]', m.conclusao].filter(Boolean).join('\n');
 }
 
 function enquadramentoDoVinculo(r, segs, m) {
@@ -162,7 +162,7 @@ export async function parecerPenosidade(caseId) {
 
   // 3 Vínculos
   d.h1('3', 'Análise dos vínculos e das condições de trabalho');
-  if (!ps.length) d.redigir('cadastre os vínculos (etapa 2) e a entrevista do motorista em cada um.');
+  if (!ps.length) d.redigir('cadastre os vínculos (etapa 1. Autos) e a entrevista do motorista em cada um.');
   // quadro-resumo dos vínculos: nome curto e a fonte resumida (as notas completas ficam no quadro de cada vínculo)
   if (ps.length) d.quadro('Vínculos avaliados', [['Empresa', 'Período', 'Cargo', 'Documentos'],
     ...ps.map((r) => [[empresaCurta(r), r.data.cnpj && `CNPJ ${r.data.cnpj}`].filter(Boolean).join('\n'), per(r), limpo(r.data.cargo),
@@ -260,7 +260,7 @@ export async function roteiroEntrevista(caseId) {
   const d = new Doc();
   d.h1('', 'Roteiro de entrevista do motorista', { novaPagina: false });
   d.identificacao([['Segurado', c.autorNome], ['CPF / NIT', c.autorCpf], ['Data da entrevista', '____/____/________'], ['Local', '']]);
-  d.texto('Para cada vínculo, pergunte e anote as respostas com as palavras do segurado. Quando um vínculo repetir outro, escreva "mesmas atividades do vínculo N" e anote só o que mudou. Depois, cole a entrevista no Claude pela etapa 2 (Autos) do app: as respostas vão para os campos de cada vínculo.');
+  d.texto('Para cada vínculo, pergunte e anote as respostas com as palavras do segurado. Quando um vínculo repetir outro, escreva "mesmas atividades do vínculo N" e anote só o que mudou. Depois, cole a entrevista no Claude pela etapa 1. Autos do app: as respostas vão para os campos de cada vínculo.');
   const ps = [...dados.periodos].sort((a, b) => String(a.data.inicio).localeCompare(String(b.data.inicio)));
   if (!ps.length) d.redigir('cadastre os vínculos da CTPS/CNIS (2. Autos) antes de gerar o roteiro.');
   ps.forEach((r, i) => {

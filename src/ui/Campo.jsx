@@ -1,4 +1,4 @@
-import { BotaoClaudeDireto } from './ClaudeDireto.jsx';
+import { BotaoClaudeDireto, ModoManual } from './ClaudeDireto.jsx';
 import { horasDia } from '../calc.js';
 import { useState, useEffect, useRef } from 'preact/hooks';
 import { termoPresenca } from '../docx/modelos2.js';
@@ -105,6 +105,7 @@ export function Campo({ rec }) {
 
   return (
     <div class="grade campo-tela">
+      <AnotacoesDiligencia rec={rec} />
       {entrevista && <EntrevistaVinculos rec={rec} />}
 
       <Diligencia rec={rec} iniciar={iniciar} pegarGps={pegarGps} gpsMsg={gpsMsg} />
@@ -151,7 +152,6 @@ export function Campo({ rec }) {
         <RelatoriosMedicao rec={rec} desc={DESC_ANEXO_DOC} rotulo="Anexo" titulo="Anexos do documento (ART, CNIS, certidões, declarações)"
           dica="Documentos de terceiros que acompanham o LTCAT, o laudo previdenciário e o parecer previdenciário: ART, CNIS, certidões, declarações assinadas, fichas de dados de segurança. Cada arquivo sai no fim, com todas as páginas, como Anexo A, B, C… (no laudo judicial, Anexo II, III…, depois do relatório fotográfico)."
           botao="＋ Anexar documento (PDF ou imagem)" />
-        <AnotacoesDiligencia rec={rec} />
       </details>
     </div>
   );
@@ -653,8 +653,8 @@ function RevisaoDaColeta({ rec }) {
         <BotaoClaudeDireto rotulo="Revisar a coleta" instrucao={instrucao} maxTokens={16000} permitirArquivos rotuloArquivos="Anexar relatórios dos medidores ou fotos (opcional)"
           anexos={async () => (comAutos ? anexosDosAutos(rec.id) : [])}
           onResposta={async (t) => { await updateFields(rec.id, { revisaoCampo: { texto: t, em: new Date().toISOString() } }); avisarAlteracao(); return 'Revisão guardada no caso (abaixo).'; }} />
-        <button type="button" class="sec" onClick={copiar}>Copiar instrução</button>
       </div>
+      <ModoManual><div class="linha-botoes"><button type="button" class="sec" onClick={copiar}>Copiar instrução</button></div></ModoManual>
       {copiado && <p class="ok-msg">{copiado}</p>}
       {r?.texto && (
         <details open>
@@ -712,7 +712,7 @@ function AnotacoesDiligencia({ rec }) {
     return (
       <section class="bloco largo destaque">
         <div class="linha-botoes entre">
-          <div><b>Perícia já feita? Importe as anotações da diligência</b><br /><small>Google Keep, Word, PDF ou texto: o app organiza diligência, postos, medições e entrevista, para você escrever o laudo.</small></div>
+          <div><b>Diligência já feita? Importe as anotações com o Claude</b><br /><small>Google Keep, Word, PDF, texto, relatórios dos medidores e fotos de anotações: o Claude organiza diligência, postos, medições e entrevista.</small></div>
           <button type="button" onClick={() => setAberto(true)}>Abrir</button>
         </div>
       </section>
@@ -721,12 +721,7 @@ function AnotacoesDiligencia({ rec }) {
   return (
     <section class="bloco largo destaque">
       <h3>Importar anotações da diligência</h3>
-      <ol class="passos">
-        <li>Anexe os arquivos das anotações (Word .docx, PDF, .txt ou a exportação do Google Keep) <b>ou</b> cole o texto da nota do Keep no campo abaixo.</li>
-        <li>Toque em <b>Copiar instrução</b>: ela já leva o texto das anotações, os vínculos, os postos e os quesitos do caso.</li>
-        <li>Abra uma conversa nova no Claude, cole a instrução e anexe os relatórios dos medidores (DoseMax, AxPro, iTemp) e as fotos de anotações em papel, se houver.</li>
-        <li>Copie a resposta (o bloco que começa com <code>{'{'}</code>), cole em "Resposta do Claude", toque em <b>Ler e mostrar prévia</b> e depois em <b>Aplicar ao caso</b>.</li>
-      </ol>
+      <p class="dica">Anexe as anotações (Word, PDF, texto ou a exportação do Google Keep) ou cole o texto da nota; junte, se tiver, os relatórios dos medidores (DoseMax, AxPro, iTemp) e fotos de anotações em papel. O Claude organiza diligência, postos, medições, entrevista e anotações dos quesitos; você confere a prévia e aplica.</p>
       <label class="botao-arquivo">{lendo ? 'Lendo…' : '＋ Anexar anotações (Word, PDF, texto, Keep)'}<input type="file" multiple hidden accept=".docx,.doc,.pdf,.txt,.html,.htm,.json,.md,image/*,application/pdf" onChange={anexar} /></label>
       {textos.map((t, i) => (
         <div class="linha-arquivo"><span><Icone nome="nota" /> {t.nome} <small>({t.texto ? `${t.texto.length.toLocaleString('pt-BR')} caracteres` : 'sem texto'}{t.aviso ? ` · ${t.aviso}` : ''})</small></span>
@@ -739,14 +734,15 @@ function AnotacoesDiligencia({ rec }) {
       <BotaoClaudeDireto rotulo="Enviar as anotações direto ao Claude" permitirArquivos rotuloArquivos="Anexar relatórios dos medidores e fotos de anotações em papel"
         instrucao={async () => { const lista = todos(); if (!lista.length) throw new Error('Anexe um arquivo ou cole o texto das anotações.'); return promptAnotacoes(rec, lista); }}
         onResposta={(t) => { setJson(t); try { setPrevia(lerJsonIA(t)); setErro(''); return 'Confira a prévia abaixo e toque em "Aplicar ao caso".'; } catch (err) { setPrevia(null); setErro(err.message); return ''; } }} />
-      <div class="linha-botoes">
-        <button type="button" class="sec" onClick={copiar} disabled={lendo}>Copiar instrução (claude.ai)</button>
-        <button type="button" class="sec" onClick={() => setAberto(false)}>Fechar</button>
-      </div>
-      <label class="campo campo-area"><span class="rotulo">Resposta do Claude (JSON)</span>
-        <textarea rows={5} value={json} onInput={(e) => setJson(e.currentTarget.value)} placeholder='{"diligencia": {...}, "postos": [...]}' />
-      </label>
-      <div class="linha-botoes"><button type="button" onClick={ler} disabled={!json.trim()}>Ler e mostrar prévia</button></div>
+      <ModoManual rotulo="Alternativa sem a chave de API (ou para colar uma resposta do claude.ai)">
+        <p class="dica">Copie a instrução (já leva o texto das anotações, os vínculos, os postos e os quesitos), cole numa conversa nova no Claude com os relatórios e fotos anexados e traga a resposta (o bloco que começa com <code>{'{'}</code>) para o campo abaixo.</p>
+        <div class="linha-botoes"><button type="button" class="sec" onClick={copiar} disabled={lendo}>Copiar instrução (claude.ai)</button></div>
+        <label class="campo campo-area"><span class="rotulo">Resposta do Claude (JSON)</span>
+          <textarea rows={5} value={json} onInput={(e) => setJson(e.currentTarget.value)} placeholder='{"diligencia": {...}, "postos": [...]}' />
+        </label>
+        <div class="linha-botoes"><button type="button" onClick={ler} disabled={!json.trim()}>Ler e mostrar prévia</button></div>
+      </ModoManual>
+      <div class="linha-botoes"><button type="button" class="sec mini" onClick={() => setAberto(false)}>Fechar</button></div>
       {previa && (
         <div class="previa">
           <p><b>Prévia:</b> {Object.keys(previa.caso).length} campo(s) da diligência, {previa.postos.length} posto(s) com {previa.postos.reduce((n, p) => n + p.medicoes.length, 0)} medição(ões), {previa.periodos.length} vínculo(s) com informações da entrevista, {previa.quesitos.filter((q) => q.resposta).length} resposta(s) a quesitos.</p>
@@ -778,13 +774,13 @@ function EntrevistaVinculos({ rec }) {
   return (
     <section class="bloco largo destaque">
       <div class="linha-botoes entre"><h3>Entrevista do segurado – vínculos <span class="contador">{ps.length}</span></h3>
-        <a class="botao sec" href={`#/caso/${encodeURIComponent(rec.id)}/preparacao`}>Ver na etapa 2</a></div>
-      <p class="dica">Neste parecer, o trabalho de campo é a entrevista. Toque no vínculo para registrar ou corrigir as respostas; elas vão direto para o parecer. Os vínculos vêm da CTPS/CNIS (etapa 2).</p>
+        <a class="botao sec" href={`#/caso/${encodeURIComponent(rec.id)}/preparacao`}>Ver na etapa 1. Autos</a></div>
+      <p class="dica">Neste parecer, o trabalho de campo é a entrevista. Toque no vínculo para registrar ou corrigir as respostas; elas vão direto para o parecer. Os vínculos vêm da CTPS/CNIS (etapa 1. Autos).</p>
       <div class="regra-caso">
         <TF rec={rec} k="foraDirecaoH" label="Regra do caso: horas por dia fora da direção (carga, descarga, paradas) – ex.: 5" inputMode="decimal" />
         <small class="dica">Com a regra, o tempo de condução de cada vínculo sem horas digitadas = jornada da entrevista − estas horas (sai no parecer com a explicação).</small>
       </div>
-      {!ps.length && <p class="vazio">Nenhum vínculo cadastrado. Importe a CTPS/CNIS e a entrevista na etapa 2, ou gere o "Roteiro de entrevista do motorista" em Documentos.</p>}
+      {!ps.length && <p class="vazio">Nenhum vínculo cadastrado. Importe a CTPS/CNIS e a entrevista na etapa 1. Autos, ou gere o "Roteiro de entrevista do motorista" em 4. Petições → Outros documentos do caso.</p>}
       {ps.map((r) => {
         const x = r.data; const f = faltando(x);
         return (

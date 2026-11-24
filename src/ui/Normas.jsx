@@ -46,7 +46,7 @@ export function ProfissoesBanco() {
   return (
     <section class="bloco largo">
       <h3>Banco de profissões</h3>
-      <p class="dica">Agentes e critérios já adotados nos seus laudos. No caso, escolha a profissão no cadastro (etapa 1) e use "Carregar agentes e profissiografia" na etapa 2; a instrução do Claude leva a mesma referência.</p>
+      <p class="dica">Agentes e critérios já adotados nos seus laudos. No caso, escolha a profissão no cadastro (etapa 1. Autos → Dados do caso) e use "Carregar agentes e profissiografia" na etapa 1. Autos; a instrução do Claude leva a mesma referência.</p>
       {PROFISSOES.map((p) => (
         <details class="bloco">
           <summary><b>{p.nome}</b> <small class="dica">CBO {p.cbo} · {p.agentes.length} agente(s)</small></summary>

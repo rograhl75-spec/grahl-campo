@@ -540,7 +540,7 @@ const INSTR_RESPOSTAS = `Responda a TODOS os quesitos do caso abaixo, como perit
 - O que depender de informação que não está no caso: escreva [[pendência: o que falta]].
 - Devolva SOMENTE um bloco JSON, sem comentários, no formato:
 {"quesitos": [{"origem": "Juízo | Autor / Reclamante | Réu / Reclamada | INSS | Complementares", "numero": "1", "texto": "texto do quesito exatamente como está no caso", "resposta": ""}]}
-Eu vou colar esse JSON no app (etapa 2. Autos → B), que preenche as respostas dos quesitos que ainda estão em branco.`;
+Eu vou colar esse JSON no app (etapa 1. Autos → B), que preenche as respostas dos quesitos que ainda estão em branco.`;
 
 export async function exportarParaClaude(caseId, tipo) {
   const { c, texto } = await textoDoCaso(caseId);

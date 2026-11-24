@@ -183,13 +183,13 @@ export async function pendenciasDoCaso(caseId) {
       if (!outro) return;
       itens.push({ id: `agdup-${a.id}`, grupo: g, tipo: 'aviso', rec: a.id, respondido: false, excluir: `Excluir "${a.data.nome}"`,
         titulo: `Agente repetido: "${a.data.nome}" e "${outro.data.nome}"`,
-        explicacao: 'O mesmo agente cadastrado duas vezes sai duas vezes no laudo e no PPP. Abra os dois na etapa 2 e exclua o que tem menos informação (o de nome curto costuma ter vindo de uma importação).' });
+        explicacao: 'O mesmo agente cadastrado duas vezes sai duas vezes no laudo e no PPP. Abra os dois na etapa 1. Autos e exclua o que tem menos informação (o de nome curto costuma ter vindo de uma importação).' });
     });
     const semDescricao = agentesDoArt68(dados.agentes).filter((a) => ['circunstancias', 'fonte', 'vias', 'frequencia'].some((k) => !String(a.data[k] || '').trim() && !(k === 'vias' && viasPadrao(a))));
     if (semDescricao.length && profissaoDoCaso(c, dados.periodos)) {
       itens.push({ id: 'art68-banco', grupo: g, tipo: 'aviso', rec: caseId, respondido: false, link: `#/caso/${encodeURIComponent(caseId)}/preparacao`, rotuloLink: 'Ir para o banco de profissões',
         titulo: `${semDescricao.length} agente(s) sem a descrição do art. 68 – o banco de profissões completa`,
-        explicacao: 'Na etapa 2. Autos, toque em "Carregar agentes e profissiografia": ele completa os campos vazios dos agentes que já estão no caso (circunstâncias, fontes, vias, frequência, efeitos, CAS e códigos), sem mudar o que você já escreveu. O que sobrar aparece aqui.' });
+        explicacao: 'Na etapa 1. Autos, toque em "Carregar agentes e profissiografia": ele completa os campos vazios dos agentes que já estão no caso (circunstâncias, fontes, vias, frequência, efeitos, CAS e códigos), sem mudar o que você já escreveu. O que sobrar aparece aqui.' });
     } else {
       for (const a of semDescricao) {
         for (const [campo, rot] of [['circunstancias', 'circunstâncias da exposição'], ['fonte', 'fontes e possibilidades de liberação'], ['vias', 'meios de contato e vias de absorção'], ['frequencia', 'intensidade, frequência e duração']]) {
@@ -223,7 +223,7 @@ export async function pendenciasDoCaso(caseId) {
       itens.push({ id: `fds-incompleta-${pr.id}`, grupo: g, tipo: 'aviso', rec: pr.id, respondido: false,
         acoes: [{ rotulo: 'Ciente – segue assim, com observação na ficha', campo: 'fdsIncompletaCiente', valor: 'Sim' }],
         titulo: `FDS de ${x.nome} sem ${falta.length > 1 ? 'as seções' : 'a seção'} ${falta.join(', ').replace(/, (\d)$/, ' e $1')}`,
-        explicacao: `Seção 2: perigos e frases H; 3: composição com CAS; 8: limites, controles e EPI. Peça a FDS completa ao fornecedor (ABNT NBR 14725) ou pesquise a do fabricante e importe pela etapa 4. Sem ela, o quadro de características e as recomendações usam só o banco de químicos.` });
+        explicacao: `Seção 2: perigos e frases H; 3: composição com CAS; 8: limites, controles e EPI. Peça a FDS completa ao fornecedor (ABNT NBR 14725) ou pesquise a do fabricante e importe pela etapa 2. Campo. Sem ela, o quadro de características e as recomendações usam só o banco de químicos.` });
     }
     // risco à integridade física fora do Anexo IV: eletricidade, inflamáveis e explosivos depois de 05/03/1997 (sugestão automática)
     const EXPL_INT = { eletricidade: 'Eletricidade acima de 250 V não consta do Anexo IV a partir de 06/03/1997 (NR-16, Anexo 4, e NR-10).', inflamáveis: 'Inflamável (pelo nome, pelo ponto de fulgor do banco ou pela FDS): NR-16, Anexo 2 – operação ou permanência em área de risco.', explosivos: 'NR-16, Anexo 1 – área de risco de explosivos.' };

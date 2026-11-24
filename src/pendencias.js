@@ -115,9 +115,9 @@ export async function pendenciasDoCaso(caseId) {
   const { db: dbAp } = await import('./db.js');
   const apendices = (await dbAp.records.where('[caseId+kind]').equals([caseId, 'anexo']).toArray()).filter((r) => !r.deleted && r.data.descricao === 'apendice');
   if (apendices.length && !dados.medicoes.length) {
-    itens.push({ id: 'relatorios-sem-medicao', grupo: 'Diligência', tipo: 'aviso', link: `#/caso/${encodeURIComponent(caseId)}/campo`, rotuloLink: 'Ir para 2. Campo',
+    itens.push({ id: 'relatorios-sem-medicao', grupo: 'Diligência', tipo: 'aviso',
       titulo: `${apendices.length} relatório(s) de medição anexado(s), mas nenhuma medição cadastrada`,
-      explicacao: 'Os relatórios só entram no fim do laudo como apêndices; os valores de ruído e vibração vêm das medições dos postos. Em 2. Campo → Relatórios dos medidores, toque em "Ler as medições destes relatórios com o Claude".' });
+      explicacao: 'Os relatórios só entram no fim do laudo como apêndices; os valores de ruído e vibração vêm das medições dos postos. No passo "Relatórios dos medidores", acima, toque em "Ler as medições destes relatórios com o Claude".' });
   }
   // LTCAT + PPP: quem emite, categoria do segurado por vínculo e resultado dos agentes avaliados
   const ltcat = c.tipoAtuacao === 'Extrajudicial' && contextoLegal(c).prev && !ehParecerTecnico(c);

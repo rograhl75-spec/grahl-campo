@@ -29,6 +29,7 @@ export function Documentos({ rec, modo = 'laudo' }) {
   const [msg, setMsg] = useState('');
   const [verTodos, setVerTodos] = useState(false);
   const [nPend, setNPend] = useState(null);
+  const nMed = useLive(async () => (await db.records.where('[caseId+kind]').equals([rec.id, 'medicao']).toArray()).filter((r) => !r.deleted && ['lavg', 'nen', 'aren', 'vdv', 'tbn', 'valor', 'dose'].some((k) => String(r.data[k] ?? '').trim())).length, [rec.id], 0);
   const c = rec.data;
 
   const perfil = useLive(async () => ({ ...PERFIL_PADRAO, ...((await db.records.get(PERFIL_ID)) || { data: {} }).data }), [], PERFIL_PADRAO);
@@ -76,6 +77,9 @@ export function Documentos({ rec, modo = 'laudo' }) {
     return (
       <div class="docs etapa-laudo">
         <p class="dica largo">Siga os passos: o Word sai no seu timbrado, com quadros, fotos e anexos. O que depende da sua análise sai em amarelo.</p>
+        <PassoLaudo n={++n} titulo="Relatórios dos medidores" ok={nMed > 0} status={nMed ? `${nMed} medição(ões) cadastrada(s)` : ''} dica="No escritório: anexe os relatórios exportados (DoseMax, AxPro, iTemp) e toque em “Ler as medições” – os valores do laudo (Lavg, NEN, AREN, VDVR) vêm dessas medições, como constam no relatório. Os relatórios saem no fim do laudo como apêndices.">
+          <RelatoriosMedicao rec={rec} titulo="" />
+        </PassoLaudo>
         <PassoLaudo n={++n} titulo="Conferir as pendências" ok={nPend === 0} status={nPend === null ? '' : nPend ? `${nPend} pendência(s)` : 'nenhuma pendência'} dica="Dados que faltam para o documento; responda aqui mesmo (grava no caso).">
           <PendenciasDoc rec={rec} onContagem={setNPend} />
         </PassoLaudo>

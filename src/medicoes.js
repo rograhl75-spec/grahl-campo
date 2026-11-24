@@ -9,6 +9,7 @@ export const CAMPOS_MEDICAO = {
     ['dose', 'Dose (%)', 'num'],
     ['q', 'Fator de duplicação do dosímetro', 'select', ['5 (NR-15, Anexo 1)', '3 (NHO-01)']],
     ['lavg', 'Nível médio dB(A) – Lavg (q=5) ou Leq (q=3)', 'num'],
+    ['nen', 'NEN do relatório (dB(A)) – já normalizado pelo aparelho para a jornada', 'num'],
     ['lmax', 'Lmax / pico dB', 'num'],
     ['calibInicial', 'Calibração inicial (dB)', 'num'],
     ['calibFinal', 'Calibração final (dB)', 'num'],
@@ -69,8 +70,10 @@ export function calculados(m, ctx = {}) {
   const out = [];
   if (d.agente === 'Ruído') {
     const q = fatorQ(d);
-    const n = nen(d.lavg, d.jornada, q);
-    if (ctx.prev !== false && isFinite(n)) out.push([`NEN (q=${q}) – previdenciário`, `${fmt(n)} dB(A)`, `NEN = ${q === 3 ? 'Leq + 10' : 'Lavg + 16,61'} × log(TE/480)${q === 3 ? ' – NHO-01; só para períodos a partir de 19/11/2003' : ''}`]);
+    // NEN do relatório do aparelho: usado como está, sem recalcular
+    const nRel = num(d.nen);
+    const n = isFinite(nRel) ? nRel : nen(d.lavg, d.jornada, q);
+    if (ctx.prev !== false && isFinite(n)) out.push([`NEN (q=${q}) – previdenciário`, `${fmt(n)} dB(A)`, isFinite(nRel) ? 'do relatório do dosímetro' : `NEN = ${q === 3 ? 'Leq + 10' : 'Lavg + 16,61'} × log(TE/480)${q === 3 ? ' – NHO-01; só para períodos a partir de 19/11/2003' : ''}`]);
     const dose = num(d.dose);
     const doseJ = doseJornada(d.dose, d.tempoAmostragem, d.jornada);
     const proj = isFinite(doseJ) && doseJ !== dose;

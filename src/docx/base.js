@@ -136,7 +136,7 @@ export async function carregar(caseId) {
   pers.sort((a, b) => String(a.data.inicio || '').localeCompare(String(b.data.inicio || '')));
   // medição repetida: fica a mais recente (a última extração costuma ser a mais completa)
   // medição sem nenhum valor (aberta e não preenchida) não entra: senão ela seria a "medição representativa" do posto
-  const comValor = (x) => ['lavg', 'dose', 'aren', 'vdv', 'tbn', 'tg', 'ibutgLido', 'valor'].some((k) => v(x[k]));
+  const comValor = (x) => ['lavg', 'nen', 'dose', 'aren', 'vdv', 'tbn', 'tg', 'ibutgLido', 'valor'].some((k) => v(x[k]));
   const meds = unicos(medicoes.filter((m) => comValor(m.data)), (x) => [x.agente, x.lavg, x.dose, x.aren, x.vdv, x.tbn, x.valor, x.dataMedicao, x.horaInicio], true);
   const comMed = new Set(meds.map((m) => m.data.postoId));
   // posto sem medição que repete o veículo/posto de outro com medição = duplicado
@@ -536,7 +536,7 @@ export function quadroConfrontoRuido(d, dados) {
       const ref = refDo(s.periodo);
       const q = ref ? fatorQ(ref) : 5;
       const q3antes = ref && q === 3 && s.janela.crit === 'Lavg';
-      const val = !ref || q3antes ? NaN : s.janela.crit === 'Lavg' ? num(ref.data.lavg) : nen(ref.data.lavg, isFinite(tempoConducao(s.periodo, dados).T) ? tempoConducao(s.periodo, dados).T : ref.data.jornada, q);
+      const val = !ref || q3antes ? NaN : s.janela.crit === 'Lavg' ? num(ref.data.lavg) : isFinite(num(ref.data.nen)) ? num(ref.data.nen) : nen(ref.data.lavg, isFinite(tempoConducao(s.periodo, dados).T) ? tempoConducao(s.periodo, dados).T : ref.data.jornada, q);
       const res = q3antes ? '[[q = 3 não serve antes de 19/11/2003]]' : isFinite(val) ? (superaLimite(val, s.janela.lim) ? 'Supera' : 'Não supera') : '[[medir]]';
       return [`${s.periodo.data.empresa || ''}\n${dataBR(s.ini)} a ${dataBR(s.fim)}`, ref ? nomeP(ref.data.postoId) : '—', s.janela.crit,
         isFinite(val) ? `${fmt(val)} dB(A)` : ref ? '[[valor]]' : '[[vincular posto]]', `${s.janela.lim} dB(A)`, ref ? res : '[[vincular posto ao vínculo]]'];
@@ -556,7 +556,7 @@ export function quadroMedicoesRuido(d, ms, eq, nomePosto, ctx = {}) {
     return d.quadro('Resultados – Ruído', [['Posto / trabalhador', 'Amostragem', 'Dose', rotNivel, 'Jornada', qs.length === 1 ? `NEN (q = ${qs[0]})` : 'NEN'],
       ...ms.map((m) => {
         const x = m.data;
-        const n = nen(x.lavg, x.jornada, fatorQ(m));
+        const n = isFinite(num(x.nen)) ? num(x.nen) : nen(x.lavg, x.jornada, fatorQ(m));
         return [[nomePosto(x.postoId), x.posicao].filter(Boolean).join(' – '), [x.tempoAmostragem, x.horaInicio && x.horaFim && `${x.horaInicio}–${x.horaFim}`].filter(Boolean).join(', '),
           x.dose ? `${x.dose}%` : '', x.lavg ? `${x.lavg} dB(A)` : '', x.jornada || '', isFinite(n) ? `${fmt(n)} dB(A)` : ''];
       })], { larguras: [0.28, 0.18, 0.1, 0.15, 0.12, 0.17], alinhar: 'left', tam: 9, fonte });

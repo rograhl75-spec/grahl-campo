@@ -661,17 +661,29 @@ export function RelatoriosMedicao({ rec, desc = DESC_APENDICE, rotulo = 'Apêndi
 // Os apêndices só juntam as páginas ao laudo: os números (Lavg, NEN, aren, VDVR) vêm das medições cadastradas.
 // Este botão manda os relatórios ao Claude e cadastra as medições nos postos (sem duplicar as já cadastradas).
 function LerMedicoesDosRelatorios({ rec, lista }) {
+  const alertas = String(rec.data.alertasRelatorios || '').split('\n').filter(Boolean);
   const nMed = useLive(async () => (await db.records.where('[caseId+kind]').equals([rec.id, 'medicao']).toArray()).filter((r) => !r.deleted).length, [rec.id], 0);
   return (
     <div class="ler-relatorios">
       {!nMed && <p class="alerta-txt">Os relatórios anexados só entram no fim do laudo como apêndices: os valores de ruído e vibração do laudo vêm das medições cadastradas nos postos, e ainda não há nenhuma. Use o botão abaixo para o Claude ler os relatórios e cadastrar as medições.</p>}
+      {alertas.length > 0 && (
+        <div class="evidencias alerta" role="status">
+          <b>Discrepâncias entre os relatórios e a vistoria – corrija o relatório ou o cadastro e leia de novo:</b>
+          {alertas.map((a) => <span>{a}</span>)}
+          <span class="linha-botoes"><button type="button" class="mini sec" onClick={async () => { await updateFields(rec.id, { alertasRelatorios: '' }); avisarAlteracao(); }}>Corrigido – limpar os alertas</button></span>
+        </div>
+      )}
       <BotaoClaudeDireto rotulo={`Ler as medições destes ${lista.length} relatório(s) com o Claude`} sec={nMed > 0}
         instrucao={() => promptRelatoriosMedicao(rec)}
         anexos={async () => Promise.all(lista.map(async (r) => ({ blob: await obterAnexo(r.id), nome: r.data.titulo || r.data.nome, mime: r.data.mime || 'application/pdf' })))}
         onResposta={async (t) => {
           const r = await aplicarIA(rec.id, lerJsonIA(t), { substituir: false, criarPeriodos: false, atualizarMedicoes: true });
+          // discrepâncias entre os relatórios e a vistoria: ficam no caso até você marcar como corrigidas
+          let alertas = [];
+          try { const b = t.match(/```(?:json)?\s*([\s\S]*?)```/i); const j = b ? b[1] : t; alertas = (JSON.parse(j.slice(j.indexOf('{'), j.lastIndexOf('}') + 1)).alertas || []).map(String).filter(Boolean); } catch { alertas = []; }
+          await updateFields(rec.id, { alertasRelatorios: alertas.join('\n') });
           avisarAlteracao();
-          return `${r.medicoes} medição(ões) nova(s)${r.medicoesAtualizadas ? ` e ${r.medicoesAtualizadas} atualizada(s) pela nova leitura` : ''}${r.postos ? ` em ${r.postos} posto(s)` : ''}. Confira em 2. Campo → Postos / atividades e marque, em cada posto, os vínculos que ele representa.`;
+          return `${alertas.length ? `ATENÇÃO – ${alertas.length} discrepância(s) entre os relatórios e a vistoria (abaixo). ` : ''}${r.medicoes} medição(ões) nova(s)${r.medicoesAtualizadas ? ` e ${r.medicoesAtualizadas} atualizada(s) pela nova leitura` : ''}${r.postos ? ` em ${r.postos} posto(s)` : ''}. Confira em 2. Campo → Postos / atividades e marque, em cada posto, os vínculos que ele representa.`;
         }} />
     </div>
   );

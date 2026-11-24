@@ -37,3 +37,17 @@ describe('troca por veículo sem similar medido: somente penosidade a partir da 
     expect(t).toContain('NEN 96,0 dB(A) &gt; 85 dB(A)'); // NEN do relatório, sem recalcular; a medição vazia não é a representativa
   });
 });
+
+describe('relatório × vistoria: alertas de discrepância nas pendências', () => {
+  it('jornada do relatório diferente do tempo de condução e data fora da vistoria', async () => {
+    const { pendenciasDoCaso } = await import('../src/pendencias.js');
+    await put('dz', 'caso', null, { papel: 'Perito do Juízo', justica: 'Justiça Federal', materia: 'Previdenciária', vistoriaData: '2026-09-29', vistoriaPresentes: 'Fulano', vistoriaIntimacao: 'ev. 1' });
+    await put('dzv', 'periodo', 'dz', { empresa: 'Transportes Delta', inicio: '2014-09-01', fim: '2019-07-31', cargo: 'Motorista de carreta', conducaoH: '12' });
+    await put('dzp', 'posto', 'dz', { nome: 'Motorista – carreta', vinculos: ['dzv'] });
+    await put('dzm', 'medicao', 'dz', { agente: 'Vibração de corpo inteiro (VCI)', postoId: 'dzp', aren: '1.20', vdv: '16.1', tempoExposicao: '15:00:00', dataMedicao: '2025-09-29', horaInicio: '11:35' });
+    const itens = await pendenciasDoCaso('dz');
+    const t = itens.map((i) => i.titulo).join(' | ');
+    expect(t).toContain('relatório normalizado para 15 h');
+    expect(t).toContain('fora das datas da vistoria');
+  });
+});

@@ -125,13 +125,17 @@ export async function promptRelatoriosMedicao(caso) {
 - Ruído (dosimetria): "lavg" = nível médio com q = 5 (Lavg/TWA do critério NR-15); se o relatório só trouxer q = 3 (Leq), use-o e anote "q = 3" em "posicao". "nen" = o NEN (ou Lex/NE normalizado) informado no relatório. Também "dose" (%), "lmax", "tempoAmostragem" (em minutos), "jornada" (a jornada/tempo de exposição configurada no relatório, ex.: "12h"), "dataMedicao", "horaInicio", "horaFim", "calibInicial" e "calibFinal" (dB, só se constarem), e "equipamento" (modelo e número de série).
 - Vibração de corpo inteiro: "aren" = AREN do relatório (aceleração resultante de exposição normalizada; se só houver AREP, use-o), "vdv" = VDVR do relatório (pode aparecer como "VDVR", "VDV R", "VDVexp resultante" ou "VDV da exposição"; se só houver VDV por eixo, use o do eixo dominante) – NUNCA deixe "vdv" vazio se o relatório trouxer qualquer um desses valores. "eixo" dominante, "tempoAmostragem", "tempoExposicao" (a jornada configurada no relatório, ex.: "12:00:00"), "veiculo" (se constar), "dataMedicao", "horaInicio", "horaFim" e "equipamento".
 - Em cada medição, "relatorio" = o nome do arquivo de onde ela saiu (como na lista de anexos).
-- Em "obs", só o que for útil ao laudo (outros resultados por eixo, classificação do aparelho). Não escreva dúvidas nem "pontos a verificar".
+- Em "obs", só o que for útil ao laudo (outros resultados por eixo, classificação do aparelho). Não escreva dúvidas nem "pontos a verificar" na medição.
+- DISCREPÂNCIAS: compare cada relatório com os dados da vistoria abaixo (data, horários, jornada ou tempo de condução, veículo, série do equipamento) e liste em "alertas" (lista de frases curtas, fora de "postos") o que não bate e precisa de correção – ex.: "Relatório de vibração: jornada configurada 15 h; na vistoria, 12 h de condução – refaça o relatório com 12 h"; "Data no cabeçalho 29/09/2025 × medição e vistoria em 29/09/2026". Sem discrepância, "alertas": [].
 - Calor: "tbn", "tbs", "tg" e "ibutgLido".
 - Um item de medição por resultado (cada arquivo de relatório costuma ser uma medição). O certificado de calibração não é medição: o número e a data dele vão em "equipamento".
 - POSTO: use o nome de um posto já cadastrado (lista abaixo) quando a medição for dele; havendo um só posto, use-o. Sem posto cadastrado, crie um com o veículo ou setor medido (ex.: "Motorista – Scania R124 2008").
 - Preencha só "postos" (com as "medicoes") e, se constar, "diligencia.vistoriaData". Não preencha vínculos, quesitos nem agentes.`);
-  if (postos.length) L.push(`POSTOS / VEÍCULOS JÁ CADASTRADOS:\n${postos.map((p) => `- ${p.data.nome || ''}`).join('\n')}`);
-  if (periodos.length) L.push(`VÍNCULOS DO CASO (para referência): ${periodos.map((r) => `${r.data.empresa || ''} (${r.data.inicio || ''} a ${r.data.fim || 'atual'})`).join('; ')}`);
+  if (postos.length) L.push(`POSTOS / VEÍCULOS JÁ CADASTRADOS:\n${postos.map((p) => `- ${p.data.nome || ''}${p.data.descricao ? ` – ${p.data.descricao}` : ''}${p.data.jornada ? ` (jornada: ${p.data.jornada})` : ''}`).join('\n')}`);
+  if (periodos.length) L.push(`VÍNCULOS DO CASO (para referência): ${periodos.map((r) => `${r.data.empresa || ''} (${r.data.inicio || ''} a ${r.data.fim || 'atual'}${r.data.conducaoH ? `; condução ${r.data.conducaoH} h/dia` : ''})`).join('; ')}`);
+  const vs = vistoriasDoCaso(c).filter((x) => x.data);
+  L.push(`DADOS DA VISTORIA (para conferir os relatórios): ${vs.length ? vs.map((x) => `${x.rotulo} em ${x.data}${x.inicio ? `, das ${x.inicio}${x.fim ? ` às ${x.fim}` : ''}` : ''}${x.local ? `, ${x.local}` : ''}`).join('; ') : 'sem data cadastrada'}${c.foraDirecaoH ? `; horas fora da direção por dia: ${c.foraDirecaoH}` : ''}${c.conducaoPadrao ? `; condução padrão: ${c.conducaoPadrao} h/dia` : ''}.`);
   L.push(FORMATO_DILIGENCIA);
+  L.push('Acrescente ao JSON, no nível de cima, "alertas": [] com as discrepâncias encontradas.');
   return L.join('\n\n');
 }

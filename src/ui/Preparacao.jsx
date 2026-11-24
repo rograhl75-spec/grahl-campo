@@ -444,6 +444,7 @@ function MedicoesDosAutos({ rec }) {
 }
 
 // Todos os vínculos de uma vez: candidato de ruído e de vibração de cada um, para aceitar em bloco
+const peritoJudicial = (c) => c.tipoAtuacao !== 'Extrajudicial' && (c.papel || 'Perito do Juízo') === 'Perito do Juízo';
 export function ParadigmasDosVinculos({ rec }) {
   const [linhas, setLinhas] = useState(null);
   const [msg, setMsg] = useState('');
@@ -488,6 +489,8 @@ export function ParadigmasDosVinculos({ rec }) {
       <p class="dica">{soAutos
         ? 'Somente as medições dos laudos juntados aos autos deste processo entram na sugestão (o banco do signatário fica de fora). Sem medição adequada nos autos, o vínculo fica sem paradigma.'
         : 'O app pesquisa no banco cada vínculo (tabela de similares, família do grupo do veículo e tipo). Vínculos sem paradigma recebem uma ficha para você pesquisar nos seus laudos. No documento, um vínculo ainda sem paradigma usa o melhor candidato marcado em amarelo para conferir.'}</p>
+      {/* perícia judicial com o banco liberado: a opção continua à vista, para desmarcar */}
+      {peritoJudicial(rec.data) && <label class="check"><input type="checkbox" checked={!!rec.data.usarBancoParadigmas} onChange={async (e) => { await updateFields(rec.id, { usarBancoParadigmas: e.currentTarget.checked }); avisarAlteracao(); }} /> O juízo indicou o uso de medições anteriores (banco de paradigmas do signatário) – desmarque se não houve indicação</label>}
       <MedicoesDosAutos rec={rec} />
       {linhas && (
         <>

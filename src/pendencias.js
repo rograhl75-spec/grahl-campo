@@ -111,6 +111,14 @@ export async function pendenciasDoCaso(caseId) {
     itens.push({ id: 'presentes', grupo: 'Diligência', rec: caseId, campo: 'vistoriaPresentes', tipo: 'texto', valor: '',
       titulo: 'Pessoas presentes na vistoria', explicacao: 'Uma por linha: nome – função – quem representa.' });
   }
+  // relatórios dos medidores anexados (apêndices) e nenhuma medição cadastrada: o laudo sai sem os valores
+  const { db: dbAp } = await import('./db.js');
+  const apendices = (await dbAp.records.where('[caseId+kind]').equals([caseId, 'anexo']).toArray()).filter((r) => !r.deleted && r.data.descricao === 'apendice');
+  if (apendices.length && !dados.medicoes.length) {
+    itens.push({ id: 'relatorios-sem-medicao', grupo: 'Diligência', tipo: 'aviso', link: `#/caso/${encodeURIComponent(caseId)}/campo`, rotuloLink: 'Ir para 2. Campo',
+      titulo: `${apendices.length} relatório(s) de medição anexado(s), mas nenhuma medição cadastrada`,
+      explicacao: 'Os relatórios só entram no fim do laudo como apêndices; os valores de ruído e vibração vêm das medições dos postos. Em 2. Campo → Relatórios dos medidores, toque em "Ler as medições destes relatórios com o Claude".' });
+  }
   // LTCAT + PPP: quem emite, categoria do segurado por vínculo e resultado dos agentes avaliados
   const ltcat = c.tipoAtuacao === 'Extrajudicial' && contextoLegal(c).prev && !ehParecerTecnico(c);
   if (ltcat && dados.periodos.length) {

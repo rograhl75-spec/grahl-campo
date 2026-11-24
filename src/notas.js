@@ -110,3 +110,25 @@ Fidelidade: use só o que está nas anotações e nos relatórios anexados. Não
   L.push(`ANOTAÇÕES DA DILIGÊNCIA:\n${textos.map((t) => `===== ${t.nome} =====\n${t.texto || '(sem texto extraído – arquivo anexado à conversa)'}`).join('\n\n')}`);
   return L.join('\n\n');
 }
+
+// Relatórios exportados dos medidores (DoseMax, AxPro, iTemp…) já anexados como apêndices → medições do caso.
+// Os apêndices só juntam as páginas ao laudo; os números do laudo vêm das medições cadastradas nos postos.
+export async function promptRelatoriosMedicao(caso) {
+  const c = caso.data;
+  const postos = await caseChildren(caso.id, 'posto');
+  const periodos = (await caseChildren(caso.id, 'periodo')).sort((a, b) => String(a.data.inicio).localeCompare(String(b.data.inicio)));
+  const L = [];
+  L.push(`Sou o ${c.papel || 'perito'} no processo ${c.numero || ''}. Os arquivos anexados são os RELATÓRIOS EXPORTADOS DOS MEDIDORES desta perícia (dosímetro de ruído, medidor de vibração, medidor de IBUTG) e, se houver, os certificados de calibração. Cadastre CADA medição no formato do meu app.`);
+  L.push(`REGRAS
+- Valores EXATAMENTE como no relatório (número com ponto decimal, sem unidade). Não calcule nem arredonde; não invente.
+- Ruído (dosimetria): "lavg" = nível médio com q = 5 (Lavg/TWA do critério NR-15); se o relatório só trouxer q = 3 (Leq), use-o e anote "q = 3" em "posicao". Também "dose" (%), "lmax", "tempoAmostragem" (em minutos), "dataMedicao", "horaInicio", "horaFim", "calibInicial" e "calibFinal" (dB), e "equipamento" (modelo e número de série).
+- Vibração de corpo inteiro: "aren" = aceleração resultante de exposição do relatório (aren ou arep, m/s²), "vdv" = VDVR (ou o VDV do eixo dominante, se só houver ele), "eixo" dominante, "tempoAmostragem", "tempoExposicao", "veiculo" (marca, modelo e ano, se constarem), "dataMedicao", "horaInicio", "horaFim" e "equipamento".
+- Calor: "tbn", "tbs", "tg" e "ibutgLido".
+- Um item de medição por resultado (cada arquivo de relatório costuma ser uma medição). O certificado de calibração não é medição: o número e a data dele vão em "equipamento".
+- POSTO: use o nome de um posto já cadastrado (lista abaixo) quando a medição for dele; havendo um só posto, use-o. Sem posto cadastrado, crie um com o veículo ou setor medido (ex.: "Motorista – Scania R124 2008").
+- Preencha só "postos" (com as "medicoes") e, se constar, "diligencia.vistoriaData". Não preencha vínculos, quesitos nem agentes.`);
+  if (postos.length) L.push(`POSTOS / VEÍCULOS JÁ CADASTRADOS:\n${postos.map((p) => `- ${p.data.nome || ''}`).join('\n')}`);
+  if (periodos.length) L.push(`VÍNCULOS DO CASO (para referência): ${periodos.map((r) => `${r.data.empresa || ''} (${r.data.inicio || ''} a ${r.data.fim || 'atual'})`).join('; ')}`);
+  L.push(FORMATO_DILIGENCIA);
+  return L.join('\n\n');
+}

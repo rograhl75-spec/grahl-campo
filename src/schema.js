@@ -83,6 +83,14 @@ export const FASE = [
   'Aguardando manifestação / esclarecimentos', 'Respondendo quesitos suplementares', 'Concluído', 'Arquivado',
 ];
 
+// Data da vistoria marcada (hoje ou adiante) e caso ainda antes da diligência: a fase passa a "Diligência agendada"
+const FASES_ANTES_DA_VISTORIA = ['', 'A preparar', 'Aguardando depósito dos honorários'];
+export function faseComVistoriaMarcada(c = {}, hoje = new Date().toISOString().slice(0, 10)) {
+  const data = String(c.dataDiligencia || '').slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data) || data < hoje) return null;
+  return FASES_ANTES_DA_VISTORIA.includes(c.fase || '') ? 'Diligência agendada' : null;
+}
+
 export const ORIGEM_QUESITO = ['Juízo', 'Autor / Reclamante', 'Réu / Reclamada', 'INSS', 'Complementares', 'Outro'];
 // "Complementares" = pedido de esclarecimentos ao perito depois do laudo (art. 477, § 2º, do CPC).
 // O valor gravado continua "Complementares" (compatível com os casos já cadastrados); só o rótulo muda.

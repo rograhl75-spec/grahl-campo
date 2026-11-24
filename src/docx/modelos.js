@@ -378,7 +378,7 @@ export async function laudoPericial(caseId, { extra = false } = {}) {
   d.h2('1.2', 'Data, hora e local da vistoria');
   quadroDiligencia(d, c);
   d.h2('1.3', 'Instrumentos utilizados');
-  quadroEquipamentos(d, equipamentosUsados(dados));
+  quadroEquipamentos(d, equipamentosUsados(dados), undefined, dados.c.vistoriaData);
   sinteseTrab(d, dados, '1.4', '6');
 
   d.h1('2', extra ? 'Objetivo e metodologia' : 'Objetivo e metodologia da avaliação pericial');
@@ -716,7 +716,7 @@ function quadroDiligenciaLtcat(d, c, seg) {
 
 // sem medição: a avaliação foi qualitativa (em vez do quadro vazio de instrumentos)
 function instrumentosOuQualitativa(d, dados) {
-  if (equipamentosUsados(dados).length || dados.medicoes.length) return quadroEquipamentos(d, equipamentosUsados(dados));
+  if (equipamentosUsados(dados).length || dados.medicoes.length) return quadroEquipamentos(d, equipamentosUsados(dados), undefined, dados.c.vistoriaData);
   // sem medição própria, mas com paradigmas: a quantificação vem das medições de origem (instrumentação no item 2.3)
   const origem = origemParadigmas(dados);
   if (origem) return d.texto(`Não houve medição instrumental nesta perícia. O ruído e a vibração foram quantificados pelas medições ${origem === 'terceiros' ? 'constantes dos laudos periciais juntados aos autos' : origem === 'misto' ? 'do banco de paradigmas do signatário e dos laudos periciais juntados aos autos' : 'do banco de paradigmas do signatário'} (item 2.3), cuja instrumentação consta do quadro de instrumentação dos paradigmas; os demais agentes foram avaliados de forma qualitativa.`);

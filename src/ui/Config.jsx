@@ -12,6 +12,9 @@ import { dataBR } from '../docx/reports.js';
 import { RecordList } from './RecordList.jsx';
 import { useLive } from './hooks.js';
 import { confirmar } from './dialogo.jsx';
+import { guardarAnexo } from '../paradigmas.js';
+import { obterAnexo } from '../sync.js';
+import { updateFields, softDelete } from '../db.js';
 import { configClaude, salvarConfigClaude, testarClaude, MODELOS_CLAUDE, ESFORCOS, OPCOES_CACHE } from '../claudeApi.js';
 
 const ABAS = [['meus-dados', 'Meus dados'], ['claude', 'Claude (API)'], ['nuvem', 'Nuvem'], ['backup', 'Backup'], ['antigo', 'App antigo'], ['equipamentos', 'Equipamentos'], ['lixeira', 'Lixeira'], ['aparelho', 'Este aparelho']];
@@ -25,6 +28,31 @@ export function situacaoCalibracao(d) {
   return lim < hoje ? `⚠ calibração vencida desde ${dataBR(lim)}` : '';
 }
 
+// PDF do certificado de calibração: sai como apêndice em todo laudo que usar o equipamento
+function CertificadoDoEquip({ r }) {
+  const [msg, setMsg] = useState('');
+  const reg = useLive(async () => (r.data.certificadoAnexoId ? db.records.get(r.data.certificadoAnexoId) : null), [r.data.certificadoAnexoId], null);
+  const anexar = async (e) => {
+    const f = e.currentTarget.files[0]; e.currentTarget.value = '';
+    if (!f) return;
+    if (r.data.certificadoAnexoId) await softDelete(r.data.certificadoAnexoId);
+    const id = await guardarAnexo(f, 'certificado de calibração', null);
+    await updateFields(r.id, { certificadoAnexoId: id }); avisarAlteracao();
+    setMsg('✓ Certificado anexado: sai como apêndice nos laudos que usarem este equipamento.');
+  };
+  const abrir = async () => { try { window.open(URL.createObjectURL(await obterAnexo(r.data.certificadoAnexoId)), '_blank'); } catch (err) { setMsg(err.message); } };
+  return (
+    <div class="campo">
+      <span class="rotulo">Certificado de calibração (PDF) – sai como apêndice nos laudos que usarem o equipamento</span>
+      <div class="linha-botoes">
+        {reg && !reg.deleted && <><span>{reg.data.nome}</span><button type="button" class="mini" onClick={abrir}>Abrir</button></>}
+        <label class="botao-arquivo mini">{reg && !reg.deleted ? 'Trocar o PDF' : '＋ Anexar o certificado (PDF)'}<input type="file" accept="application/pdf,.pdf,image/*" hidden onChange={anexar} /></label>
+      </div>
+      {msg && <small class="ok-msg">{msg}</small>}
+    </div>
+  );
+}
+
 function AlertaCalibracao() {
   const lista = useLive(async () => (await db.records.where('kind').equals('equip').toArray()).filter((r) => !r.deleted), [], []);
   const venc = lista.map((r) => [r, situacaoCalibracao(r.data)]).filter(([, x]) => x);
@@ -33,7 +61,7 @@ function AlertaCalibracao() {
     <div class="evidencias alerta" role="status">
       <b>Calibração a conferir antes da próxima medição:</b>
       {venc.map(([r, x]) => <span>{r.data.nome} {r.data.modelo} – {x.replace('⚠ ', '')}</span>)}
-      <small>Sem "Próxima calibração" preenchida, o app considera 12 meses a partir da data do certificado. Atualize o certificado ou informe a validade.</small>
+      <small>Sem "Próxima calibração" preenchida, o app considera 12 meses (recomendação do fabricante) a partir da data do certificado. Nos laudos, a calibração é aceita até 24 meses (critério do signatário); acima disso, o documento marca para verificar.</small>
     </div>
   );
 }
@@ -51,7 +79,8 @@ export function Config({ aba }) {
         <div class="grade"><div class="largo">
           <AlertaCalibracao />
           <RecordList kind="equip" caseId={null} campos={CAMPOS_EQUIP} titulo="Equipamentos e certificados" novo="Adicionar equipamento"
-            resumo={(r) => [r.data.nome, r.data.modelo, r.data.serie && `série ${r.data.serie}`, r.data.dataCalibracao && `cal. ${dataBR(r.data.dataCalibracao)}`, situacaoCalibracao(r.data)].filter(Boolean).join(' · ')} />
+            resumo={(r) => [r.data.nome, r.data.modelo, r.data.serie && `série ${r.data.serie}`, r.data.dataCalibracao && `cal. ${dataBR(r.data.dataCalibracao)}`, r.data.certificadoAnexoId ? 'certificado anexado' : 'sem PDF do certificado', situacaoCalibracao(r.data)].filter(Boolean).join(' · ')}
+            extra={(r) => <CertificadoDoEquip r={r} />} />
         </div></div>
       )}
       {aba === 'lixeira' && <Lixeira />}

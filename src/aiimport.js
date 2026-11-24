@@ -51,7 +51,10 @@ export const CRITERIOS_GERAIS = `CRITÉRIOS GERAIS DO SIGNATÁRIO
 - O laudo conclui sempre pela norma técnica, nunca pela jurisprudência; súmulas e temas ficam apenas registrados para o juiz decidir.
 - Não usar testemunhas. Não citar o advogado do segurado / reclamante.
 - Valores medidos com uma casa decimal; resultados próximos do limite arredondados conforme a NHO.
-- Equipamentos do signatário: dosímetro Inlite DoseMax V2, medidor de IBUTG Inlite iTemp, medidor de vibração Inlite AxPro, calibrador acústico Inlite CalPro.
+- Equipamentos do signatário: dosímetro Inlite DoseMax V2, medidor de IBUTG Inlite iTemp, medidor de vibração Inlite AxPro, calibrador acústico Inlite CalPro. Os certificados de calibração seguem nos apêndices do laudo (não peça para anexá-los).
+- Validade da calibração: o fabricante recomenda 12 meses; o signatário adota até 24 meses da data do certificado. Dentro de 24 meses na data da medição, a calibração é válida: não aponte pendência nem ressalva.
+- Aferição de campo do dosímetro antes e depois da medição: cite somente se estiver registrada nas medições; sem registro, não mencione nem marque pendência.
+- Veículos, máquinas ou fatos citados apenas em petições e não confirmados na entrevista ou na diligência ficam fora do laudo (não viram pendência).
 - Hierarquia das fontes: 1) lei, decreto, NR e IN na redação vigente no período; 2) Normas de Higiene Ocupacional (NHO) da FUNDACENTRO; 3) normas técnicas (ISO, ABNT); 4) somente como apoio técnico, nunca como critério de enquadramento quando houver norma brasileira: ACGIH (TLVs/BEIs – referência da NR-9, item 9.6.1.1, para prevenção), NIOSH, OSHA e convenções da OIT ratificadas pelo Brasil (148 e 155, consolidadas no Decreto 10.088/2019). Cite edição e ano de cada fonte.`;
 
 export const CRITERIOS_TRAB = `FINALIDADE TRABALHISTA (insalubridade / periculosidade – CLT arts. 189 a 195, NR-15 e NR-16; para servidor estatutário, a lei do ente, que em regra remete à NR-15/NR-16 – cite a lei local)
@@ -502,12 +505,24 @@ export async function aplicarIA(caseId, dados, { substituir = false, criarPeriod
         if (Object.keys(novos).length) { await updateFields(posto.id, novos); cont.postos += 1; }
       }
       const meds = (await caseChildren(caseId, 'medicao')).filter((m) => m.data.postoId === posto.id);
+      // equipamento da medição: pela série ou pelo modelo citados; senão, o padrão do agente (dosímetro, AxPro, iTemp)
+      const equips = (await db.records.where('kind').equals('equip').toArray()).filter((e) => !e.deleted);
+      const equipDe = (m) => {
+        const txt = normTxt(m.equipamento || '');
+        const pelaSerie = equips.find((e) => e.data.serie && txt.includes(normTxt(e.data.serie)));
+        if (pelaSerie) return pelaSerie.id;
+        const peloModelo = equips.find((e) => e.data.modelo && txt && txt.includes(normTxt(e.data.modelo)));
+        if (peloModelo) return peloModelo.id;
+        const alvo = m.agente === 'Ruído' ? /dosemax|dosi/i : /^Calor/.test(m.agente || '') ? /itemp|ibutg/i : /^Vibra/.test(m.agente || '') ? /axpro|vibra/i : null;
+        const e = alvo && equips.find((x) => alvo.test(normTxt(`${x.data.modelo} ${x.data.nome}`)));
+        return e ? e.id : '';
+      };
       const chaveM = (m) => JSON.stringify([m.agente, m.lavg, m.aren, m.tbn, m.valor, m.dataMedicao].map((v) => String(v || '')));
       const vistas = new Set(meds.map((m) => chaveM(m.data)));
       for (const m of medicoes) {
         if (vistas.has(chaveM(m))) continue;
         vistas.add(chaveM(m));
-        await createRecord('medicao', caseId, { ...m, postoId: posto.id });
+        await createRecord('medicao', caseId, { ...m, postoId: posto.id, ...(m.equipamentoId ? {} : { equipamentoId: equipDe(m) }) });
         cont.medicoes += 1;
       }
     }
@@ -727,6 +742,13 @@ export async function textoDoCaso(caseId) {
   if (medicoes.length) {
     L.push('\n## Medições');
     medicoes.forEach((m) => L.push(`- [${m.data.agente}] posto: ${nomePosto.get(m.data.postoId) || 'geral'}; equipamento: ${eq.get(m.data.equipamentoId)?.modelo || '?'}; ${resumoMedicao(m, contextoLegal(c))}${m.data.obs ? `; obs.: ${m.data.obs}` : ''}`));
+  }
+  // instrumentos usados, com o certificado (os PDFs anexados saem como apêndices do laudo)
+  const idsEq = new Set([...(c.equipamentos || []), ...medicoes.map((m) => m.data.equipamentoId).filter(Boolean)]);
+  const usadosEq = equip.filter((e) => idsEq.has(e.id));
+  if (usadosEq.length) {
+    L.push('\n## Instrumentos utilizados (validade adotada: até 24 meses da calibração)');
+    usadosEq.forEach((e) => L.push(`- ${e.data.nome} ${e.data.fabricante || ''} ${e.data.modelo || ''}, série ${e.data.serie || '?'}; certificado ${e.data.certificado || '?'}${e.data.laboratorio ? ` (${e.data.laboratorio})` : ''}, calibrado em ${e.data.dataCalibracao || '?'}${e.data.certificadoAnexoId ? '; PDF do certificado anexado como apêndice' : ''}`));
   }
   const qIni = quesitos.filter((q) => !ehSuplementar(q)), qSup = quesitos.filter(ehSuplementar);
   if (qIni.length) {

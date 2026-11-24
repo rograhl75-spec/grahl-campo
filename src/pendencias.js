@@ -332,20 +332,31 @@ export async function marcacoesNoDocumento(gerar) {
   const des = (t) => t.replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
   const textoDe = (frag) => des([...frag.matchAll(/<w:t[^>]*>([^<]*)<\/w:t>/g)].map((t) => t[1]).join(''));
   const cont = new Map();
-  let onde = '';
+  let onde = ''; let quesito = '';
   // percorre os parágrafos: título (estilo Título) ou legenda "Quadro N – …" / "Figura N – …" marca o lugar
   for (const m of xml.matchAll(/<w:p[ >][\s\S]*?<\/w:p>/g)) {
     const p = m[0];
     const t = textoDe(p).trim();
-    if (/w:pStyle w:val="Ttulo[123]"/.test(p) || /^(Quadro|Figura)\s*(SEQ[^–]*)?\d*\s*–/.test(t.replace(/SEQ \w+ \\\* ARABIC /, ''))) onde = t.replace(/SEQ \w+ \\\* ARABIC /, '').slice(0, 90);
-    for (const run of p.matchAll(/<w:r>((?:(?!<\/w:r>).)*?<w:highlight[^>]*>(?:(?!<\/w:r>).)*?)<\/w:r>/gs)) {
-      const texto = textoDe(run[1]).trim();
-      if (!texto) continue;
-      const k = texto;
-      const e = cont.get(k) || { texto, n: 0, onde: new Set() };
-      e.n += 1; if (onde) e.onde.add(onde);
+    if (/w:pStyle w:val="Ttulo[123]"/.test(p) || /^(Quadro|Figura)\s*(SEQ[^–]*)?\d*\s*–/.test(t.replace(/SEQ \w+ \\\* ARABIC /, ''))) { onde = t.replace(/SEQ \w+ \\\* ARABIC /, '').slice(0, 90); quesito = ''; }
+    // quesito em que está a marca (nas seções de quesitos): "Quesito 4.1", "a)", "1."
+    const titulo = /w:pStyle w:val="Ttulo[123]"/.test(p);
+    if (/QUESITO/i.test(onde) && !titulo) { const mq = t.match(/^(Quesito\s*[\w.]+|[a-z]\)|\d+(\.\d+)*[.)])/i); if (mq) quesito = mq[1].replace(/[.:]$/, ''); }
+    // trechos em amarelo vizinhos (vários runs com formatação diferente) formam uma marca só
+    let atual = '';
+    const solta = () => {
+      const texto = atual.replace(/\*\*/g, '').replace(/\s+/g, ' ').trim(); atual = '';
+      if (!texto || /^[\s/–-]*$/.test(texto)) return;
+      const k = `${onde}|${texto}`;
+      const e = cont.get(k) || { texto, n: 0, secao: onde, quesitos: new Set() };
+      e.n += 1; if (/QUESITO/i.test(onde) && quesito) e.quesitos.add(quesito);
       cont.set(k, e);
+    };
+    for (const run of p.matchAll(/<w:r[ >][\s\S]*?<\/w:r>/g)) {
+      const texto = textoDe(run[0]);
+      if (/<w:highlight /.test(run[0])) atual += texto;
+      else if (texto.trim()) solta();
     }
+    solta();
   }
-  return [...cont.values()].map((e) => ({ texto: e.texto, n: e.n, onde: [...e.onde].slice(0, 3).join('; ') })).sort((a, b) => b.n - a.n);
+  return [...cont.values()].map((e) => ({ texto: e.texto, n: e.n, secao: e.secao, onde: e.secao, quesitos: [...e.quesitos] })).sort((a, b) => b.n - a.n);
 }

@@ -443,3 +443,6 @@ details.secao-etapa > .importar-fotos { border: 0; background: var(--cartao); bo
 .chip.ativo { background: var(--azul, #1B365D); color: #fff; border-color: transparent; }
 .lista-geradas { margin: 8px 0 0; padding-left: 18px; }
 .doc-peticoes .grade, .doc-peticoes > .grade { margin: 8px 0; }
+.pend-secao { margin: 6px 0; padding: 6px 10px; border: 1px solid var(--borda); border-radius: 10px; background: #fff; }
+.pend-secao > summary { cursor: pointer; }
+.pend-secao ul { margin: 6px 0 2px; }

@@ -5,13 +5,14 @@ import { avisarAlteracao } from '../sync.js';
 import { confirmar } from './dialogo.jsx';
 import { softDelete, createRecord } from '../db.js';
 import { RelatoriosMedicao } from './Campo.jsx';
+import { Suplementares } from './Quesitos.jsx';
 import { DESC_ANEXO_DOC } from '../apendices.js';
 import { CATALOGO, HONORARIOS, situacaoHonorarios, PETICOES_PERITO, PETICOES_AT, POSICOES_AT } from '../docx/reports.js';
 import { exportarBackup, baixarArquivo, carimbo } from '../backup.js';
-import { exportarParaClaude, lerJsonIA, aplicarIA } from '../aiimport.js';
-import { BotaoClaudeDireto, anexosDosAutos } from './ClaudeDireto.jsx';
+import { exportarParaClaude, lerJsonIA, aplicarIA, promptPeticaoLivre } from '../aiimport.js';
+import { BotaoClaudeDireto, anexosDosAutos, ModoManual } from './ClaudeDireto.jsx';
 import { temClaude } from '../claudeApi.js';
-import { documentoDoClaude, temConteudo } from '../docx/claudeDoc.js';
+import { documentoDoClaude, peticaoDoClaude, temConteudo } from '../docx/claudeDoc.js';
 import { gravarTudoAgora, salvar, TF, Sel } from './fields.jsx';
 import { FORMAS_PAGAMENTO, localVistoria } from '../schema.js';
 import { db } from '../db.js';
@@ -19,17 +20,11 @@ import { PERFIL_ID, contasDoPerfil, PERFIL_PADRAO, ehSimilaridade, empresaDoDesp
 import { useLive } from './hooks.js';
 import { Icone } from './Icone.jsx';
 
-const QUANDO = {
-  '1. Início do caso': 'Logo após extrair os dados dos autos (etapa 2).',
-  '2. Antes da diligência': 'Com a data da vistoria definida.',
-  '3. Depois da diligência': 'Com o campo e as fotos registrados (etapas 4 e 5).',
-  '4. Laudo / parecer': 'O Word traz a estrutura e os quadros prontos. Para o texto completo, use também "Redigir com o Claude", logo abaixo.',
-  '5. Quesitos suplementares e esclarecimentos': 'Depois do laudo: quesitos suplementares, pedidos de esclarecimento e respostas. Cadastre os quesitos na etapa 3 (há o atalho com o Claude lá) e gere a petição aqui.',
-  '6. Recebimento dos honorários': 'Após a entrega do laudo e dos esclarecimentos.',
-  '7. Outras petições do perito': 'Quando surge um imprevisto: prazo curto, empresa que não recebe ou não entrega documentos, ou impedimento.',
-};
+// petições (etapa 4. Petições): escolhidas numa lista, uma de cada vez
+const PETICOES = ['honorarios', 'indic', 'proposta', 'agenda', 'supl', 'atAvulsa', 'pagto', 'peritoAvulsa'];
+const ehPrincipal = (d) => /^4\./.test(d.grupo);
 
-export function Documentos({ rec }) {
+export function Documentos({ rec, modo = 'laudo' }) {
   const [ocupado, setOcupado] = useState('');
   const [msg, setMsg] = useState('');
   const [verTodos, setVerTodos] = useState(false);
@@ -63,29 +58,45 @@ export function Documentos({ rec }) {
   };
 
   const recomendados = CATALOGO.filter((d) => d.rec(c));
+  const principais = recomendados.filter(ehPrincipal);
+  const peticoes = recomendados.filter((d) => PETICOES.includes(d.id));
+  const outrosDoCaso = recomendados.filter((d) => !ehPrincipal(d) && !PETICOES.includes(d.id));
   const outros = CATALOGO.filter((d) => !d.rec(c));
-  const grupos = (lista) => [...new Set(lista.map((d) => d.grupo))].sort().map((g) => [g, lista.filter((d) => d.grupo === g)]);
+  const props = { ocupado, gerar, contas, contaSel, recId: rec.id, rec };
+
+  if (modo === 'laudo') {
+    return (
+      <div class="docs">
+        <p class="dica largo">Confira as pendências, responda os quesitos e redija com o Claude: o Word sai no seu timbrado, com quadros, fotos e anexos. O que depende da sua análise sai em amarelo.</p>
+        {!principais.length && <p class="vazio">Nenhum laudo ou parecer para este tipo de caso. Confira o tipo e a sua atuação em 1. Autos → Dados do caso.</p>}
+        {principais.map((d) => <CartaoDoc d={d} principal {...props} />)}
+        <ModoManual rotulo="Alternativa sem a chave de API: montar no timbrado o texto colado do claude.ai"><MontarDoClaude rec={rec} /></ModoManual>
+        {msg && <p class="ok-msg aviso-fixo">{msg}</p>}
+      </div>
+    );
+  }
 
   return (
     <div class="docs">
-      <p class="dica largo">Os documentos estão na ordem em que costumam ser usados e saem em Word no seu papel timbrado, já preenchidos com os dados das etapas anteriores. O que depende da sua análise sai marcado em amarelo. Aparecem só os modelos que servem para este tipo de caso.</p>
-      {grupos(recomendados).map(([g, lista]) => (
-        <section class="grupo-docs">
-          <h3>{g}</h3>
-          {QUANDO[g] && <p class="passo-docs">{QUANDO[g]}</p>}
-          <div class="grade-docs">
-            {lista.map((d) => <CartaoDoc d={d} ocupado={ocupado} gerar={gerar} contas={contas} contaSel={contaSel} recId={rec.id} rec={rec} />)}
-          </div>
-        </section>
-      ))}
+      {peticoes.length > 0 && <CartaoPeticoes lista={peticoes} {...props} />}
+      {c.papel === 'Perito do Juízo' && (
+        <details class="secao-etapa" open={!!(c.laudoRefPerito || c.esclDecisaoRef || c.prazoEsclarecimentos)}>
+          <summary><b>Quesitos suplementares e esclarecimentos</b> <small class="dica">depois do laudo: transcrever e minutar as respostas com o Claude</small></summary>
+          <Suplementares rec={rec} />
+        </details>
+      )}
+      {outrosDoCaso.length > 0 && (
+        <details class="secao-etapa">
+          <summary><b>Outros documentos do caso</b> <small class="dica">{outrosDoCaso.map((d) => d.titulo).join(' · ')}</small></summary>
+          <div class="grade-docs">{outrosDoCaso.map((d) => <CartaoDoc d={d} {...props} />)}</div>
+        </details>
+      )}
       {outros.length > 0 && (
         <section class="grupo-docs">
-          <button type="button" class="sec" onClick={() => setVerTodos(!verTodos)}>{verTodos ? 'Ocultar' : 'Mostrar'} outros modelos ({outros.length})</button>
-          {verTodos && <div class="grade-docs">{outros.map((d) => <CartaoDoc d={d} ocupado={ocupado} gerar={gerar} contas={contas} contaSel={contaSel} recId={rec.id} rec={rec} />)}</div>}
+          <button type="button" class="sec" onClick={() => setVerTodos(!verTodos)}>{verTodos ? 'Ocultar' : 'Mostrar'} modelos de outros tipos de trabalho ({outros.length})</button>
+          {verTodos && <div class="grade-docs">{outros.map((d) => <CartaoDoc d={d} {...props} />)}</div>}
         </section>
       )}
-      <MontarDoClaude rec={rec} />
-      <RespostasClaude rec={rec} />
       <section class="grupo-docs">
         <h3>Cópia de segurança</h3>
         <div class="bloco doc">
@@ -98,12 +109,61 @@ export function Documentos({ rec }) {
   );
 }
 
-function CartaoDoc({ d, ocupado, gerar, contas = [], contaSel, recId, rec }) {
-  const [conferir, setConferir] = useState(false);
+// Uma petição de cada vez: escolhe na lista e o cartão mostra só os campos dela
+const LIVRE = 'livre';
+function CartaoPeticoes({ lista, ...props }) {
+  const { rec } = props;
+  const sel = rec.data.peticaoSel === LIVRE ? null : lista.find((d) => d.id === rec.data.peticaoSel) || lista[0];
   return (
-    <div class={`bloco doc ${conferir ? 'doc-aberto' : ''}`}>
-      <h4>{d.titulo}</h4>
-      <p>{d.desc}</p>
+    <section class="bloco largo doc-peticoes">
+      <h3>Petições</h3>
+      <label class="campo"><span class="rotulo">Qual petição?</span>
+        <select value={sel ? sel.id : LIVRE} onChange={(e) => salvar(rec.id, 'peticaoSel', e.currentTarget.value)}>
+          {lista.map((d) => <option value={d.id}>{d.titulo}</option>)}
+          <option value={LIVRE}>Outra petição – redigir com o Claude (pelo despacho ou pela sua necessidade)</option>
+        </select>
+      </label>
+      {sel ? <CartaoDoc d={sel} embutido {...props} /> : <PeticaoLivre rec={rec} />}
+    </section>
+  );
+}
+
+// Petição fora dos modelos: o Claude redige pelo despacho (anexado ou nos autos) e/ou pelo que você descrever
+function PeticaoLivre({ rec }) {
+  const [md, setMd] = useState('');
+  const [msg, setMsg] = useState('');
+  const gerarDoTexto = async (t) => { const r = await peticaoDoClaude(rec.id, t); baixarArquivo(r.blob, r.nome); return r.nome; };
+  const copiar = async () => {
+    gravarTudoAgora();
+    const t = await promptPeticaoLivre(rec.id, rec.data.peticaoLivrePedido);
+    try { await navigator.clipboard.writeText(t); setMsg('✓ Instrução copiada. Cole no Claude com o despacho anexado e traga a resposta para o campo abaixo.'); }
+    catch { baixarArquivo(new Blob([t], { type: 'text/markdown' }), `Peticao_para_Claude_${carimbo()}.md`); setMsg('Não foi possível copiar; a instrução foi baixada como .md.'); }
+  };
+  return (
+    <div class="doc-embutido">
+      <p class="dica">Para o que não tem modelo: resposta a despacho, manifestação, juntada de documentos, pedido de dilação, de diligência complementar, de esclarecimentos à empresa… O Claude lê os autos guardados e o despacho que você anexar, e redige a petição; o Word sai no seu timbrado, com endereçamento, processo, fecho e assinatura.</p>
+      <TF rec={rec} k="peticaoLivrePedido" label="O que a petição precisa pedir ou informar (em branco: o Claude atende à última determinação dirigida a você no despacho)" area rows={3} />
+      <BotaoClaudeDireto rotulo="Redigir a petição com o Claude (gera o Word)" permitirArquivos rotuloArquivos="Anexar o despacho / decisão (PDF ou foto), se não estiver nos autos guardados"
+        instrucao={async () => { gravarTudoAgora(); return promptPeticaoLivre(rec.id, (await db.records.get(rec.id))?.data?.peticaoLivrePedido); }}
+        anexos={() => anexosDosAutos(rec.id)}
+        onResposta={async (t) => { setMd(t); return `${await gerarDoTexto(t)} gerado e baixado. Confira as pendências em amarelo.`; }} />
+      <ModoManual>
+        <div class="linha-botoes"><button type="button" class="sec" onClick={copiar}>Copiar instrução (claude.ai)</button></div>
+        <label class="campo campo-area"><span class="rotulo">Texto da petição redigido pelo Claude</span>
+          <textarea rows={6} value={md} onInput={(e) => setMd(e.currentTarget.value)} />
+        </label>
+        <div class="linha-botoes"><button type="button" class="primario" disabled={!temConteudo(md)} onClick={async () => { try { setMsg(`✓ ${await gerarDoTexto(md)} gerado.`); } catch (e) { setMsg(`Erro: ${e.message}`); } }}>Gerar Word da petição</button></div>
+      </ModoManual>
+      {msg && <p class="ok-msg">{msg}</p>}
+    </div>
+  );
+}
+
+function CartaoDoc({ d, ocupado, gerar, contas = [], contaSel, recId, rec, principal = false, embutido = false }) {
+  return (
+    <div class={`${embutido ? 'doc-embutido' : 'bloco doc'} ${principal ? 'doc-principal' : ''}`}>
+      {!embutido && (principal ? <h3>{d.titulo}</h3> : <h4>{d.titulo}</h4>)}
+      <p class="dica">{d.desc}</p>
       {d.usaConta && (contas.length ? (
         <label class="campo"><span class="rotulo">Conta para os honorários</span>
           <select value={contaSel} onChange={(e) => salvar(recId, 'contaBancaria', e.currentTarget.value)}>
@@ -146,12 +206,14 @@ function CartaoDoc({ d, ocupado, gerar, contas = [], contaSel, recId, rec }) {
         <TF rec={rec} k="propostaDeslocamento" label="Deslocamento (ex.: incluso no valor / cobrado à parte a R$ 1,20 por km)" />
       </>}
       {d.id === 'parecerAT' && rec && <Sel rec={rec} k="posicaoAT" label="Posição sobre o laudo" opcoes={POSICOES_AT} />}
+      {principal && rec && <PendenciasDoc rec={rec} d={d} />}
+      {principal && rec && <RespostasClaude rec={rec} />}
+      {principal && <h4 class="mt">Redigir e gerar</h4>}
       <div class="linha-botoes">
-        <button type="button" class="primario" disabled={!!ocupado} onClick={() => gerar(d)}>{ocupado === d.id ? 'Gerando…' : 'Gerar Word'}</button>
-        {/^4\./.test(d.grupo) && rec && <button type="button" class="sec" onClick={() => setConferir(!conferir)}><Icone nome="nota" /> {conferir ? 'Fechar pendências' : 'Conferir pendências'}</button>}
-        {d.redacao && rec && <BotaoClaude rec={rec} tipo={d.redacao} />}
+        {d.redacao && rec && temClaude() && <BotaoClaude rec={rec} tipo={d.redacao} soDireto />}
+        <button type="button" class={d.redacao && temClaude() ? 'sec' : 'primario'} disabled={!!ocupado} onClick={() => gerar(d)}>{ocupado === d.id ? 'Gerando…' : d.redacao && temClaude() ? 'Gerar Word (estrutura e quadros, sem o Claude)' : 'Gerar Word'}</button>
       </div>
-      {conferir && rec && <PendenciasDoc rec={rec} d={d} gerar={() => gerar(d)} />}
+      {d.redacao && rec && <ModoManual><BotaoClaude rec={rec} tipo={d.redacao} soCopiar /></ModoManual>}
       {d.id === 'agenda' && rec && <LinkAgenda c={rec.data} />}
     </div>
   );
@@ -220,17 +282,17 @@ function LinkAgenda({ c }) {
 }
 
 // "Redigir com o Claude": copia o caso inteiro com a instrução de redação do documento do cartão
-function BotaoClaude({ rec, tipo, rotulo = 'Redigir com o Claude' }) {
+function BotaoClaude({ rec, tipo, rotulo = 'Redigir com o Claude', soDireto = false, soCopiar = false }) {
   const [msg, setMsg] = useState('');
   const copiar = async () => {
     gravarTudoAgora();
     const texto = await exportarParaClaude(rec.id, tipo);
     try {
       await navigator.clipboard.writeText(texto);
-      // respostas dos quesitos: o Claude devolve um JSON, que volta pela etapa 2 (não pelo "Montar no timbrado")
+      // respostas dos quesitos: o Claude devolve um JSON, que volta pela etapa 1. Autos (não pelo "Montar no timbrado")
       setMsg(tipo === 'respostas'
-        ? `✓ Caso copiado (${Math.round(texto.length / 1000)} mil caracteres). Cole no Claude e anexe os autos. Ele devolve um JSON com as respostas: copie-o e cole na etapa 2. Autos → B ("Extrair os dados dos autos com o Claude"), no campo "Resposta da IA (JSON)"; toque em "Ler e mostrar prévia" e "Aplicar ao caso".`
-        : `✓ Caso copiado (${Math.round(texto.length / 1000)} mil caracteres). Cole no Claude e anexe os autos. Depois, cole a resposta em "Montar no timbrado", logo abaixo, para gerar o Word no seu padrão.`);
+        ? `✓ Caso copiado (${Math.round(texto.length / 1000)} mil caracteres). Cole no Claude e anexe os autos. Ele devolve um JSON com as respostas: copie-o e cole na etapa 1. Autos → B ("Extrair os dados dos autos com o Claude"), no campo "Resposta da IA (JSON)"; toque em "Ler e mostrar prévia" e "Aplicar ao caso".`
+        : `✓ Caso copiado (${Math.round(texto.length / 1000)} mil caracteres). Cole no Claude e anexe os autos. Depois, cole a resposta em "Montar no timbrado" para gerar o Word no seu padrão.`);
     } catch (e) {
       baixarArquivo(new Blob([texto], { type: 'text/markdown' }), `Caso_para_Claude_${carimbo()}.md`);
       setMsg('Não foi possível copiar; o texto foi baixado como arquivo .md para anexar no Claude.');
@@ -242,37 +304,39 @@ function BotaoClaude({ rec, tipo, rotulo = 'Redigir com o Claude' }) {
       const dados = lerJsonIA(t);
       const r = await aplicarIA(rec.id, dados, { substituir: false });
       avisarAlteracao();
-      return `${r.respostas} resposta(s) preenchida(s) nos quesitos em branco (as já escritas ficaram como estavam). Confira na etapa 3 antes de gerar o laudo.`;
+      return `${r.respostas} resposta(s) preenchida(s) nos quesitos em branco (as já escritas ficaram como estavam). Confira em 1. Autos → Quesitos antes de gerar o laudo.`;
     }
     const doc = await documentoDoClaude(rec.id, t);
     baixarArquivo(doc.blob, doc.nome);
     return `${doc.nome} gerado no timbrado e baixado. Confira as pendências em amarelo.`;
   };
   return <>
-    <BotaoClaudeDireto rotulo={tipo === 'respostas' ? 'Responder os quesitos direto com o Claude' : 'Redigir direto com o Claude (gera o Word)'}
+    {!soCopiar && <BotaoClaudeDireto rotulo={tipo === 'respostas' ? 'Responder os quesitos com o Claude' : 'Redigir com o Claude (gera o Word)'}
       instrucao={async () => { gravarTudoAgora(); return exportarParaClaude(rec.id, tipo); }} anexos={() => anexosDosAutos(rec.id)}
-      permitirArquivos rotuloArquivos="Anexar outros documentos (opcional)" onResposta={responder} />
-    <button type="button" class="sec" onClick={copiar}>{temClaude() ? `${rotulo} (copiar para o claude.ai)` : rotulo}</button>
+      permitirArquivos rotuloArquivos="Anexar outros documentos (opcional)" onResposta={responder} />}
+    {!soDireto && <button type="button" class="sec" onClick={copiar}>{temClaude() ? `${rotulo} (copiar para o claude.ai)` : rotulo}</button>}
     {msg && <p class="ok-msg">{msg}</p>}
   </>;
 }
 
+// Respostas de todos os quesitos num JSON, que volta para o app e preenche só as respostas em branco
 function RespostasClaude({ rec }) {
+  const n = useLive(async () => (await db.records.where('[caseId+kind]').equals([rec.id, 'quesito']).toArray())
+    .filter((r) => !r.deleted && r.data.suplementar !== 'Sim' && !String(r.data.resposta || '').trim()).length, [rec.id], 0);
+  if (!n) return null;
   return (
-    <section class="grupo-docs">
-      <h3>Responder os quesitos com o Claude</h3>
-      <div class="bloco destaque">
-        <p>Para o texto completo de um documento, use o botão "Redigir com o Claude" do próprio cartão. Este aqui pede ao Claude as respostas de todos os quesitos num JSON, que volta para o app e preenche só as respostas em branco:</p>
-        <p class="dica">Com a chave do Claude configurada, use <b>Responder os quesitos direto com o Claude</b>: as respostas entram sozinhas nos quesitos em branco. Sem a chave, siga os passos:</p>
+    <div class="bloco-interno">
+      <h4 class="mt">Responder os quesitos <span class="contador">{n} sem resposta</span></h4>
+      <p class="dica">O Claude responde todos os quesitos em branco com os dados do caso e os autos; as respostas já escritas ficam como estão. Confira em 1. Autos → Quesitos.</p>
+      {temClaude() && <BotaoClaude rec={rec} tipo="respostas" soDireto />}
+      <ModoManual>
         <ol class="passos">
-          <li>Toque em <b>Copiar caso para responder os quesitos</b>.</li>
-          <li>Numa conversa nova no Claude, cole o texto e anexe os autos (ou o laudo).</li>
-          <li>Copie a resposta do Claude (o bloco que começa com <code>{'{'}</code>).</li>
-          <li>Vá à <b>etapa 2. Autos → B</b> ("Extrair os dados dos autos com o Claude"), cole no campo <b>Resposta da IA (JSON)</b> e toque em <b>Ler e mostrar prévia</b> e <b>Aplicar ao caso</b>. As respostas aparecem nos quesitos e entram no laudo.</li>
+          <li>Toque em <b>Copiar caso para responder os quesitos</b> e cole numa conversa nova no Claude, com os autos anexados.</li>
+          <li>Copie a resposta (o bloco que começa com <code>{'{'}</code>) e cole em <b>1. Autos → B</b>, no campo <b>Resposta da IA (JSON)</b>; toque em <b>Ler e mostrar prévia</b> e <b>Aplicar ao caso</b>.</li>
         </ol>
-        <div class="linha-botoes"><BotaoClaude rec={rec} tipo="respostas" rotulo="Copiar caso para responder os quesitos" /></div>
-      </div>
-    </section>
+        <BotaoClaude rec={rec} tipo="respostas" rotulo="Copiar caso para responder os quesitos" soCopiar />
+      </ModoManual>
+    </div>
   );
 }
 
@@ -307,33 +371,43 @@ function MontarDoClaude({ rec }) {
   );
 }
 
-// Pendências antes de gerar: perguntas respondidas aqui gravam no caso ou no vínculo; depois, o que ainda
-// ficaria em amarelo no documento, agrupado
-function PendenciasDoc({ rec, d, gerar }) {
+// Pendências antes de gerar, enxutas: um grupo por linha (com a contagem), aberto só quando tocado; os quesitos
+// sem resposta não viram dezenas de caixas – ficam no "Responder os quesitos" logo abaixo
+function PendenciasDoc({ rec, d }) {
   const [itens, setItens] = useState(null);
   const [marcas, setMarcas] = useState(null);
   const [ver, setVer] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [abertos, setAbertos] = useState({});
   useEffect(() => { let vivo = true; pendenciasDoCaso(rec.id).then((x) => vivo && setItens(x)).catch((e) => vivo && setItens({ erro: e.message })); return () => { vivo = false; }; }, [rec.id, ver]);
   const responder = async (alvo, campo, valor) => { if (alvo) await salvar(alvo, campo, valor); avisarAlteracao(); setMarcas(null); setVer((v) => v + 1); };
   const conferirDoc = async () => { setBusy(true); try { setMarcas(await marcacoesNoDocumento(() => d.fn(rec.id, {}))); } finally { setBusy(false); } };
-  if (!itens) return <div class="pendencias"><p class="dica">Conferindo…</p></div>;
+  if (!itens) return <div class="pendencias"><p class="dica">Conferindo as pendências…</p></div>;
   if (itens.erro) return <div class="pendencias"><p class="erro-msg">{itens.erro}</p></div>;
-  const grupos = [...new Set(itens.map((i) => i.grupo))];
-  const abertas = itens.filter((i) => !i.respondido).length;
+  const lista = itens.filter((i) => i.grupo !== 'Quesitos sem resposta');
+  const grupos = [...new Set(lista.map((i) => i.grupo))];
+  const abertas = lista.filter((i) => !i.respondido).length;
+  const alternar = (g) => setAbertos((a) => ({ ...a, [g]: !a[g] }));
   return (
     <div class="pendencias">
-      <h4>Pendências antes de gerar {abertas ? <span class="contador">{abertas}</span> : <span class="contador ok">✓</span>}</h4>
-      {!abertas && <p class="ok-msg">Nenhuma pergunta pendente. {itens.length ? 'As respostas ficam abaixo, para conferir ou mudar. ' : ''}Confira o que ainda sairia em amarelo.</p>}
-      {grupos.map((g) => (
-        <div class="pend-grupo" key={g}>
-          <b class="pend-grupo-tit">{g}</b>
-          {itens.filter((i) => i.grupo === g).map((it) => <ItemPendencia key={it.id} it={it} responder={responder} />)}
-        </div>
-      ))}
+      <h4>Pendências {abertas ? <span class="contador">{abertas}</span> : <span class="contador ok">✓</span>}</h4>
+      {!abertas && <p class="ok-msg">Nenhuma pendência de dados. {lista.length ? 'As respostas dadas ficam nos grupos abaixo, para conferir. ' : ''}</p>}
+      {grupos.map((g) => {
+        const doGrupo = lista.filter((i) => i.grupo === g);
+        const n = doGrupo.filter((i) => !i.respondido).length;
+        const aberto = abertos[g] ?? (abertas <= 3 && n > 0);
+        return (
+          <div class="pend-grupo" key={g}>
+            <button type="button" class="pend-grupo-tit" onClick={() => alternar(g)} aria-expanded={aberto}>
+              {aberto ? '▾' : '▸'} {g} {n ? <span class="contador">{n}</span> : <span class="contador ok">✓</span>}
+              {!aberto && <small class="dica"> – {doGrupo.map((i) => i.titulo).filter((t, k, a) => a.indexOf(t) === k).slice(0, 3).join('; ')}</small>}
+            </button>
+            {aberto && doGrupo.map((it) => <ItemPendencia key={it.id} it={it} responder={responder} />)}
+          </div>
+        );
+      })}
       <div class="linha-botoes">
-        <button type="button" class="sec" disabled={busy} onClick={conferirDoc}>{busy ? 'Conferindo o documento…' : 'Ver o que ainda sai em amarelo'}</button>
-        <button type="button" class="primario" onClick={gerar}>Gerar o Word</button>
+        <button type="button" class="sec mini" disabled={busy} onClick={conferirDoc}>{busy ? 'Conferindo o documento…' : 'Ver o que ainda sai em amarelo'}</button>
       </div>
       {marcas && (marcas.length ? (
         <div class="pend-marcas">

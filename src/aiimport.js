@@ -540,7 +540,34 @@ const INSTR_RESPOSTAS = `Responda a TODOS os quesitos do caso abaixo, como perit
 - O que depender de informação que não está no caso: escreva [[pendência: o que falta]].
 - Devolva SOMENTE um bloco JSON, sem comentários, no formato:
 {"quesitos": [{"origem": "Juízo | Autor / Reclamante | Réu / Reclamada | INSS | Complementares", "numero": "1", "texto": "texto do quesito exatamente como está no caso", "resposta": ""}]}
-Eu vou colar esse JSON no app (etapa 2. Autos → B), que preenche as respostas dos quesitos que ainda estão em branco.`;
+Eu vou colar esse JSON no app (etapa 1. Autos → B), que preenche as respostas dos quesitos que ainda estão em branco.`;
+
+// Petição fora dos modelos do app, redigida pelo Claude a partir do pedido do usuário e/ou do despacho
+export async function promptPeticaoLivre(caseId, pedido = '') {
+  const { c, texto } = await textoDoCaso(caseId);
+  const perfil = ((await db.records.get('perfil')) || {}).data || {};
+  const perito = c.papel === 'Perito do Juízo';
+  const quem = perito ? 'perito judicial nomeado nos autos' : c.papel === 'Assistente técnico do autor / reclamante' ? 'assistente técnico da parte autora' : /assistente/i.test(c.papel || '') ? 'assistente técnico da parte ré' : 'signatário';
+  const objetivo = String(pedido || '').trim()
+    ? `O que a petição precisa pedir ou informar (nas minhas palavras): ${String(pedido).trim()}`
+    : 'Não descrevi o pedido: localize nos autos ou no despacho anexado a determinação mais recente dirigida a mim (perito/assistente) – intimação, pedido de esclarecimentos, de manifestação, de documentos, de nova data, de complementação – e redija a petição que a atende.';
+  return `Redija uma PETIÇÃO minha (${perfil.nome || 'signatário'}, ${quem}) dirigida ao Juízo, nos autos do caso abaixo.
+
+${objetivo}
+
+REGRAS
+- Se houver despacho ou decisão que motive a petição (anexado ou nos autos), identifique-o logo no primeiro parágrafo (evento, data e página) e atenda exatamente ao que foi determinado, item por item, no prazo indicado.
+- Base factual: somente os dados do caso, os autos e os anexos. O que faltar, marque [[pendência: o que falta]]. Não invente datas, eventos, valores nem jurisprudência.
+- Fundamente nos artigos do CPC pertinentes (ex.: 157, 465, 466, 473, 474, 476, 477, 95) e na norma técnica quando couber, sem juridiquês e sem adjetivos.
+- Estrutura: primeiro parágrafo de apresentação ("${perfil.nome || '[[nome]]'}, ${quem} em epígrafe, vem, respeitosamente, à presença de Vossa Excelência, ..."); seções numeradas com "# 1. Título"; pedidos finais em alíneas a), b), c).
+- NÃO escreva endereçamento, número do processo, "Nestes termos, pede deferimento", local, data nem assinatura: o app acrescenta no timbrado.
+- Primeira linha: "Título: PETIÇÃO – <assunto curto>" (vai só para o nome do arquivo).
+
+${CONVENCOES_CLAUDE}
+
+---
+${texto}`;
+}
 
 export async function exportarParaClaude(caseId, tipo) {
   const { c, texto } = await textoDoCaso(caseId);

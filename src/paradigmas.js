@@ -382,11 +382,12 @@ export function citacaoDe(p) {
   return [base, perito && !base.toLowerCase().includes(perito.toLowerCase()) && `perito ${perito}`, nosAutos && `juntado aos autos (${nosAutos})`].filter(Boolean).join(' – ');
 }
 
-// Perícia judicial (perito do juízo): paradigma só com indicação do juízo (perícia por similaridade = Sim) ou
-// com as medições dos laudos juntados aos autos; extrajudicial e assistência técnica usam o banco normalmente
+// Perícia judicial (perito do juízo): o banco de paradigmas só entra com indicação do juízo (usarBancoParadigmas) ou
+// com as medições dos laudos juntados aos autos. "Perícia por similaridade" (vistoria em empresa paradigma, com
+// medição própria) NÃO libera o banco. Extrajudicial e assistência técnica usam o banco normalmente.
 export function paradigmasPermitidos(c = {}) {
   const peritoJudicial = c.tipoAtuacao !== 'Extrajudicial' && (c.papel || 'Perito do Juízo') === 'Perito do Juízo';
-  return !peritoJudicial || c.similaridade === 'Sim' || !!c.somenteMedicoesAutos;
+  return !peritoJudicial || !!c.usarBancoParadigmas || !!c.somenteMedicoesAutos;
 }
 
 // medição de outro perito (laudo juntado aos autos), e não do signatário

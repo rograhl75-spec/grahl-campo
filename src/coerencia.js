@@ -111,7 +111,7 @@ export function coerenciaDoLaudo(dados) {
     if (!lst.length) return;
     out.push({ id: `coer-fases-${r.id}`, grupo: G, tipo: 'aviso', rec: r.id, respondido: false, ciente: { campo: 'ciente_fases' },
       titulo: `Vínculo com ${fases} fases de atividade e ${lst.length} agente(s) que caracterizam o período inteiro (${br(r.data.inicio)} a ${r.data.fim ? br(r.data.fim) : 'atual'})`,
-      explicacao: `${lst.map((a) => curto(a.data.nome)).join(', ')}. Se a exposição a algum deles não vale para todas as fases, preencha no agente (etapa 2) "Exposição a partir de" e "Exposição até": a síntese, a conclusão e o PPP passam a usar só esse período.` });
+      explicacao: `${lst.map((a) => curto(a.data.nome)).join(', ')}. Se a exposição a algum deles não vale para todas as fases, preencha no agente (etapa 1. Autos) "Exposição a partir de" e "Exposição até": a síntese, a conclusão e o PPP passam a usar só esse período.` });
   });
   // 5) documentos da empresa citados quando são só referência
   if (semDocsEmpresa(c)) {

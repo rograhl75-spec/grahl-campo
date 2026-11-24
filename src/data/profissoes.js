@@ -2,7 +2,7 @@
 // Banco de profissões: o que o signatário já estudou para cada atividade da área da saúde – CBO,
 // profissiografia, agentes avaliados (com o código e o resultado de cada época, os elementos do art. 68 do
 // Decreto 3.048/1999 e a toxicologia), roteiro de entrevista e documentos a pedir. Serve de ponto de partida:
-// o app carrega os agentes no caso (etapa 2. Autos) e a instrução do Claude leva a mesma referência.
+// o app carrega os agentes no caso (etapa 1. Autos) e a instrução do Claude leva a mesma referência.
 // Os agentes "A confirmar" dependem da entrevista (uso, período e frequência). Resultados são os critérios
 // do signatário: revise-os em cada caso.
 // ======================================================================

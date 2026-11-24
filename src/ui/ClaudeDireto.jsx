@@ -6,7 +6,7 @@ import { db } from '../db.js';
 import { obterAnexo } from '../sync.js';
 import { perguntarClaude, temClaude, configClaude, MODELOS_CLAUDE } from '../claudeApi.js';
 
-// PDFs dos autos guardados na etapa 2 (item A)
+// PDFs dos autos guardados na etapa 1. Autos (item A)
 export async function anexosDosAutos(caseId) {
   const regs = (await db.records.where('[caseId+kind]').equals([caseId, 'anexo']).toArray())
     .filter((r) => !r.deleted && r.data.descricao === 'autos').sort((a, b) => a.createdAt - b.createdAt);
@@ -14,6 +14,12 @@ export async function anexosDosAutos(caseId) {
   // "chave": o mesmo PDF dos autos é reaproveitado entre os envios do caso (cache) – muda se o arquivo for trocado
   for (const r of regs) { const blob = await obterAnexo(r.id); out.push({ blob, nome: r.data.nome || 'autos.pdf', mime: 'application/pdf', chave: `autos:${r.id}:${blob.size}` }); }
   return out;
+}
+
+// Com a chave de API, o caminho por copiar e colar no claude.ai fica recolhido (alternativa); sem ela, aberto
+export function ModoManual({ children, rotulo = 'Alternativa sem a chave de API: copiar e colar no claude.ai' }) {
+  if (!temClaude()) return <>{children}</>;
+  return <details class="modo-manual"><summary>{rotulo}</summary>{children}</details>;
 }
 
 const brl = (usd) => `US$ ${usd.toFixed(2).replace('.', ',')}`;
@@ -40,7 +46,7 @@ export function BotaoClaudeDireto({ instrucao, anexos, permitirArquivos = false,
       const extra = await onResposta(r.texto, r);
       const modelo = (MODELOS_CLAUDE.find((m) => m.id === configClaude().modelo) || {}).nome?.replace(/\s*\(.*$/, '') || r.modelo;
       const lidoTxt = r.uso.lido ? ` ${Math.round(r.uso.lido / 1000)} mil tokens dos autos reaproveitados (economia de cerca de ${brl(r.economia)}).` : r.uso.gravado ? ' Autos guardados para reaproveitamento nos próximos envios deste caso.' : '';
-      setMsg(`✓ Resposta do ${modelo} recebida – ${Math.round((r.uso.entrada + r.uso.gravado + r.uso.lido) / 1000)} mil tokens de entrada e ${Math.round(r.uso.saida / 1000)} mil de saída, cerca de ${brl(r.custo)}.${lidoTxt}${r.cortada ? ' A resposta atingiu o limite de tamanho e pode estar incompleta.' : ''}${extra ? ` ${extra}` : ''}`);
+      setMsg(`✓ Resposta do ${modelo} recebida – ${Math.round((r.uso.entrada + r.uso.gravado + r.uso.lido) / 1000)} mil tokens de entrada e ${Math.round(r.uso.saida / 1000)} mil de saída, cerca de ${brl(r.custo)}.${lidoTxt}${r.cortada ? ' A resposta atingiu o limite de tamanho e pode estar incompleta.' : ''}${r.avisos?.length ? ` Atenção: ${r.avisos.join(' ')}` : ''}${extra ? ` ${extra}` : ''}`);
       setArquivos([]);
     } catch (e) {
       setEtapa(''); setErro(e.message || String(e));

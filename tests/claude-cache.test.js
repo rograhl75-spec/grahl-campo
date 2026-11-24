@@ -1,8 +1,9 @@
-// Reaproveitamento dos autos: o PDF com "chave" é enviado uma vez e reaproveitado (dados sintéticos, API simulada)
+// Envio direto ao Claude: PDFs dentro da pergunta (sem Files API) e cache dos autos (dados sintéticos, API simulada)
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 const mem = {};
 globalThis.localStorage = { getItem: (k) => mem[k] ?? null, setItem: (k, v) => { mem[k] = String(v); }, removeItem: (k) => { delete mem[k]; } };
+vi.mock('../src/apendices.js', () => ({ carregarPdfjs: async () => ({ getDocument: () => ({ promise: Promise.resolve({ numPages: 3, getPage: async (i) => ({ getTextContent: async () => ({ items: [{ str: `texto da página ${i} com conteúdo suficiente`, hasEOL: true }] }) }) }) }) }) }));
 
 const chamadas = [];
 function sse(uso) {
@@ -18,46 +19,48 @@ function sse(uso) {
 }
 let usoSeguinte = {};
 globalThis.fetch = vi.fn(async (url, init) => {
-  const u = String(url);
-  chamadas.push({ u, metodo: init?.method, corpo: typeof init?.body === 'string' ? JSON.parse(init.body) : null });
-  if (u.includes('/files') && init?.method === 'POST') return new Response(JSON.stringify({ id: `file_${chamadas.length}`, type: 'file' }), { status: 200, headers: { 'content-type': 'application/json' } });
-  if (u.includes('/files/') && init?.method === 'DELETE') return new Response(JSON.stringify({ id: 'x', type: 'file_deleted' }), { status: 200, headers: { 'content-type': 'application/json' } });
+  chamadas.push({ u: String(url), metodo: init?.method, corpo: typeof init?.body === 'string' ? JSON.parse(init.body) : null });
   return new Response(sse(usoSeguinte), { status: 200, headers: { 'content-type': 'text/event-stream' } });
 });
 
 const { perguntarClaude, salvarConfigClaude } = await import('../src/claudeApi.js');
 
-describe('reaproveitamento dos autos (cache)', () => {
+describe('envio direto: PDF na pergunta e cache dos autos', () => {
   beforeEach(() => { chamadas.length = 0; });
-  it('envia o PDF dos autos uma vez, marca o cache e não o apaga', async () => {
+  it('nenhuma chamada à Files API; PDF em base64 primeiro, com a marca de cache', async () => {
     salvarConfigClaude({ chave: 'sk-teste', modelo: 'claude-opus-5-5', esforco: 'high', cache: '1h' });
     const autos = { blob: new Blob(['%PDF-1.4 sintetico']), nome: 'autos.pdf', mime: 'application/pdf', chave: 'autos:1:18' };
     usoSeguinte = { cache_creation_input_tokens: 1000 };
-    const r1 = await perguntarClaude({ instrucao: 'Extraia.', anexos: [autos] });
-    expect(chamadas.filter((c) => c.u.includes('/files') && c.metodo === 'POST')).toHaveLength(1);
-    expect(chamadas.some((c) => c.metodo === 'DELETE')).toBe(false);
+    const r1 = await perguntarClaude({ instrucao: 'Extraia.', anexos: [{ blob: new Blob(['%PDF fds']), nome: 'fds.pdf', mime: 'application/pdf' }, autos] });
+    expect(chamadas.some((c) => c.u.includes('/files'))).toBe(false);
     const msg = chamadas.find((c) => c.u.includes('/messages')).corpo;
-    expect(msg.messages[0].content[0].cache_control).toEqual({ type: 'ephemeral', ttl: '1h' });
+    const c0 = msg.messages[0].content[0];
+    expect(c0.source.type).toBe('base64');
+    expect(c0.title).toBe('autos.pdf');
+    expect(c0.cache_control).toEqual({ type: 'ephemeral', ttl: '1h' });
+    expect(msg.messages[0].content[1].cache_control).toBeUndefined();
     expect(msg.messages[0].content.at(-1)).toEqual({ type: 'text', text: 'Extraia.' });
-    expect(r1.uso.gravado).toBe(1000);
 
     chamadas.length = 0; usoSeguinte = { cache_read_input_tokens: 1000 };
-    const avulso = { blob: new Blob(['%PDF-1.4 fds']), nome: 'fds.pdf', mime: 'application/pdf' };
-    const r2 = await perguntarClaude({ instrucao: 'Responda.', anexos: [avulso, autos] });
-    const uploads = chamadas.filter((c) => c.u.includes('/files') && c.metodo === 'POST');
-    expect(uploads).toHaveLength(1); // só o avulso
-    const msg2 = chamadas.find((c) => c.u.includes('/messages')).corpo;
-    expect(msg2.messages[0].content[0].source.file_id).toBe(msg.messages[0].content[0].source.file_id); // autos primeiro, mesmo arquivo
-    expect(chamadas.filter((c) => c.metodo === 'DELETE')).toHaveLength(1); // apaga só o avulso
+    const r2 = await perguntarClaude({ instrucao: 'Responda.', anexos: [autos] });
+    const c2 = chamadas.find((c) => c.u.includes('/messages')).corpo.messages[0].content[0];
+    expect(c2.source.data).toBe(c0.source.data); // o mesmo começo de pergunta → cache
     expect(r2.economia).toBeGreaterThan(0);
     expect(r2.custo).toBeLessThan(r1.custo);
   });
-  it('com o reaproveitamento desligado, apaga os autos depois', async () => {
-    salvarConfigClaude({ chave: 'sk-teste', modelo: 'claude-opus-5-5', esforco: 'high', cache: 'nao' });
+  it('com o reaproveitamento desligado, sem marca de cache', async () => {
+    salvarConfigClaude({ cache: 'nao' });
     usoSeguinte = {};
     await perguntarClaude({ instrucao: 'x', anexos: [{ blob: new Blob(['%PDF']), nome: 'a.pdf', mime: 'application/pdf', chave: 'autos:2:4' }] });
-    const msg = chamadas.find((c) => c.u.includes('/messages')).corpo;
-    expect(msg.messages[0].content[0].cache_control).toBeUndefined();
-    expect(chamadas.filter((c) => c.metodo === 'DELETE')).toHaveLength(1);
+    expect(chamadas.find((c) => c.u.includes('/messages')).corpo.messages[0].content[0].cache_control).toBeUndefined();
+  });
+  it('PDF grande demais: vai o texto extraído página a página, com a marca de cache', async () => {
+    salvarConfigClaude({ cache: '1h' });
+    const grande = new Blob([new Uint8Array(23 * 1024 * 1024)]);
+    await perguntarClaude({ instrucao: 'x', anexos: [{ blob: grande, nome: 'autos.pdf', mime: 'application/pdf', chave: 'autos:3:g' }] });
+    const c0 = chamadas.find((c) => c.u.includes('/messages')).corpo.messages[0].content[0];
+    expect(c0.type).toBe('text');
+    expect(c0.text).toContain('[Página 2]');
+    expect(c0.cache_control).toEqual({ type: 'ephemeral', ttl: '1h' });
   });
 });

@@ -6,7 +6,9 @@
 // assinatura do claude.ai e cobra por uso; o limite de gasto mensal se define na plataforma da Anthropic.
 //
 // - modelo: Claude Opus 5.5 por padrão (pode ser trocado em Configurações);
-// - PDFs vão pela Files API (até 500 MB por arquivo) e são apagados da conta logo depois da resposta;
+// - PDFs vão dentro da própria pergunta (a Files API não aceita chamadas do navegador): até ~22 MB e 550 páginas
+//   como PDF (o Claude vê texto e imagens); acima disso, o texto extraído página a página (páginas só com imagem ficam
+//   sem conteúdo – o app avisa);
 // - imagens (fotos) vão reduzidas, em JPEG; textos (.txt, .md, .json) vão como texto;
 // - pesquisa na internet (FDS, químicos) pela ferramenta web_search do próprio Claude;
 // - recusa por política de segurança: o próprio servidor tenta o modelo alternativo (fallback "default").
@@ -56,40 +58,64 @@ async function reduzirImagem(blob) {
 
 const tipoDo = (a) => a.mime || a.blob?.type || (/\.pdf$/i.test(a.nome || '') ? 'application/pdf' : /\.(jpe?g|png|webp|gif|heic)$/i.test(a.nome || '') ? 'image/jpeg' : 'text/plain');
 
-// PDFs dos autos ficam na conta (Files API) por até 7 dias, para o reaproveitamento: a cada envio do mesmo caso
-// vai o mesmo file_id, e o cache de prompt da API reaproveita a leitura. PDFs avulsos são apagados depois da resposta.
-const MAPA_LS = 'grahl.claude.arquivos';
-const DIAS_ARQ = 7;
-const lerMapa = () => { try { return JSON.parse(localStorage.getItem(MAPA_LS) || '{}'); } catch { return {}; } };
-const gravarMapa = (m) => { try { localStorage.setItem(MAPA_LS, JSON.stringify(m)); } catch { /* sem armazenamento */ } };
-async function limparArquivosAntigos(client) {
-  const m = lerMapa(); const limite = Date.now() - DIAS_ARQ * 86400000; let mudou = false;
-  for (const [k, x] of Object.entries(m)) {
-    if (x.ts >= limite) continue;
-    try { await client.files.delete(x.id); } catch { /* já apagado */ }
-    delete m[k]; mudou = true;
-  }
-  if (mudou) gravarMapa(m);
-}
-export function esquecerArquivoEnviado(chave) { const m = lerMapa(); delete m[chave]; gravarMapa(m); }
+// Limites de uma pergunta: 32 MB no total (PDF em base64 cresce ~33%) e 600 páginas de PDF por pedido
+const MAX_PDF_BYTES = 22 * 1024 * 1024;
+const MAX_PDF_PAGINAS = 550;
+const textoExtraido = new Map(); // chave do PDF → texto já extraído nesta sessão (o mesmo texto mantém o cache)
 
-// anexos: [{ blob, nome, mime, chave? }] → blocos de conteúdo. Com "chave" (PDF dos autos), o arquivo é reaproveitado.
-// Os PDFs com chave vão primeiro e na mesma ordem (o cache de prompt depende de o começo da pergunta ser igual),
-// com a marca de cache no último deles. Devolve os file_id avulsos (para apagar depois).
-async function blocosDosAnexos(client, anexos, onEtapa, cache) {
-  const blocos = []; const enviados = []; const mapa = lerMapa();
+async function paraBase64(blob) {
+  const buf = new Uint8Array(await blob.arrayBuffer());
+  let bin = ''; for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
+  return btoa(bin);
+}
+async function abrirPdf(blob) {
+  const { carregarPdfjs } = await import('./apendices.js');
+  const pdfjs = await carregarPdfjs();
+  return pdfjs.getDocument({ data: new Uint8Array(await blob.arrayBuffer()) }).promise;
+}
+// texto do PDF, página a página ("[Página N]"); conta as páginas sem texto (digitalizadas sem OCR)
+async function textoDoPdf(pdf, onEtapa, nome) {
+  const partes = []; let semTexto = 0;
+  for (let i = 1; i <= pdf.numPages; i += 1) {
+    if (i % 25 === 1) onEtapa?.(`Lendo o texto de ${nome} – página ${i} de ${pdf.numPages}…`);
+    const tc = await (await pdf.getPage(i)).getTextContent();
+    const t = tc.items.map((x) => `${x.str}${x.hasEOL ? '\n' : ' '}`).join('').replace(/[ \t]+/g, ' ').trim();
+    if (t.length < 20) semTexto += 1;
+    partes.push(`[Página ${i}]\n${t || '(página sem texto – provavelmente digitalizada)'}`);
+  }
+  return { texto: partes.join('\n\n'), semTexto, paginas: pdf.numPages };
+}
+
+// anexos: [{ blob, nome, mime, chave? }] → blocos de conteúdo. Os PDFs com "chave" (autos do caso) vão primeiro e
+// sempre na mesma ordem e forma, com a marca de cache no último deles: o começo da pergunta fica igual entre os
+// envios do caso e a API reaproveita a leitura (cache de prompt). Devolve também os avisos (texto em vez de PDF).
+async function blocosDosAnexos(anexos, onEtapa, cache) {
+  const blocos = []; const avisos = [];
   const ordem = [...anexos.filter((a) => a.chave).sort((x, y) => String(x.chave).localeCompare(String(y.chave))), ...anexos.filter((a) => !a.chave)];
-  let ultimoFixo = -1;
+  let ultimoFixo = -1; let bytes = 0;
   for (const a of ordem) {
     const mime = tipoDo(a);
+    const nome = a.nome || 'documento.pdf';
     if (/pdf/i.test(mime)) {
-      let id = a.chave && cache !== 'nao' ? mapa[a.chave]?.id : '';
-      if (!id) {
-        onEtapa?.(`Enviando ${a.nome || 'PDF'}…`);
-        id = (await client.files.upload({ file: await sdk.toFile(a.blob, a.nome || 'documento.pdf', { type: 'application/pdf' }) })).id;
-        if (a.chave && cache !== 'nao') { mapa[a.chave] = { id, ts: Date.now() }; gravarMapa(mapa); } else enviados.push(id);
+      onEtapa?.(`Preparando ${nome}…`);
+      let bloco;
+      const jaTexto = a.chave && textoExtraido.get(a.chave);
+      const pdf = jaTexto ? null : await abrirPdf(a.blob);
+      if (!jaTexto && a.blob.size <= MAX_PDF_BYTES && bytes + a.blob.size <= MAX_PDF_BYTES && pdf.numPages <= MAX_PDF_PAGINAS) {
+        bytes += a.blob.size;
+        bloco = { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: await paraBase64(a.blob) }, title: nome };
+      } else {
+        // grande demais para ir como PDF: vai o texto (o mesmo texto nos próximos envios, para o cache)
+        let t = jaTexto;
+        if (!t) {
+          const r = await textoDoPdf(pdf, onEtapa, nome);
+          t = `Documento "${nome}" (${r.paginas} páginas) – texto extraído página a página:\n\n${r.texto}`;
+          if (r.semTexto) avisos.push(`${nome}: ${r.semTexto} de ${r.paginas} página(s) sem texto (digitalizadas) não puderam ser lidas – o PDF é grande demais para ir inteiro (limite de ~22 MB e ${MAX_PDF_PAGINAS} páginas).`);
+          if (a.chave) textoExtraido.set(a.chave, t);
+        }
+        bloco = { type: 'text', text: t };
       }
-      blocos.push({ type: 'document', source: { type: 'file', file_id: id }, title: a.nome || 'documento.pdf' });
+      blocos.push(bloco);
       if (a.chave) ultimoFixo = blocos.length - 1;
     } else if (/^image\//i.test(mime)) {
       // o nome vai antes da imagem ("Foto 01"), para o Claude saber qual é qual
@@ -102,7 +128,7 @@ async function blocosDosAnexos(client, anexos, onEtapa, cache) {
     }
   }
   if (ultimoFixo >= 0 && cache !== 'nao') blocos[ultimoFixo].cache_control = { type: 'ephemeral', ...(cache === '1h' ? { ttl: '1h' } : {}) };
-  return { blocos, enviados, chaves: ordem.filter((a) => a.chave).map((a) => a.chave) };
+  return { blocos, avisos };
 }
 
 // texto final da resposta: os blocos de texto, sem a fala que antecede cada pesquisa na internet
@@ -137,27 +163,12 @@ export async function perguntarClaude({ instrucao, anexos = [], web = false, max
   if (!cfg.chave) throw new Error('Configure a chave de API do Claude em Configurações → Claude (API).');
   await carregarSdk();
   const client = cliente(cfg);
-  let enviados = [];
   try {
-    await limparArquivosAntigos(client);
-    let r = await blocosDosAnexos(client, anexos, onEtapa, cfg.cache);
-    enviados = r.enviados;
-    let resposta;
-    try { resposta = await conversar(client, cfg, r.blocos, instrucao, web, maxTokens, onEtapa); }
-    catch (e) {
-      // arquivo reaproveitado que já não existe na conta (apagado na plataforma): envia de novo, uma vez
-      if (!r.chaves.length || !/file/i.test(String(e?.message || '')) || !(e?.status === 404 || e?.status === 400)) throw e;
-      r.chaves.forEach(esquecerArquivoEnviado);
-      r = await blocosDosAnexos(client, anexos, onEtapa, cfg.cache);
-      enviados = [...enviados, ...r.enviados];
-      resposta = await conversar(client, cfg, r.blocos, instrucao, web, maxTokens, onEtapa);
-    }
-    return { ...resposta, custo: custoEstimado(cfg.modelo, resposta.uso, cfg.cache), economia: economiaDoCache(cfg.modelo, resposta.uso) };
+    const r = await blocosDosAnexos(anexos, onEtapa, cfg.cache);
+    const resposta = await conversar(client, cfg, r.blocos, instrucao, web, maxTokens, onEtapa);
+    return { ...resposta, avisos: r.avisos, custo: custoEstimado(cfg.modelo, resposta.uso, cfg.cache), economia: economiaDoCache(cfg.modelo, resposta.uso) };
   } catch (e) {
     throw new Error(mensagemDeErro(e));
-  } finally {
-    // os PDFs avulsos não ficam guardados na conta da Anthropic
-    for (const id of enviados) { try { await client.files.delete(id); } catch { /* já apagado */ } }
   }
 }
 
@@ -203,10 +214,11 @@ function mensagemDeErro(e) {
   if (e instanceof Anthropic.BadRequestError) {
     const m = String(e.message || '');
     if (/credit|balance|billing/i.test(m)) return 'Sem créditos na conta de API. Adicione créditos na plataforma da Anthropic (Billing).';
-    if (/too long|too large|pages|exceed/i.test(m)) return 'Os anexos excedem o limite de uma pergunta (600 páginas). Envie o PDF em partes ou só as peças necessárias.';
+    if (/too long|too large|pages|exceed|prompt is too long/i.test(m)) return 'Os anexos excedem o limite de uma pergunta. Envie só as peças necessárias (ou desmarque os autos).';
     return `Pedido recusado pela API: ${m}`;
   }
-  if (e instanceof Anthropic.APIConnectionError) return 'Sem conexão com a API do Claude. Verifique a internet.';
+  if (e instanceof Anthropic.APIConnectionTimeoutError) return 'A resposta demorou demais. Tente de novo (com autos grandes, prefira o Wi-Fi).';
+  if (e instanceof Anthropic.APIConnectionError) return 'Sem conexão com a API do Claude. Verifique a internet; com autos muito grandes, tente pelo Wi-Fi.';
   if (e instanceof Anthropic.APIError) return `Erro da API do Claude (${e.status}): ${e.message}`;
   return e?.message || String(e);
 }

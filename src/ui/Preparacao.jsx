@@ -2,7 +2,7 @@ import { horasDia, fmtHoras } from '../calc.js';
 import { useState } from 'preact/hooks';
 import { db } from '../db.js';
 import { CAMPOS_SINTESE, CAMPOS_PERIODO, CAMPOS_DOC, CAMPOS_EPI, CAMPOS_ENTREVISTA_MOTORISTA, CAMPOS_AGENTE_AVALIADO, contextoLegal } from '../schema.js';
-import { BotaoClaudeDireto, anexosDosAutos } from './ClaudeDireto.jsx';
+import { BotaoClaudeDireto, anexosDosAutos, ModoManual } from './ClaudeDireto.jsx';
 import { SITUACOES, situacaoDoCaso, montarPrompt, lerJsonIA, aplicarIA, limparDuplicados } from '../aiimport.js';
 import { avisarAlteracao } from '../sync.js';
 import { dataBR } from '../docx/reports.js';
@@ -29,7 +29,7 @@ function CarregarProfissao({ rec }) {
   const periodos = useLive(async () => caseChildren(rec.id, 'periodo'), [rec.id], []);
   const [msg, setMsg] = useState('');
   const prof = profissaoDoCaso(rec.data, periodos);
-  if (!prof) return <p class="dica largo">Banco de profissões: escolha a profissão no cadastro (etapa 1) para carregar os agentes e a profissiografia já estudados ({PROFISSOES.map((p) => p.nome).join(', ')}).</p>;
+  if (!prof) return <p class="dica largo">Banco de profissões: escolha a profissão no cadastro (etapa 1. Autos → Dados do caso) para carregar os agentes e a profissiografia já estudados ({PROFISSOES.map((p) => p.nome).join(', ')}).</p>;
   const carregar = async () => {
     if (!(await confirmar(`Carregar os ${prof.agentes.length} agentes avaliados e a profissiografia padrão de ${prof.nome}? Os agentes que já estão no caso não são repetidos: só os campos vazios deles são completados; o que você já escreveu não muda. Depois, exclua os agentes que o segurado não usa.`))) return;
     const lista = await caseChildren(rec.id, 'agenteAvaliado');
@@ -231,12 +231,7 @@ function ImportarIA({ rec, abertoInicial = false }) {
   return (
     <section class="bloco largo destaque passo-etapa">
       <h3><span class="num-passo">B</span> Extrair os dados dos autos com o Claude</h3>
-      <ol class="passos">
-        <li>Toque em <b>Copiar instrução</b>.</li>
-        <li>Abra uma conversa nova no Claude, cole a instrução e anexe o PDF do processo (o mesmo guardado no item A).</li>
-        <li>Quando o Claude responder, copie a resposta inteira (o bloco que começa com <code>{'{'}</code>) e cole no campo abaixo.</li>
-        <li>Toque em <b>Ler e mostrar prévia</b> e depois em <b>Aplicar ao caso</b>. O app preenche cadastro, síntese, períodos, documentos, EPIs e quesitos. Se o processo já tiver laudo ou diligência, preenche também a etapa 4. Campo (diligência, postos e medições), as respostas dos quesitos, a conclusão do laudo e a fase. Campos que você já preencheu não são alterados, a menos que marque "substituir".</li>
-      </ol>
+      <p class="dica">O Claude lê os autos (item A) e preenche os dados do caso, a síntese, os vínculos, os documentos, os EPIs e os quesitos. Se o processo já tiver laudo ou diligência, preenche também o campo (diligência, postos e medições), as respostas e a fase. Você confere a prévia e aplica; o que você já preencheu não muda, a menos que marque "substituir".</p>
       <label class="campo"><span class="rotulo">Situação (escolhida pelo tipo do caso; pode trocar)</span>
         <select value={situacao} onChange={(e) => setSituacao(e.currentTarget.value)}>
           {SITUACOES.map((x) => <option value={x.id}>{x.titulo}</option>)}
@@ -244,15 +239,19 @@ function ImportarIA({ rec, abertoInicial = false }) {
       </label>
       <BotaoClaudeDireto rotulo="Enviar os autos direto ao Claude" instrucao={prompt} anexos={() => anexosDosAutos(rec.id)}
         onResposta={(t) => { setTexto(t); try { setPrevia(lerJsonIA(t)); setErro(''); return 'Confira a prévia abaixo e toque em "Aplicar ao caso".'; } catch (e) { setPrevia(null); setErro(e.message); return ''; } }} />
-      <div class="linha-botoes">
-        <button type="button" class="sec" onClick={copiar}>Copiar instrução (claude.ai)</button>
-        <button type="button" class="sec" onClick={() => setAberto(false)}>Fechar</button>
-      </div>
-      <details><summary>Ver a instrução</summary><pre class="prompt">{prompt}</pre></details>
-      <label class="campo campo-area"><span class="rotulo">Resposta da IA (JSON)</span>
-        <textarea rows={6} value={texto} onInput={(e) => setTexto(e.currentTarget.value)} placeholder='{"processo": {...}, "quesitos": [...]}' />
-      </label>
-      <div class="linha-botoes"><button type="button" onClick={ler} disabled={!texto.trim()}>Ler e mostrar prévia</button></div>
+      <ModoManual rotulo="Alternativa sem a chave de API (ou para colar uma resposta do claude.ai)">
+        <ol class="passos">
+          <li>Toque em <b>Copiar instrução</b> e cole numa conversa nova no Claude, com o PDF do processo anexado.</li>
+          <li>Copie a resposta inteira (o bloco que começa com <code>{'{'}</code>), cole no campo abaixo e toque em <b>Ler e mostrar prévia</b>.</li>
+        </ol>
+        <div class="linha-botoes"><button type="button" class="sec" onClick={copiar}>Copiar instrução (claude.ai)</button></div>
+        <details><summary>Ver a instrução</summary><pre class="prompt">{prompt}</pre></details>
+        <label class="campo campo-area"><span class="rotulo">Resposta da IA (JSON)</span>
+          <textarea rows={6} value={texto} onInput={(e) => setTexto(e.currentTarget.value)} placeholder='{"processo": {...}, "quesitos": [...]}' />
+        </label>
+        <div class="linha-botoes"><button type="button" onClick={ler} disabled={!texto.trim()}>Ler e mostrar prévia</button></div>
+      </ModoManual>
+      <div class="linha-botoes"><button type="button" class="sec mini" onClick={() => setAberto(false)}>Fechar</button></div>
       {erro && <p class="erro-msg">{erro}</p>}
       {previa && (
         <div class="previa">
@@ -310,7 +309,7 @@ export function VeiculoDoPeriodo({ r, abertoInicial }) {
         <button type="button" onClick={buscar}>Sugerir paradigmas pelo banco</button>
         <CopiarDoVinculo r={r} />
       </div>
-      {res?.bloqueado && <p class="dica">Perícia judicial sem indicação do juízo para similaridade: o app não sugere paradigmas. Para usar, marque "Perícia por similaridade" = Sim no cadastro do caso ou use as medições dos laudos juntados aos autos.</p>}
+      {res?.bloqueado && <p class="dica">Perícia judicial: o app não sugere paradigmas do banco. Para usar, marque em "Paradigmas dos vínculos" que o juízo indicou o uso de medições anteriores, ou use as medições dos laudos juntados aos autos.</p>}
       {res && !res.bloqueado && <ResultadoBusca res={res} onEscolher={escolher} />}
       {res && !res.bloqueado && !res.ruido.length && !res.vibracao.length && <FichaPesquisa r={r} familia={res.familia || familiaDoGrupo(r.data.grupoVeiculo)} />}
       <details class="mt" open={!!(r.data.jornadaSemanal || r.data.penosidadeConclusao)}>
@@ -408,7 +407,7 @@ function MedicoesDosAutos({ rec }) {
       {dosAutos.length > 0 && <ul class="lista-curta">{dosAutos.map((p) => <li><b>{rotuloParadigma(p)}</b> – Lavg {p.data.lavg || '—'} · arep {p.data.arep || p.data.arenLaudo || '—'} · VDVR {p.data.vdvrLaudo || '—'} · {citacaoDe(p)}{/não usar/i.test(p.data.situacao || '') ? ' (NÃO USAR)' : ''}</li>)}</ul>}
       <BotaoClaudeDireto rotulo="Extrair as medições dos laudos dos autos" sec instrucao={PROMPT_LAUDOS_DOS_AUTOS} anexos={async () => {
         const a = await anexosDosAutos(rec.id);
-        if (!a.length) throw new Error('Anexe primeiro o PDF dos autos na etapa 2, item A.');
+        if (!a.length) throw new Error('Anexe primeiro o PDF dos autos na etapa 1. Autos, item A.');
         return a;
       }} onResposta={(t) => { try { const l = lerJsonVeiculos(t); setPrevia(l); setMsg(''); return `${l.length} medição(ões) encontrada(s): confira a prévia e inclua.`; } catch (e) { setPrevia(null); return `Erro ao ler a resposta: ${e.message}`; } }} />
       {previa && (
@@ -455,7 +454,8 @@ export function ParadigmasDosVinculos({ rec }) {
   if (!paradigmasPermitidos(rec.data)) return (
     <section class="bloco largo">
       <h3>Paradigmas dos vínculos</h3>
-      <p class="dica">Perícia judicial: a avaliação é feita sem paradigmas. Eles só entram com indicação do juízo – marque "Perícia por similaridade" = Sim no cadastro do caso – ou com as medições dos laudos juntados aos autos (abaixo).</p>
+      <p class="dica">Perícia judicial: a avaliação usa as suas medições (inclusive em empresa paradigma, na perícia por similaridade), sem o banco de paradigmas. O banco só entra se o juízo indicar o uso de medições anteriores; as medições dos laudos juntados aos autos ficam abaixo.</p>
+      <label class="check"><input type="checkbox" checked={!!rec.data.usarBancoParadigmas} onChange={async (e) => { await updateFields(rec.id, { usarBancoParadigmas: e.currentTarget.checked }); avisarAlteracao(); }} /> O juízo indicou o uso de medições anteriores (banco de paradigmas do signatário)</label>
       <MedicoesDosAutos rec={rec} />
     </section>
   );

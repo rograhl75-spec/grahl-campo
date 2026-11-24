@@ -236,14 +236,14 @@ export function secaoPenosidade(d, dados, { numero = '', nivel = 'h2', tipo = 'l
   { larguras: [0.22, 0.78], alinhar: 'left', fonte: 'Elaborado pelo signatário.' });
 
   if (!vs.length) {
-    d.redigir('identificar os vínculos como motorista e preencher os fatores de penosidade do vínculo (etapa 2).');
+    d.redigir('identificar os vínculos como motorista e preencher os fatores de penosidade do vínculo (etapa 1. Autos).');
     return true;
   }
   const mats = vs.map((r) => ({ r, m: matrizIAC(r, dados) }));
   for (const { r, m } of mats) {
     d.quadro(`Matriz de avaliação de penosidade – ${nome(r, dados)} (${periodo(r)})`, [['Critério', 'Condição apurada', 'Fonte'],
       ...m.criterios.map((c) => [c.titulo, c.linhas.length ? c.linhas.join('\n') : `[[${c.oque}]]`, c.linhas.length ? c.fonte : 'Entrevista do autor']),
-      ['Conclusão técnica do vínculo', m.conclusao || '[[poucos fatores informados – complete os campos de penosidade do vínculo na etapa 2]]', 'Perícia individualizada']],
+      ['Conclusão técnica do vínculo', m.conclusao || '[[poucos fatores informados – complete os campos de penosidade do vínculo na etapa 1. Autos]]', 'Perícia individualizada']],
     { larguras: [0.22, 0.56, 0.22], tam: 9, alinhar: 'left', fonte: 'Elaborado pelo signatário com base na entrevista do autor, na vistoria do veículo e nas medições da diligência.' });
   }
   d.texto('**Conclusão metodológica da penosidade.** Os critérios acima não são avaliados isoladamente. A convergência cumulativa da condução de veículo com desconforto e agentes físicos, dos trajetos que exigem alerta constante, da responsabilidade e do manuseio da carga e de jornadas extenuantes, que impedem a recuperação física e mental, caracteriza o trabalho excepcionalmente penoso; a ausência de convergência afasta a caracterização.');

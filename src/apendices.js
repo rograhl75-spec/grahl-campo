@@ -7,7 +7,7 @@ export const DESC_APENDICE = 'apendice';
 export const DESC_ANEXO_DOC = 'anexoDoc';
 export const LETRAS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-async function carregarPdfjs() {
+export async function carregarPdfjs() {
   const pdfjs = await import('pdfjs-dist');
   const worker = (await import('pdfjs-dist/build/pdf.worker.min.mjs?url')).default;
   pdfjs.GlobalWorkerOptions.workerSrc = worker;

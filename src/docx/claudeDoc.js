@@ -3,7 +3,7 @@
 // quadros e figuras numerados, assinatura). O Claude devolve o texto em Markdown com as convenções de
 // CONVENCOES_CLAUDE; o app monta o documento, sem o perito ter de formatar no Word.
 // ======================================================================
-import { Doc, carregar, finalizar, capaTecnica, blocoAssinatura, partes } from './base.js';
+import { Doc, carregar, finalizar, capaTecnica, blocoAssinatura, partes, enderecamentoTexto, linhasProcesso } from './base.js';
 import { datasDasVistorias } from '../schema.js';
 
 export const CONVENCOES_CLAUDE = `FORMATO DA RESPOSTA (o app monta o Word no meu papel timbrado, com capa, sumário, numeração de quadros e figuras e assinatura; não faça capa, sumário nem assinatura):
@@ -117,3 +117,17 @@ export async function documentoDoClaude(caseId, md) {
 }
 
 export const temConteudo = (md) => limpa(md).length > 40;
+
+// Petição redigida pelo Claude → Word no padrão das petições do app: endereçamento ao Juízo, linhas do processo,
+// corpo (o texto do Claude), "Nestes termos, pede deferimento" e assinatura. Sem capa e sem sumário.
+export async function peticaoDoClaude(caseId, md) {
+  const dados = await carregar(caseId);
+  const { c } = dados;
+  const d = new Doc();
+  d.enderecamento(enderecamentoTexto(c), linhasProcesso(c));
+  const { titulo } = markdownParaDoc(String(md || '').replace(/^\s*(nestes termos|termos em que)[\s\S]*$/im, ''), d);
+  const { fecho } = await import('./modelos.js');
+  fecho(d, dados, c.papel === 'Perito do Juízo' ? 'Perito Judicial' : null);
+  const nome = (titulo || 'Peticao').replace(/^peti[çc][ãa]o\s*(de|do|da)?\s*/i, '');
+  return finalizar(d, { titulo: titulo || 'Petição', arquivo: `Peticao_${nome.replace(/[^\wÀ-ú]+/g, '_').slice(0, 40) || 'avulsa'}`, c });
+}

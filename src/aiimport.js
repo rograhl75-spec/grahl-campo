@@ -55,6 +55,7 @@ export const CRITERIOS_GERAIS = `CRITÉRIOS GERAIS DO SIGNATÁRIO
 - Validade da calibração: o fabricante recomenda 12 meses; o signatário adota até 24 meses da data do certificado. Dentro de 24 meses na data da medição, a calibração é válida: não aponte pendência nem ressalva.
 - Aferição de campo do dosímetro antes e depois da medição: cite somente se estiver registrada nas medições; sem registro, não mencione nem marque pendência.
 - Veículos, máquinas ou fatos citados apenas em petições e não confirmados na entrevista ou na diligência ficam fora do laudo (não viram pendência).
+- Veículo avaliado sem o documento (CRLV): use os dados da consulta pública da placa lançados no posto, citando a fonte e a data (ex.: "conforme consulta da placa AFD-9436 no Sinesp Cidadão em 25/11/2026"). Se ainda não houver, uma pendência só: "[[consultar a placa X no Sinesp Cidadão: marca, modelo e ano]]".
 - Hierarquia das fontes: 1) lei, decreto, NR e IN na redação vigente no período; 2) Normas de Higiene Ocupacional (NHO) da FUNDACENTRO; 3) normas técnicas (ISO, ABNT); 4) somente como apoio técnico, nunca como critério de enquadramento quando houver norma brasileira: ACGIH (TLVs/BEIs – referência da NR-9, item 9.6.1.1, para prevenção), NIOSH, OSHA e convenções da OIT ratificadas pelo Brasil (148 e 155, consolidadas no Decreto 10.088/2019). Cite edição e ano de cada fonte.`;
 
 export const CRITERIOS_TRAB = `FINALIDADE TRABALHISTA (insalubridade / periculosidade – CLT arts. 189 a 195, NR-15 e NR-16; para servidor estatutário, a lei do ente, que em regra remete à NR-15/NR-16 – cite a lei local)
@@ -136,7 +137,7 @@ Responda SOMENTE com um bloco JSON válido, sem texto antes ou depois, neste for
   "quesitos": [{"origem": "Juízo | Autor / Reclamante | Réu / Reclamada | INSS | Complementares", "numero": "1", "texto": "", "resposta": "resposta dada no laudo, se já houver"}],
   "andamento": {"fase": "A preparar | Diligência agendada | Diligência realizada | Laudo / parecer em elaboração | Aguardando manifestação / esclarecimentos | Respondendo quesitos suplementares | Concluído", "laudoRefPerito": "ID/mov. do laudo", "laudoData": "", "conclusaoLaudo": "conclusão do laudo por agente e período, com as folhas", "honorariosFixados": "", "honorariosItem": "", "dataDiligencia": "", "horaDiligencia": ""},
   "diligencia": {"vistoriaData": "", "vistoriaInicio": "HH:MM", "vistoriaFim": "HH:MM", "vistoriaLocal": "empresa onde será / foi a vistoria", "vistoriaProprietario": "nome completo, se pessoa física sem empresa", "vistoriaVeiculo": "", "vistoriaContato": "", "vistoriaEndereco": "", "vistoriaCnpj": "", "vistoriaPresentes": "nome – função – quem representa, um por linha", "vistoriaIntimacao": "evento/mov. e data da intimação das partes sobre a data da diligência", "vistoriaCondicoes": "", "vistoriaNotas": "outras anotações da diligência e a folha do laudo onde está"},
-  "postos": [{"nome": "", "descricao": "", "infoTrabalhador": "", "infoEmpresa": "", "agentes": "", "jornada": "", "epc": "", "epi": "",
+  "postos": [{"nome": "", "descricao": "", "placa": "placa do veículo avaliado, se houver", "veiculoAvaliado": "marca, modelo, ano e fonte (CRLV), se houver", "infoTrabalhador": "", "infoEmpresa": "", "agentes": "", "jornada": "", "epc": "", "epi": "",
     "medicoes": [{"agente": "Ruído | Calor (IBUTG) | Vibração de corpo inteiro (VCI) | Vibração de mãos e braços (VMB) | Agente químico | Outro", "dataMedicao": "", "horaInicio": "", "horaFim": "", "equipamento": "", "relatorio": "",
       "tempoAmostragem": "", "jornada": "", "dose": "", "lavg": "", "nen": "", "lmax": "", "calibInicial": "", "calibFinal": "", "posicao": "",
       "tbn": "", "tbs": "", "tg": "", "ibutgLido": "", "atividade": "", "regime": "",
@@ -153,7 +154,7 @@ Responda SOMENTE com um bloco JSON válido, sem texto antes ou depois, neste for
   "diligencia": {"vistoriaData": "", "vistoriaInicio": "HH:MM", "vistoriaFim": "HH:MM", "vistoriaLocal": "", "vistoriaEndereco": "", "vistoriaPresentes": "nome – função – quem representa, um por linha", "vistoriaIntimacao": "", "vistoriaCondicoes": "", "vistoriaNotas": ""},
   "periodos": [{"empresa": "igual à lista", "inicio": "igual à lista", "fim": "igual à lista", "atividades": "", "tipoTransporte": "", "jornadaSemanal": "", "noturnoPernoite": "", "cargaDescarga": "", "vias": "", "riscoAcidente": "", "cabine": "", "pausas": "", "pressao": "", "fisiologicas": "", "veiculoMarca": "", "veiculoModelo": "", "veiculoAno": "", "carregaDescarrega": "Não | Carregava | Descarregava | Carregava e descarregava", "cambio": "", "segundoMotorista": "Não | Sim", "lavagemManutencao": "", "tanqueSuplementar": "", "inflamaveis": ""}],
   "quesitos": [{"origem": "", "numero": "", "texto": "", "resposta": ""}],
-  "postos": [{"nome": "", "descricao": "", "infoTrabalhador": "", "infoEmpresa": "", "agentes": "", "fontes": "", "viaPeriodicidade": "", "jornada": "", "epc": "", "epi": "",
+  "postos": [{"nome": "", "descricao": "", "placa": "placa do veículo avaliado, se houver", "veiculoAvaliado": "marca, modelo, ano e fonte (CRLV), se houver", "infoTrabalhador": "", "infoEmpresa": "", "agentes": "", "fontes": "", "viaPeriodicidade": "", "jornada": "", "epc": "", "epi": "",
     "medicoes": [{"agente": "Ruído | Calor (IBUTG) | Vibração de corpo inteiro (VCI) | Vibração de mãos e braços (VMB) | Agente químico | Outro", "dataMedicao": "", "horaInicio": "", "horaFim": "", "equipamento": "", "relatorio": "",
       "tempoAmostragem": "", "jornada": "", "dose": "", "lavg": "", "nen": "", "lmax": "", "calibInicial": "", "calibFinal": "", "posicao": "",
       "tbn": "", "tbs": "", "tg": "", "ibutgLido": "", "atividade": "", "regime": "", "veiculo": "", "aren": "", "vdv": "", "eixo": "", "tempoExposicao": "",
@@ -766,7 +767,7 @@ export async function textoDoCaso(caseId) {
     L.push('\n## Postos avaliados');
     postos.forEach((p) => {
       L.push(`\n### ${p.data.nome || 'Posto'}`);
-      for (const [k, r] of [['descricao', 'Atividade observada'], ['infoTrabalhador', 'Informações do trabalhador'], ['infoEmpresa', 'Informações da empresa'],
+      for (const [k, r] of [['descricao', 'Atividade observada'], ['placa', 'Placa do veículo avaliado'], ['veiculoAvaliado', 'Veículo avaliado (marca, modelo, ano e fonte)'], ['infoTrabalhador', 'Informações do trabalhador'], ['infoEmpresa', 'Informações da empresa'],
         ['agentes', 'Agentes'], ['jornada', 'Jornada'], ['epc', 'EPC'], ['epi', 'EPI']]) campo(r, p.data[k]);
       // vínculos que o posto (veículo medido) representa: é o que liga a medição a cada período
       const vs = periodos.filter((r) => (p.data.vinculos || []).includes(r.id));

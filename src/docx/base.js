@@ -665,6 +665,7 @@ export function profissiografia(d, postos, dados, { numero, base } = {}) {
     const linhas = [[rotPosto, x.nome], ['Descrição', x.descricao],
       [vincs.length === 1 ? 'Vínculo representado' : 'Vínculos representados', vincs.map((r) => `${empresaCurta(r.data.empresa)} (${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'})`).join('\n')],
       ['Medições (data e horário)', [...new Set(quando)].join('\n')],
+      ['Veículo avaliado', [x.veiculoAvaliado, x.placa && `placa ${x.placa}`].filter(Boolean).join(' – ')],
       ['Informações do trabalhador', x.infoTrabalhador], ['Informações da empresa / acompanhante', x.infoEmpresa],
       ['Agentes identificados', x.agentes], ['Fontes geradoras e localização', x.fontes], ['Via e periodicidade da exposição', x.viaPeriodicidade],
       ['Jornada / exposição', x.jornada], ['EPC', x.epc], ['EPI observado', x.epi]].filter(([, t]) => v(t));

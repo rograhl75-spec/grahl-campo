@@ -255,6 +255,9 @@ export const CAMPOS_DILIGENCIA = [
 export const CAMPOS_POSTO = [
   ['nome', 'Posto / setor / função avaliada', 'text'],
   ['descricao', 'Descrição da atividade observada', 'area'],
+  // veículo avaliado (motorista): sem o CRLV, os dados vêm da consulta pública da placa (Sinesp Cidadão), com a data
+  ['placa', 'Placa do veículo avaliado (motorista / operador)', 'text'],
+  ['veiculoAvaliado', 'Veículo avaliado – marca, modelo, ano e fonte (CRLV, ou "consulta da placa no Sinesp Cidadão em dd/mm/aaaa")', 'text'],
   ['infoTrabalhador', 'Informações do trabalhador / segurado', 'area'],
   ['infoEmpresa', 'Informações da empresa / acompanhante', 'area'],
   ['agentes', 'Agentes identificados no local', 'area'],

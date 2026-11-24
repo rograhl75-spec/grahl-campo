@@ -108,3 +108,19 @@ describe('pendências de paradigma e conclusão da penosidade', () => {
     expect(contradizResultado('Não – não caracteriza', 'A penosidade fica caracterizada pela convergência.')).toBe(true);
   });
 });
+
+describe('texto próprio da penosidade que é só "sim" / "não"', () => {
+  it('não vira texto: com resultado Sim, vale o texto padrão; sem resultado, vale como escolha', async () => {
+    const { contradizResultado, soSimNao } = await import('../src/pendencias.js');
+    expect(soSimNao('não')).toBe(true);
+    expect(soSimNao('Não.')).toBe(true);
+    expect(soSimNao('Não caracteriza.')).toBe(false);
+    expect(contradizResultado('Sim – caracteriza', 'não')).toBe(true);
+    expect(contradizResultado('Não – não caracteriza', 'não')).toBe(false);
+    const { matrizIAC } = await import('../src/docx/penosidade.js');
+    const m1 = matrizIAC({ id: 'x', data: { inicio: '2010-01-01', fim: '2011-01-01', penosidadeResultado: 'Sim – caracteriza', penosidadeConclusao: 'não' } }, { perfil: {}, periodos: [], postos: [], medicoes: [] });
+    expect(m1.penoso).toBe(true);
+    const m2 = matrizIAC({ id: 'y', data: { inicio: '2010-01-01', fim: '2011-01-01', penosidadeConclusao: 'não' } }, { perfil: {}, periodos: [], postos: [], medicoes: [] });
+    expect(m2.penoso).toBe(false);
+  });
+});

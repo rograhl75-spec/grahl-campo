@@ -195,10 +195,13 @@ export function matrizIAC(r, dados) {
   const nAdv = criterios.filter((c) => c.adverso).length;
   const comDados = criterios.filter((c) => c.linhas.length).length;
   let conclusao = v(x.penosidadeConclusao);
+  // escolha Sim / Não do vínculo (lista de pendências ou formulário): texto padrão, igual em todos os vínculos
+  let escolha = v(r.data.penosidadeResultado);
+  // texto próprio que é só "sim" / "não": vale como escolha (se não houver uma); texto que contradiz a escolha: vale a escolha
+  if (soSimNao(conclusao)) { if (!escolha) escolha = conclusao; conclusao = ''; }
+  if (conclusao && contradizResultado(escolha, conclusao)) conclusao = '';
   let penoso = conclusao ? !/n[ãa]o (h[áa]|caracteriz|se caracteriz|convergem)/i.test(conclusao) : null;
   let sugerida = false;
-  // escolha Sim / Não do vínculo (lista de pendências ou formulário): texto padrão, igual em todos os vínculos
-  const escolha = v(r.data.penosidadeResultado);
   if (!conclusao && /^(sim|n[ãa]o)/i.test(escolha)) {
     penoso = /^sim/i.test(escolha);
     conclusao = textoPadraoPenosidade(penoso, (dados && dados.perfil) || {});
@@ -257,6 +260,17 @@ export function secaoPenosidade(d, dados, { numero = '', nivel = 'h2', tipo = 'l
     })],
   { larguras: [0.26, 0.22, 0.26, 0.26], tam: 9, alinhar: 'left', fonte: 'Elaborado pelo signatário.' });
   return true;
+}
+
+// Texto próprio da conclusão que é só "sim" / "não": vale como escolha, não como texto
+export const soSimNao = (t) => /^\s*(sim|n[ãa]o)\b[^\p{L}]*$/iu.test(String(t || ''));
+// texto próprio da conclusão da penosidade que diz o contrário do resultado escolhido (Sim / Não)
+export function contradizResultado(resultado, texto) {
+  const res = String(resultado || '').trim(), t = String(texto || '').replace(/\s+/g, ' ');
+  if (!res || !t.trim()) return false;
+  if (soSimNao(t)) return /^sim/i.test(res) !== /^\s*sim/i.test(t);
+  const nega = /n[ãa]o\s+(se\s+)?(caracteriz|restou caracterizad|está caracterizad|ficou caracterizad|configur|convergem)|descaracteriz|n[ãa]o h[áa] penosidade/i.test(t);
+  return /^sim/i.test(res) ? nega : /^n[ãa]o/i.test(res) ? !nega && /caracteriz|configur/i.test(t) : false;
 }
 
 // Textos padrão da conclusão de penosidade (Sim / Não): os mesmos para todos os vínculos; o signatário pode

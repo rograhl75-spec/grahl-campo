@@ -723,7 +723,8 @@ export async function textoDoCaso(caseId) {
         const tc = pen.tempoConducao(r, dados);
         const esc = String(r.data.penosidadeResultado || '');
         const { contradizResultado } = await import('./pendencias.js');
-        const proprio = contradizResultado(esc, r.data.penosidadeConclusao) ? '' : String(r.data.penosidadeConclusao || '').trim();
+        const { soSimNao } = await import('./docx/penosidade.js');
+        const proprio = contradizResultado(esc, r.data.penosidadeConclusao) || soSimNao(r.data.penosidadeConclusao) ? '' : String(r.data.penosidadeConclusao || '').trim();
         const conc = proprio || (/^(sim|n[ãa]o)/i.test(esc) ? pen.textoPadraoPenosidade(/^sim/i.test(esc), dados.perfil) : '');
         L.push(`- ${r.data.empresa || 'Vínculo'} (${r.data.inicio || '?'} a ${r.data.fim || 'atual'}): tempo diário de condução ${isFinite(tc.T) ? `${String(tc.T).replace('.', ',')} h${tc.base ? ` (${tc.base})` : ''}` : '[[pendente]]'}`
           + `${r.data.vias ? `; trajetos: ${capitalizarCidades(r.data.vias)}` : ''}${conc ? `; conclusão da penosidade adotada: "${conc}"` : '; conclusão da penosidade: [[escolher Sim ou Não]]'}`);

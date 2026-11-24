@@ -10,7 +10,6 @@ import { Campos, CamposCompactos, Chips, Opcoes, Sel, TF } from './fields.jsx';
 import { Preparacao } from './Preparacao.jsx';
 import { Quesitos } from './Quesitos.jsx';
 import { Campo } from './Campo.jsx';
-import { Fotos } from './Fotos.jsx';
 import { Documentos } from './Documentos.jsx';
 import { Icone } from './Icone.jsx';
 import { confirmar } from './dialogo.jsx';
@@ -94,10 +93,7 @@ export function Caso({ id, aba }) {
           </details>} />
         <section id="sec-quesitos" class="secao-etapa"><h2 class="titulo-secao">Quesitos</h2><Quesitos rec={rec} /></section>
       </>}
-      {aba === 'campo' && <>
-        <Campo rec={rec} />
-        <section id="sec-fotos" class="secao-etapa"><h2 class="titulo-secao">Fotos</h2><Fotos rec={rec} /></section>
-      </>}
+      {aba === 'campo' && <Campo rec={rec} />}
       {aba === 'laudo' && <Documentos rec={rec} modo="laudo" />}
       {aba === 'peticoes' && <Documentos rec={rec} modo="peticoes" />}
       {aba === 'antigo' && <Antigo rec={rec} />}

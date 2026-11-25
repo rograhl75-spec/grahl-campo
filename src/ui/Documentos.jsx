@@ -516,7 +516,7 @@ function LevarParaBase({ rec }) {
       {!postos.length && <p class="vazio">Nenhum posto com medição neste caso.</p>}
       {postos.map((x) => (
         <div class="linha-botoes" key={x.p.id}>
-          <span class="cresce"><b>{x.p.data.nome || 'Posto'}</b> <small class="suave">{x.meds.map((m) => m.data.agente).join(', ')}</small></span>
+          <span class="cresce"><b>{x.p.data.nome || 'Posto'}</b> <small class="suave">{[...new Set(x.meds.map((m) => m.data.agente))].join(', ')}</small></span>
           {x.p.data.baseId ? <small class="ok-msg">✓ já na base</small> : <button type="button" class="sec" onClick={() => incluir(x)}>Incluir na base</button>}
         </div>
       ))}

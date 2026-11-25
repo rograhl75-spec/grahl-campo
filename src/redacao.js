@@ -5,6 +5,7 @@
 // ======================================================================
 import { db, createRecord, updateFields } from './db.js';
 import { CONVENCOES_CLAUDE } from './docx/claudeDoc.js';
+import { extrairJson } from './basesUsuario.js';
 
 export async function ultimaRedacao(caseId) {
   const l = (await db.records.where('[caseId+kind]').equals([caseId, 'redacao']).toArray()).filter((r) => !r.deleted);
@@ -61,10 +62,7 @@ ${textoCaso ? `\n---\nDADOS DO CASO (para completar o que a correção pedir)\n$
 }
 
 export function lerTrocas(texto) {
-  const t = String(texto || '');
-  const ini = t.indexOf('{'), fim = t.lastIndexOf('}');
-  if (ini < 0 || fim < ini) throw new Error('A resposta do Claude não trouxe o JSON com as trocas.');
-  const o = JSON.parse(t.slice(ini, fim + 1));
+  const o = extrairJson(texto);
   return { trocas: Array.isArray(o.trocas) ? o.trocas.filter((x) => x && typeof x.buscar === 'string') : [], naoAplicadas: Array.isArray(o.naoAplicadas) ? o.naoAplicadas : [] };
 }
 

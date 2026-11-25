@@ -72,3 +72,13 @@ describe('notas normativas do signatário', () => {
     expect(textoNotasParaClaude([{ data: { titulo: 'x', texto: 'y', usarNoClaude: 'Não' } }])).toBe('');
   });
 });
+
+describe('JSON da resposta do Claude', () => {
+  it('acha o objeto mesmo com texto e chaves soltas antes, cerca ``` ou vírgula final', async () => {
+    const { extrairJson } = await import('../src/basesUsuario.js');
+    expect(extrairJson('Ficha da profissão {Padeiro} abaixo:\n{"nome": "Padeiro", "agentes": []}\nObs.: revise {sempre}.').nome).toBe('Padeiro');
+    expect(extrairJson('```json\n{"nome": "A", "x": "texto com } chave"}\n```').x).toBe('texto com } chave');
+    expect(extrairJson('{"nome": "B", "lista": [1, 2,],}').nome).toBe('B');
+    expect(() => extrairJson('sem json')).toThrow(/JSON válido/);
+  });
+});

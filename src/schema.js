@@ -270,7 +270,7 @@ export const CAMPOS_POSTO = [
   ['infoEmpresa', 'Informações da empresa / acompanhante', 'area'],
   ['agentes', 'Agentes identificados no local', 'area'],
   ['fontes', 'Fontes geradoras e sua localização (LTCAT, art. 276, VI)', 'area'],
-  ['viaPeriodicidade', 'Via e periodicidade da exposição (LTCAT, art. 276, VII)', 'text'],
+  ['viaPeriodicidade', 'Via e periodicidade da exposição (LTCAT, art. 276, VII)', 'area'],
   ['jornada', 'Jornada / tempo de exposição', 'text'],
   ['epc', 'EPC existentes', 'area'],
   ['epi', 'EPI observados (tipo, CA, uso efetivo)', 'area'],

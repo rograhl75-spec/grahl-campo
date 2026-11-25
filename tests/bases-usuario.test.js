@@ -90,3 +90,16 @@ describe('JSON com aspas sem escape', () => {
     expect(o.fundamentacao).toBe('cód. 2.0.4 ("calor") do Anexo IV\nsegunda linha');
   });
 });
+
+describe('fontes e via/periodicidade pela base', () => {
+  it('monta pelos agentes (da profissão ou do caso), sem os que não caracterizam em nenhuma época', async () => {
+    const { fontesEViasDosAgentes } = await import('../src/basesUsuario.js');
+    const { PROFISSOES } = await import('../src/data/profissoes.js');
+    const dent = PROFISSOES.find((p) => p.id === 'dentista');
+    const r = fontesEViasDosAgentes(dent.agentes);
+    expect(r.fontes).toMatch(/^- Microrganismos/);
+    expect(r.fontes).toContain('- Hipoclorito de sódio:');
+    expect(r.fontes).not.toContain('Álcool etílico'); // não caracteriza em nenhuma época
+    expect(r.viaPeriodicidade).toContain('Habitual e permanente');
+  });
+});

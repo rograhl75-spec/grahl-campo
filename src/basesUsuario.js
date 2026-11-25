@@ -137,10 +137,29 @@ RESPOSTA: apenas um JSON:
 DADOS DO CASO
 ${textoCaso}
 ${textoLaudo ? `\n---\nTEXTO DO LAUDO\n${textoLaudo}` : ''}`;
+// JSON da resposta do Claude, tolerante a texto antes ou depois, cercas ``` e chaves soltas no texto
+export function extrairJson(t) {
+  const s = String(t || '');
+  const cands = [];
+  const cerca = s.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (cerca) cands.push(cerca[1].trim());
+  for (let i = s.indexOf('{'); i >= 0; i = s.indexOf('{', i + 1)) {
+    if (!/^\{\s*["}]/.test(s.slice(i, i + 50))) continue;
+    // objeto balanceado a partir daqui (respeitando strings)
+    let prof = 0, str = false, esc = false, fim = -1;
+    for (let j = i; j < s.length; j++) {
+      const ch = s[j];
+      if (str) { if (esc) esc = false; else if (ch === '\\') esc = true; else if (ch === '"') str = false; continue; }
+      if (ch === '"') str = true; else if (ch === '{') prof++; else if (ch === '}') { prof--; if (!prof) { fim = j; break; } }
+    }
+    cands.push(fim > 0 ? s.slice(i, fim + 1) : s.slice(i));
+  }
+  for (const c of cands) { try { return JSON.parse(c); } catch (e) { /* próximo */ } }
+  for (const c of cands) { try { return JSON.parse(c.replace(/,\s*([}\]])/g, '$1')); } catch (e) { /* próximo */ } }
+  throw new Error('A resposta do Claude não trouxe um JSON válido (pode ter sido cortada). Tente de novo.');
+}
 export function lerJsonProfissao(t) {
-  const s = String(t || ''); const a = s.indexOf('{'), b = s.lastIndexOf('}');
-  if (a < 0 || b < a) throw new Error('A resposta não trouxe o JSON da profissão.');
-  const o = JSON.parse(s.slice(a, b + 1));
+  const o = extrairJson(t);
   if (!v(o.nome)) throw new Error('A ficha veio sem o nome da profissão.');
   return o;
 }

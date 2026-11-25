@@ -17,7 +17,7 @@ import { useLive } from './hooks.js';
 import { Campos } from './fields.jsx';
 import { RecordList } from './RecordList.jsx';
 import { Icone } from './Icone.jsx';
-import { ConsultaNormas, ProfissoesBanco } from './Normas.jsx';
+import { ConsultaNormas, ProfissoesBanco, NotasSignatario, PostosMedidos } from './Normas.jsx';
 import { confirmar } from './dialogo.jsx';
 import { Quimicos } from './Quimicos.jsx';
 
@@ -68,8 +68,9 @@ const SECOES = [
   { id: 'veic', titulo: 'Veículos', sub: 'Paradigmas de motorista: medições, similares e famílias', icone: 'caminhao',
     abas: [['veiculos', 'Veículos medidos'], ['similares', 'Similares'], ['familias', 'Famílias'], ['buscar', 'Buscar paradigma'], ['importar', 'Importar / exportar']] },
   { id: 'maq', titulo: 'Máquinas', sub: 'Tratores, máquinas agrícolas e de construção, ferramentas', icone: 'regua', abas: [['maquinas', 'Máquinas – ruído e vibração']] },
+  { id: 'pos', titulo: 'Postos de trabalho', sub: 'Postos medidos (não motorista): ruído, calor e outros agentes', icone: 'regua', abas: [['postos', 'Postos medidos']] },
   { id: 'qui', titulo: 'Agentes químicos', sub: 'Limites (NR-15, Anexo 11), LINACH e códigos dos decretos', icone: 'nota', abas: [['quimicos', 'Agentes químicos']] },
-  { id: 'nor', titulo: 'Normas e profissões', sub: 'Decretos, Manual do INSS, IN 128, NR-15, NR-16 e banco de profissões', icone: 'nota', abas: [['normas', 'Consulta normativa'], ['profissoes', 'Profissões']] },
+  { id: 'nor', titulo: 'Normas e profissões', sub: 'Decretos, Manual do INSS, IN 128, NR-15, NR-16 e banco de profissões', icone: 'nota', abas: [['normas', 'Consulta normativa'], ['notas', 'Notas do signatário'], ['profissoes', 'Profissões']] },
 ];
 
 export function Paradigmas({ aba = 'veiculos' }) {
@@ -97,6 +98,8 @@ export function Paradigmas({ aba = 'veiculos' }) {
       {aba === 'importar' && <Importar />}
       {aba === 'normas' && <ConsultaNormas />}
       {aba === 'profissoes' && <ProfissoesBanco />}
+      {aba === 'notas' && <NotasSignatario />}
+      {aba === 'postos' && <PostosMedidos />}
     </div>
   );
 }

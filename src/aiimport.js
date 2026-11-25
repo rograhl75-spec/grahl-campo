@@ -6,6 +6,7 @@ import { resumoMedicao } from './medicoes.js';
 import { dataIso } from './migrate.js';
 import { citacaoDe } from './paradigmas.js';
 import { profissaoDoCaso, referenciaProfissao } from './data/profissoes.js';
+import { textoNotasParaClaude } from './basesUsuario.js';
 import { REGRAS_FDS, FORMATO_PRODUTO, produtoParaDados, aplicarFds } from './fds.js';
 import { normalizarIdentFoto } from './fotosIA.js';
 
@@ -105,7 +106,7 @@ export function criteriosPara(c = {}, situacaoId = '', perfil = {}) {
   const jur = jurisprudenciaLigada(c, perfil)
     ? 'JURISPRUDÊNCIA: pode ser registrada apenas em item próprio ("Registro de entendimentos jurisprudenciais"), separada da fundamentação técnica, citando tribunal, número do tema/súmula e a tese com fidelidade; tema ainda pendente sai marcado [[conferir]].'
     : 'JURISPRUDÊNCIA: NÃO cite súmulas, temas, precedentes nem jurisprudência neste caso; fundamente só na legislação e nas normas técnicas.';
-  return [CRITERIOS_GERAIS, prev ? CRITERIOS_PREV : CRITERIOS_TRAB, jur].join('\n\n');
+  return [CRITERIOS_GERAIS, prev ? CRITERIOS_PREV : CRITERIOS_TRAB, jur, textoNotasParaClaude()].filter(Boolean).join('\n\n');
 }
 
 // compatibilidade

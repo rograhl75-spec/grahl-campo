@@ -274,8 +274,7 @@ export class Doc {
     this.nQuad += 1;
     const n = this.nQuad;
     const [aq, zq] = this.marca('Quadro', `Quadro ${n} – ${titulo}`);
-    this.add(`<w:p>${pPr({ align: 'center', before: 240, after: 100, line: 276, keepNext: true })}${aq}` +
-      run('Quadro ', { b: true, size: 9.5, color: AZUL, tit: true }) + campoSeq('Quadro', n, { b: true, size: 9.5, color: AZUL, tit: true }) + run(` – ${titulo}`, { b: true, size: 9.5, color: AZUL, tit: true }) + `${zq}</w:p>`);
+    this.add(legenda('Quadro', n, titulo, aq, zq));
     this.add(tabela(linhas, { larguras, header, tam, alinhar, juntar, semRevisao }));
     // ABNT/IBGE: "Fonte" alinhada à esquerda, logo abaixo do quadro
     this.add(p([run(fonte ? 'Fonte: ' : '', { size: 9, b: true, color: CINZA }), rich(fonte || '', { size: 9, color: CINZA })], { align: 'left', before: 60, after: 280, line: 240 }));
@@ -373,8 +372,7 @@ export class Doc {
     this.nFig += 1;
     const n = this.nFig;
     const [af, zf] = this.marca('Figura', `Figura ${n} – ${titulo}`);
-    this.add(`<w:p>${pPr({ align: 'center', before: 240, after: 100, line: 276, keepNext: true })}${af}${zf}` +
-      run('Figura ', { b: true, size: 9.5, color: AZUL, tit: true }) + campoSeq('Figura', n, { b: true, size: 9.5, color: AZUL, tit: true }) + run(` – ${titulo}`, { b: true, size: 9.5, color: AZUL, tit: true }) + '</w:p>');
+    this.add(legenda('Figura', n, titulo, af + zf, ''));
     const porLinha = Math.min(4, etapas.length);
     const seta = 420;
     const wCaixa = Math.floor((LARGURA - seta * (porLinha - 1)) / porLinha);
@@ -408,8 +406,7 @@ export class Doc {
     this.nQuad += 1;
     const n = this.nQuad;
     const [aq, zq] = this.marca('Quadro', `Quadro ${n} – ${titulo}`);
-    this.add(`<w:p>${pPr({ align: 'center', before: 240, after: 100, line: 276, keepNext: true })}${aq}` +
-      run('Quadro ', { b: true, size: 9.5, color: AZUL, tit: true }) + campoSeq('Quadro', n, { b: true, size: 9.5, color: AZUL, tit: true }) + run(` – ${titulo}`, { b: true, size: 9.5, color: AZUL, tit: true }) + `${zq}</w:p>`);
+    this.add(legenda('Quadro', n, titulo, aq, zq));
     const ncol = Math.max(...linhas.map((l) => l.length));
     const ws = larguras ? larguras.map((f) => Math.round(f * LARGURA)) : Array(ncol).fill(Math.round(LARGURA / ncol));
     const rows = linhas.map((l, ri) => {
@@ -428,6 +425,18 @@ export class Doc {
   quebra() { return this.add('<w:p><w:r><w:br w:type="page"/></w:r></w:p>'); }
 }
 
+// Legenda de quadro e de figura: a formatação vem do estilo "Legenda" (e não direto no texto). Assim, quando o
+// Word atualiza as listas de quadros e de figuras, as entradas saem no estilo da lista (igual ao sumário),
+// e não em Montserrat azul e negrito como a legenda
+function legenda(tipo, n, titulo, a = '', z = '') {
+  const lg = '<w:rPr><w:lang w:val="pt-BR"/></w:rPr>';
+  const r = (t) => `<w:r>${lg}<w:t xml:space="preserve">${esc(t)}</w:t></w:r>`;
+  const f = (x) => `<w:r>${lg}${x}</w:r>`;
+  return `<w:p><w:pPr><w:pStyle w:val="Legenda"/><w:keepNext/><w:spacing w:before="240" w:after="100" w:line="276" w:lineRule="auto"/><w:jc w:val="center"/></w:pPr>${a}`
+    + `${r(`${tipo} `)}${f('<w:fldChar w:fldCharType="begin"/>')}${f(`<w:instrText xml:space="preserve"> SEQ ${tipo} \\* ARABIC </w:instrText>`)}`
+    + `${f('<w:fldChar w:fldCharType="separate"/>')}${r(String(n))}${f('<w:fldChar w:fldCharType="end"/>')}${r(` – ${String(titulo).replace(/\*\*|\[\[|\]\]/g, '')}`)}${z}</w:p>`;
+}
+
 function campoSeq(nome, n, opts) {
   return `<w:r>${rPr(opts)}<w:fldChar w:fldCharType="begin"/></w:r><w:r>${rPr(opts)}<w:instrText xml:space="preserve"> SEQ ${nome} \\* ARABIC </w:instrText></w:r>` +
     `<w:r>${rPr(opts)}<w:fldChar w:fldCharType="separate"/></w:r>${run(String(n), opts)}<w:r>${rPr(opts)}<w:fldChar w:fldCharType="end"/></w:r>`;
@@ -442,7 +451,7 @@ function listaPronta(tipo, entradas) {
   const r = (x) => `<w:r>${x}</w:r>`;
   const fld = (t) => r(`<w:fldChar w:fldCharType="${t}"/>`);
   return entradas.map((e, i) => {
-    const estilo = tipo === 'toc' ? `Sumrio${e.nivel}` : 'Sumrio2';
+    const estilo = tipo === 'toc' ? `Sumrio${e.nivel}` : 'ndicedeilustraes';
     const ini = i === 0 ? `${r('<w:fldChar w:fldCharType="begin"/>')}${r(`<w:instrText xml:space="preserve"> ${INSTR_LISTA[tipo]} </w:instrText>`)}${fld('separate')}` : '';
     const fim = i === entradas.length - 1 ? fld('end') : '';
     const pagina = `${fld('begin')}${r(`<w:instrText xml:space="preserve"> PAGEREF ${e.nome} \\h </w:instrText>`)}${fld('separate')}${r('<w:rPr><w:lang w:val="pt-BR"/></w:rPr><w:t>–</w:t>')}${fld('end')}`;
@@ -506,6 +515,41 @@ function alinhamentoColuna(linhas, ci, w, header) {
   // células com itens em linhas separadas ficam à esquerda (justificar abre espaços nas linhas curtas)
   if (w >= LARGURA * 0.3 && media > 70 && !corpo.some((t) => t.includes('\n'))) return 'both';
   return 'left';
+}
+
+// larguras pelo conteúdo (quadros do Claude): cada coluna cabe a sua palavra mais longa (datas, códigos) e o
+// espaço que sobra vai para as colunas de texto longo – com colunas iguais, a coluna de datas quebrava "06/03/199 7"
+// e a de texto virava uma tira estreita
+export function largurasAuto(linhas, tam = 9) {
+  const ncol = Math.max(...linhas.map((l) => l.length));
+  if (ncol < 2) return undefined;
+  const txt = (c) => String(typeof c === 'object' && c ? (c.t ?? '') : c ?? '').replace(/\*\*|\[\[|\]\]|\$/g, '');
+  // largura aproximada de uma palavra em "em" (Lato): algarismos, barras e maiúsculas são mais largos
+  const em = (w) => [...w].reduce((n, ch) => n + (/\d/.test(ch) ? 0.6 : ch === '/' ? 0.45 : /[.,;:()\-–¹]/.test(ch) ? 0.32 : /[A-ZÀ-Ý]/.test(ch) ? 0.7 : 0.56), 0);
+  const tamCab = Math.min(tam, 8.5);
+  const mins = [], pesos = [], fixas = [];
+  for (let ci = 0; ci < ncol; ci++) {
+    const col = linhas.map((l) => txt(l[ci]));
+    const corpo = col.length > 1 ? col.slice(1) : col;
+    // cabeçalho pode quebrar em "/"; no corpo, datas e códigos não podem quebrar
+    const cab = Math.max(0, ...col[0].split(/[\s/]+/).map((w) => em(w) * tamCab * 20 * 1.12));
+    const cor = Math.max(0, ...corpo.flatMap((t) => t.split(/\s+/)).map((w) => em(w) * tam * 20));
+    mins.push(Math.min(Math.max(cab, cor) + 280, LARGURA * 0.4));
+    fixas.push(corpo.some((t) => /\d{2}\/\d{2}\/\d{4}|^\s*\d[\d.\-/]*\s*$/.test(t)));
+    pesos.push(Math.sqrt(Math.max(1, corpo.reduce((n, t) => n + t.length, 0) / corpo.length)));
+  }
+  const soma = mins.reduce((a, b) => a + b, 0);
+  let ws;
+  if (soma <= LARGURA) {
+    const sobra = LARGURA - soma, sp = pesos.reduce((a, b) => a + b, 0);
+    ws = mins.map((m, i) => m + (sobra * pesos[i]) / sp);
+  } else {
+    // falta espaço: as colunas de datas e códigos mantêm a largura; as de texto encolhem
+    const fixo = mins.reduce((n, m, i) => n + (fixas[i] ? m : 0), 0);
+    const resto = soma - fixo;
+    ws = fixo < LARGURA && resto > 0 ? mins.map((m, i) => (fixas[i] ? m : (m * (LARGURA - fixo)) / resto)) : mins.map((m) => (m * LARGURA) / soma);
+  }
+  return ws.map((w) => w / LARGURA);
 }
 
 export function tabela(linhas, { larguras, header = true, tam = 10, alinhar = 'auto', juntar, semRevisao } = {}) {
@@ -592,6 +636,17 @@ export async function montarDocx(modeloBytes, corpoXml, { imagens = [], tituloDo
     zip.file(stPath, st);
   }
 
+  // legenda de quadro/figura e lista de quadros/figuras ("Índice de ilustrações", igual ao sumário)
+  st = await zip.file(stPath).async('string');
+  if (!st.includes('w:styleId="Legenda"')) {
+    st = st.replace('</w:styles>', `<w:style w:type="paragraph" w:styleId="Legenda"><w:name w:val="caption"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:uiPriority w:val="35"/><w:unhideWhenUsed/><w:qFormat/>`
+      + `<w:pPr><w:keepNext/><w:spacing w:before="240" w:after="100" w:line="276" w:lineRule="auto"/><w:jc w:val="center"/></w:pPr>`
+      + `<w:rPr><w:rFonts w:ascii="${FONTE_TITULO}" w:hAnsi="${FONTE_TITULO}" w:cs="${FONTE_TITULO}" w:eastAsia="${FONTE_TITULO}"/><w:b/><w:bCs/><w:color w:val="${AZUL}"/><w:sz w:val="19"/><w:szCs w:val="19"/></w:rPr></w:style>`
+      + `<w:style w:type="paragraph" w:styleId="ndicedeilustraes"><w:name w:val="table of figures"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:uiPriority w:val="99"/><w:unhideWhenUsed/>`
+      + `<w:pPr><w:tabs><w:tab w:val="right" w:leader="dot" w:pos="8494"/></w:tabs><w:spacing w:before="0" w:after="60" w:line="276" w:lineRule="auto"/><w:ind w:left="0"/><w:jc w:val="left"/></w:pPr>`
+      + `<w:rPr><w:rFonts w:ascii="${FONTE}" w:hAnsi="${FONTE}" w:cs="${FONTE}" w:eastAsia="${FONTE}"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr></w:style></w:styles>`);
+    zip.file(stPath, st);
+  }
   // estilos-base no padrão do documento: o texto digitado depois no Word sai igual ao gerado
   st = await zip.file(stPath).async('string');
   const fonteR = `<w:rFonts w:ascii="${FONTE}" w:hAnsi="${FONTE}" w:cs="${FONTE}" w:eastAsia="${FONTE}"/>`;

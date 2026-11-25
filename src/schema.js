@@ -177,7 +177,7 @@ export const CAMPOS_PERFIL = [
   ['titulos', 'Formação', 'text'],
   ['crea', 'Registro principal', 'text'],
   ['vistoCrea', 'Visto', 'text'],
-  ['cpf', 'CPF (sai na petição de indicação)', 'text'],
+  ['cpf', 'CPF (sai na petição de indicação e no item 16 do PPP)', 'text'],
   ['nit', 'NIT (sai no PPP, campo 16 – responsável pelos registros ambientais)', 'text'],
   ['crqSp', 'CRQ-IV (São Paulo) – nº do registro', 'text'],
   ['crqPr', 'CRQ-IX (Paraná) – nº do registro', 'text'],

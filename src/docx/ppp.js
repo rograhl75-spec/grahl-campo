@@ -190,8 +190,8 @@ export async function ppp(caseId, dadosProntos) {
       'Foi observado o prazo de validade, conforme Certificado de Aprovação do MTE?', 'Foi observada a periodicidade de troca definida pelos programas ambientais, comprovada mediante recibo assinado pelo usuário em época própria?',
       'Foi observada a higienização?'].map((q) => [q, comEpi ? '[[S/N]]' : 'Não se aplica'])],
   { larguras: [0.85, 0.15], tam: 8.5, alinhar: 'left', semNumero: true, fonte: comEpi ? 'Emitente.' : 'EPI eficaz não declarado para os fatores de risco do campo 15.' });
-  d.quadro('16 – Responsável pelos registros ambientais', [['Período', 'NIT', 'Registro conselho de classe', 'Nome do profissional legalmente habilitado'],
-    ...dentro.map(({ r }) => [`${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`, v(perfil.nit) || '[[NIT]]', credencial(perfil), perfil.nome])],
+  d.quadro('16 – Responsável pelos registros ambientais', [['Período', 'CPF / NIT', 'Registro conselho de classe', 'Nome do profissional legalmente habilitado'],
+    ...dentro.map(({ r }) => [`${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`, v(perfil.cpf) || v(perfil.nit) || '[[CPF]]', credencial(perfil), perfil.nome])],
   { larguras: [0.2, 0.15, 0.35, 0.3], tam: 8, alinhar: 'left', semNumero: true,
     fonte: `LTCAT elaborado pelo signatário${c.vistoriaData ? `, com vistoria em ${dataBR(c.vistoriaData)}` : ''}; para os períodos anteriores à vistoria, avaliação extemporânea.` });
 

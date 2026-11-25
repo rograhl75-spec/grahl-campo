@@ -659,6 +659,7 @@ Use os dados do caso abaixo (coletados por mim nos autos e na diligência) como 
 
 ${CONVENCOES_CLAUDE}
 ${regs ? `- Meus registros profissionais, se precisar citá-los: ${regs} (copie exatamente, sem reformatar o número).
+` : ''}${tipo === 'ltcat' && perfilDoc.cpf ? `- Meu CPF, para o item 16 do PPP (responsável pelos registros ambientais): ${perfilDoc.cpf}.
 ` : ''}- Fotos: o app monta o Anexo I com as fotos na ordem da lista "Fotos" do caso, numeradas Foto 1, Foto 2… Cite-as assim ("Anexo I, Foto 3"), conferindo o número pela legenda.
 - Coerência: as respostas aos quesitos repetem os mesmos valores, datas, classificações e conclusões do corpo do laudo (confira cada número antes de responder). Classificação da NHO-09 por grandeza: aren e VDVR têm faixas próprias; não atribua a um a faixa do outro.
 - Entrevista: o que o segurado relatou sobre os vínculos é relato dele; o representante da empresa similar confirma só as condições da empresa e do veículo avaliado (cargas, rotas e jornada atuais), não o passado do segurado nas empregadoras.

@@ -127,7 +127,9 @@ REGRAS
 - Agentes: os avaliados no caso, com o código e o resultado de cada época (até 05/03/1997 e a partir de 06/03/1997), como o laudo concluiu; o que depender da entrevista fica "A confirmar".
 - Roteiro de entrevista: perguntas objetivas que faltaram ou foram decisivas no caso (tempos, ciclos, fontes, mudanças de equipamento, jornada).
 - Documentos a pedir: os que fizeram falta ou foram úteis.
-- palavrasChave: termos que identificam a profissão no cargo ou nas atividades (ex.: "padeiro", "panificação", "forneiro").
+- palavrasChave: termos que identificam a profissão no cargo ou nas atividades (ex.: padeiro, panificação, forneiro).
+- Textos objetivos: fundamentação de cada agente com até 600 caracteres; profissiografia com até 800.
+- JSON válido: dentro dos textos, NUNCA use aspas duplas (") – use aspas simples ou « »; sem comentários nem vírgula sobrando.
 
 RESPOSTA: apenas um JSON:
 {"nome": "", "palavrasChave": [], "cbo": "", "cboNome": "", "profissiografia": "", "epi": "", "roteiro": [], "documentos": [],
@@ -156,6 +158,23 @@ export function extrairJson(t) {
   }
   for (const c of cands) { try { return JSON.parse(c); } catch (e) { /* próximo */ } }
   for (const c of cands) { try { return JSON.parse(c.replace(/,\s*([}\]])/g, '$1')); } catch (e) { /* próximo */ } }
+  // aspas duplas sem escape dentro dos textos ("cód. "2.0.1""): fecha a string só quando o próximo sinal é , : } ]
+  const conserta = (c) => {
+    let out = '', str = false;
+    for (let j = 0; j < c.length; j++) {
+      const ch = c[j];
+      if (str && ch === '\\') { out += ch + (c[j + 1] || ''); j++; continue; }
+      if (ch === '"') {
+        if (!str) { str = true; out += ch; continue; }
+        const resto = c.slice(j + 1).match(/^\s*(.)/);
+        if (!resto || /[,:}\]]/.test(resto[1])) { str = false; out += ch; } else out += '\\"';
+        continue;
+      }
+      out += str && ch === '\n' ? '\\n' : ch;
+    }
+    return out.replace(/,\s*([}\]])/g, '$1');
+  };
+  for (const c of cands) { try { return JSON.parse(conserta(c)); } catch (e) { /* próximo */ } }
   throw new Error('A resposta do Claude não trouxe um JSON válido (pode ter sido cortada). Tente de novo.');
 }
 export function lerJsonProfissao(t) {

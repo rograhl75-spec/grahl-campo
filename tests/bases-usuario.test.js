@@ -82,3 +82,11 @@ describe('JSON da resposta do Claude', () => {
     expect(() => extrairJson('sem json')).toThrow(/JSON válido/);
   });
 });
+
+describe('JSON com aspas sem escape', () => {
+  it('conserta aspas duplas dentro dos textos e quebras de linha', async () => {
+    const { extrairJson } = await import('../src/basesUsuario.js');
+    const o = extrairJson('{"nome": "Padeiro", "fundamentacao": "cód. 2.0.4 ("calor") do Anexo IV\nsegunda linha", "agentes": []}');
+    expect(o.fundamentacao).toBe('cód. 2.0.4 ("calor") do Anexo IV\nsegunda linha');
+  });
+});

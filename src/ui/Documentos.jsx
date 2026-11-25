@@ -14,6 +14,7 @@ import { BotaoClaudeDireto, anexosDosAutos, ModoManual } from './ClaudeDireto.js
 import { temClaude } from '../claudeApi.js';
 import { documentoDoClaude, peticaoDoClaude, temConteudo } from '../docx/claudeDoc.js';
 import { incluirVeiculoNaBase, incluirPostoNaBase, promptProfissao, lerJsonProfissao, salvarProfissao, RE_MOTORISTA } from '../basesUsuario.js';
+import { importarWordDoLaudo } from '../docx/importarWord.js';
 import { ultimaRedacao, guardarRedacao, desfazerRedacao, promptAplicarCorrecoes, lerTrocas, aplicarTrocas } from '../redacao.js';
 import { textoDoCaso } from '../aiimport.js';
 import { gravarTudoAgora, salvar, TF, Sel } from './fields.jsx';
@@ -538,7 +539,26 @@ function AplicarCorrecoes({ rec }) {
   const [msg, setMsg] = useState('');
   const [falhas, setFalhas] = useState([]);
   const [colado, setColado] = useState('');
-  if (!red) return null;
+  // Word já gerado (inclusive editado à mão) → texto guardado, para aplicar correções sem redigir de novo
+  const importar = async (e) => {
+    const f = e.currentTarget.files[0]; e.currentTarget.value = '';
+    if (!f) return;
+    try {
+      const md = await importarWordDoLaudo(f);
+      await guardarRedacao(rec.id, md, { origem: `importado do Word (${f.name})` });
+      const n = (md.match(/^#{1,3} /gm) || []).length, q = (md.match(/^Quadro:/gm) || []).length;
+      setMsg(`✓ Texto importado do Word: ${n} títulos e ${q} quadros. Toque em "Gerar o Word do último texto" para conferir a montagem antes de aplicar correções.`);
+    } catch (er) { setMsg(`Erro ao importar: ${er.message}`); }
+  };
+  const botaoImportar = (rot) => <label class="botao-arquivo sec">{rot}<input type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden onChange={importar} /></label>;
+  if (!red) return (
+    <details class="mt">
+      <summary><b>Aplicar correções a um laudo já gerado</b> <small class="suave">– importar o Word</small></summary>
+      <p class="dica">Este caso ainda não tem o texto do laudo guardado (foi redigido antes desta função, ou o laudo foi editado à mão). Importe o Word final: o app lê o corpo (títulos, parágrafos, quadros, fluxos e equações) e o guarda como último texto. Capa, sumário, anexos, apêndices e assinatura o app monta de novo ao gerar.</p>
+      {botaoImportar('＋ Importar o Word do laudo (.docx)')}
+      {msg && <p class="ok-msg">{msg}</p>}
+    </details>
+  );
   const quando = new Date(red.data.em).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
   const gerar = async (md) => {
     const r = await documentoDoClaude(rec.id, md);
@@ -567,6 +587,7 @@ function AplicarCorrecoes({ rec }) {
         <button type="button" class="sec" onClick={async () => { setMsg(`✓ ${await gerar(red.data.md)} gerado de novo com o último texto.`); }}>Gerar o Word do último texto</button>
         {red.data.anterior && <button type="button" class="sec" onClick={async () => { await desfazerRedacao(rec.id); setMsg('✓ Voltou ao texto anterior (gere o Word de novo para baixar).'); }}>Desfazer as últimas correções</button>}
         <button type="button" class="sec" onClick={() => baixarArquivo(new Blob([red.data.md], { type: 'text/markdown' }), `Texto_do_laudo_${carimbo()}.md`)}>Baixar o texto (.md)</button>
+        {botaoImportar('Substituir pelo Word final (.docx)')}
       </div>
       <ModoManual>
         <p class="dica">Sem a chave de API: copie a instrução, cole no claude.ai e cole aqui o JSON que ele devolver.</p>

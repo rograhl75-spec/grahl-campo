@@ -1041,7 +1041,7 @@ function campoAssinatura(d, nome, linhas) {
   d.add(p([run(nome || '[[nome]]', { b: true, np: true })], { align: 'center', after: 0, keepNext: true }));
   linhas.filter(Boolean).forEach((l, i, arr) => d.add(p([rich(l, { size: 10, np: true })], { align: 'center', after: i === arr.length - 1 ? 240 : 0, keepNext: i < arr.length - 1 })));
 }
-function termoDeclaracaoAutorizacao(d, dados) {
+export function termoDeclaracaoAutorizacao(d, dados) {
   const { c } = dados;
   const seg = v(c.autorNome) || '[[segurado]]';
   const proprio = /Pr[oó]prio/.test(c.pppEmitente || '');

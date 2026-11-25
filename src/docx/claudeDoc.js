@@ -6,6 +6,7 @@
 import { Doc, carregar, finalizar, capaTecnica, blocoAssinatura, partes, enderecamentoTexto, linhasProcesso, figurasDoCaso, apendicesDoCaso, anexosDoCaso, textoIntegram, inserirAnexos, inserirApendices, dataPorExtenso } from './base.js';
 import { datasDasVistorias } from '../schema.js';
 import { semRevisao } from './ooxml.js';
+import { termoDeclaracaoAutorizacao } from './modelos.js';
 
 export const CONVENCOES_CLAUDE = `FORMATO DA RESPOSTA (o app monta o Word no meu papel timbrado, com capa, sumário, numeração de quadros e figuras e assinatura; não faça capa, sumário nem assinatura):
 - Comece com as linhas "Título: ..." e "Subtítulo: ..." (o subtítulo é opcional).
@@ -197,12 +198,17 @@ export async function documentoDoClaude(caseId, md) {
   const doc = /parecer/i.test(titulo) ? 'parecer' : /laudo|ltcat/i.test(titulo) ? 'laudo' : 'documento';
   textoIntegram(d, { fotos: lista.length > 0, anexos, apendices, doc });
   blocoAssinatura(d, dados);
+  // LTCAT/PPP extrajudicial (laudo individual): a autorização do levantamento (art. 277, IV, a, da IN 128/2022)
+  // e a declaração do segurado vão no termo ao final do laudo, como nos LTCAT do app
+  if (ehLtcatExtrajudicial(c, titulo)) termoDeclaracaoAutorizacao(d, dados);
   if (lista.length) { d.h1('', 'Anexo I – Relatório fotográfico da diligência'); d.figuras(lista, { rotulo: 'Foto' }); }
   inserirAnexos(d, anexos);
   inserirApendices(d, apendices, dados);
   const r = await finalizar(d, { titulo: titulo || 'Documento técnico', arquivo: (titulo || 'Documento').replace(/[^\wÀ-ú]+/g, '_').slice(0, 40), c });
   return { ...r, faltando, falhasApendice: (falhasApendice || 0) + (falhasAnexo || 0), semRelatorios, semRelatoriosLgpd, nFotos: lista.length, nApendices: apendices.length, nAnexos: anexos.length };
 }
+
+export const ehLtcatExtrajudicial = (c, titulo = '') => c.tipoAtuacao === 'Extrajudicial' && /ltcat|ppp|condi[çc][õo]es ambientais/i.test(`${titulo} ${(c.objeto || []).join(' ')}`);
 
 export const temConteudo = (md) => limpa(md).length > 40;
 

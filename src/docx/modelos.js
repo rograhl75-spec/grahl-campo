@@ -17,7 +17,7 @@ import {
 import { comJurisprudencia, registroJurisprudencia, secaoReferencias } from './fontes.js';
 import { secaoPenosidade } from './penosidade.js';
 import { conclusaoPrevidenciaria, avaliarPeriodos } from './conclusao.js';
-import { p, run, rich } from './ooxml.js';
+import { p, run, rich, dataExtenso } from './ooxml.js';
 import { quadroQuimicosAnexo11, quadroConclusivoTrab, conclusaoAT, POSICOES_AT, agenteDaMedicao, sinteseTrab, quadroRequisitos473, quadroRecomendacoes, quadroDadosPPP, roteiroPericulosidade } from './modelos2.js';
 import { formaAvaliacaoPrev } from '../quimicos.js';
 import { codigosDoAgente, agenteNoVinculo, categoriaDoVinculo, lerAfastamentos } from '../enquadramento.js';
@@ -1057,7 +1057,8 @@ export function termoDeclaracaoAutorizacao(d, dados) {
     const em = `${emit.nome || '[[emitente]]'}${emit.doc ? ` (CNPJ/CAEPF ${emit.doc})` : ''}`;
     d.texto(`${unico ? `Na condição de representante legal da ${em}, autorizo` : `A ${em}, por seu representante legal, autoriza`} o levantamento das condições ambientais de trabalho realizado${quando} pelo signatário deste laudo, que não é empregado da empresa (art. 277, IV, *a*, da IN 128/2022), e ${unico ? 'declaro' : 'declara'} ciência do seu conteúdo.`);
   }
-  d.add(p([run(`${'_'.repeat(22)}, ____/____/________.`)], { align: 'right', before: 240, after: 0, keepNext: true }));
+  // mesma data da emissão do laudo (a da assinatura do signatário)
+  d.add(p([run(`${dados.perfil?.cidade || 'Londrina – PR'}, ${dataExtenso()}.`)], { align: 'right', before: 240, after: 0, keepNext: true }));
   if (unico) campoAssinatura(d, seg, [docSeg, proprio ? 'Segurado' : `Segurado e representante legal da ${emit.nome || 'emitente'}`]);
   else {
     campoAssinatura(d, seg, [docSeg, 'Segurado']);

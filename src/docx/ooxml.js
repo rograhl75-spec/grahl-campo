@@ -146,6 +146,7 @@ export function formulaOmml(src, size) {
     if (c === '\\') {
       const m = s.slice(i + 1).match(/^[A-Za-z]+/); const nome = m ? m[0] : s[i + 1] || ''; i += 1 + nome.length;
       if (nome === 'sqrt') return M.raiz(grupo());
+      if (nome === 'overline' || nome === 'bar') return `<m:bar><m:barPr><m:pos m:val="top"/></m:barPr><m:e>${grupo()}</m:e></m:bar>`;
       if (nome === 'frac') { const a = grupo(); return M.frac(a, grupo()); }
       if (nome === 'text' || nome === 'mathrm') { i++; const ini = i; let n = 1; while (i < s.length && n) { if (s[i] === '{') n++; else if (s[i] === '}') n--; i++; } return run(s.slice(ini, i - 1), true); }
       if (nome === 'left' || nome === 'right') return '';

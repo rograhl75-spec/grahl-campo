@@ -5,7 +5,7 @@
 // ======================================================================
 import { Doc, carregar, finalizar, capaTecnica, blocoAssinatura, partes, enderecamentoTexto, linhasProcesso, figurasDoCaso, apendicesDoCaso, anexosDoCaso, textoIntegram, inserirAnexos, inserirApendices, dataPorExtenso } from './base.js';
 import { datasDasVistorias } from '../schema.js';
-import { semRevisao } from './ooxml.js';
+import { semRevisao, largurasAuto } from './ooxml.js';
 import { termoDeclaracaoAutorizacao } from './modelos.js';
 
 export const CONVENCOES_CLAUDE = `FORMATO DA RESPOSTA (o app monta o Word no meu papel timbrado, com capa, sumário, numeração de quadros e figuras e assinatura; não faça capa, sumário nem assinatura):
@@ -132,7 +132,9 @@ export function markdownParaDoc(md, d) {
       if (k < L.length && /^fonte:/i.test(L[k].trim())) { fonte = L[k].trim().replace(/^fonte:\s*/i, ''); j = k + 1; }
       if (linhas.length >= 2) {
         const n = Math.max(...linhas.map((x) => x.length));
-        d.quadro(tituloQ, linhas.map((x) => [...x, ...Array(n - x.length).fill('')]), { fonte, tam: n > 5 ? 8.5 : 9.5 });
+        const lq = linhas.map((x) => [...x, ...Array(n - x.length).fill('')]);
+        const tamQ = n > 5 ? 8.5 : 9.5;
+        d.quadro(tituloQ, lq, { fonte, tam: tamQ, larguras: largurasAuto(lq, tamQ) });
       } else d.texto(`[[quadro "${tituloQ}" sem tabela – conferir]]`);
       i = j - 1;
       continue;

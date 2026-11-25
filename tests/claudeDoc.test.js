@@ -176,3 +176,19 @@ describe('LTCAT extrajudicial do Claude', () => {
     expect(t).not.toContain('TERMO DE DECLARAÇÃO E AUTORIZAÇÃO');
   });
 });
+
+describe('legendas e listas de quadros/figuras', () => {
+  it('legenda no estilo "Legenda" e lista no estilo do índice de ilustrações; colunas pelo conteúdo', async () => {
+    const r = await documentoDoClaude('cd1', MD);
+    const zip = await JSZip.loadAsync(await r.blob.arrayBuffer());
+    const x = await zip.file('word/document.xml').async('string');
+    const st = await zip.file('word/styles.xml').async('string');
+    expect(st).toContain('w:styleId="Legenda"');
+    expect(st).toContain('w:styleId="ndicedeilustraes"');
+    expect(x).toContain('<w:pStyle w:val="Legenda"/>');
+    expect(x).toContain('<w:pStyle w:val="ndicedeilustraes"/>');
+    const grid = x.match(/<w:tblGrid>(.*?)<\/w:tblGrid>/g).find((g) => (g.match(/gridCol/g) || []).length === 3);
+    const ws = [...grid.matchAll(/w:w="(\d+)"/g)].map((m) => +m[1]);
+    expect(new Set(ws).size).toBeGreaterThan(1);
+  });
+});

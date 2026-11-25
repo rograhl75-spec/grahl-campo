@@ -162,3 +162,17 @@ describe('ART cadastrada em Configurações e escolhida no caso', () => {
     await db.records.put({ ...caso, data: { ...caso.data, artId: '' } });
   });
 });
+
+describe('LTCAT extrajudicial do Claude', () => {
+  it('traz o termo de declaração e autorização ao final do laudo', async () => {
+    await db.records.put({ id: 'cd9', kind: 'caso', caseId: null, ts: {}, data: { tipoAtuacao: 'Extrajudicial', objeto: ['LTCAT', 'PPP'], pppEmitente: 'Próprio segurado', autorNome: 'Segurado Teste', autorCpf: '000.000.000-00', vistoriaData: '2026-09-01' } });
+    const t = await texto(await documentoDoClaude('cd9', 'Título: Laudo técnico das condições ambientais do trabalho\n\n# 1 Identificação\nTexto do laudo.'));
+    expect(t).toContain('TERMO DE DECLARAÇÃO E AUTORIZAÇÃO');
+    expect(t).toContain('autorizo o levantamento');
+    expect(t).toContain('Segurado Teste');
+  });
+  it('laudo judicial não traz o termo', async () => {
+    const t = await texto(await documentoDoClaude('cd1', MD));
+    expect(t).not.toContain('TERMO DE DECLARAÇÃO E AUTORIZAÇÃO');
+  });
+});

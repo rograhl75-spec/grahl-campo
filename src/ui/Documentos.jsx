@@ -521,9 +521,9 @@ function LevarParaBase({ rec }) {
         </div>
       ))}
       <p class="dica"><b>Ficha da profissão</b> – o Claude monta a ficha genérica (sem nomes do caso) com CBO, profissiografia, agentes por época, roteiro de entrevista e documentos; ela passa a aparecer em Bases técnicas → Profissões e nos próximos casos.</p>
-      <BotaoClaudeDireto rotulo="Criar a ficha da profissão com o Claude" sec maxTokens={16000}
+      <BotaoClaudeDireto rotulo="Criar a ficha da profissão com o Claude" sec maxTokens={64000}
         instrucao={async () => { gravarTudoAgora(); const red = await ultimaRedacao(rec.id); return promptProfissao(await textoDoCaso(rec.id), red?.data?.md || ''); }}
-        onResposta={async (t) => { const o = lerJsonProfissao(t); const r = await salvarProfissao(o, rec.id); avisarAlteracao(); return `Ficha "${o.nome}" ${r.atualizada ? 'atualizada' : 'criada'} em Bases técnicas → Profissões (${(o.agentes || []).length} agente(s)). Revise antes de usar.`; }} />
+        onResposta={async (t, r0) => { let o; try { o = lerJsonProfissao(t); } catch (e) { throw new Error(r0?.cortada ? 'A resposta do Claude foi cortada pelo limite de tamanho. Tente de novo.' : e.message); } const r = await salvarProfissao(o, rec.id); avisarAlteracao(); return `Ficha "${o.nome}" ${r.atualizada ? 'atualizada' : 'criada'} em Bases técnicas → Profissões (${(o.agentes || []).length} agente(s)). Revise antes de usar.`; }} />
       <p class="dica"><b>Notas normativas</b> – as interpretações que você aplica (faixas, critérios) ficam em <a href="#/paradigmas/notas">Bases técnicas → Notas do signatário</a> e vão ao Claude em toda redação.</p>
       {msg && <p class="ok-msg">{msg}</p>}
     </div>
@@ -560,7 +560,7 @@ function AplicarCorrecoes({ rec }) {
       <p class="dica">Cole a lista de correções (da auditoria ou suas). O Claude devolve só as trocas, e o app as aplica ao texto guardado e gera o Word de novo: o resto do laudo não muda. Depois, confira e complete o que sair em amarelo.</p>
       <label class="campo campo-area"><span class="rotulo">Correções a aplicar</span>
         <textarea rows={6} value={correcoes} onInput={(e) => setCorrecoes(e.currentTarget.value)} placeholder={'Ex.:\n1. Item 6.2: trocar "a posição técnica do perito é a seguinte" por "conclui-se tecnicamente o seguinte".\n2. Período do forno elétrico: "não avaliado (sem medição representativa)" em vez de "não caracteriza", em todo o laudo.'} /></label>
-      {correcoes.trim().length > 10 && <BotaoClaudeDireto rotulo="Aplicar as correções e gerar o Word" maxTokens={32000} permitirArquivos rotuloArquivos="Anexar a lista de correções (PDF ou texto)"
+      {correcoes.trim().length > 10 && <BotaoClaudeDireto rotulo="Aplicar as correções e gerar o Word" maxTokens={64000} permitirArquivos rotuloArquivos="Anexar a lista de correções (PDF ou texto)"
         instrucao={async () => { gravarTudoAgora(); return promptAplicarCorrecoes(red.data.md, correcoes, await textoDoCaso(rec.id)); }}
         onResposta={(t) => aplicar(t).then((m) => { setMsg(m); return m; })} />}
       <div class="linha-botoes">

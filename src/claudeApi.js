@@ -205,13 +205,14 @@ export async function perguntarClaude({ instrucao, anexos = [], web = false, max
   }
 }
 
+const CONTINUAR = 'Sua resposta anterior foi cortada pelo limite de tamanho. Continue EXATAMENTE do ponto em que parou (mesmo no meio de uma palavra, de uma linha de quadro ou de um JSON), sem repetir nada do que já escreveu, sem comentários e sem reabrir seções: apenas o texto que falta, até o fim.';
 async function conversar(client, cfg, blocos, instrucao, web, maxTokens, onEtapa) {
   const pergunta = { role: 'user', content: [...blocos, { type: 'text', text: instrucao }] };
   let messages = [pergunta];
   const conteudos = []; const uso = { entrada: 0, gravado: 0, lido: 0, saida: 0 };
-  let recebidos = 0; let final = null;
+  let recebidos = 0; let final = null; let continuacoes = 0;
   // pesquisa na internet: o servidor pode pausar a volta (pause_turn); reenvia a conversa para continuar
-  for (let volta = 0; volta < 6; volta += 1) {
+  for (let volta = 0; volta < 9; volta += 1) {
     onEtapa?.(volta ? 'Continuando a pesquisa…' : 'O Claude está trabalhando…');
     const stream = client.beta.messages.stream({
       model: cfg.modelo,
@@ -229,6 +230,13 @@ async function conversar(client, cfg, blocos, instrucao, web, maxTokens, onEtapa
     uso.lido += final.usage.cache_read_input_tokens || 0;
     uso.saida += final.usage.output_tokens || 0;
     conteudos.push(final.content);
+    // resposta cortada pelo limite de tamanho: pede a continuação, do ponto exato em que parou (até 3 vezes)
+    if (final.stop_reason === 'max_tokens' && continuacoes < 3) {
+      continuacoes += 1;
+      onEtapa?.(`A resposta é longa: continuando a redação (parte ${continuacoes + 1})…`);
+      messages = [pergunta, { role: 'assistant', content: conteudos.flat().filter((b) => b.type === 'text') }, { role: 'user', content: CONTINUAR }];
+      continue;
+    }
     if (final.stop_reason !== 'pause_turn') break;
     messages = [pergunta, { role: 'assistant', content: conteudos.flat() }];
   }

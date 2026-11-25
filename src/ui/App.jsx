@@ -6,6 +6,7 @@ import { Caso } from './Caso.jsx';
 import { Config } from './Config.jsx';
 import { Paradigmas } from './Paradigmas.jsx';
 import { Icone } from './Icone.jsx';
+import { iniciarBasesUsuario } from '../basesUsuario.js';
 import { ouvir as ouvirGravador, pararGravacao, recuperarGravacao } from '../gravador.js';
 import { avisarAlteracao } from '../sync.js';
 import { avisar } from './dialogo.jsx';
@@ -23,6 +24,7 @@ function useAlturaTopo() {
 
 export function App() {
   useAlturaTopo();
+  useEffect(() => { iniciarBasesUsuario(); }, []);
   const hash = useHash();
   const partes = hash.replace(/^#\/?/, '').split('/');
   let tela;

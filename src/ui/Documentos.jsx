@@ -13,6 +13,7 @@ import { exportarParaClaude, lerJsonIA, aplicarIA, promptPeticaoLivre } from '..
 import { BotaoClaudeDireto, anexosDosAutos, ModoManual } from './ClaudeDireto.jsx';
 import { temClaude } from '../claudeApi.js';
 import { documentoDoClaude, peticaoDoClaude, temConteudo } from '../docx/claudeDoc.js';
+import { incluirVeiculoNaBase, incluirPostoNaBase, promptProfissao, lerJsonProfissao, salvarProfissao, RE_MOTORISTA } from '../basesUsuario.js';
 import { ultimaRedacao, guardarRedacao, desfazerRedacao, promptAplicarCorrecoes, lerTrocas, aplicarTrocas } from '../redacao.js';
 import { textoDoCaso } from '../aiimport.js';
 import { gravarTudoAgora, salvar, TF, Sel } from './fields.jsx';
@@ -101,6 +102,9 @@ export function Documentos({ rec, modo = 'laudo' }) {
         </PassoLaudo>
         <PassoLaudo n={++n} titulo="Conferir o documento" dica="O que ainda sairia em amarelo no Word, agrupado, com o lugar onde completar.">
           {principais.map((d) => <ConferirAmarelo rec={rec} d={d} rotulo={principais.length > 1 ? d.titulo : ''} />)}
+        </PassoLaudo>
+        <PassoLaudo n={++n} titulo="Levar para a base técnica" dica="Depois de concluído: o veículo ou o posto medido, a ficha da profissão e as notas normativas ficam para os próximos casos.">
+          <LevarParaBase rec={rec} />
         </PassoLaudo>
         {msg && <p class="ok-msg aviso-fixo">{msg}</p>}
       </div>
@@ -484,6 +488,47 @@ function QuesitosPendentes({ rec }) {
   );
 }
 const byOrdem = (a, b) => (parseFloat(a.data.numero) || 0) - (parseFloat(b.data.numero) || 0) || String(a.data.origem || '').localeCompare(String(b.data.origem || ''));
+
+// Caso concluído → bases técnicas: veículo avaliado (motorista) ou posto medido, ficha da profissão, notas normativas
+function LevarParaBase({ rec }) {
+  const dados = useLive(async () => {
+    const filhos = (k) => db.records.where('[caseId+kind]').equals([rec.id, k]).toArray().then((l) => l.filter((r) => !r.deleted));
+    const [postos, medicoes, periodos] = await Promise.all([filhos('posto'), filhos('medicao'), filhos('periodo')]);
+    const equip = (await db.records.where('kind').equals('equip').toArray()).filter((e) => !e.deleted);
+    return { postos, medicoes, periodos, equip };
+  }, [rec.id], null);
+  const [msg, setMsg] = useState('');
+  if (!dados) return null;
+  const motorista = RE_MOTORISTA.test(`${rec.data.funcoes || ''} ${dados.periodos.map((r) => `${r.data.cargo || ''} ${r.data.atividades || ''}`).join(' ')}`);
+  const comValor = (m) => ['lavg', 'nen', 'dose', 'aren', 'vdv', 'tbn', 'tg', 'ibutgLido', 'valor'].some((k) => String(m.data[k] ?? '').trim());
+  const postos = dados.postos.map((p) => ({ p, meds: dados.medicoes.filter((m) => m.data.postoId === p.id && comValor(m)) })).filter((x) => x.meds.length);
+  const incluir = async ({ p, meds }) => {
+    const r = motorista && meds.some((m) => /^Ru[íi]do|corpo inteiro/i.test(m.data.agente || ''))
+      ? await incluirVeiculoNaBase(rec, p, meds, dados.equip) : await incluirPostoNaBase(rec, p, meds, dados.equip);
+    avisarAlteracao();
+    setMsg(r.kind === 'paradigma'
+      ? `✓ Veículo incluído em Bases técnicas → Veículos como ${r.data.codigo} (situação "Revisar"): confira marca, modelo, família e cabine.`
+      : '✓ Posto incluído em Bases técnicas → Postos de trabalho (situação "Revisar"): complete o ramo e confira os resultados.');
+  };
+  return (
+    <div class="bloco-interno">
+      <p class="dica"><b>Medições do caso</b> {motorista ? '– veículo avaliado vai para Veículos (ruído e VCI num registro só)' : '– posto medido vai para Postos de trabalho'}</p>
+      {!postos.length && <p class="vazio">Nenhum posto com medição neste caso.</p>}
+      {postos.map((x) => (
+        <div class="linha-botoes" key={x.p.id}>
+          <span class="cresce"><b>{x.p.data.nome || 'Posto'}</b> <small class="suave">{x.meds.map((m) => m.data.agente).join(', ')}</small></span>
+          {x.p.data.baseId ? <small class="ok-msg">✓ já na base</small> : <button type="button" class="sec" onClick={() => incluir(x)}>Incluir na base</button>}
+        </div>
+      ))}
+      <p class="dica"><b>Ficha da profissão</b> – o Claude monta a ficha genérica (sem nomes do caso) com CBO, profissiografia, agentes por época, roteiro de entrevista e documentos; ela passa a aparecer em Bases técnicas → Profissões e nos próximos casos.</p>
+      <BotaoClaudeDireto rotulo="Criar a ficha da profissão com o Claude" sec maxTokens={16000}
+        instrucao={async () => { gravarTudoAgora(); const red = await ultimaRedacao(rec.id); return promptProfissao(await textoDoCaso(rec.id), red?.data?.md || ''); }}
+        onResposta={async (t) => { const o = lerJsonProfissao(t); const r = await salvarProfissao(o, rec.id); avisarAlteracao(); return `Ficha "${o.nome}" ${r.atualizada ? 'atualizada' : 'criada'} em Bases técnicas → Profissões (${(o.agentes || []).length} agente(s)). Revise antes de usar.`; }} />
+      <p class="dica"><b>Notas normativas</b> – as interpretações que você aplica (faixas, critérios) ficam em <a href="#/paradigmas/notas">Bases técnicas → Notas do signatário</a> e vão ao Claude em toda redação.</p>
+      {msg && <p class="ok-msg">{msg}</p>}
+    </div>
+  );
+}
 
 // Correções da auditoria sobre o último texto redigido: o Claude devolve só as trocas; o app aplica, guarda a
 // versão anterior (desfazer) e gera o Word de novo – o resto do laudo não muda

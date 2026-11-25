@@ -7,6 +7,8 @@ import { iniciarGravacao, pararGravacao as pararGravador, ouvir as ouvirGravador
 import { db, createRecord, softDelete, updateFields } from '../db.js';
 import { avisarAlteracao } from '../sync.js';
 import { CAMPOS_POSTO, AGENTES_MEDICAO, contextoLegal, camposDoPosto } from '../schema.js';
+import { fontesEViasDosAgentes } from '../basesUsuario.js';
+import { profissaoDoCaso } from '../data/profissoes.js';
 import { CAMPOS_MEDICAO, CAMPOS_MEDICAO_COMUNS, calculados } from '../medicoes.js';
 import { confrontoAnexo11 } from '../quimicos.js';
 import { FormaPrev } from './Quimicos.jsx';
@@ -92,6 +94,7 @@ export function Campo({ rec }) {
             <div class="item-corpo">
               <CamposCompactos rec={p} campos={camposDoPosto(CAMPOS_POSTO, { motorista, ltcat: rec.data.tipoAtuacao === 'Extrajudicial', dados: p.data })} sempre={['nome', 'descricao', 'agentes']} />
               <PadraoMotorista p={p} />
+              <FontesDaBase p={p} caso={rec} />
               <VinculosDoPosto rec={p} caseId={rec.id} motorista={motorista} />
               <Medicoes caseId={rec.id} postoId={p.id} ctx={contextoLegal(rec.data)} caso={rec} />
               <div class="campo">
@@ -163,6 +166,21 @@ function PadraoMotorista({ p }) {
   const preencher = async () => { await updateFields(p.id, Object.fromEntries(vazios.map((k) => [k, PADRAO_MOTORISTA[k]]))); avisarAlteracao(); };
   return <div class="linha-botoes"><button type="button" class="mini sec" onClick={preencher}>Preencher fontes geradoras e via/periodicidade (texto padrão de motorista)</button>
     <small class="dica">Os demais campos vazios (empresa/acompanhante, EPC, EPI) são opcionais: vazios, não saem no laudo nem viram pendência.</small></div>;
+}
+
+// Fontes geradoras e via/periodicidade a partir dos agentes do caso (carregados da profissão) ou da ficha da profissão
+function FontesDaBase({ p, caso }) {
+  const agentes = useLive(async () => (await db.records.where('[caseId+kind]').equals([caso.id, 'agenteAvaliado']).toArray()).filter((r) => !r.deleted), [caso.id], []);
+  const periodos = useLive(async () => (await db.records.where('[caseId+kind]').equals([caso.id, 'periodo']).toArray()).filter((r) => !r.deleted), [caso.id], []);
+  const vazios = ['fontes', 'viaPeriodicidade'].filter((k) => !String(p.data[k] || '').trim());
+  if (!vazios.length || RE_POSTO_MOTORISTA.test(`${p.data.nome || ''} ${p.data.descricao || ''}`)) return null;
+  const prof = profissaoDoCaso(caso.data, periodos);
+  const origem = agentes.length ? agentes : prof?.agentes || [];
+  const sug = fontesEViasDosAgentes(origem);
+  if (!sug.fontes && !sug.viaPeriodicidade) return null;
+  const preencher = async () => { await updateFields(p.id, Object.fromEntries(vazios.filter((k) => sug[k]).map((k) => [k, sug[k]]))); avisarAlteracao(); };
+  return <div class="linha-botoes"><button type="button" class="mini sec" onClick={preencher}>Preencher fontes geradoras e via/periodicidade pela base</button>
+    <small class="dica">{agentes.length ? `A partir dos ${agentes.length} agentes do caso` : `A partir da ficha "${prof.nome}" do banco de profissões`} (os que não caracterizam em nenhuma época ficam de fora). Só preenche os campos vazios; revise e ajuste ao que viu no local.</small></div>;
 }
 
 // Medições sem posto: só aparecem quando existem; senão, um botão abre o quadro

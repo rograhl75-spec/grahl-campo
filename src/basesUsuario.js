@@ -240,3 +240,13 @@ export function iniciarBasesUsuario() {
   liveQuery(() => ativos('profissao')).subscribe({ next: registrarProfissoes, error: () => {} });
   liveQuery(() => ativos('notaNormativa')).subscribe({ next: (l) => { notasCache = l; }, error: () => {} });
 }
+
+// ---------- posto: fontes geradoras e via/periodicidade a partir dos agentes (do caso ou da ficha da profissão) ----------
+const curto = (t, n = 260) => { const x = v(t).replace(/\s+/g, ' '); return x.length > n ? `${x.slice(0, n).replace(/[,;:\s]+\S*$/, '')}…` : x; };
+const semEnquadre = (a) => /^n[ãa]o (caracteriza|enquadr)/i.test(v(a.resAte97)) && /^n[ãa]o (caracteriza|enquadr)/i.test(v(a.resDesde97));
+export function fontesEViasDosAgentes(agentes = []) {
+  const l = agentes.map((a) => a.data || a).filter((a) => v(a.nome) && !semEnquadre(a));
+  const fontes = l.filter((a) => v(a.fonte)).map((a) => `- ${a.nome.replace(/\s*\(.*$/, '')}: ${curto(a.fonte)}`).join('\n');
+  const vias = l.filter((a) => v(a.vias) || v(a.frequencia)).map((a) => `- ${a.nome.replace(/\s*\(.*$/, '')}: ${[curto(a.vias, 180), curto(a.frequencia, 160)].filter(Boolean).join(' ')}`).join('\n');
+  return { fontes, viaPeriodicidade: vias };
+}

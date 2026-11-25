@@ -664,6 +664,7 @@ ${regs ? `- Meus registros profissionais, se precisar citá-los: ${regs} (copie 
 ` : ''}- Fotos: o app monta o Anexo I com as fotos na ordem da lista "Fotos" do caso, numeradas Foto 1, Foto 2… Cite-as assim ("Anexo I, Foto 3"), conferindo o número pela legenda.
 - Coerência: as respostas aos quesitos repetem os mesmos valores, datas, classificações e conclusões do corpo do laudo (confira cada número antes de responder). Classificação da NHO-09 por grandeza: aren e VDVR têm faixas próprias; não atribua a um a faixa do outro.
 - Entrevista: o que o segurado relatou sobre os vínculos é relato dele; o representante da empresa similar confirma só as condições da empresa e do veículo avaliado (cargas, rotas e jornada atuais), não o passado do segurado nas empregadoras.
+- Datas: a data de emissão do laudo vale para o laudo, para o PPP (item 19) e para o termo de declaração e autorização; não deixe data em branco nem use outra data nesses campos.
 - Pendências e documentos a apresentar: seção, item ou quadro próprio só se houver item pendente de fato; sem pendência, não crie a seção nem o quadro (nada de "Nenhuma" ou "Não há documentos pendentes") e não faça remissão a eles.
 - Jurisprudência: só o que trata do enquadramento técnico (agente, metodologia, EPI, penosidade, similaridade); temas sobre concessão, DER ou pagamento do benefício ficam fora.
 

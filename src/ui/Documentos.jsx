@@ -13,6 +13,8 @@ import { exportarParaClaude, lerJsonIA, aplicarIA, promptPeticaoLivre } from '..
 import { BotaoClaudeDireto, anexosDosAutos, ModoManual } from './ClaudeDireto.jsx';
 import { temClaude } from '../claudeApi.js';
 import { documentoDoClaude, peticaoDoClaude, temConteudo } from '../docx/claudeDoc.js';
+import { ultimaRedacao, guardarRedacao, desfazerRedacao, promptAplicarCorrecoes, lerTrocas, aplicarTrocas } from '../redacao.js';
+import { textoDoCaso } from '../aiimport.js';
 import { gravarTudoAgora, salvar, TF, Sel } from './fields.jsx';
 import { FORMAS_PAGAMENTO, localVistoria, finalidadeArtDoCaso, rotuloArt } from '../schema.js';
 import { db } from '../db.js';
@@ -90,6 +92,7 @@ export function Documentos({ rec, modo = 'laudo' }) {
         )}
         <PassoLaudo n={++n} titulo={principais.length > 1 ? 'Redigir e gerar os documentos' : `Redigir e gerar – ${principais[0].titulo}`}>
           {principais.map((d) => <CartaoDoc d={d} principal embutido={principais.length === 1} {...props} />)}
+          <AplicarCorrecoes rec={rec} />
           <ModoManual>
             <p class="dica">1. Copie o caso, cole no claude.ai com os autos anexados. 2. Cole a resposta do Claude abaixo e gere o Word no timbrado.</p>
             <div class="linha-botoes">{principais.filter((d) => d.redacao).map((d) => <BotaoClaude rec={rec} tipo={d.redacao} rotulo={principais.length > 1 ? `Copiar – ${d.titulo}` : 'Copiar o caso para o claude.ai'} soCopiar />)}</div>
@@ -411,6 +414,7 @@ function BotaoClaude({ rec, tipo, rotulo = 'Redigir com o Claude', soDireto = fa
     }
     const doc = await documentoDoClaude(rec.id, t);
     baixarArquivo(doc.blob, doc.nome);
+    await guardarRedacao(rec.id, t, { origem: 'Claude', doc: cartao?.id || tipo }); // para aplicar correções depois, sem redigir de novo
     if (cartao) await registrarGerado(rec, cartao, doc.nome, 'redigido pelo Claude');
     return `${doc.nome} gerado no timbrado e baixado. Confira no passo seguinte o que ainda sai em amarelo.`;
   };
@@ -481,6 +485,56 @@ function QuesitosPendentes({ rec }) {
 }
 const byOrdem = (a, b) => (parseFloat(a.data.numero) || 0) - (parseFloat(b.data.numero) || 0) || String(a.data.origem || '').localeCompare(String(b.data.origem || ''));
 
+// Correções da auditoria sobre o último texto redigido: o Claude devolve só as trocas; o app aplica, guarda a
+// versão anterior (desfazer) e gera o Word de novo – o resto do laudo não muda
+function AplicarCorrecoes({ rec }) {
+  const red = useLive(() => ultimaRedacao(rec.id), [rec.id], null);
+  const [correcoes, setCorrecoes] = useState('');
+  const [msg, setMsg] = useState('');
+  const [falhas, setFalhas] = useState([]);
+  const [colado, setColado] = useState('');
+  if (!red) return null;
+  const quando = new Date(red.data.em).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+  const gerar = async (md) => {
+    const r = await documentoDoClaude(rec.id, md);
+    baixarArquivo(r.blob, r.nome);
+    return r.nome;
+  };
+  const aplicar = async (t) => {
+    const { trocas, naoAplicadas } = lerTrocas(t);
+    const res = aplicarTrocas(red.data.md, trocas);
+    setFalhas([...res.falhas.map((x) => `"${String(x.buscar).slice(0, 90)}…" – ${x.motivo}`), ...naoAplicadas.map((x) => `não aplicada pelo Claude: ${x}`)]);
+    if (!res.feitas.length) return 'Nenhuma troca pôde ser aplicada; o texto e o Word não mudaram.';
+    await guardarRedacao(rec.id, res.md, { origem: 'correções aplicadas' });
+    const nome = await gerar(res.md);
+    return `${res.feitas.length} de ${trocas.length} troca(s) aplicada(s); ${nome} gerado de novo.${res.falhas.length || naoAplicadas.length ? ' Veja abaixo o que não foi aplicado.' : ''}`;
+  };
+  return (
+    <details class="mt">
+      <summary><b>Aplicar correções ao último texto</b> <small class="suave">– redigido em {quando} ({red.data.origem})</small></summary>
+      <p class="dica">Cole a lista de correções (da auditoria ou suas). O Claude devolve só as trocas, e o app as aplica ao texto guardado e gera o Word de novo: o resto do laudo não muda. Depois, confira e complete o que sair em amarelo.</p>
+      <label class="campo campo-area"><span class="rotulo">Correções a aplicar</span>
+        <textarea rows={6} value={correcoes} onInput={(e) => setCorrecoes(e.currentTarget.value)} placeholder={'Ex.:\n1. Item 6.2: trocar "a posição técnica do perito é a seguinte" por "conclui-se tecnicamente o seguinte".\n2. Período do forno elétrico: "não avaliado (sem medição representativa)" em vez de "não caracteriza", em todo o laudo.'} /></label>
+      {correcoes.trim().length > 10 && <BotaoClaudeDireto rotulo="Aplicar as correções e gerar o Word" maxTokens={32000} permitirArquivos rotuloArquivos="Anexar a lista de correções (PDF ou texto)"
+        instrucao={async () => { gravarTudoAgora(); return promptAplicarCorrecoes(red.data.md, correcoes, await textoDoCaso(rec.id)); }}
+        onResposta={(t) => aplicar(t).then((m) => { setMsg(m); return m; })} />}
+      <div class="linha-botoes">
+        <button type="button" class="sec" onClick={async () => { setMsg(`✓ ${await gerar(red.data.md)} gerado de novo com o último texto.`); }}>Gerar o Word do último texto</button>
+        {red.data.anterior && <button type="button" class="sec" onClick={async () => { await desfazerRedacao(rec.id); setMsg('✓ Voltou ao texto anterior (gere o Word de novo para baixar).'); }}>Desfazer as últimas correções</button>}
+        <button type="button" class="sec" onClick={() => baixarArquivo(new Blob([red.data.md], { type: 'text/markdown' }), `Texto_do_laudo_${carimbo()}.md`)}>Baixar o texto (.md)</button>
+      </div>
+      <ModoManual>
+        <p class="dica">Sem a chave de API: copie a instrução, cole no claude.ai e cole aqui o JSON que ele devolver.</p>
+        <button type="button" class="sec" disabled={correcoes.trim().length <= 10} onClick={async () => { await navigator.clipboard.writeText(promptAplicarCorrecoes(red.data.md, correcoes, await textoDoCaso(rec.id))); setMsg('✓ Instrução copiada.'); }}>Copiar a instrução de correção</button>
+        <textarea rows={4} value={colado} onInput={(e) => setColado(e.currentTarget.value)} placeholder='{"trocas": [...]}' />
+        <button type="button" class="sec" disabled={!colado.trim()} onClick={async () => { try { setMsg(await aplicar(colado)); } catch (e) { setMsg(`Erro: ${e.message}`); } }}>Aplicar o JSON colado</button>
+      </ModoManual>
+      {msg && <p class="ok-msg">{msg}</p>}
+      {falhas.length > 0 && <div class="evidencias alerta"><b>Não aplicado (corrija no Word ou peça de novo):</b><ul>{falhas.map((x) => <li>{x}</li>)}</ul></div>}
+    </details>
+  );
+}
+
 // Texto redigido pelo Claude → Word no timbrado (capa, sumário, quadros, fluxos, fontes e assinatura do padrão)
 function MontarDoClaude({ rec }) {
   const [md, setMd] = useState('');
@@ -491,6 +545,7 @@ function MontarDoClaude({ rec }) {
     try {
       const r = await documentoDoClaude(rec.id, md);
       baixarArquivo(r.blob, r.nome);
+      await guardarRedacao(rec.id, md, { origem: 'colado do claude.ai' });
       const junto = [r.nFotos && `${r.nFotos} foto(s) no Anexo I`, r.nAnexos && `${r.nAnexos} anexo(s)`, r.nApendices && `${r.nApendices} apêndice(s)`].filter(Boolean).join(', ');
       setMsg(`✓ ${r.nome} gerado no timbrado${junto ? `, com ${junto}` : ''}.${r.falhasApendice ? ` ${r.falhasApendice} arquivo(s) não puderam ser lidos – confira em Campo → Relatórios e em Configurações → Equipamentos.` : ''} Confira as pendências em amarelo.`);
     } catch (e) { setMsg(`Erro: ${e.message || e}`); } finally { setOcupado(false); }

@@ -630,6 +630,52 @@ ${CONVENCOES_CLAUDE}
 ${texto}`;
 }
 
+const REGRAS_REDACAO = `- Fotos: o app monta o Anexo I com as fotos na ordem da lista "Fotos" do caso, numeradas Foto 1, Foto 2… Cite-as assim ("Anexo I, Foto 3"), conferindo o número pela legenda.
+- Coerência: as respostas aos quesitos repetem os mesmos valores, datas, classificações e conclusões do corpo do laudo (confira cada número antes de responder). Classificação da NHO-09 por grandeza: aren e VDVR têm faixas próprias; não atribua a um a faixa do outro.
+- Entrevista: o que o segurado relatou sobre os vínculos é relato dele; o representante da empresa similar confirma só as condições da empresa e do veículo avaliado (cargas, rotas e jornada atuais), não o passado do segurado nas empregadoras.
+- PPP, item 15 (Manual de Aposentadoria Especial do INSS): intensidade "Qualitativa" para agente de avaliação qualitativa (nunca "Não se aplica") e "Não quantificada" para agente quantitativo sem medição; técnica com o critério e o código (ex.: "Qualitativa – Anexo IV do Dec. 3.048/99, cód. 3.0.1"; "Quantitativa – NR-15, Anexo 11 (sem medição)"); sem fichas de EPI, EPC e EPI eficazes "Não" em todo o período e CA "—".
+- Datas: a data de emissão do laudo vale para o laudo, para o PPP (item 19) e para o termo de declaração e autorização; não deixe data em branco nem use outra data nesses campos.
+- Pendências e documentos a apresentar: seção, item ou quadro próprio só se houver item pendente de fato; sem pendência, não crie a seção nem o quadro (nada de "Nenhuma" ou "Não há documentos pendentes") e não faça remissão a eles.
+- Jurisprudência: só o que trata do enquadramento técnico (agente, metodologia, EPI, penosidade, similaridade); temas sobre concessão, DER ou pagamento do benefício ficam fora.`;
+
+// Auditoria do texto guardado de um documento (laudo, parecer, LTCAT, petição): o Claude aponta os problemas e
+// já propõe a troca exata de cada um; o perito escolhe quais aplicar – o resto do documento não muda
+export async function promptAuditoria(caseId, md, { tipo = 'laudo', peticao = false } = {}) {
+  const { c, texto } = await textoDoCaso(caseId);
+  const perfil = ((await db.records.get('perfil')) || {}).data || {};
+  return `Sou o perito. Faça a AUDITORIA do meu documento abaixo (${peticao ? 'petição' : 'documento técnico'} em Markdown, nas convenções do app), com muita precisão, contra os dados do caso e os meus critérios.
+
+O QUE PROCURAR
+- Erros técnicos e normativos: códigos, artigos, normas, datas e marcos legais; enquadramento incompatível com o critério do agente.
+- Incoerências entre partes: corpo × quadros × conclusão × PPP × respostas aos quesitos (valores, datas, períodos, resultados, nomes).
+- Dados do caso não usados ou contrariados; [[pendência]] que os dados do caso já resolvem.
+- Descumprimento das regras de redação e dos critérios abaixo.
+- Português: concordância, digitação, palavras repetidas, frases truncadas; seções ou quadros vazios.
+- Não proponha mudanças só de estilo, nem reescreva trechos corretos.
+
+RESPOSTA: apenas um JSON, sem comentários:
+{"itens": [{"onde": "item, quadro ou parágrafo", "problema": "o que está errado e por quê, curto", "gravidade": "alta | média | baixa", "buscar": "trecho EXATO do texto atual", "substituir": "trecho corrigido", "pergunta": "se a correção depender de informação minha, a pergunta; senão vazio"}]}
+
+REGRAS DAS TROCAS
+- "buscar" é copiado letra por letra do texto atual (inclusive pontuação, ** e |), curto mas único no texto. Se o mesmo erro aparece em vários lugares, um item para cada ocorrência, com contexto que a torne única.
+- Para apagar um bloco, "substituir" é "". Para acrescentar uma linha a um quadro, "buscar" é a linha anterior inteira e "substituir" é essa linha + quebra de linha + a linha nova.
+- Correção que depende de dado meu: escreva a troca com [[dado: o que falta]] no lugar do dado e preencha "pergunta".
+- Mantenha as convenções do texto: títulos com #, quadros com "Quadro:", fórmulas entre $, [[pendência]].
+- Ordene do mais grave ao menos grave. Se não houver problema, devolva {"itens": []}.
+
+${peticao ? '' : `REGRAS DE REDAÇÃO DO DOCUMENTO\n${REGRAS_REDACAO}\n\n`}${criteriosPara(c, tipo === 'ltcat' || tipo === 'parprev' || tipo === 'parPenosidade' ? 'extra-ltcat' : '', perfil)}
+
+${CONVENCOES_CLAUDE}
+
+---
+DOCUMENTO A AUDITAR
+${md}
+
+---
+DADOS DO CASO
+${texto}`;
+}
+
 export async function exportarParaClaude(caseId, tipo) {
   const { c, texto } = await textoDoCaso(caseId);
   if (tipo === 'respostasPendentes') {
@@ -661,13 +707,7 @@ Use os dados do caso abaixo (coletados por mim nos autos e na diligência) como 
 ${CONVENCOES_CLAUDE}
 ${regs ? `- Meus registros profissionais, se precisar citá-los: ${regs} (copie exatamente, sem reformatar o número).
 ` : ''}${tipo === 'ltcat' && perfilDoc.cpf ? `- Meu CPF, para o item 16 do PPP (responsável pelos registros ambientais): ${perfilDoc.cpf}.
-` : ''}- Fotos: o app monta o Anexo I com as fotos na ordem da lista "Fotos" do caso, numeradas Foto 1, Foto 2… Cite-as assim ("Anexo I, Foto 3"), conferindo o número pela legenda.
-- Coerência: as respostas aos quesitos repetem os mesmos valores, datas, classificações e conclusões do corpo do laudo (confira cada número antes de responder). Classificação da NHO-09 por grandeza: aren e VDVR têm faixas próprias; não atribua a um a faixa do outro.
-- Entrevista: o que o segurado relatou sobre os vínculos é relato dele; o representante da empresa similar confirma só as condições da empresa e do veículo avaliado (cargas, rotas e jornada atuais), não o passado do segurado nas empregadoras.
-- PPP, item 15 (Manual de Aposentadoria Especial do INSS): intensidade "Qualitativa" para agente de avaliação qualitativa (nunca "Não se aplica") e "Não quantificada" para agente quantitativo sem medição; técnica com o critério e o código (ex.: "Qualitativa – Anexo IV do Dec. 3.048/99, cód. 3.0.1"; "Quantitativa – NR-15, Anexo 11 (sem medição)"); sem fichas de EPI, EPC e EPI eficazes "Não" em todo o período e CA "—".
-- Datas: a data de emissão do laudo vale para o laudo, para o PPP (item 19) e para o termo de declaração e autorização; não deixe data em branco nem use outra data nesses campos.
-- Pendências e documentos a apresentar: seção, item ou quadro próprio só se houver item pendente de fato; sem pendência, não crie a seção nem o quadro (nada de "Nenhuma" ou "Não há documentos pendentes") e não faça remissão a eles.
-- Jurisprudência: só o que trata do enquadramento técnico (agente, metodologia, EPI, penosidade, similaridade); temas sobre concessão, DER ou pagamento do benefício ficam fora.
+` : ''}${REGRAS_REDACAO}
 
 ${criteriosPara(c, tipo === 'ltcat' || tipo === 'parprev' || tipo === 'parPenosidade' ? 'extra-ltcat' : '', ((await db.records.get('perfil')) || {}).data || {})}
 

@@ -451,3 +451,13 @@ details.secao-etapa > .importar-fotos { border: 0; background: var(--cartao); bo
 .pend-quesito { border-left: 3px solid var(--alerta); padding: .25rem 0 .25rem .75rem; margin: .75rem 0; }
 .pend-trechos { margin: .25rem 0 .5rem 1rem; }
 .pend-trechos mark { background: #fff3a6; color: inherit; }
+
+/* auditoria do documento: um cartão por ponto, com a gravidade na borda */
+.auditoria { display: grid; gap: .6rem; margin: .6rem 0; }
+.item-auditoria { border: 1px solid var(--borda); border-left: 4px solid #9aa7b8; border-radius: 8px; padding: .5rem .7rem; background: var(--cartao); }
+.item-auditoria.grav-alta { border-left-color: #B91C1C; }
+.item-auditoria.grav-média { border-left-color: var(--alerta); }
+.item-auditoria .check { display: flex; gap: .5rem; align-items: flex-start; }
+.item-auditoria .alerta-pend { background: #fff6c2; padding: .25rem .5rem; border-radius: 6px; margin: .3rem 0; }
+.historico { margin: .4rem 0; padding-left: 1.1rem; }
+.historico li { margin: .2rem 0; }

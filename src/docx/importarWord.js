@@ -101,7 +101,7 @@ const RE_FIM = /^(integram? o presente|o (presente )?(laudo|parecer|documento) (
 // local e data da assinatura ("Londrina/PR, 24 de novembro de 2026.", "Londrina – PR, …")
 const RE_LOCAL_DATA = /^[\p{L}\d .'/–-]{2,90},\s*\d{1,2}(º)? de [\p{L}]+ de \d{4}\.?$/u;
 
-export function wordParaTexto(xmlDocumento, { titulo = '' } = {}) {
+export function wordParaTexto(xmlDocumento, { titulo = '', peticao = false } = {}) {
   const corpo = um(um(parseXml(xmlDocumento), 'w:document'), 'w:body');
   if (!corpo) throw new Error('Arquivo sem o corpo do documento (é um .docx?).');
   const blocos = filhos(corpo).filter((x) => x.n === 'w:p' || x.n === 'w:tbl');
@@ -129,7 +129,9 @@ export function wordParaTexto(xmlDocumento, { titulo = '' } = {}) {
     if (b.n === 'w:p') {
       const t = runs(b);
       const nv = nivel(b);
-      if (!comecou) { if (nv === 1 && /^\d/.test(t.replace(/\*\*/g, ''))) comecou = true; else continue; }
+      // petição: o corpo começa no parágrafo de apresentação (o primeiro longo, depois do endereçamento e do processo)
+      if (!comecou) { if ((nv === 1 && /^\d/.test(t.replace(/\*\*/g, ''))) || (peticao && !nv && t.replace(/\*\*/g, '').trim().length > 120 && /[a-zà-ú]{3}/.test(t) && !/^(excelent|ao ju[ií]zo|ilustr)/i.test(t.replace(/\*\*/g, '').trim()))) comecou = true; else continue; }
+      if (peticao && /^(nestes termos|termos em que)/i.test(t.replace(/\*\*/g, '').trim())) break;
       const limpo = t.replace(/\*\*/g, '').trim();
       if (nv === 1 && /^(anexo|ap[êe]ndice)\b/i.test(limpo)) break;
       if (RE_FIM.test(limpo)) break;
@@ -172,17 +174,17 @@ export function wordParaTexto(xmlDocumento, { titulo = '' } = {}) {
     }
   }
   const md = L.join('\n').replace(/\n{3,}/g, '\n\n').trim() + '\n';
-  if (!comecou) throw new Error('Não achei o corpo do laudo (títulos numerados). O arquivo foi gerado pelo app?');
+  if (!comecou) throw new Error(peticao ? 'Não achei o corpo da petição. O arquivo foi gerado pelo app?' : 'Não achei o corpo do laudo (títulos numerados). O arquivo foi gerado pelo app?');
   return md;
 }
 
 // .docx (Blob ou ArrayBuffer) → texto; o título vem das propriedades do documento
-export async function importarWordDoLaudo(arquivo) {
+export async function importarWordDoLaudo(arquivo, { peticao = false } = {}) {
   const JSZip = (await import('jszip')).default;
   const zip = await JSZip.loadAsync(arquivo instanceof ArrayBuffer ? arquivo : await arquivo.arrayBuffer());
   const xml = await zip.file('word/document.xml')?.async('string');
   if (!xml) throw new Error('Arquivo sem word/document.xml – escolha o .docx do laudo.');
   const core = (await zip.file('docProps/core.xml')?.async('string')) || '';
   const titulo = ent((core.match(/<dc:title>([^<]*)<\/dc:title>/) || [])[1] || '').trim();
-  return wordParaTexto(xml, { titulo });
+  return wordParaTexto(xml, { titulo, peticao });
 }

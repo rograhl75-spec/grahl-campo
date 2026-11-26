@@ -9,13 +9,13 @@ import { Suplementares } from './Quesitos.jsx';
 import { DESC_ANEXO_DOC } from '../apendices.js';
 import { CATALOGO, HONORARIOS, situacaoHonorarios, PETICOES_PERITO, PETICOES_AT, POSICOES_AT } from '../docx/reports.js';
 import { exportarBackup, baixarArquivo, carimbo } from '../backup.js';
-import { exportarParaClaude, lerJsonIA, aplicarIA, promptPeticaoLivre } from '../aiimport.js';
+import { exportarParaClaude, lerJsonIA, aplicarIA, promptPeticaoLivre, promptAuditoria } from '../aiimport.js';
 import { BotaoClaudeDireto, anexosDosAutos, ModoManual } from './ClaudeDireto.jsx';
 import { temClaude } from '../claudeApi.js';
 import { documentoDoClaude, peticaoDoClaude, temConteudo } from '../docx/claudeDoc.js';
 import { incluirVeiculoNaBase, incluirPostoNaBase, promptProfissao, lerJsonProfissao, salvarProfissao, RE_MOTORISTA } from '../basesUsuario.js';
 import { importarWordDoLaudo } from '../docx/importarWord.js';
-import { ultimaRedacao, guardarRedacao, desfazerRedacao, promptAplicarCorrecoes, lerTrocas, aplicarTrocas } from '../redacao.js';
+import { ultimaRedacao, guardarRedacao, desfazerRedacao, promptAplicarCorrecoes, lerTrocas, aplicarTrocas, redacoesDoCaso, restaurarVersao, guardarAuditoria, lerAuditoria, slugDoc } from '../redacao.js';
 import { textoDoCaso } from '../aiimport.js';
 import { gravarTudoAgora, salvar, TF, Sel } from './fields.jsx';
 import { FORMAS_PAGAMENTO, localVistoria, finalidadeArtDoCaso, rotuloArt } from '../schema.js';
@@ -94,7 +94,7 @@ export function Documentos({ rec, modo = 'laudo' }) {
         )}
         <PassoLaudo n={++n} titulo={principais.length > 1 ? 'Redigir e gerar os documentos' : `Redigir e gerar – ${principais[0].titulo}`}>
           {principais.map((d) => <CartaoDoc d={d} principal embutido={principais.length === 1} {...props} />)}
-          <AplicarCorrecoes rec={rec} />
+          {principais.map((d) => <RedacaoDoc rec={rec} chaves={[d.id, d.redacao].filter(Boolean)} titulo={principais.length > 1 ? d.titulo : ''} tipo={d.redacao || 'laudo'} gerar={(md) => documentoDoClaude(rec.id, md)} />)}
           <ModoManual>
             <p class="dica">1. Copie o caso, cole no claude.ai com os autos anexados. 2. Cole a resposta do Claude abaixo e gere o Word no timbrado.</p>
             <div class="linha-botoes">{principais.filter((d) => d.redacao).map((d) => <BotaoClaude rec={rec} tipo={d.redacao} rotulo={principais.length > 1 ? `Copiar – ${d.titulo}` : 'Copiar o caso para o claude.ai'} soCopiar />)}</div>
@@ -209,7 +209,33 @@ function CartaoPeticoes({ lista, ...props }) {
       </label>
       {sel?.id === 'supl' && <Suplementares rec={rec} />}
       {sel ? <CartaoDoc d={sel} embutido {...props} /> : <PeticaoLivre rec={rec} />}
+      <PeticoesGuardadas rec={rec} />
     </section>
+  );
+}
+
+// Petições com texto guardado (redigidas pelo Claude ou importadas do Word): auditar, corrigir e gerar de novo
+function PeticoesGuardadas({ rec }) {
+  const l = useLive(async () => (await redacoesDoCaso(rec.id)).filter((r) => String(r.data.doc || '').startsWith('peticao:')), [rec.id], []);
+  const [msg, setMsg] = useState('');
+  const importar = async (e) => {
+    const f = e.currentTarget.files[0]; e.currentTarget.value = '';
+    if (!f) return;
+    try {
+      const md = await importarWordDoLaudo(f, { peticao: true });
+      const tit = f.name.replace(/\.docx$/i, '').replace(/_/g, ' ');
+      await guardarRedacao(rec.id, md, { origem: `importado do Word (${f.name})`, doc: `peticao:${slugDoc(tit)}`, titulo: tit });
+      setMsg(`✓ ${f.name} importada: revise e corrija abaixo.`);
+    } catch (er) { setMsg(`Erro ao importar: ${er.message}`); }
+  };
+  return (
+    <div class="mt">
+      <h4>Revisar petições já redigidas</h4>
+      {l.map((r) => <RedacaoDoc rec={rec} chaves={[r.data.doc]} titulo={r.data.titulo || r.data.doc.replace(/^peticao:/, '')} peticao tipo="peticao" gerar={(md) => peticaoDoClaude(rec.id, md)} />)}
+      {!l.length && <p class="dica">As petições redigidas pelo Claude ficam aqui para auditar e corrigir sem redigir de novo. Também é possível importar uma petição em Word (inclusive de modelo do app, editada à mão).</p>}
+      <label class="botao-arquivo sec">＋ Importar uma petição em Word (.docx)<input type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden onChange={importar} /></label>
+      {msg && <p class="ok-msg">{msg}</p>}
+    </div>
   );
 }
 
@@ -217,7 +243,15 @@ function CartaoPeticoes({ lista, ...props }) {
 function PeticaoLivre({ rec }) {
   const [md, setMd] = useState('');
   const [msg, setMsg] = useState('');
-  const gerarDoTexto = async (t) => { const r = await peticaoDoClaude(rec.id, t); baixarArquivo(r.blob, r.nome); await registrarGerado(rec, { id: LIVRE, grupo: '' }, r.nome, 'redigida pelo Claude'); return r.nome; };
+  const gerarDoTexto = async (t, origem = 'Claude') => {
+    const r = await peticaoDoClaude(rec.id, t);
+    baixarArquivo(r.blob, r.nome);
+    await registrarGerado(rec, { id: LIVRE, grupo: '' }, r.nome, 'redigida pelo Claude');
+    // texto guardado por petição (pelo assunto do título): revisar e corrigir depois sem redigir de novo
+    const tit = (String(t).match(/^\s*t[íi]tulo:\s*(.+)$/im) || [])[1]?.replace(/\*\*/g, '').trim() || r.nome.replace(/\.docx$/i, '');
+    await guardarRedacao(rec.id, t, { origem, doc: `peticao:${slugDoc(tit)}`, titulo: tit });
+    return r.nome;
+  };
   const copiar = async () => {
     gravarTudoAgora();
     const t = await promptPeticaoLivre(rec.id, rec.data.peticaoLivrePedido);
@@ -237,7 +271,7 @@ function PeticaoLivre({ rec }) {
         <label class="campo campo-area"><span class="rotulo">Texto da petição redigido pelo Claude</span>
           <textarea rows={6} value={md} onInput={(e) => setMd(e.currentTarget.value)} />
         </label>
-        <div class="linha-botoes"><button type="button" class="primario" disabled={!temConteudo(md)} onClick={async () => { try { setMsg(`✓ ${await gerarDoTexto(md)} gerado.`); } catch (e) { setMsg(`Erro: ${e.message}`); } }}>Gerar Word da petição</button></div>
+        <div class="linha-botoes"><button type="button" class="primario" disabled={!temConteudo(md)} onClick={async () => { try { setMsg(`✓ ${await gerarDoTexto(md, 'colado do claude.ai')} gerado.`); } catch (e) { setMsg(`Erro: ${e.message}`); } }}>Gerar Word da petição</button></div>
       </ModoManual>
       {msg && <p class="ok-msg">{msg}</p>}
     </div>
@@ -531,72 +565,144 @@ function LevarParaBase({ rec }) {
   );
 }
 
-// Correções da auditoria sobre o último texto redigido: o Claude devolve só as trocas; o app aplica, guarda a
-// versão anterior (desfazer) e gera o Word de novo – o resto do laudo não muda
-function AplicarCorrecoes({ rec }) {
-  const red = useLive(() => ultimaRedacao(rec.id), [rec.id], null);
+// Revisão de um documento redigido (laudo, parecer, LTCAT, petição) sem reescrever: o texto fica guardado por
+// documento; a auditoria do Claude aponta os problemas já com a troca exata; o perito escolhe, completa e aplica;
+// cada rodada vira uma versão do histórico (volta a qualquer uma); o Word final editado à mão pode ser importado
+function RedacaoDoc({ rec, chaves, titulo, tipo = 'laudo', peticao = false, gerar, aberto = false }) {
+  const red = useLive(async () => {
+    const l = await redacoesDoCaso(rec.id);
+    return chaves.map((k) => l.find((r) => (r.data.doc || '') === k)).find(Boolean) || (peticao ? null : l.find((r) => !r.data.doc)) || null;
+  }, [rec.id, chaves.join('|')], null);
+  const chave = red?.data.doc || chaves[0];
   const [correcoes, setCorrecoes] = useState('');
   const [msg, setMsg] = useState('');
   const [falhas, setFalhas] = useState([]);
   const [colado, setColado] = useState('');
-  // Word já gerado (inclusive editado à mão) → texto guardado, para aplicar correções sem redigir de novo
+  const [itens, setItens] = useState(null);
+  const [marcados, setMarcados] = useState({});
+  // auditoria guardada no texto: volta ao reabrir a página
+  useEffect(() => {
+    const a = red?.data.auditoria;
+    if (a?.itens) { setItens(a.itens); setMarcados(Object.fromEntries(a.itens.map((x) => [x.n, x.gravidade !== 'baixa' && !x.pergunta]))); }
+    else setItens(null);
+  }, [red?.id, red?.data.em]);
   const importar = async (e) => {
     const f = e.currentTarget.files[0]; e.currentTarget.value = '';
     if (!f) return;
     try {
-      const md = await importarWordDoLaudo(f);
-      await guardarRedacao(rec.id, md, { origem: `importado do Word (${f.name})` });
+      const md = await importarWordDoLaudo(f, { peticao });
+      await guardarRedacao(rec.id, md, { origem: `importado do Word (${f.name})`, doc: chave, titulo });
       const n = (md.match(/^#{1,3} /gm) || []).length, q = (md.match(/^Quadro:/gm) || []).length;
-      setMsg(`✓ Texto importado do Word: ${n} títulos e ${q} quadros. Toque em "Gerar o Word do último texto" para conferir a montagem antes de aplicar correções.`);
+      setMsg(`✓ Texto importado do Word${peticao ? '' : `: ${n} títulos e ${q} quadros`}. Toque em "Gerar o Word do último texto" para conferir a montagem.`);
     } catch (er) { setMsg(`Erro ao importar: ${er.message}`); }
   };
   const botaoImportar = (rot) => <label class="botao-arquivo sec">{rot}<input type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden onChange={importar} /></label>;
+  const gerarWord = async (md) => { const r = await gerar(md); baixarArquivo(r.blob, r.nome); return r.nome; };
   if (!red) return (
-    <details class="mt">
-      <summary><b>Aplicar correções a um laudo já gerado</b> <small class="suave">– importar o Word</small></summary>
-      <p class="dica">Este caso ainda não tem o texto do laudo guardado (foi redigido antes desta função, ou o laudo foi editado à mão). Importe o Word final: o app lê o corpo (títulos, parágrafos, quadros, fluxos e equações) e o guarda como último texto. Capa, sumário, anexos, apêndices e assinatura o app monta de novo ao gerar.</p>
-      {botaoImportar('＋ Importar o Word do laudo (.docx)')}
+    <details class="mt" open={aberto}>
+      <summary><b>Revisar e corrigir{titulo ? ` – ${titulo}` : ''}</b> <small class="suave">– importar o Word</small></summary>
+      <p class="dica">Ainda não há texto guardado deste documento. Redija com o Claude (o texto fica guardado) ou importe o Word final (inclusive editado à mão): o app lê o corpo e o guarda; {peticao ? 'endereçamento, fecho e assinatura' : 'capa, sumário, anexos, apêndices e assinatura'} o app monta de novo ao gerar.</p>
+      {botaoImportar(`＋ Importar o Word ${peticao ? 'da petição' : 'do documento'} (.docx)`)}
       {msg && <p class="ok-msg">{msg}</p>}
     </details>
   );
-  const quando = new Date(red.data.em).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
-  const gerar = async (md) => {
-    const r = await documentoDoClaude(rec.id, md);
-    baixarArquivo(r.blob, r.nome);
-    return r.nome;
-  };
+  const quando = (em) => new Date(em).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+  const relatar = (res, extra = []) => setFalhas([...res.falhas.map((x) => `"${String(x.buscar).slice(0, 90)}…" – ${x.motivo}`), ...extra]);
+  // correções livres: o Claude devolve só as trocas
   const aplicar = async (t) => {
     const { trocas, naoAplicadas } = lerTrocas(t);
     const res = aplicarTrocas(red.data.md, trocas);
-    setFalhas([...res.falhas.map((x) => `"${String(x.buscar).slice(0, 90)}…" – ${x.motivo}`), ...naoAplicadas.map((x) => `não aplicada pelo Claude: ${x}`)]);
+    relatar(res, naoAplicadas.map((x) => `não aplicada pelo Claude: ${x}`));
     if (!res.feitas.length) return 'Nenhuma troca pôde ser aplicada; o texto e o Word não mudaram.';
-    await guardarRedacao(rec.id, res.md, { origem: 'correções aplicadas' });
-    const nome = await gerar(res.md);
+    await guardarRedacao(rec.id, res.md, { origem: 'correções aplicadas', doc: chave });
+    const nome = await gerarWord(res.md);
     return `${res.feitas.length} de ${trocas.length} troca(s) aplicada(s); ${nome} gerado de novo.${res.falhas.length || naoAplicadas.length ? ' Veja abaixo o que não foi aplicado.' : ''}`;
   };
+  // auditoria: itens com a troca já proposta; o perito escolhe e completa
+  const receberAuditoria = async (t) => {
+    const l = lerAuditoria(t);
+    await guardarAuditoria(red.id, l);
+    setItens(l); setMarcados(Object.fromEntries(l.map((x) => [x.n, x.gravidade !== 'baixa' && !x.pergunta])));
+    return l.length ? `${l.length} ponto(s) apontado(s). Marque os que quer aplicar, complete o que for pedido e toque em "Aplicar os marcados".` : 'Nenhum problema apontado.';
+  };
+  const editarItem = (n, campo, valor) => setItens((l) => l.map((x) => (x.n === n ? { ...x, [campo]: valor } : x)));
+  const aplicarMarcados = async () => {
+    const sel = (itens || []).filter((x) => marcados[x.n] && x.buscar);
+    if (!sel.length) { setMsg('Marque ao menos um ponto com troca proposta.'); return; }
+    const res = aplicarTrocas(red.data.md, sel.map((x) => ({ buscar: x.buscar, substituir: x.substituir })));
+    relatar(res);
+    if (!res.feitas.length) { setMsg('Nenhuma troca pôde ser aplicada; o texto e o Word não mudaram.'); return; }
+    await guardarRedacao(rec.id, res.md, { origem: `auditoria (${res.feitas.length} correção(ões))`, doc: chave });
+    const nome = await gerarWord(res.md);
+    setMsg(`✓ ${res.feitas.length} de ${sel.length} correção(ões) aplicada(s); ${nome} gerado de novo.${res.falhas.length ? ' Veja abaixo o que não foi aplicado.' : ''}${/\[\[/.test(res.md) ? ' Ainda há trechos em amarelo para completar.' : ''}`);
+  };
+  const versoes = red.data.versoes || [];
   return (
-    <details class="mt">
-      <summary><b>Aplicar correções ao último texto</b> <small class="suave">– redigido em {quando} ({red.data.origem})</small></summary>
-      <p class="dica">Cole a lista de correções (da auditoria ou suas). O Claude devolve só as trocas, e o app as aplica ao texto guardado e gera o Word de novo: o resto do laudo não muda. Depois, confira e complete o que sair em amarelo.</p>
+    <details class="mt" open={aberto}>
+      <summary><b>Revisar e corrigir{titulo ? ` – ${titulo}` : ''}</b> <small class="suave">– versão de {quando(red.data.em)} ({red.data.origem}){versoes.length ? ` · ${versoes.length} anterior(es)` : ''}</small></summary>
+      <h4>1. Auditar</h4>
+      <p class="dica">O Claude confere o texto guardado contra os dados do caso e os seus critérios e aponta cada problema já com a correção exata. Nada muda até você aplicar: o resto do documento fica como está.</p>
+      <BotaoClaudeDireto rotulo="Auditar com o Claude" maxTokens={64000}
+        instrucao={async () => { gravarTudoAgora(); return promptAuditoria(rec.id, red.data.md, { tipo, peticao }); }}
+        onResposta={receberAuditoria} />
+      {itens && itens.length > 0 && (
+        <div class="auditoria">
+          <div class="linha-botoes">
+            <button type="button" class="sec" onClick={() => setMarcados(Object.fromEntries(itens.map((x) => [x.n, true])))}>Marcar todos</button>
+            <button type="button" class="sec" onClick={() => setMarcados({})}>Desmarcar todos</button>
+          </div>
+          {itens.map((x) => (
+            <div class={`item-auditoria grav-${x.gravidade}`}>
+              <label class="check"><input type="checkbox" checked={!!marcados[x.n]} disabled={!x.buscar} onChange={(e) => setMarcados((m) => ({ ...m, [x.n]: e.currentTarget.checked }))} />
+                <b>{x.n}. {x.onde || 'Texto'}</b> <small class="suave">({x.gravidade})</small> – {x.problema}</label>
+              {x.pergunta && <p class="alerta-pend">Informe: {x.pergunta}</p>}
+              {x.buscar ? <>
+                <p class="suave"><small>Trecho atual: “{x.buscar.length > 220 ? `${x.buscar.slice(0, 220)}…` : x.buscar}”</small></p>
+                <label class="campo campo-area"><span class="rotulo">Correção (edite antes de aplicar; o que ficar entre [[ ]] sai em amarelo)</span>
+                  <textarea rows={Math.min(6, Math.max(2, Math.ceil(x.substituir.length / 90)))} value={x.substituir} onInput={(e) => editarItem(x.n, 'substituir', e.currentTarget.value)} /></label>
+              </> : <p class="suave"><small>Sem troca proposta: corrija pelas correções livres abaixo ou no Word.</small></p>}
+            </div>
+          ))}
+          <button type="button" class="primario" onClick={aplicarMarcados}>Aplicar os marcados e gerar o Word</button>
+        </div>
+      )}
+      <ModoManual>
+        <p class="dica">Sem a chave de API: copie a instrução de auditoria, cole no claude.ai e cole aqui o JSON que ele devolver.</p>
+        <button type="button" class="sec" onClick={async () => { await navigator.clipboard.writeText(await promptAuditoria(rec.id, red.data.md, { tipo, peticao })); setMsg('✓ Instrução de auditoria copiada.'); }}>Copiar a instrução de auditoria</button>
+      </ModoManual>
+      <h4>2. Correções suas</h4>
+      <p class="dica">Escreva o que quer mudar (dados novos, ajustes da auditoria, pedidos do contratante). O Claude devolve só as trocas, e o app as aplica e gera o Word de novo.</p>
       <label class="campo campo-area"><span class="rotulo">Correções a aplicar</span>
-        <textarea rows={6} value={correcoes} onInput={(e) => setCorrecoes(e.currentTarget.value)} placeholder={'Ex.:\n1. Item 6.2: trocar "a posição técnica do perito é a seguinte" por "conclui-se tecnicamente o seguinte".\n2. Período do forno elétrico: "não avaliado (sem medição representativa)" em vez de "não caracteriza", em todo o laudo.'} /></label>
+        <textarea rows={5} value={correcoes} onInput={(e) => setCorrecoes(e.currentTarget.value)} placeholder={'Ex.:\n1. Endodontia desde 25/01/1986.\n2. Retirar a seção de documentos a apresentar.'} /></label>
       {correcoes.trim().length > 10 && <BotaoClaudeDireto rotulo="Aplicar as correções e gerar o Word" maxTokens={64000} permitirArquivos rotuloArquivos="Anexar a lista de correções (PDF ou texto)"
-        instrucao={async () => { gravarTudoAgora(); return promptAplicarCorrecoes(red.data.md, correcoes, await textoDoCaso(rec.id)); }}
+        instrucao={async () => { gravarTudoAgora(); return promptAplicarCorrecoes(red.data.md, correcoes, (await textoDoCaso(rec.id)).texto); }}
         onResposta={(t) => aplicar(t).then((m) => { setMsg(m); return m; })} />}
+      <ModoManual>
+        <button type="button" class="sec" disabled={correcoes.trim().length <= 10} onClick={async () => { await navigator.clipboard.writeText(promptAplicarCorrecoes(red.data.md, correcoes, (await textoDoCaso(rec.id)).texto)); setMsg('✓ Instrução copiada.'); }}>Copiar a instrução de correção</button>
+        <textarea rows={4} value={colado} onInput={(e) => setColado(e.currentTarget.value)} placeholder='{"trocas": [...]} ou {"itens": [...]}' />
+        <button type="button" class="sec" disabled={!colado.trim()} onClick={async () => {
+          try { setMsg(/"itens"\s*:/.test(colado) ? await receberAuditoria(colado) : await aplicar(colado)); } catch (e) { setMsg(`Erro: ${e.message}`); }
+        }}>Ler o JSON colado</button>
+      </ModoManual>
+      <h4>3. Word e versões</h4>
       <div class="linha-botoes">
-        <button type="button" class="sec" onClick={async () => { setMsg(`✓ ${await gerar(red.data.md)} gerado de novo com o último texto.`); }}>Gerar o Word do último texto</button>
-        {red.data.anterior && <button type="button" class="sec" onClick={async () => { await desfazerRedacao(rec.id); setMsg('✓ Voltou ao texto anterior (gere o Word de novo para baixar).'); }}>Desfazer as últimas correções</button>}
-        <button type="button" class="sec" onClick={() => baixarArquivo(new Blob([red.data.md], { type: 'text/markdown' }), `Texto_do_laudo_${carimbo()}.md`)}>Baixar o texto (.md)</button>
+        <button type="button" class="sec" onClick={async () => { setMsg(`✓ ${await gerarWord(red.data.md)} gerado com o último texto.`); }}>Gerar o Word do último texto</button>
+        <button type="button" class="sec" onClick={() => baixarArquivo(new Blob([red.data.md], { type: 'text/markdown' }), `Texto_${slugDoc(titulo) || 'documento'}_${carimbo()}.md`)}>Baixar o texto (.md)</button>
         {botaoImportar('Substituir pelo Word final (.docx)')}
       </div>
-      <ModoManual>
-        <p class="dica">Sem a chave de API: copie a instrução, cole no claude.ai e cole aqui o JSON que ele devolver.</p>
-        <button type="button" class="sec" disabled={correcoes.trim().length <= 10} onClick={async () => { await navigator.clipboard.writeText(promptAplicarCorrecoes(red.data.md, correcoes, await textoDoCaso(rec.id))); setMsg('✓ Instrução copiada.'); }}>Copiar a instrução de correção</button>
-        <textarea rows={4} value={colado} onInput={(e) => setColado(e.currentTarget.value)} placeholder='{"trocas": [...]}' />
-        <button type="button" class="sec" disabled={!colado.trim()} onClick={async () => { try { setMsg(await aplicar(colado)); } catch (e) { setMsg(`Erro: ${e.message}`); } }}>Aplicar o JSON colado</button>
-      </ModoManual>
+      {(versoes.length > 0 || red.data.anterior) && (
+        <details class="mt"><summary>Histórico de versões ({versoes.length})</summary>
+          <ul class="historico">
+            <li><b>Atual</b> – {quando(red.data.em)} ({red.data.origem})</li>
+            {versoes.map((v, i) => (
+              <li>{quando(v.em)} ({v.origem || '—'}) <button type="button" class="link" onClick={async () => { await restaurarVersao(rec.id, chave, i); setMsg('✓ Versão restaurada (a atual foi para o histórico). Gere o Word para baixar.'); }}>Restaurar</button></li>
+            ))}
+          </ul>
+          {!versoes.length && red.data.anterior && <button type="button" class="sec" onClick={async () => { await desfazerRedacao(rec.id, chave); setMsg('✓ Voltou ao texto anterior.'); }}>Voltar ao texto anterior</button>}
+        </details>
+      )}
       {msg && <p class="ok-msg">{msg}</p>}
-      {falhas.length > 0 && <div class="evidencias alerta"><b>Não aplicado (corrija no Word ou peça de novo):</b><ul>{falhas.map((x) => <li>{x}</li>)}</ul></div>}
+      {falhas.length > 0 && <div class="evidencias alerta"><b>Não aplicado (o trecho não foi encontrado igual no texto; corrija pelas correções livres ou no Word):</b><ul>{falhas.map((x) => <li>{x}</li>)}</ul></div>}
     </details>
   );
 }

@@ -640,6 +640,8 @@ const REGRAS_REDACAO = `- Fotos: o app monta o Anexo I com as fotos na ordem da 
 - Documento extrajudicial: não há Juízo – não escreva "para conhecimento do Juízo" nem "a decisão cabe ao Juízo"; diga "cabe ao INSS ou, em juízo, ao julgador". Contribuinte individual (sócio ou autônomo) não tem evento S-2240 do eSocial: o PPP em papel cobre todo o período, sem pendência sobre isso.
 - Não escreva "Integram o laudo…" nem repita a assinatura ou os registros no encerramento: o app acrescenta a lista do que integra o documento e a assinatura.
 - Jurisprudência com redação já conferida pelo signatário: TRF4, IRDR 15 – "A mera juntada do PPP referindo a eficácia do EPI não elide o direito do interessado em produzir prova em sentido contrário" (julgado em 22/11/2017; o acórdão ressalva hipóteses de ineficácia reconhecida do EPI). Tema ou súmula cuja tese você não tenha com segurança: não cite (nada de "conferir a tese"). Ruído medido por amostragem de parte da jornada (projetada para o tempo de exposição): não cite o Tema 174 da TNU (medição que reflita toda a jornada, vedada a medição pontual), que dá margem a impugnação.
+- Documentos anexados ao caso (alvará, diplomas, certificados, contratos): cada um entra no quadro de documentos analisados, com identificação (órgão, número, data de emissão, páginas), o anexo em que está ("Anexo III") e o conteúdo usado; e é citado no texto que usa o dado. Datas que constam de documento (conclusão de curso, especialização, início da atividade, alvará) prevalecem sobre o relato; se divergirem, use a do documento e não registre o relato divergente.
+- Endereços: completos e iguais em todo o documento e no PPP – logradouro, número, andar/sala ou complemento, cidade/UF – para cada local de trabalho, inclusive o anterior não vistoriado. Endereço no meio da frase não leva vírgula entre o sujeito e o verbo ("O consultório da Rua X, 536, 1º andar, Londrina/PR funcionou…").
 - Jurisprudência: só o que trata do enquadramento técnico (agente, metodologia, EPI, penosidade, similaridade); temas sobre concessão, DER ou pagamento do benefício ficam fora.`;
 
 // Auditoria do texto guardado de um documento (laudo, parecer, LTCAT, petição): o Claude aponta os problemas e
@@ -825,6 +827,21 @@ export async function textoDoCaso(caseId) {
     });
   }
   if (documentos.length) { L.push('\n## Documentos analisados'); documentos.forEach((d) => L.push(`- ${d.data.tipo || ''} ${d.data.identificacao || ''}: ${d.data.analise || ''}`)); }
+  // anexos que o app insere no documento (fotos, ART, documentos anexados em "Anexos do documento"), com o número
+  // que vão receber: o texto cita cada um ("Anexo III") e registra os documentos no quadro de documentos analisados
+  {
+    const { apendicesRegistros, DESC_ANEXO_DOC } = await import('./apendices.js');
+    const ROM = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+    const nomes = [];
+    if (fotos.length) nomes.push('Relatório fotográfico da diligência');
+    const art = c.artId ? await db.records.get(c.artId) : null;
+    if (art && !art.deleted && art.data.anexoId) nomes.push(`ART${art.data.numero ? ` nº ${art.data.numero}` : ''}${art.data.conselho ? ` (${art.data.conselho})` : ''}`);
+    for (const r of await apendicesRegistros(caseId, DESC_ANEXO_DOC)) if (!(art && r.id === art.data.anexoId)) nomes.push(r.data.titulo || r.data.nome || 'Documento');
+    if (nomes.length > (fotos.length ? 1 : 0)) {
+      L.push('\n## Anexos que o app insere no documento (cite pelo número; registre os documentos no quadro de documentos analisados)');
+      nomes.forEach((n, i) => L.push(`- Anexo ${ROM[i] || i + 1} – ${n}`));
+    }
+  }
   const agentesAv = await caseChildren(caseId, 'agenteAvaliado');
   if (agentesAv.length) { L.push('\n## Agentes avaliados (sem medição)'); agentesAv.forEach((a) => L.push(`- [${a.data.tipo || ''}] ${a.data.nome || ''}${a.data.vinculos ? ` (vínculos ${a.data.vinculos})` : ''}: até 05/03/1997 ${a.data.resAte97 || '?'}${a.data.codAte97 ? ` (cód. ${a.data.codAte97})` : ''}; a partir de 06/03/1997 ${a.data.resDesde97 || '?'}${a.data.codDesde97 ? ` (cód. ${a.data.codDesde97})` : ''}${a.data.fundamentacao ? ` – ${a.data.fundamentacao}` : ''}`)); }
   const produtosFds = await caseChildren(caseId, 'fds');

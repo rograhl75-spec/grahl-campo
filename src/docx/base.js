@@ -689,7 +689,9 @@ export async function figurasDoCaso(dados, filtro = () => true) {
   const lista = [];
   let faltando = 0;
   for (const f of dados.fotos.filter(filtro)) {
-    const b = await db.blobs.get(f.id);
+    let b = await db.blobs.get(f.id);
+    // foto de outro aparelho: tenta baixar da nuvem antes de dar como faltando
+    if (!b) { try { const { obterFoto } = await import('../sync.js'); const bl = await obterFoto(f.id); if (bl) b = { blob: bl }; } catch (e) { /* sem nuvem */ } }
     if (!b) { faltando++; continue; }
     const { reduzirFoto } = await import('../apendices.js');
     const red = typeof document !== 'undefined' ? await reduzirFoto(b.blob) : null;

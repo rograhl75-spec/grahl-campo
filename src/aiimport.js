@@ -631,6 +631,7 @@ ${texto}`;
 }
 
 const REGRAS_REDACAO = `- Fotos: o app monta o Anexo I com as fotos na ordem da lista "Fotos" do caso, numeradas Foto 1, Foto 2… Cite-as assim ("Anexo I, Foto 3"), conferindo o número pela legenda.
+- Fichas das FDS: os produtos químicos cadastrados no caso saem num anexo próprio montado pelo app ("Anexo – Fichas dos produtos químicos (FDS)"), uma ficha por produto. Cite esse anexo; não transcreva as fichas e não diga que estão "em item próprio do laudo". Se o caso não tiver produtos cadastrados, não prometa fichas.
 - Coerência: as respostas aos quesitos repetem os mesmos valores, datas, classificações e conclusões do corpo do laudo (confira cada número antes de responder). Classificação da NHO-09 por grandeza: aren e VDVR têm faixas próprias; não atribua a um a faixa do outro.
 - Entrevista: o que o segurado relatou sobre os vínculos é relato dele; o representante da empresa similar confirma só as condições da empresa e do veículo avaliado (cargas, rotas e jornada atuais), não o passado do segurado nas empregadoras.
 - PPP, item 15 (Manual de Aposentadoria Especial do INSS): intensidade "Qualitativa" para agente de avaliação qualitativa (nunca "Não se aplica") e "Não quantificada" para agente quantitativo sem medição; técnica com o critério e o código (ex.: "Qualitativa – Anexo IV do Dec. 3.048/99, cód. 3.0.1"; "Quantitativa – NR-15, Anexo 11 (sem medição)"); sem fichas de EPI, EPC e EPI eficazes "Não" em todo o período e CA "—".

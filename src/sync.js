@@ -102,6 +102,19 @@ function colRef() { return collection(fs, 'usuarios', auth.currentUser.uid, 'reg
 function fotoRef(id) { return sref(st, `usuarios/${auth.currentUser.uid}/fotos/${id}.jpg`); }
 function anexoRef(id) { return sref(st, `usuarios/${auth.currentUser.uid}/anexos/${id}`); }
 
+// Foto que não está neste aparelho (tirada em outro): baixa da nuvem na hora de montar o documento
+export async function obterFoto(id) {
+  const local = await db.blobs.get(id);
+  if (local) return local.blob;
+  if (!auth || !auth.currentUser) return null;
+  try {
+    const blob = await getBlob(fotoRef(id));
+    const { thumb } = await processarFoto(blob);
+    await db.blobs.put({ id, blob, thumb, uploaded: 1 });
+    return blob;
+  } catch (e) { return null; }
+}
+
 // Anexos (PDF de laudos antigos etc.): baixados da nuvem só quando abertos
 export async function obterAnexo(id) {
   const local = await db.blobs.get(id);

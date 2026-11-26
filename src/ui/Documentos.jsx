@@ -55,6 +55,19 @@ export function Documentos({ rec, modo = 'laudo' }) {
       setMsg('Erro ao gerar: ' + e.message);
     } finally { setOcupado(''); }
   };
+  // mesmo local, vistoria e medições para outro segurado (ex.: o outro sócio): copia o caso inteiro sem os dados pessoais
+  const duplicar = async () => {
+    const nome = window.prompt('Nome do novo segurado (os dados pessoais, o CNIS e o vínculo você confere no caso novo):', '');
+    if (nome === null) return;
+    setOcupado('dup');
+    try {
+      const { duplicarCaso } = await import('../duplicar.js');
+      const r = await duplicarCaso(rec.id, { nome: nome.trim() });
+      avisarAlteracao();
+      setMsg(`✓ Caso duplicado (${r.copiados} registros: vistoria, postos, medições, fotos, produtos, agentes, documentos e o texto do laudo). Abrindo o caso novo…`);
+      setTimeout(() => { location.hash = `#/caso/${encodeURIComponent(r.id)}/autos`; }, 900);
+    } catch (e) { setMsg('Erro ao duplicar: ' + e.message); } finally { setOcupado(''); }
+  };
   const backupCaso = async () => {
     setOcupado('zip');
     try {
@@ -134,6 +147,7 @@ export function Documentos({ rec, modo = 'laudo' }) {
         <div class="bloco doc">
           <p>ZIP com todos os dados e fotos originais deste caso, para guardar no Drive ou no PC.</p>
           <button type="button" disabled={!!ocupado} onClick={backupCaso}>{ocupado === 'zip' ? 'Gerando…' : 'Exportar caso (ZIP)'}</button>
+          <button type="button" disabled={!!ocupado} onClick={duplicar}>{ocupado === 'dup' ? 'Duplicando…' : 'Duplicar para outro segurado'}</button>
         </div>
         {outros.length > 0 && (
           <section class="grupo-docs">

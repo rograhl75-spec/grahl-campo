@@ -1065,7 +1065,8 @@ export function termoDeclaracaoAutorizacao(d, dados) {
   const docSeg = [v(c.autorCpf) && `CPF ${c.autorCpf}`, v(c.pppNit) && `NIT ${c.pppNit}`].filter(Boolean).join(' – ');
   const quando = c.vistoriaData ? ` em ${dataBR(c.vistoriaData)}` : '';
   d.h1('', 'Termo de declaração e autorização');
-  d.texto(`Eu, ${seg}${docSeg ? `, ${docSeg}` : ''}, declaro que as informações que prestei sobre os locais de trabalho, as atividades, os equipamentos e os produtos utilizados em cada período, registradas neste laudo, são verdadeiras, e que recebi uma via deste documento.`);
+  // as informações podem ter sido prestadas pelo acompanhante da vistoria (segurado ausente): o texto cobre os dois casos
+  d.texto(`Eu, ${seg}${docSeg ? `, ${docSeg}` : ''}, declaro que as informações sobre os locais de trabalho, as atividades, os equipamentos e os produtos utilizados em cada período, registradas neste laudo, prestadas por mim ou pelo acompanhante da avaliação, correspondem às atividades que exerço e são verdadeiras, e que recebi uma via deste documento.`);
   if (proprio) d.texto(`Como exerço a atividade por conta própria, autorizo o levantamento das condições ambientais de trabalho realizado${quando} pelo signatário deste laudo (art. 277, IV, *a*, da IN 128/2022) e declaro ciência do seu conteúdo.`);
   else {
     const em = `${emit.nome || '[[emitente]]'}${emit.doc ? ` (CNPJ/CAEPF ${emit.doc})` : ''}`;

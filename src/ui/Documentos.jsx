@@ -120,6 +120,9 @@ export function Documentos({ rec, modo = 'laudo' }) {
         <PassoLaudo n={++n} titulo="Levar para a base técnica" dica="Depois de concluído: o veículo ou o posto medido, a ficha da profissão e as notas normativas ficam para os próximos casos.">
           <LevarParaBase rec={rec} />
         </PassoLaudo>
+        <PassoLaudo n={++n} titulo="Mesmo laudo para outro segurado" dica="Ex.: o outro sócio da mesma empresa. Copia vistoria, postos, medições, fotos, produtos, agentes, documentos e o texto revisado para um caso novo, sem os dados pessoais do segurado.">
+          <button type="button" class="sec" disabled={!!ocupado} onClick={duplicar}>{ocupado === 'dup' ? 'Duplicando…' : 'Duplicar para outro segurado'}</button>
+        </PassoLaudo>
         {msg && <p class="ok-msg aviso-fixo">{msg}</p>}
       </div>
     );

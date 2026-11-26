@@ -179,6 +179,20 @@ describe('LTCAT extrajudicial do Claude', () => {
     expect(a).toBeLessThan(e);
     expect(t).toContain('SEGURADO TESTE');
   });
+  it('anexo com as fichas das FDS dos produtos do caso; quadros com o mesmo tamanho de fonte', async () => {
+    await db.records.put({ id: 'pf1', kind: 'fds', caseId: 'cd9', ts: {}, createdAt: 1, data: { nome: 'Produto Teste', fabricante: 'Fabricante X', s3Componentes: 'Componente A' } });
+    const md = 'Título: Laudo técnico das condições ambientais do trabalho\n\n# 1 Identificação\nTexto.\n\nQuadro: Dois\n| A | B |\n|---|---|\n| 1 | 2 |\n\nQuadro: Sete\n| A | B | C | D | E | F | G |\n|---|---|---|---|---|---|---|\n| 1 | 2 | 3 | 4 | 5 | 6 | 7 |';
+    const r = await documentoDoClaude('cd9', md);
+    const t = await texto(r);
+    expect(t).toContain('Fichas dos produtos químicos (FDS)');
+    expect(t).toContain('Ficha do produto – Produto Teste');
+    const zip = await JSZip.loadAsync(await r.blob.arrayBuffer());
+    const x = await zip.file('word/document.xml').async('string');
+    const tabs = x.match(/<w:tbl>.*?<\/w:tbl>/gs).filter((tb) => /Dois|Sete|<w:t[^>]*>7<\/w:t>/.test(tb) || tb.includes('>1<'));
+    const corpo = (tb) => [...tb.matchAll(/<w:tr>.*?<\/w:tr>/gs)].slice(1).map((m) => m[0].match(/<w:sz w:val="(\d+)"/)?.[1]);
+    const tamanhos = new Set(tabs.flatMap(corpo).filter(Boolean));
+    expect([...tamanhos]).toEqual(['18']);
+  });
   it('laudo judicial não traz o termo', async () => {
     const t = await texto(await documentoDoClaude('cd1', MD));
     expect(t).not.toContain('TERMO DE DECLARAÇÃO E AUTORIZAÇÃO');

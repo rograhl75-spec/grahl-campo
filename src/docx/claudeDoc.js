@@ -7,6 +7,8 @@ import { Doc, carregar, finalizar, capaTecnica, blocoAssinatura, partes, enderec
 import { datasDasVistorias } from '../schema.js';
 import { semRevisao, largurasAuto } from './ooxml.js';
 import { termoDeclaracaoAutorizacao, assinaturaEmitentePpp } from './modelos.js';
+import { fichasFds } from './fdsQuadros.js';
+const ROMANOS_DOC = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
 
 export const CONVENCOES_CLAUDE = `FORMATO DA RESPOSTA (o app monta o Word no meu papel timbrado, com capa, sumário, numeração de quadros e figuras e assinatura; não faça capa, sumário nem assinatura):
 - Comece com as linhas "Título: ..." e "Subtítulo: ..." (o subtítulo é opcional).
@@ -135,7 +137,7 @@ export function markdownParaDoc(md, d, { marcas = {} } = {}) {
       if (linhas.length >= 2) {
         const n = Math.max(...linhas.map((x) => x.length));
         const lq = linhas.map((x) => [...x, ...Array(n - x.length).fill('')]);
-        const tamQ = n > 5 ? 8.5 : 9.5;
+        const tamQ = 9; // mesmo tamanho em todos os quadros (antes 8,5 ou 9,5 conforme o número de colunas)
         d.quadro(tituloQ, lq, { fonte, tam: tamQ, larguras: largurasAuto(lq, tamQ) });
       } else d.texto(`[[quadro "${tituloQ}" sem tabela – conferir]]`);
       i = j - 1;
@@ -203,13 +205,17 @@ export async function documentoDoClaude(caseId, md) {
   const { apendices, falhasApendice, semRelatorios, semRelatoriosLgpd } = await apendicesDoCaso(dados);
   const { anexos, falhasAnexo } = await anexosDoCaso(dados, { romanos: true, inicio: lista.length ? 1 : 0 });
   const doc = /parecer/i.test(titulo) ? 'parecer' : /laudo|ltcat/i.test(titulo) ? 'laudo' : 'documento';
+  // fichas das FDS dos produtos do caso (dados transcritos das seções 2, 3, 8 e 9), num anexo próprio, uma por página
+  const comFds = doc !== 'documento' && (dados.produtos || []).some((p) => String(p.data.nome || '').trim());
+  if (comFds) anexos.push({ letra: ROMANOS_DOC[(lista.length ? 1 : 0) + anexos.length] || String(anexos.length + 1), titulo: 'Fichas dos produtos químicos (FDS)', fds: true });
   textoIntegram(d, { fotos: lista.length > 0, anexos, apendices, doc });
   blocoAssinatura(d, dados);
   // LTCAT/PPP extrajudicial (laudo individual): a autorização do levantamento (art. 277, IV, a, da IN 128/2022)
   // e a declaração do segurado vão no termo ao final do laudo, como nos LTCAT do app
   if (ehLtcatExtrajudicial(c, titulo)) termoDeclaracaoAutorizacao(d, dados);
   if (lista.length) { d.h1('', 'Anexo I – Relatório fotográfico da diligência'); d.figuras(lista, { rotulo: 'Foto' }); }
-  inserirAnexos(d, anexos);
+  inserirAnexos(d, anexos.filter((a) => !a.fds));
+  for (const a of anexos.filter((x) => x.fds)) { d.h1('', `Anexo ${a.letra} – ${a.titulo}`); fichasFds(d, dados, { primeiraSemQuebra: true }); }
   inserirApendices(d, apendices, dados);
   const r = await finalizar(d, { titulo: titulo || 'Documento técnico', arquivo: (titulo || 'Documento').replace(/[^\wÀ-ú]+/g, '_').slice(0, 40), c });
   return { ...r, faltando, falhasApendice: (falhasApendice || 0) + (falhasAnexo || 0), semRelatorios, semRelatoriosLgpd, nFotos: lista.length, nApendices: apendices.length, nAnexos: anexos.length };

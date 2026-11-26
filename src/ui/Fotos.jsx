@@ -252,10 +252,10 @@ function IdentificarFotos({ rec, fotos, nomePosto }) {
       {peloNome.length > 0 && (
         <div class="linha-botoes"><button type="button" class="sec" onClick={legendasDoNome}>Preencher {peloNome.length} legenda(s) vazia(s) pelo nome do arquivo</button></div>
       )}
-      <p class="dica">O Claude escreve as legendas e lê plaquetas (marca, modelo, série, ano), rótulos de produtos (e busca a FDS), CA de EPI e displays de equipamentos. Leitura de display serve só para conferir com o relatório do equipamento.</p>
+      <p class="dica">Tarefa simples: vai ao modelo mais barato e rápido (Claude Haiku), automaticamente. O Claude escreve as legendas e lê plaquetas (marca, modelo, série, ano), rótulos de produtos (e busca a FDS), CA de EPI e displays de equipamentos. Leitura de display serve só para conferir com o relatório do equipamento.</p>
       <label class="check"><input type="checkbox" checked={soSem} onChange={(e) => setSoSem(e.currentTarget.checked)} /> Só as fotos sem legenda ou sem identificação ({alvo.length} de {fotos.length})</label>
       <label class="check"><input type="checkbox" checked={substituir} onChange={(e) => setSubstituir(e.currentTarget.checked)} /> Substituir legendas já preenchidas</label>
-      <BotaoClaudeDireto rotulo={`Legendar e identificar ${alvo.length} foto(s) com o Claude`}
+      <BotaoClaudeDireto simples rotulo={`Legendar e identificar ${alvo.length} foto(s) com o Claude`}
         instrucao={() => { if (!alvo.length) throw new Error('Nenhuma foto para identificar.'); const contexto = [rec.data.vistoriaLocal || rec.data.reuNome, rec.data.funcoes && String(rec.data.funcoes).split('\n')[0].slice(0, 160)].filter(Boolean).join(' – '); return promptFotos(alvo, { nomePosto, contexto }); }}
         anexos={async () => (alvo.length > 60 ? await folhasDeContato(alvo) : await arquivosNumerados(alvo)).map((f) => ({ blob: f, nome: f.name.replace(/\.\w+$/, ''), mime: f.type || 'image/jpeg' }))}
         web onResposta={async (t) => {

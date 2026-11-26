@@ -4,7 +4,7 @@
 import { useState } from 'preact/hooks';
 import { db } from '../db.js';
 import { obterAnexo } from '../sync.js';
-import { perguntarClaude, temClaude, configClaude, MODELOS_CLAUDE } from '../claudeApi.js';
+import { perguntarClaude, temClaude, configClaude, MODELOS_CLAUDE, MODELO_SIMPLES } from '../claudeApi.js';
 
 // PDFs dos autos guardados na etapa 1. Autos (item A)
 export async function anexosDosAutos(caseId) {
@@ -27,7 +27,7 @@ const brl = (usd) => `US$ ${usd.toFixed(2).replace('.', ',')}`;
 // instrucao: texto ou função async que o devolve; anexos: função async → [{ blob, nome, mime }]
 // permitirArquivos: mostra o seletor de arquivos (FDS, relatórios, laudos); web: pesquisa na internet
 // onResposta(texto, r): recebe a resposta (pode ser async); rotulo: texto do botão
-export function BotaoClaudeDireto({ instrucao, anexos, permitirArquivos = false, rotuloArquivos = 'Anexar arquivos (PDF, fotos ou texto)', web = false, maxTokens, onResposta, rotulo = 'Enviar direto ao Claude', sec = false }) {
+export function BotaoClaudeDireto({ instrucao, anexos, permitirArquivos = false, rotuloArquivos = 'Anexar arquivos (PDF, fotos ou texto)', web = false, maxTokens, onResposta, rotulo = 'Enviar direto ao Claude', sec = false, simples = false }) {
   const [ocupado, setOcupado] = useState(false);
   const [etapa, setEtapa] = useState('');
   const [msg, setMsg] = useState('');
@@ -41,10 +41,10 @@ export function BotaoClaudeDireto({ instrucao, anexos, permitirArquivos = false,
     try {
       const texto = typeof instrucao === 'function' ? await instrucao() : instrucao;
       const lista = [...((anexos && await anexos()) || []), ...arquivos.map((f) => ({ blob: f, nome: f.name, mime: f.type }))];
-      const r = await perguntarClaude({ instrucao: texto, anexos: lista, web, maxTokens, onEtapa: setEtapa });
+      const r = await perguntarClaude({ instrucao: texto, anexos: lista, web, maxTokens, onEtapa: setEtapa, simples });
       setEtapa('');
       const extra = await onResposta(r.texto, r);
-      const modelo = (MODELOS_CLAUDE.find((m) => m.id === configClaude().modelo) || {}).nome?.replace(/\s*\(.*$/, '') || r.modelo;
+      const modelo = ([...MODELOS_CLAUDE, MODELO_SIMPLES].find((m) => String(r.modelo || '').startsWith(m.id)) || MODELOS_CLAUDE.find((m) => m.id === configClaude().modelo) || {}).nome?.replace(/\s*\(.*$/, '') || r.modelo;
       const lidoTxt = r.uso.lido ? ` ${Math.round(r.uso.lido / 1000)} mil tokens dos autos reaproveitados (economia de cerca de ${brl(r.economia)}).` : r.uso.gravado ? ' Autos guardados para reaproveitamento nos próximos envios deste caso.' : '';
       setMsg(`✓ Resposta do ${modelo} recebida – ${Math.round((r.uso.entrada + r.uso.gravado + r.uso.lido) / 1000)} mil tokens de entrada e ${Math.round(r.uso.saida / 1000)} mil de saída, cerca de ${brl(r.custo)}.${lidoTxt}${r.cortada ? ' A resposta atingiu o limite de tamanho e pode estar incompleta.' : ''}${r.avisos?.length ? ` Atenção: ${r.avisos.join(' ')}` : ''}${extra ? ` ${extra}` : ''}`);
       setArquivos([]);

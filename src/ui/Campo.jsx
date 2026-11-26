@@ -697,7 +697,7 @@ function LerMedicoesDosRelatorios({ rec, lista }) {
           <span class="linha-botoes"><button type="button" class="mini sec" onClick={async () => { await updateFields(rec.id, { alertasRelatorios: '' }); avisarAlteracao(); }}>Corrigido – limpar os alertas</button></span>
         </div>
       )}
-      <BotaoClaudeDireto rotulo={`Ler as medições destes ${lista.length} relatório(s) com o Claude`} sec={nMed > 0}
+      <BotaoClaudeDireto simples="medio" rotulo={`Ler as medições destes ${lista.length} relatório(s) com o Claude`} sec={nMed > 0}
         instrucao={() => promptRelatoriosMedicao(rec)}
         anexos={async () => Promise.all(lista.map(async (r) => ({ blob: await obterAnexo(r.id), nome: r.data.titulo || r.data.nome, mime: r.data.mime || 'application/pdf' })))}
         onResposta={async (t) => {

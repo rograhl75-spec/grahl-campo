@@ -455,7 +455,8 @@ function BotaoClaude({ rec, tipo, rotulo = 'Redigir com o Claude', soDireto = fa
     baixarArquivo(doc.blob, doc.nome);
     await guardarRedacao(rec.id, t, { origem: 'Claude', doc: cartao?.id || tipo }); // para aplicar correções depois, sem redigir de novo
     if (cartao) await registrarGerado(rec, cartao, doc.nome, 'redigido pelo Claude');
-    return `${doc.nome} gerado no timbrado e baixado. Confira no passo seguinte o que ainda sai em amarelo.`;
+    const r = doc;
+    return `${doc.nome} gerado no timbrado e baixado. Confira no passo seguinte o que ainda sai em amarelo.${r.faltando ? ` Atenção: ${r.faltando} foto(s) do caso não estão neste aparelho nem na nuvem e ficaram fora do Anexo I – abra o caso no aparelho em que foram tiradas, ou entre na nuvem, e gere de novo.` : ''}`;
   };
   return <>
     {!soCopiar && <BotaoClaudeDireto rotulo={tipo === 'respostas' ? 'Responder os quesitos com o Claude' : tipo === 'respostasPendentes' ? (rotulo || 'Refazer as respostas com pendência') : 'Redigir com o Claude (gera o Word)'}
@@ -597,7 +598,7 @@ function RedacaoDoc({ rec, chaves, titulo, tipo = 'laudo', peticao = false, gera
     } catch (er) { setMsg(`Erro ao importar: ${er.message}`); }
   };
   const botaoImportar = (rot) => <label class="botao-arquivo sec">{rot}<input type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden onChange={importar} /></label>;
-  const gerarWord = async (md) => { const r = await gerar(md); baixarArquivo(r.blob, r.nome); return r.nome; };
+  const gerarWord = async (md) => { const r = await gerar(md); baixarArquivo(r.blob, r.nome); return `${r.nome}${r.faltando ? ` Atenção: ${r.faltando} foto(s) do caso não estão neste aparelho nem na nuvem e ficaram fora do Anexo I – abra o caso no aparelho em que foram tiradas, ou entre na nuvem, e gere de novo.` : ''}`; };
   if (!red) return (
     <details class="mt" open={aberto}>
       <summary><b>Revisar e corrigir{titulo ? ` – ${titulo}` : ''}</b> <small class="suave">– importar o Word</small></summary>
@@ -723,7 +724,7 @@ function MontarDoClaude({ rec }) {
       baixarArquivo(r.blob, r.nome);
       await guardarRedacao(rec.id, md, { origem: 'colado do claude.ai' });
       const junto = [r.nFotos && `${r.nFotos} foto(s) no Anexo I`, r.nAnexos && `${r.nAnexos} anexo(s)`, r.nApendices && `${r.nApendices} apêndice(s)`].filter(Boolean).join(', ');
-      setMsg(`✓ ${r.nome} gerado no timbrado${junto ? `, com ${junto}` : ''}.${r.falhasApendice ? ` ${r.falhasApendice} arquivo(s) não puderam ser lidos – confira em Campo → Relatórios e em Configurações → Equipamentos.` : ''} Confira as pendências em amarelo.`);
+      setMsg(`✓ ${r.nome} gerado no timbrado${junto ? `, com ${junto}` : ''}.${r.faltando ? ` Atenção: ${r.faltando} foto(s) do caso não estão neste aparelho nem na nuvem e ficaram fora do Anexo I – abra o caso no aparelho em que foram tiradas, ou entre na nuvem, e gere de novo.` : ''}${r.falhasApendice ? ` ${r.falhasApendice} arquivo(s) não puderam ser lidos – confira em Campo → Relatórios e em Configurações → Equipamentos.` : ''} Confira as pendências em amarelo.`);
     } catch (e) { setMsg(`Erro: ${e.message || e}`); } finally { setOcupado(false); }
   };
   return (

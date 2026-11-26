@@ -112,7 +112,7 @@ describe('LTCAT e PPP do contribuinte individual sócio, avaliação remota', ()
     // TDI: consta do Anexo IV e tem limite no Anexo 11 (banco) – sem medição, não caracteriza a partir de 06/03/1997
     const q = it0.find((i) => i.id === 'regras');
     const tdi = q.lotes[0].escritas.find((e) => e.rec === 'm1a');
-    expect(tdi.campos.resDesde97).toBe('Não caracteriza');
+    expect(tdi.campos.resDesde97).toBe('Não avaliado (sem medição)');
     // os resultados resolvidos pelas regras não viram perguntas separadas
     expect(ids.some((i) => /^resDesde97-m1a/.test(i))).toBe(false);
     // "Está correto – manter" tira o item da lista
@@ -211,7 +211,7 @@ describe('regras de enquadramento por período', () => {
     const oleo = regraDoAgente({ data: { nome: 'Óleo mineral', tipo: 'Químico', codAte97: '1.2.11', codDesde97: '1.0.7, b, do Anexo IV' } }, d);
     expect(oleo.resDesde97).toBe('Caracteriza');
     const sil = regraDoAgente({ data: { nome: 'Sílica livre cristalizada', tipo: 'Químico', cas: '14808-60-7', codAte97: '1.2.10', codDesde97: '1.0.18 do Anexo IV' } }, d);
-    expect([sil.resDesde97, sil.resDesde2014]).toEqual(['Não caracteriza', 'Caracteriza']);
+    expect([sil.resDesde97, sil.resDesde2014]).toEqual(['Não avaliado (sem medição)', 'Caracteriza']);
     const el = regraDoAgente({ data: { nome: 'Eletricidade', tipo: 'Físico' } }, d);
     expect([el.resAte97, el.resDesde97]).toEqual(['Caracteriza', 'Não enquadrável']);
   });

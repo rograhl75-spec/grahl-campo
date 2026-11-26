@@ -34,7 +34,7 @@ export function semCondicional(t) {
   return fica.join('').replace(/\s+/g, ' ').replace(/[;,]\s*$/, '.').trim();
 }
 const caracteriza = (a) => [a.data.resAte97, a.data.resDesde97, a.data.resDesde2014].includes('Caracteriza');
-const definitivo = (a) => [a.data.resAte97, a.data.resDesde97].some((r) => ['Caracteriza', 'Não caracteriza', 'Não enquadrável'].includes(r));
+const definitivo = (a) => [a.data.resAte97, a.data.resDesde97].some((r) => ['Caracteriza', 'Não caracteriza', 'Não avaliado (sem medição)', 'Não enquadrável', 'Não se aplica'].includes(r));
 const ciente = (rec, tag) => v((rec.data || {})[`ciente_${tag}`]) === 'Sim';
 const item = (rec, tag, titulo, explicacao, acoes = []) => ({ id: `coer-${tag}-${rec.id}`, grupo: G, tipo: 'aviso', rec: rec.id, respondido: false,
   titulo, explicacao, acoes, ciente: { campo: `ciente_${tag}` } });

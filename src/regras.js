@@ -10,6 +10,7 @@
 // Químicos e eletricidade (cód. 1.1.8 até 05/03/1997; fora do Anexo IV depois). Biológicos e físicos medidos ficam
 // com o signatário. O código digitado no agente prevalece sobre o banco ("Não consta do Anexo IV" vale como resposta).
 // ======================================================================
+import { NAO_AVALIADO } from './schema.js';
 import { anexoQuantitativo, bancoDoAgente, casValido } from './docx/agentesQuadros.js';
 import { tecnicaDoAgente, agenteNoVinculo } from './enquadramento.js';
 import { codigosDoDecreto } from './quimicos.js';
@@ -79,8 +80,8 @@ export function regraDoAgente(a, dados) {
       partes.push(`a partir de 06/03/1997, quantitativa (${anexo}) – resultado pela medição`);
       out.medido = true;
     } else if (anexo) {
-      out.resDesde97 = 'Não caracteriza';
-      partes.push(`a partir de 06/03/1997, quantitativa (NR-15, ${anexo}) sem medição – não caracteriza; vai ao PPP como não quantificada`);
+      out.resDesde97 = NAO_AVALIADO;
+      partes.push(`a partir de 06/03/1997, quantitativa (NR-15, ${anexo}) sem medição – não avaliado quantitativamente; vai ao PPP como não quantificada`);
     } else {
       out.resDesde97 = 'Caracteriza';
       partes.push(`a partir de 06/03/1997, qualitativa (${(CODIGOS_GRUPO[grupo] ? CODIGOS_GRUPO[grupo].tecnica : tecnicaDoAgente(a, false, { linach: false })).replace(/^Qualitativa – /, '')})`);
@@ -106,7 +107,7 @@ export function fundamentacaoPelasRegras(a, r) {
     ? `Até 05/03/1997, o agente consta do cód. ${r.codAte97.replace(/^cód\.\s*/, '')}, e o enquadramento é qualitativo, por presunção de exposição (IN 128/2022, art. 297, I).`
     : 'Até 05/03/1997, o agente não consta dos Decretos 53.831/64 e 83.080/79: não há enquadramento por ele.');
   if (r.resDesde97 === 'Não enquadrável') t.push('A partir de 06/03/1997, o agente não consta do Anexo IV dos Decretos 2.172/97 e 3.048/99, cujo rol de agentes é exaustivo: não é enquadrável, ainda que presente no ambiente.');
-  else if (r.resDesde97 === 'Não caracteriza') t.push(`A partir de 06/03/1997, o agente consta do Anexo IV (cód. ${r.codDesde97.replace(/^cód\.\s*/, '')}) e tem limite de tolerância na NR-15, com avaliação quantitativa (IN 128/2022, art. 297, II). Sem medição da concentração no ambiente, a exposição não é caracterizada; o agente consta do PPP como presente, com a intensidade "não quantificada".`);
+  else if (r.resDesde97 === NAO_AVALIADO || r.resDesde97 === 'Não caracteriza') t.push(`A partir de 06/03/1997, o agente consta do Anexo IV (cód. ${r.codDesde97.replace(/^cód\.\s*/, '')}) e tem limite de tolerância na NR-15, com avaliação quantitativa (IN 128/2022, art. 297, II). Sem medição da concentração no ambiente, o agente não foi avaliado quantitativamente; consta do PPP como presente, com a intensidade "não quantificada".`);
   else if (r.resDesde97 === 'Caracteriza') t.push(`A partir de 06/03/1997, o agente consta do Anexo IV (cód. ${r.codDesde97.replace(/^cód\.\s*/, '')}), com avaliação qualitativa (IN 128/2022, art. 297, II), e a exposição é caracterizada nas atividades descritas.`);
   if (textoDoGrupo(r.grupo, r.ip346)) t.push(textoDoGrupo(r.grupo, r.ip346));
   if (r.resDesde2014 === 'Caracteriza') t.push('A partir de 08/10/2014, por constar do Grupo 1 da LINACH (Portaria Interministerial nº 9/2014), com registro no CAS e presença no Anexo IV, a avaliação é qualitativa (Decreto nº 3.048/1999, art. 68, §§ 2º a 4º; IN 128/2022, art. 298), e a exposição é caracterizada.');

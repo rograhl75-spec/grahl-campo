@@ -22,6 +22,10 @@ export const MODELOS_CLAUDE = [
   { id: 'claude-sonnet-5-5', nome: 'Claude Sonnet 5.5 (metade do preço)', entrada: 2, saida: 10 },
   { id: 'claude-fable-5-2', nome: 'Claude Fable 5.2 (o mais capaz – o dobro do Opus)', entrada: 8, saida: 40 },
 ];
+// Tarefas simples (legendas de fotos, leitura de relatórios): o modelo mais barato, automático; redação,
+// auditoria e correções seguem no modelo escolhido em Configurações (o mais completo)
+export const MODELO_SIMPLES = { id: 'claude-haiku-5-5', nome: 'Claude Haiku 5.5', entrada: 0.1, saida: 0.5 };
+const precoDo = (modelo) => [...MODELOS_CLAUDE, MODELO_SIMPLES].find((x) => x.id === modelo) || MODELOS_CLAUDE[0];
 export const ESFORCOS = [['medium', 'Médio (mais rápido e barato)'], ['high', 'Alto (padrão do app)'], ['xhigh', 'Muito alto (casos complexos)']];
 const CHAVE_LS = 'grahl.claude.api';
 const PADRAO = { chave: '', modelo: 'claude-opus-5-5', esforco: 'high', cache: '1h' };
@@ -180,26 +184,37 @@ function textoDaResposta(conteudos) {
 
 // custo: entrada normal, gravação do cache (1,25× em 5 min; 2× em 1 h), leitura do cache (0,1×) e saída
 export function custoEstimado(modelo, uso, cache = '1h') {
-  const m = MODELOS_CLAUDE.find((x) => x.id === modelo) || MODELOS_CLAUDE[0];
+  const m = precoDo(modelo);
   const fatorGrava = cache === '5m' ? 1.25 : 2;
   return ((uso.entrada || 0) * m.entrada + (uso.gravado || 0) * m.entrada * fatorGrava + (uso.lido || 0) * m.entrada * 0.1 + (uso.saida || 0) * m.saida) / 1e6;
 }
 export function economiaDoCache(modelo, uso) {
-  const m = MODELOS_CLAUDE.find((x) => x.id === modelo) || MODELOS_CLAUDE[0];
+  const m = precoDo(modelo);
   return ((uso.lido || 0) * m.entrada * 0.9) / 1e6;
 }
 
 // Pergunta ao Claude com a instrução do app e os anexos. Devolve { texto, uso, custo, modelo }.
 // onEtapa(texto) informa o andamento (envio dos arquivos, caracteres recebidos).
-export async function perguntarClaude({ instrucao, anexos = [], web = false, maxTokens = 64000, onEtapa } = {}) {
-  const cfg = configClaude();
+export async function perguntarClaude({ instrucao, anexos = [], web = false, maxTokens = 64000, onEtapa, simples = false } = {}) {
+  const cfgBase = configClaude();
+  // simples: true (esforço baixo) ou 'medio' (leitura de números, que pede mais atenção)
+  const cfg = simples ? { ...cfgBase, modelo: MODELO_SIMPLES.id, esforco: simples === 'medio' ? 'medium' : 'low' } : cfgBase;
   if (!cfg.chave) throw new Error('Configure a chave de API do Claude em Configurações → Claude (API).');
   await carregarSdk();
   const client = cliente(cfg);
   try {
     const r = await blocosDosAnexos(anexos, onEtapa, cfg.cache);
-    const resposta = await conversar(client, cfg, r.blocos, instrucao, web, maxTokens, onEtapa);
-    return { ...resposta, avisos: r.avisos, custo: custoEstimado(cfg.modelo, resposta.uso, cfg.cache), economia: economiaDoCache(cfg.modelo, resposta.uso) };
+    let usado = cfg; let resposta;
+    try { resposta = await conversar(client, cfg, r.blocos, instrucao, web, maxTokens, onEtapa); }
+    catch (e) {
+      // modelo barato indisponível na conta ou recusa sem alternativa no servidor: refaz com o modelo principal
+      if (!simples || e instanceof sdk.default.AuthenticationError || e instanceof sdk.default.RateLimitError) throw e;
+      onEtapa?.('Refazendo com o modelo principal…');
+      usado = cfgBase;
+      resposta = await conversar(client, cfgBase, r.blocos, instrucao, web, maxTokens, onEtapa);
+    }
+    if (simples && resposta.recusada) { onEtapa?.('Refazendo com o modelo principal…'); usado = cfgBase; resposta = await conversar(client, cfgBase, r.blocos, instrucao, web, maxTokens, onEtapa); }
+    return { ...resposta, avisos: r.avisos, custo: custoEstimado(usado.modelo, resposta.uso, usado.cache), economia: economiaDoCache(usado.modelo, resposta.uso) };
   } catch (e) {
     throw new Error(mensagemDeErro(e));
   }
@@ -214,14 +229,15 @@ async function conversar(client, cfg, blocos, instrucao, web, maxTokens, onEtapa
   // pesquisa na internet: o servidor pode pausar a volta (pause_turn); reenvia a conversa para continuar
   for (let volta = 0; volta < 9; volta += 1) {
     onEtapa?.(volta ? 'Continuando a pesquisa…' : 'O Claude está trabalhando…');
+    // Haiku: sem alternativa no servidor (fallbacks) e com a pesquisa na internet básica
+    const haiku = /haiku/.test(cfg.modelo);
     const stream = client.beta.messages.stream({
       model: cfg.modelo,
       max_tokens: maxTokens,
       output_config: { effort: cfg.esforco || 'high' },
-      betas: ['server-side-fallback-2026-07-01'],
-      fallbacks: 'default',
+      ...(haiku ? {} : { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' }),
       messages,
-      ...(web ? { tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 10 }] } : {}),
+      ...(web ? { tools: [{ type: haiku ? 'web_search_20250305' : 'web_search_20260209', name: 'web_search', max_uses: 10 }] } : {}),
     });
     stream.on('text', (delta) => { recebidos += delta.length; onEtapa?.(`Recebendo a resposta… ${Math.round(recebidos / 1000)} mil caracteres`); });
     final = await stream.finalMessage();
@@ -243,7 +259,7 @@ async function conversar(client, cfg, blocos, instrucao, web, maxTokens, onEtapa
   if (final.stop_reason === 'refusal') throw new Error('O Claude recusou o pedido (política de segurança). Revise a instrução ou os anexos e tente de novo.');
   const texto = textoDaResposta(conteudos);
   if (!texto) throw new Error('O Claude não devolveu texto. Tente de novo.');
-  return { texto, uso, modelo: final.model || cfg.modelo, cortada: final.stop_reason === 'max_tokens' };
+  return { texto, uso, modelo: final.model || cfg.modelo, cortada: final.stop_reason === 'max_tokens', recusada: final.stop_reason === 'refusal' };
 }
 
 function mensagemDeErro(e) {

@@ -169,7 +169,7 @@ const TXT_TIPO = {
   'Físico': 'Ruído, calor e vibração só caracterizam a condição especial com a demonstração, por medição, da intensidade acima do limite de tolerância de cada época.',
 };
 const TXT_RADIACAO = 'As radiações ionizantes, até 05/03/1997, enquadram-se pelo cód. 1.1.4 do Decreto 53.831/1964 e pelo cód. 1.1.3 do Anexo I do Decreto 83.080/1979 (trabalhos com exposição a radiações para fins diagnósticos e terapêuticos); a partir de 06/03/1997, pelo cód. 2.0.3 do Anexo IV, com avaliação conforme o Anexo 5 da NR-15, que remete aos limites da CNEN.';
-const RES_TXT = (r) => ({ 'Caracteriza': 'caracteriza', 'Não caracteriza': 'não caracteriza', 'Não enquadrável': 'não enquadrável', 'A confirmar': '[[a confirmar]]' }[r] || '[[resultado]]');
+const RES_TXT = (r) => ({ 'Caracteriza': 'caracteriza', 'Não caracteriza': 'não caracteriza', 'Não enquadrável': 'não enquadrável', 'Não avaliado (sem medição)': 'não avaliado quantitativamente (sem medição)', 'Não se aplica': 'não se aplica', 'A confirmar': '[[a confirmar]]' }[r] || '[[resultado]]');
 // "1.2.9 (…)" vira "cód. 1.2.9 (…)"; texto livre ("não consta do Anexo IV") fica como está
 const codTxt = (k) => (/^\d/.test(k) ? `cód. ${k}` : k.charAt(0).toUpperCase() + k.slice(1));
 // Fundamentação por agente: as frases do texto padrão das regras (as mesmas para vários agentes) saem agrupadas
@@ -179,7 +179,7 @@ const RE_FRASE = [
   ['ac', /^Até 05\/03\/1997, o agente consta do (cód\. .+), e o enquadramento é qualitativo, por presunção de exposição \(IN 128\/2022, art\. 297, I\)\.$/],
   ['an', /^Até 05\/03\/1997, o agente não consta dos Decretos 53\.831\/64 e 83\.080\/79: não há enquadramento por ele\.$/],
   ['ne', /^A partir de 06\/03\/1997, o agente não consta do Anexo IV dos Decretos 2\.172\/97 e 3\.048\/99, cujo rol de agentes é exaustivo: não é enquadrável, ainda que presente no ambiente\.$/],
-  ['nc', /^A partir de 06\/03\/1997, o agente consta do Anexo IV \((cód\. .+)\) e tem limite de tolerância na NR-15, com avaliação quantitativa \(IN 128\/2022, art\. 297, II\)\. Sem medição da concentração no ambiente, a exposição não é caracterizada; o agente consta do PPP como presente, com a intensidade "não quantificada"\.$/],
+  ['nc', /^A partir de 06\/03\/1997, o agente consta do Anexo IV \((cód\. .+)\) e tem limite de tolerância na NR-15, com avaliação quantitativa \(IN 128\/2022, art\. 297, II\)\. Sem medição da concentração no ambiente, (?:a exposição não é caracterizada; o agente|o agente não foi avaliado quantitativamente;) consta do PPP como presente, com a intensidade "não quantificada"\.$/],
   ['c', /^A partir de 06\/03\/1997, o agente consta do Anexo IV \((cód\. .+)\), com avaliação qualitativa \(IN 128\/2022, art\. 297, II\), e a exposição é caracterizada nas atividades descritas\.$/],
 ];
 // frases da fundamentação: as do texto padrão (k, cod) e as demais (k: '')
@@ -233,7 +233,7 @@ function agentesAvaliados(d, dados, sub, n) {
     const deEpoca = (t) => /^(At[ée] 05\/03\/1997|A partir de (06\/03\/1997|08\/10\/2014))\b/.test(t.trim())
       || (/c[óo]d\./.test(t) && /05\/03\/1997|06\/03\/1997/.test(t)) || /^H[áa] entendimento/i.test(t.trim());
     const resto = new Map(lst.map((a) => [a.id, frasesPadrao(a).filter((f) => !f.k).flatMap((f) => f.t.split(/(?<=\.)\s+(?=\p{Lu})/u)).filter((t) => !deEpoca(t)).join(' ')]));
-    const quantSemMed = (a) => a.data.resDesde97 === 'Não caracteriza' && (!!anexoQuantitativo(a, dados.quimicos) || frasesPadrao(a).some((f) => f.k === 'nc'));
+    const quantSemMed = (a) => ['Não caracteriza', 'Não avaliado (sem medição)'].includes(a.data.resDesde97) && (!!anexoQuantitativo(a, dados.quimicos) || frasesPadrao(a).some((f) => f.k === 'nc'));
     const temObs = lst.some((a) => resto.get(a.id));
     if (temObs) cab.push('Observações');
     const nCol = cab.length - (varios ? 2 : 1) - (temObs ? 1 : 0);

@@ -22,6 +22,7 @@ import { confirmar } from './dialogo.jsx';
 import { profissaoDoCaso, PROFISSOES } from '../data/profissoes.js';
 import { createRecord, caseChildren } from '../db.js';
 import { CAMPOS_FDS, promptFds, lerJsonFds, aplicarFds, componentesDoTexto } from '../fds.js';
+import { PRODUTOS_REPRESENTATIVOS, fichaDoRepresentativo } from '../data/produtosRepresentativos.js';
 
 // Banco de profissões: carrega no caso os agentes avaliados, o CBO e a profissiografia já estudados
 const chaveAgente = (n) => String(n || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s*\(.*$/, '').replace(/[^a-z0-9]+/g, ' ').trim();
@@ -133,6 +134,7 @@ export function Preparacao({ rec, dadosDoCaso = null }) {
         inicial={{ situacao: 'A conferir' }} compacto vazio="Nenhum produto. Cadastre os produtos químicos do caso ou peça ao Claude a ficha da FDS (abaixo)."
         resumo={(r) => [r.data.nome, r.data.fabricante, r.data.revisao && `FDS ${r.data.revisao}`, componentesDoTexto(r.data.s3Componentes).length && `${componentesDoTexto(r.data.s3Componentes).length} componente(s)`,
           r.data.fonteFds, r.data.situacao !== 'Conferido' && 'a conferir'].filter(Boolean).join(' · ')} />
+      <IncluirRepresentativo rec={rec} />
       <details class="secao-etapa largo" open={nFds > 0}>
         <summary><b>Ficha da FDS pelo Claude</b> <small class="dica">produtos químicos: lê a FDS anexada ou pesquisa a do fabricante</small></summary>
         <PesquisarFds rec={rec} />
@@ -557,5 +559,34 @@ function PesquisarFds({ rec }) {
       <div class="linha-botoes"><button type="button" class="primario" disabled={!json.trim()} onClick={aplicar}>Aplicar</button></div>
       {msg && <p class="ok-msg">{msg}</p>}
     </section>
+  );
+}
+
+// Produto sem marca identificada (combustível de lavagem, fluido de corte, graxa…): ficha de produto representativo
+// da base técnica (do app ou cadastrado por você), "a conferir", com a observação de que é representativo
+function IncluirRepresentativo({ rec }) {
+  const seus = useLive(async () => (await db.records.where('kind').equals('produtoBase').toArray()).filter((r) => !r.deleted), [], []);
+  const [sel, setSel] = useState('');
+  const [msg, setMsg] = useState('');
+  const opcoes = [...PRODUTOS_REPRESENTATIVOS.map((p) => ({ id: p.id, rot: `${p.para} – ${p.nome}`, dados: fichaDoRepresentativo(p) })),
+    ...seus.map((r) => { const { para, ...d } = r.data; return { id: r.id, rot: `${para || d.nome} – ${d.nome} (seu)`, dados: { ...d, situacao: 'A conferir' } }; })];
+  const incluir = async () => {
+    const o = opcoes.find((x) => x.id === sel);
+    if (!o) return;
+    const ja = (await caseChildren(rec.id, 'fds')).some((r) => String(r.data.nome || '').trim().toLowerCase() === String(o.dados.nome || '').trim().toLowerCase());
+    if (ja) { setMsg(`${o.dados.nome} já está no caso.`); return; }
+    await createRecord('fds', rec.id, o.dados);
+    avisarAlteracao(); setMsg(`✓ ${o.dados.nome} incluído como produto representativo (a conferir).`); setSel('');
+  };
+  return (
+    <div class="linha-botoes largo">
+      <label class="campo"><span class="rotulo">Produto sem marca identificada? Incluir produto representativo da base</span>
+        <select value={sel} onChange={(e) => setSel(e.currentTarget.value)}>
+          <option value="">Escolha…</option>
+          {opcoes.map((o) => <option value={o.id}>{o.rot}</option>)}
+        </select></label>
+      <button type="button" class="sec" disabled={!sel} onClick={incluir}>Incluir no caso</button>
+      {msg && <span class="ok-msg">{msg}</span>}
+    </div>
   );
 }

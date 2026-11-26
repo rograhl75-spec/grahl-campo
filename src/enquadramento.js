@@ -1,3 +1,4 @@
+import { NAO_AVALIADO } from './schema.js';
 // Enquadramento previdenciário além do ruído e da vibração medidos:
 //  - categoria profissional da área da saúde (até 28/04/1995);
 //  - agentes avaliados de forma qualitativa ou sem medição (biológicos, químicos, físicos), cadastrados no caso
@@ -142,7 +143,7 @@ export function resultadoNoSegmento(a, fim) {
 
 // itens do subperíodo: os que caracterizam e os pendentes, um a um; os que não caracterizam, numa linha só
 export function itensAgentes(agentes, idx, ini, fim) {
-  const itens = []; const nao = []; const fora = []; const sim = new Map();
+  const itens = []; const nao = []; const naoAval = []; const fora = []; const sim = new Map();
   const curto = (n) => n.replace(/\s*\(.*$/, '');
   // só o código, sem a descrição: "1.0.9 do Anexo IV (cloro…) – avaliação…" → "1.0.9 do Anexo IV"
   const codCurto = (c) => String(c || '').split(/\s+\(|\s+–\s+/)[0].trim();
@@ -155,7 +156,9 @@ export function itensAgentes(agentes, idx, ini, fim) {
       if (!sim.has(k)) sim.set(k, []);
       sim.get(k).push({ nome, cod: codCurto(cod) || '[[código]]' });
     } else if (res === 'Não caracteriza') nao.push(curto(nome));
+    else if (res === NAO_AVALIADO) naoAval.push(curto(nome));
     else if (res === 'Não enquadrável') fora.push(curto(nome));
+    else if (res === 'Não se aplica') continue;
     else itens.push({ t: `${curto(nome)}: [[resultado a confirmar]]`, cod: codCurto(cod), sup: false, pendente: true, agente: true });
   }
   // os que caracterizam, um item por tipo (vários químicos numa linha só; o detalhe está no item 5)
@@ -170,6 +173,7 @@ export function itensAgentes(agentes, idx, ini, fim) {
   // lista longa vira contagem: o detalhe de cada agente está no item 5
   const resumo = (l) => (l.length > 2 ? `${l.length} agentes (item 5)` : l.join('; '));
   if (nao.length) itens.push({ t: `Não caracteriza${nao.length > 1 ? 'm' : ''}: ${resumo(nao)}`, cod: '', sup: false, agente: true });
+  if (naoAval.length) itens.push({ t: `Não avaliado${naoAval.length > 1 ? 's' : ''} quantitativamente (sem medição): ${resumo(naoAval)}`, cod: '', sup: false, agente: true });
   if (fora.length) itens.push({ t: `Fora do rol do período: ${resumo(fora)}`, cod: '', sup: false, agente: true });
   return itens;
 }
@@ -242,7 +246,7 @@ export function exposicaoNoVinculo(r, idx, agentes, { presentes = false, quantit
   // ou ácido clorídrico após 05/03/1997); o que não caracteriza na avaliação qualitativa não vai ao PPP
   const quant = (a, ate) => /^Quantitativa/.test(tecnicaDoAgente(a, ate, { linach: false })) || (!ate && quantitativo(a));
   // agente fora do Anexo IV ("não enquadrável") não vai ao PPP, ainda que tenha limite na NR-15
-  const conta = (res, a, ate) => res === 'Caracteriza' || (presentes && res === 'Não caracteriza' && quant(a, ate));
+  const conta = (res, a, ate) => res === 'Caracteriza' || (presentes && (res === 'Não caracteriza' || res === NAO_AVALIADO) && quant(a, ate));
   const out = [];
   for (const a of agentes) {
     if (!agenteNoVinculo(a, idx)) continue;

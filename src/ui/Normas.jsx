@@ -1,3 +1,5 @@
+import { PRODUTOS_REPRESENTATIVOS } from '../data/produtosRepresentativos.js';
+import { CAMPOS_FDS } from '../fds.js';
 // Bases técnicas → Normas e profissões: consulta às bases do Caracterizador Pericial (decretos, Manual do INSS,
 // LINACH, IN 128/2022, NR-15, NR-16, teses) e o banco de profissões usado nos laudos.
 import { useEffect, useMemo, useState } from 'preact/hooks';
@@ -105,6 +107,24 @@ export function PostosMedidos() {
       <p class="dica">Postos avaliados nos seus casos (padeiro, soldador, operador de máquina…), com os resultados e as condições da medição. Inclua a partir do caso em Laudo → "Levar para a base técnica". Extrajudicial: sem nomes de pessoas ou empresas na citação.</p>
       <RecordList kind="postoMedido" caseId={null} campos={CAMPOS_POSTO_MEDIDO} titulo="" novo="Adicionar posto"
         resumo={(r) => [r.data.funcao, r.data.ramo, r.data.dataMedicao, r.data.situacao].filter(Boolean).join(' · ')} />
+    </section>
+  );
+}
+
+// Produtos representativos (FDS de produtos de uso comum) para quando a marca usada no local não foi identificada:
+// os do app (pesquisados em FDS públicas) e os que você cadastrar; no caso, entram em Preparação → Produtos químicos
+export function ProdutosRepresentativos() {
+  return (
+    <section class="bloco largo">
+      <h3>Produtos representativos (FDS)</h3>
+      <p class="dica">Fichas de produtos de uso comum para quando a marca usada no local não foi identificada (combustível usado na lavagem de peças, fluido de corte, graxa…). No caso, use Preparação → Produtos químicos → "Incluir produto representativo da base". Entram "a conferir", com a observação de que são representativos.</p>
+      <h4>Do app</h4>
+      <ul class="lista-simples">
+        {PRODUTOS_REPRESENTATIVOS.map((p) => <li><b>{p.para}</b> – {p.nome} ({p.fabricante}; {p.revisao}). <a href={p.url} target="_blank" rel="noopener">FDS</a></li>)}
+      </ul>
+      <h4>Seus</h4>
+      <RecordList kind="produtoBase" caseId={null} campos={[['para', 'Representa (ex.: "Fluido de corte sintético")', 'text'], ...CAMPOS_FDS.filter(([k]) => k !== 'situacao')]} titulo="" novo="Adicionar produto representativo"
+        resumo={(r) => [r.data.para, r.data.nome, r.data.fabricante].filter(Boolean).join(' · ')} />
     </section>
   );
 }

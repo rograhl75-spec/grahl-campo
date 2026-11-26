@@ -331,7 +331,10 @@ export const CAMPOS_PPP = [
 
 // Agentes avaliados no LTCAT (biológicos, químicos e físicos sem medição), com o resultado por época:
 // alimentam o item 5, a síntese do enquadramento e a seção de exposição do PPP
-export const RESULTADO_AGENTE = ['Caracteriza', 'Não caracteriza', 'Não enquadrável', 'A confirmar'];
+// "Não avaliado (sem medição)": agente do Anexo IV de avaliação quantitativa sem medição – vai ao PPP como presente,
+// intensidade "não quantificada"; "Não se aplica": época fora do período avaliado (ex.: vínculo iniciado depois de 1997)
+export const NAO_AVALIADO = 'Não avaliado (sem medição)';
+export const RESULTADO_AGENTE = ['Caracteriza', 'Não caracteriza', NAO_AVALIADO, 'Não enquadrável', 'Não se aplica', 'A confirmar'];
 export const CAMPOS_AGENTE_AVALIADO = [
   ['nome', 'Agente (ex.: "Microrganismos e parasitas infectocontagiosos vivos e suas toxinas")', 'text'],
   ['tipo', 'Tipo', 'select', ['Biológico', 'Químico', 'Físico']],

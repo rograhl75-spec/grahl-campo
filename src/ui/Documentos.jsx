@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'preact/hooks';
 import { pendenciasDoCaso, marcacoesNoDocumento, trechosPendentes } from '../pendencias.js';
 import { horasDia, horasForaTexto, fmtHoras } from '../calc.js';
-import { avisarAlteracao } from '../sync.js';
+import { avisarAlteracao, obterAnexo } from '../sync.js';
 import { confirmar } from './dialogo.jsx';
 import { softDelete, createRecord, updateFields } from '../db.js';
 import { RelatoriosMedicao } from './Campo.jsx';
@@ -15,7 +15,7 @@ import { temClaude } from '../claudeApi.js';
 import { documentoDoClaude, peticaoDoClaude, temConteudo } from '../docx/claudeDoc.js';
 import { incluirVeiculoNaBase, incluirPostoNaBase, promptProfissao, lerJsonProfissao, salvarProfissao, RE_MOTORISTA } from '../basesUsuario.js';
 import { importarWordDoLaudo } from '../docx/importarWord.js';
-import { ultimaRedacao, guardarRedacao, desfazerRedacao, promptAplicarCorrecoes, lerTrocas, aplicarTrocas, redacoesDoCaso, restaurarVersao, guardarAuditoria, lerAuditoria, slugDoc } from '../redacao.js';
+import { ultimaRedacao, guardarRedacao, desfazerRedacao, promptAplicarCorrecoes, lerTrocas, aplicarTrocas, redacoesDoCaso, restaurarVersao, guardarAuditoria, lerAuditoria, slugDoc, guardarWordFinal, wordFinalAtual } from '../redacao.js';
 import { textoDoCaso } from '../aiimport.js';
 import { gravarTudoAgora, salvar, TF, Sel } from './fields.jsx';
 import { FORMAS_PAGAMENTO, localVistoria, finalidadeArtDoCaso, rotuloArt } from '../schema.js';
@@ -609,9 +609,10 @@ function RedacaoDoc({ rec, chaves, titulo, tipo = 'laudo', peticao = false, gera
     if (!f) return;
     try {
       const md = await importarWordDoLaudo(f, { peticao });
-      await guardarRedacao(rec.id, md, { origem: `importado do Word (${f.name})`, doc: chave, titulo });
+      await guardarRedacao(rec.id, md, { origem: `Word corrigido (${f.name})`, doc: chave, titulo });
+      await guardarWordFinal(rec.id, f, { doc: chave });
       const n = (md.match(/^#{1,3} /gm) || []).length, q = (md.match(/^Quadro:/gm) || []).length;
-      setMsg(`✓ Texto importado do Word${peticao ? '' : `: ${n} títulos e ${q} quadros`}. Toque em "Gerar o Word do último texto" para conferir a montagem.`);
+      setMsg(`✓ Word corrigido guardado como versão final do documento, e o texto dele${peticao ? '' : ` (${n} títulos e ${q} quadros)`} como nova versão – as próximas auditorias e correções partem dele. Baixe o Word final em "3. Word e versões".`);
     } catch (er) { setMsg(`Erro ao importar: ${er.message}`); }
   };
   const botaoImportar = (rot) => <label class="botao-arquivo sec">{rot}<input type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden onChange={importar} /></label>;
@@ -619,8 +620,8 @@ function RedacaoDoc({ rec, chaves, titulo, tipo = 'laudo', peticao = false, gera
   if (!red) return (
     <details class="mt" open={aberto}>
       <summary><b>Revisar e corrigir{titulo ? ` – ${titulo}` : ''}</b> <small class="suave">– importar o Word</small></summary>
-      <p class="dica">Ainda não há texto guardado deste documento. Redija com o Claude (o texto fica guardado) ou importe o Word final (inclusive editado à mão): o app lê o corpo e o guarda; {peticao ? 'endereçamento, fecho e assinatura' : 'capa, sumário, anexos, apêndices e assinatura'} o app monta de novo ao gerar.</p>
-      {botaoImportar(`＋ Importar o Word ${peticao ? 'da petição' : 'do documento'} (.docx)`)}
+      <p class="dica">Ainda não há texto guardado deste documento. Redija com o Claude (o texto fica guardado) ou importe o Word corrigido (à mão ou numa conversa com o Claude): o app guarda o próprio Word como versão final e o texto dele como redação; {peticao ? 'endereçamento, fecho e assinatura' : 'capa, sumário, anexos, apêndices e assinatura'} o app monta de novo se você gerar outro Word.</p>
+      {botaoImportar(`＋ Importar o Word corrigido ${peticao ? 'da petição' : 'do documento'} (.docx)`)}
       {msg && <p class="ok-msg">{msg}</p>}
     </details>
   );
@@ -710,8 +711,29 @@ function RedacaoDoc({ rec, chaves, titulo, tipo = 'laudo', peticao = false, gera
       <div class="linha-botoes">
         <button type="button" class="sec" onClick={async () => { setMsg(`✓ ${await gerarWord(red.data.md)} gerado com o último texto.`); }}>Gerar o Word do último texto</button>
         <button type="button" class="sec" onClick={() => baixarArquivo(new Blob([red.data.md], { type: 'text/markdown' }), `Texto_${slugDoc(titulo) || 'documento'}_${carimbo()}.md`)}>Baixar o texto (.md)</button>
-        {botaoImportar('Substituir pelo Word final (.docx)')}
+        {botaoImportar('Importar o Word corrigido (.docx)')}
       </div>
+      {(() => {
+        const w = wordFinalAtual(red);
+        if (!w) return <p class="dica">Corrigiu o Word fora do app (à mão ou numa conversa com o Claude)? Importe-o: o próprio Word fica guardado como versão final, e o texto dele vira nova versão.</p>;
+        return (
+          <div class="mt">
+            <div class="linha-botoes">
+              <button type="button" class="primario" onClick={async () => {
+                try { const b = await obterAnexo(w.id); baixarArquivo(b, w.nome); } catch (e) { setMsg(`Erro ao baixar: ${e.message}`); }
+              }}>Baixar o Word final ({w.nome})</button>
+            </div>
+            <p class="dica">Importado em {quando(w.em)}.{w.desatualizado ? ' O texto mudou depois disso (correções ou auditoria): o Word final não tem essas mudanças – gere o Word do último texto ou importe o Word corrigido de novo.' : ''}</p>
+            {(red.data.wordFinal || []).length > 1 && (
+              <details><summary>Words finais anteriores ({red.data.wordFinal.length - 1})</summary>
+                <ul class="historico">{red.data.wordFinal.slice(1).map((x) => (
+                  <li>{quando(x.em)} – {x.nome} <button type="button" class="link" onClick={async () => { try { baixarArquivo(await obterAnexo(x.id), x.nome); } catch (e) { setMsg(`Erro ao baixar: ${e.message}`); } }}>Baixar</button></li>
+                ))}</ul>
+              </details>
+            )}
+          </div>
+        );
+      })()}
       {(versoes.length > 0 || red.data.anterior) && (
         <details class="mt"><summary>Histórico de versões ({versoes.length})</summary>
           <ul class="historico">

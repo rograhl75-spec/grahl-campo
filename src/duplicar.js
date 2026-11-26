@@ -21,7 +21,11 @@ export async function duplicarCaso(caseId, { nome = '' } = {}) {
   const mapa = new Map();
   const criados = [];
   for (const r of filhos) {
-    const n = await createRecord(r.kind, novo.id, { ...r.data });
+    // o Word final importado é do outro segurado: não vai para a cópia (o texto da redação vai)
+    if (r.kind === 'anexo' && r.data.descricao === 'wordFinal') continue;
+    const dadosCopia = { ...r.data };
+    if (r.kind === 'redacao') delete dadosCopia.wordFinal;
+    const n = await createRecord(r.kind, novo.id, dadosCopia);
     mapa.set(r.id, n.id);
     criados.push(n);
     // arquivo da foto ou do anexo: copiado com o novo id (sobe para a nuvem na próxima sincronização)

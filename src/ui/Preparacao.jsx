@@ -132,7 +132,7 @@ export function Preparacao({ rec, dadosDoCaso = null }) {
       )}
       <RecordList kind="fds" largo caseId={rec.id} campos={CAMPOS_FDS} titulo="Produtos químicos – fichas das FDS (uma por produto)" novo="Adicionar produto"
         inicial={{ situacao: 'A conferir' }} compacto vazio="Nenhum produto. Cadastre os produtos químicos do caso ou peça ao Claude a ficha da FDS (abaixo)."
-        resumo={(r) => [r.data.nome, r.data.fabricante, r.data.revisao && `FDS ${r.data.revisao}`, componentesDoTexto(r.data.s3Componentes).length && `${componentesDoTexto(r.data.s3Componentes).length} componente(s)`,
+        resumo={(r) => [r.data.nome, r.data.fabricante, r.data.revisao && (/^(FDS|FISPQ)\b/i.test(r.data.revisao) ? r.data.revisao : `FDS ${r.data.revisao}`), componentesDoTexto(r.data.s3Componentes).length && `${componentesDoTexto(r.data.s3Componentes).length} componente(s)`,
           r.data.fonteFds, r.data.situacao !== 'Conferido' && 'a conferir'].filter(Boolean).join(' · ')} />
       <IncluirRepresentativo rec={rec} />
       <details class="secao-etapa largo" open={nFds > 0}>

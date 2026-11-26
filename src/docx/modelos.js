@@ -1041,6 +1041,20 @@ function campoAssinatura(d, nome, linhas) {
   d.add(p([run(nome || '[[nome]]', { b: true, np: true })], { align: 'center', after: 0, keepNext: true }));
   linhas.filter(Boolean).forEach((l, i, arr) => d.add(p([rich(l, { size: 10, np: true })], { align: 'center', after: i === arr.length - 1 ? 240 : 0, keepNext: i < arr.length - 1 })));
 }
+// Assinatura do emitente ao final da minuta do PPP (item 20 – representante legal), com a data de emissão do laudo.
+// Segurado que emite o próprio PPP (contribuinte individual) assina como emitente e representante legal.
+export function assinaturaEmitentePpp(d, dados) {
+  const { c } = dados;
+  const seg = v(c.autorNome) || '[[segurado]]';
+  const proprio = /Pr[oó]prio/.test(c.pppEmitente || '');
+  const emit = emitenteDoPpp(dados);
+  const rep = proprio ? seg : (v(c.pppRepresentante) || '[[representante legal]]');
+  const docRep = proprio ? [v(c.autorCpf) && `CPF ${c.autorCpf}`, v(c.pppNit) && `NIT ${c.pppNit}`].filter(Boolean).join(' – ')
+    : (v(c.pppRepresentanteNit) ? `CPF / NIT ${c.pppRepresentanteNit}` : '');
+  d.add(p([run(`${dados.perfil?.cidade || 'Londrina – PR'}, ${dataExtenso()}.`)], { align: 'right', before: 360, after: 0, keepNext: true }));
+  campoAssinatura(d, proprio ? seg.toUpperCase() : rep, [docRep, proprio ? 'Emitente do PPP e representante legal (itens 1 e 20)' : `Representante legal da ${emit.nome || 'emitente'} (item 20)`]);
+}
+
 export function termoDeclaracaoAutorizacao(d, dados) {
   const { c } = dados;
   const seg = v(c.autorNome) || '[[segurado]]';

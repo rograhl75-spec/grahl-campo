@@ -132,7 +132,14 @@ export function wordParaTexto(xmlDocumento, { titulo = '' } = {}) {
       if (!comecou) { if (nv === 1 && /^\d/.test(t.replace(/\*\*/g, ''))) comecou = true; else continue; }
       const limpo = t.replace(/\*\*/g, '').trim();
       if (nv === 1 && /^(anexo|ap[êe]ndice)\b/i.test(limpo)) break;
-      if (RE_FIM.test(limpo) || RE_LOCAL_DATA.test(limpo)) break;
+      if (RE_FIM.test(limpo)) break;
+      if (RE_LOCAL_DATA.test(limpo)) {
+        // assinatura no meio do corpo (ex.: emitente ao final do PPP): pula até o próximo título numerado;
+        // sem título depois, é a assinatura final do documento
+        const k = blocos.findIndex((x, j) => j > i && x.n === 'w:p' && nivel(x) === 1 && /^\d/.test(runs(x).replace(/\*\*/g, '').trim()));
+        if (k < 0) break;
+        i = k - 1; continue;
+      }
       if (!limpo) continue;
       const seq = seqDe(b);
       // legenda do quadro ou da figura (campo SEQ; no Word editado à mão, pelo texto)

@@ -6,7 +6,7 @@
 import { Doc, carregar, finalizar, capaTecnica, blocoAssinatura, partes, enderecamentoTexto, linhasProcesso, figurasDoCaso, apendicesDoCaso, anexosDoCaso, textoIntegram, inserirAnexos, inserirApendices, dataPorExtenso } from './base.js';
 import { datasDasVistorias } from '../schema.js';
 import { semRevisao, largurasAuto } from './ooxml.js';
-import { termoDeclaracaoAutorizacao } from './modelos.js';
+import { termoDeclaracaoAutorizacao, assinaturaEmitentePpp } from './modelos.js';
 
 export const CONVENCOES_CLAUDE = `FORMATO DA RESPOSTA (o app monta o Word no meu papel timbrado, com capa, sumário, numeração de quadros e figuras e assinatura; não faça capa, sumário nem assinatura):
 - Comece com as linhas "Título: ..." e "Subtítulo: ..." (o subtítulo é opcional).
@@ -98,7 +98,7 @@ export function nomesSemRevisao(md) {
 }
 
 // Converte o Markdown do Claude e devolve { titulo, subtitulo }; o corpo vai para d
-export function markdownParaDoc(md, d) {
+export function markdownParaDoc(md, d, { marcas = {} } = {}) {
   const L = String(md || '').replace(/\r\n?/g, '\n').split('\n');
   let titulo = '', subtitulo = '';
   let par = [];
@@ -107,6 +107,8 @@ export function markdownParaDoc(md, d) {
     const l = L[i];
     const t = l.trim();
     if (!t) { soltaPar(); continue; }
+    // marcas do app (ex.: assinatura do emitente ao final do PPP)
+    if (marcas[t]) { soltaPar(); marcas[t](d); continue; }
     let m;
     if ((m = t.match(/^t[íi]tulo:\s*(.+)$/i)) && !titulo) { titulo = m[1].replace(/\*\*/g, ''); continue; }
     if ((m = t.match(/^subt[íi]tulo:\s*(.+)$/i)) && !subtitulo) { subtitulo = m[1].replace(/\*\*/g, ''); continue; }
@@ -177,7 +179,10 @@ export async function documentoDoClaude(caseId, md) {
   const pt = partes(c);
   const corpo = new Doc();
   nomesSemRevisao(md);
-  const { titulo, subtitulo } = markdownParaDoc(semPartesDoApp(md), corpo);
+  // LTCAT extrajudicial: assinatura do emitente do PPP ao final da minuta do PPP (antes do título seguinte)
+  const comPpp = ehLtcatExtrajudicial(c, md);
+  const mdC = comPpp ? comAssinaturaPpp(semPartesDoApp(md)) : semPartesDoApp(md);
+  const { titulo, subtitulo } = markdownParaDoc(mdC, corpo, { marcas: { [MARCA_PPP]: (x) => assinaturaEmitentePpp(x, dados) } });
   const d = new Doc();
   const extra = c.tipoAtuacao === 'Extrajudicial';
   capaTecnica(d, {
@@ -208,6 +213,18 @@ export async function documentoDoClaude(caseId, md) {
   inserirApendices(d, apendices, dados);
   const r = await finalizar(d, { titulo: titulo || 'Documento técnico', arquivo: (titulo || 'Documento').replace(/[^\wÀ-ú]+/g, '_').slice(0, 40), c });
   return { ...r, faltando, falhasApendice: (falhasApendice || 0) + (falhasAnexo || 0), semRelatorios, semRelatoriosLgpd, nFotos: lista.length, nApendices: apendices.length, nAnexos: anexos.length };
+}
+
+const MARCA_PPP = '%%ASSINATURA_EMITENTE_PPP%%';
+// insere a marca da assinatura no fim da seção do PPP (título de 1º nível com "PPP"), antes do título seguinte
+export function comAssinaturaPpp(md) {
+  const L = String(md || '').split('\n');
+  const i = L.findIndex((l) => /^#\s+.*\b(PPP|Perfil Profissiogr[áa]fico)/i.test(l.trim()));
+  if (i < 0) return md;
+  let j = L.findIndex((l, k) => k > i && /^#\s+/.test(l.trim()));
+  if (j < 0) j = L.length;
+  L.splice(j, 0, '', MARCA_PPP, '');
+  return L.join('\n');
 }
 
 export const ehLtcatExtrajudicial = (c, titulo = '') => c.tipoAtuacao === 'Extrajudicial' && /ltcat|ppp|condi[çc][õo]es ambientais/i.test(`${titulo} ${(c.objeto || []).join(' ')}`);

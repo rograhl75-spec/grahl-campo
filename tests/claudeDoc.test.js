@@ -171,6 +171,14 @@ describe('LTCAT extrajudicial do Claude', () => {
     expect(t).toContain('autorizo o levantamento');
     expect(t).toContain('Segurado Teste');
   });
+  it('assinatura do segurado (emitente) ao final da minuta do PPP', async () => {
+    const md = 'Título: Laudo técnico das condições ambientais do trabalho\n\n# 1 Identificação\nTexto.\n\n# 8 Minuta do PPP\nItens do PPP.\n\n# 9 Encerramento\nFim.';
+    const t = await texto(await documentoDoClaude('cd9', md));
+    const a = t.indexOf('Emitente do PPP e representante legal'), e = t.lastIndexOf('9 ENCERRAMENTO');
+    expect(a).toBeGreaterThan(t.lastIndexOf('Itens do PPP.'));
+    expect(a).toBeLessThan(e);
+    expect(t).toContain('SEGURADO TESTE');
+  });
   it('laudo judicial não traz o termo', async () => {
     const t = await texto(await documentoDoClaude('cd1', MD));
     expect(t).not.toContain('TERMO DE DECLARAÇÃO E AUTORIZAÇÃO');

@@ -66,18 +66,22 @@ export function formulasDoTexto(s) {
 // partes que o app monta sozinho: o Claude às vezes as escreve mesmo assim
 const RE_ANEXO_FOTOS = /^#{0,3}\s*\**\s*anexo\s+[ivx\d]*\s*[–—:-]?\s*(registro|relat[óo]rio)\s+fotogr/i;
 const RE_LOCAL_DATA = /^\**[\p{L} .'/–-]{3,90}\/[A-Z]{2}\**\s*,\s*(\[\[)?\s*(data de emiss[ãa]o|\d{1,2}(º)? de [\p{L}]+ de \d{4})\s*(\]\])?\s*\.?\**$/u;
-const RE_INTEGRAM = /^(o (presente )?(laudo|parecer|documento) (segue acompanhado|é acompanhado)|integram? o presente|seguem anexos)/i;
+const RE_INTEGRAM = /^(o (presente )?(laudo|parecer|documento) (segue acompanhado|é acompanhado)|integram? o (presente )?(laudo|parecer|documento)|integram? o presente|seguem anexos)/i;
 const hojeIso = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 export function semPartesDoApp(md) {
   const L = String(md || '').replace(/\r\n?/g, '\n').split('\n');
-  const out = []; let pulando = false, encerramento = false;
+  const out = []; let pulando = false, encerramento = false, listaIntegram = false;
   for (const l of L) {
     const t = l.trim();
     if (/^#\s/.test(t)) encerramento = /encerramento/i.test(t);
     if (encerramento && /\b(constam?|seguem|encontram-se)\b[^.]*\b(Anexo|apêndices?)\b/i.test(t) && /^[^.]*\.?\s*$/.test(t.replace(/\.$/, ''))) continue;
     if (RE_ANEXO_FOTOS.test(t)) { pulando = true; continue; }
     if (pulando) { if (/^#\s/.test(t) && !/foto/i.test(t)) pulando = false; else continue; }
-    if (RE_LOCAL_DATA.test(t) || RE_INTEGRAM.test(t)) continue;
+    // "Integram o laudo:" com a lista abaixo e o "Responsável técnico:" do encerramento: o app monta os dois
+    if (listaIntegram) { if (/^[-*•]\s|^\d+[.)]\s/.test(t) || (!t && out.length)) { if (t) continue; } else listaIntegram = false; }
+    if (encerramento && /^respons[áa]vel t[ée]cnico\s*:/i.test(t)) continue;
+    if (RE_INTEGRAM.test(t)) { listaIntegram = /:\s*$/.test(t); continue; }
+    if (RE_LOCAL_DATA.test(t)) continue;
     out.push(l.replace(/\s*(?<=^|[.!?]\s*)(Integra(m)?|Seguem anexos)[^.]*?(Anexo|apêndice|registro fotográfico)[^.]*\./gi, ''));
   }
   return out.join('\n').replace(/\[\[\s*data de emiss[ãa]o\s*\]\]/gi, dataPorExtenso(hojeIso()))
@@ -243,7 +247,11 @@ const MARCA_FDS = '%%FICHAS_FDS%%';
 // insere a marca das fichas logo após o primeiro título da avaliação dos agentes químicos
 export function comFichasFds(md) {
   const L = String(md || '').split('\n');
-  const i = L.findIndex((l) => /^#{1,3}\s+.*(agentes?\s+qu[íi]mic|produtos?\s+qu[íi]mic)/i.test(l.trim()) && !/\bPPP\b/.test(l));
+  // de preferência o da seção de avaliação dos agentes (não o da fundamentação)
+  const ehQ = (l) => /^#{1,3}\s+.*(agentes?\s+qu[íi]mic|produtos?\s+qu[íi]mic)/i.test(l.trim()) && !/\bPPP\b/.test(l);
+  let h1 = ''; const cand = [];
+  L.forEach((l, k) => { if (/^#\s/.test(l.trim())) h1 = l; if (ehQ(l)) cand.push({ k, aval: /avalia/i.test(h1) }); });
+  const i = (cand.find((x) => x.aval) || cand[0] || { k: -1 }).k;
   if (i < 0) return md;
   L.splice(i + 1, 0, '', MARCA_FDS, '');
   return L.join('\n');

@@ -637,6 +637,8 @@ const REGRAS_REDACAO = `- Fotos: o app monta o Anexo I com as fotos na ordem da 
 - PPP, item 15 (Manual de Aposentadoria Especial do INSS): intensidade "Qualitativa" para agente de avaliação qualitativa (nunca "Não se aplica") e "Não quantificada" para agente quantitativo sem medição; técnica utilizada só com os valores dos quadros do Manual de Aposentadoria Especial do INSS: ruído até 18/11/2003 "NR-15, Anexo 1" e a partir de 19/11/2003 "NHO-01"; demais agentes quantitativos, a NHO da FUNDACENTRO aplicável (ou "Quantitativa – NR-15, Anexo X" quando não houve medição); agentes qualitativos "Qualitativa" com o critério e o código (ex.: "Qualitativa – Anexo IV do Dec. 3.048/99, cód. 3.0.1"). Nunca escreva "dosimetria", "medição", "sem medição" ou o nome do instrumento no campo da técnica – isso vai no LTCAT; sem fichas de EPI, EPC e EPI eficazes "Não" em todo o período e CA "—".
 - Datas: a data de emissão do laudo vale para o laudo, para o PPP (item 19) e para o termo de declaração e autorização; não deixe data em branco nem use outra data nesses campos.
 - Pendências e documentos a apresentar: seção, item ou quadro próprio só se houver item pendente de fato; sem pendência, não crie a seção nem o quadro (nada de "Nenhuma" ou "Não há documentos pendentes") e não faça remissão a eles.
+- Documento extrajudicial: não há Juízo – não escreva "para conhecimento do Juízo" nem "a decisão cabe ao Juízo"; diga "cabe ao INSS ou, em juízo, ao julgador". Contribuinte individual (sócio ou autônomo) não tem evento S-2240 do eSocial: o PPP em papel cobre todo o período, sem pendência sobre isso.
+- Não escreva "Integram o laudo…" nem repita a assinatura ou os registros no encerramento: o app acrescenta a lista do que integra o documento e a assinatura.
 - Jurisprudência: só o que trata do enquadramento técnico (agente, metodologia, EPI, penosidade, similaridade); temas sobre concessão, DER ou pagamento do benefício ficam fora.`;
 
 // Auditoria do texto guardado de um documento (laudo, parecer, LTCAT, petição): o Claude aponta os problemas e
@@ -706,7 +708,8 @@ ${texto}`;
 Use os dados do caso abaixo (coletados por mim nos autos e na diligência) como base factual. Não invente dados: o que faltar, marque como [[pendência]] para eu completar.
 
 ${CONVENCOES_CLAUDE}
-${regs ? `- Meus registros profissionais, se precisar citá-los: ${regs} (copie exatamente, sem reformatar o número).
+${perfilDoc.nome ? `- Meu nome (signatário, também no item 16 do PPP): ${perfilDoc.nome}.
+` : ''}${regs ? `- Meus registros profissionais, se precisar citá-los: ${regs} (copie exatamente, sem reformatar o número).
 ` : ''}${tipo === 'ltcat' && perfilDoc.cpf ? `- Meu CPF, para o item 16 do PPP (responsável pelos registros ambientais): ${perfilDoc.cpf}.
 ` : ''}${REGRAS_REDACAO}
 
@@ -766,8 +769,10 @@ export async function textoDoCaso(caseId) {
   L.push(`# Caso: ${c.autorNome || ''} × ${c.reuNome || ''}`);
   L.push('\n## Identificação');
   for (const [k, r] of [['tipoAtuacao', 'Tipo'], ['papel', 'Minha atuação'], ['justica', 'Justiça'], ['materia', 'Matéria'], ['numero', 'Processo'], ['juizo', 'Juízo'], ['comarca', 'Comarca'],
-    ['dataAjuizamento', 'Ajuizamento'], ['peritoJuizo', 'Perito do Juízo'], ['refLaudo', 'Laudo analisado'], ['autorNome', 'Autor / segurado'], ['autorCpf', 'CPF / NIT'],
+    ['dataAjuizamento', 'Ajuizamento'], ['peritoJuizo', 'Perito do Juízo'], ['refLaudo', 'Laudo analisado'], ['autorNome', 'Autor / segurado'], ['autorCpf', 'CPF / NIT'], ['autorNascimento', 'Data de nascimento do segurado'],
     ['reuNome', 'Réu / empresa'], ['reuCnpj', 'CNPJ']]) campo(r, c[k]);
+  // dados do PPP (emitente, NIT, sexo, representante legal): o Claude preenche a minuta do PPP com eles, sem pendência
+  if (CAMPOS_PPP.some(([k]) => String(c[k] || '').trim())) { L.push('\n## Dados do PPP'); for (const [k, r] of CAMPOS_PPP) campo(r, c[k]); }
   campo('Objeto', (c.objeto || []).join(', '));
   // ART escolhida (Configurações → ARTs): o número sai no documento; o PDF o app anexa
   const artCad = c.artId ? await db.records.get(c.artId) : null;
@@ -779,7 +784,7 @@ export async function textoDoCaso(caseId) {
     L.push('\n## Acidente do trabalho');
     for (const [k, r] of CAMPOS_ACIDENTE) campo(r, c[k]);
   }
-  if (periodos.length) { L.push('\n## Períodos'); periodos.forEach((p) => L.push(`- ${p.data.empresa || ''} (${p.data.cnpj || ''}) – ${p.data.inicio || '?'} a ${p.data.fim || 'atual'} – ${p.data.cargo || ''} / ${p.data.setor || ''}. Atividades: ${p.data.atividades || ''}. Agentes: ${p.data.agentes || ''}. Fonte: ${p.data.fonte || ''}${['veiculoTipo', 'veiculoMarca', 'veiculoModelo', 'veiculoAno', 'conducaoH', 'conducaoBase', 'soPenosidadeDesde', 'veiculoDepois', 'tipoTransporte', 'jornadaSemanal', 'pausas', 'noturnoPernoite', 'cargaDescarga', 'vias', 'cabine', 'riscoAcidente', 'pressao', 'fisiologicas', 'penosidadeResultado', 'penosidadeConclusao', 'grupoVeiculo', 'carroceria', 'tipoCarga', 'carregaDescarrega', 'abastecimento', 'acidenteVinculo', 'assaltoVinculo', 'cambio', 'segundoMotorista', 'lavagemManutencao', 'tanqueSuplementar', 'inflamaveis'].filter((k) => p.data[k]).map((k) => `. ${k}: ${p.data[k]}`).join('')}`)); }
+  if (periodos.length) { L.push('\n## Períodos'); periodos.forEach((p) => L.push(`- ${p.data.empresa || ''} (${p.data.cnpj || ''}) – ${p.data.inicio || '?'} a ${p.data.fim || 'atual'} – ${p.data.cargo || ''} / ${p.data.setor || ''}. Atividades: ${p.data.atividades || ''}. Agentes: ${p.data.agentes || ''}. Fonte: ${p.data.fonte || ''}${['categoriaSegurado', 'funcao', 'cbo', 'local', 'veiculoTipo', 'veiculoMarca', 'veiculoModelo', 'veiculoAno', 'conducaoH', 'conducaoBase', 'soPenosidadeDesde', 'veiculoDepois', 'tipoTransporte', 'jornadaSemanal', 'pausas', 'noturnoPernoite', 'cargaDescarga', 'vias', 'cabine', 'riscoAcidente', 'pressao', 'fisiologicas', 'penosidadeResultado', 'penosidadeConclusao', 'grupoVeiculo', 'carroceria', 'tipoCarga', 'carregaDescarrega', 'abastecimento', 'acidenteVinculo', 'assaltoVinculo', 'cambio', 'segundoMotorista', 'lavagemManutencao', 'tanqueSuplementar', 'inflamaveis'].filter((k) => p.data[k]).map((k) => `. ${k}: ${p.data[k]}`).join('')}`)); }
   // regras do caso e o que o app já adota por vínculo (tempo de condução, conclusão da penosidade): o Claude usa o mesmo
   if (periodos.length) {
     const [{ carregar }, pen, { capitalizarCidades }] = await Promise.all([import('./docx/base.js'), import('./docx/penosidade.js'), import('./cidades.js')]);

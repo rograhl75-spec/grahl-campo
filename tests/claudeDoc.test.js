@@ -193,6 +193,14 @@ describe('LTCAT extrajudicial do Claude', () => {
     const tamanhos = new Set(tabs.flatMap(corpo).filter(Boolean));
     expect([...tamanhos]).toEqual(['18']);
   });
+  it('fichas das FDS logo após o título dos agentes químicos (sem anexo)', async () => {
+    const md = 'Título: Laudo técnico das condições ambientais do trabalho\n\n# 5 Avaliação dos agentes\n\n## 5.3 Agentes químicos\nAnálise dos produtos.\n\n# 6 Conclusão\nFim.';
+    const t = await texto(await documentoDoClaude('cd9', md));
+    const f = t.lastIndexOf('Ficha do produto – Produto Teste');
+    expect(f).toBeGreaterThan(t.lastIndexOf('5.3 AGENTES QUÍMICOS'));
+    expect(f).toBeLessThan(t.lastIndexOf('Análise dos produtos.'));
+    expect(t).not.toContain('Fichas dos produtos químicos (FDS)');
+  });
   it('laudo judicial não traz o termo', async () => {
     const t = await texto(await documentoDoClaude('cd1', MD));
     expect(t).not.toContain('TERMO DE DECLARAÇÃO E AUTORIZAÇÃO');

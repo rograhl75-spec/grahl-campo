@@ -183,8 +183,13 @@ export async function documentoDoClaude(caseId, md) {
   nomesSemRevisao(md);
   // LTCAT extrajudicial: assinatura do emitente do PPP ao final da minuta do PPP (antes do título seguinte)
   const comPpp = ehLtcatExtrajudicial(c, md);
-  const mdC = comPpp ? comAssinaturaPpp(semPartesDoApp(md)) : semPartesDoApp(md);
-  const { titulo, subtitulo } = markdownParaDoc(mdC, corpo, { marcas: { [MARCA_PPP]: (x) => assinaturaEmitentePpp(x, dados) } });
+  let mdC = comPpp ? comAssinaturaPpp(semPartesDoApp(md)) : semPartesDoApp(md);
+  // fichas das FDS logo depois do título da avaliação dos agentes químicos (como nos laudos do app)
+  if ((dados.produtos || []).some((p) => String(p.data.nome || '').trim())) mdC = comFichasFds(mdC);
+  const { titulo, subtitulo } = markdownParaDoc(mdC, corpo, { marcas: {
+    [MARCA_PPP]: (x) => assinaturaEmitentePpp(x, dados),
+    [MARCA_FDS]: (x) => fichasFds(x, dados, { primeiraSemQuebra: true }),
+  } });
   const d = new Doc();
   const extra = c.tipoAtuacao === 'Extrajudicial';
   capaTecnica(d, {
@@ -206,7 +211,8 @@ export async function documentoDoClaude(caseId, md) {
   const { anexos, falhasAnexo } = await anexosDoCaso(dados, { romanos: true, inicio: lista.length ? 1 : 0 });
   const doc = /parecer/i.test(titulo) ? 'parecer' : /laudo|ltcat/i.test(titulo) ? 'laudo' : 'documento';
   // fichas das FDS dos produtos do caso (dados transcritos das seções 2, 3, 8 e 9), num anexo próprio, uma por página
-  const comFds = doc !== 'documento' && (dados.produtos || []).some((p) => String(p.data.nome || '').trim());
+  // sem o título da avaliação química no texto, as fichas vão para um anexo próprio
+  const comFds = doc !== 'documento' && !dados._fdsImpressas && (dados.produtos || []).some((p) => String(p.data.nome || '').trim());
   if (comFds) anexos.push({ letra: ROMANOS_DOC[(lista.length ? 1 : 0) + anexos.length] || String(anexos.length + 1), titulo: 'Fichas dos produtos químicos (FDS)', fds: true });
   textoIntegram(d, { fotos: lista.length > 0, anexos, apendices, doc });
   blocoAssinatura(d, dados);
@@ -230,6 +236,16 @@ export function comAssinaturaPpp(md) {
   let j = L.findIndex((l, k) => k > i && /^#\s+/.test(l.trim()));
   if (j < 0) j = L.length;
   L.splice(j, 0, '', MARCA_PPP, '');
+  return L.join('\n');
+}
+
+const MARCA_FDS = '%%FICHAS_FDS%%';
+// insere a marca das fichas logo após o primeiro título da avaliação dos agentes químicos
+export function comFichasFds(md) {
+  const L = String(md || '').split('\n');
+  const i = L.findIndex((l) => /^#{1,3}\s+.*(agentes?\s+qu[íi]mic|produtos?\s+qu[íi]mic)/i.test(l.trim()) && !/\bPPP\b/.test(l));
+  if (i < 0) return md;
+  L.splice(i + 1, 0, '', MARCA_FDS, '');
   return L.join('\n');
 }
 

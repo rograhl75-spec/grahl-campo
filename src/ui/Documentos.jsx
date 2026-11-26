@@ -15,7 +15,7 @@ import { temClaude } from '../claudeApi.js';
 import { documentoDoClaude, peticaoDoClaude, temConteudo } from '../docx/claudeDoc.js';
 import { incluirVeiculoNaBase, incluirPostoNaBase, promptProfissao, lerJsonProfissao, salvarProfissao, RE_MOTORISTA } from '../basesUsuario.js';
 import { importarWordDoLaudo } from '../docx/importarWord.js';
-import { ultimaRedacao, guardarRedacao, desfazerRedacao, promptAplicarCorrecoes, lerTrocas, aplicarTrocas, redacoesDoCaso, restaurarVersao, guardarAuditoria, lerAuditoria, slugDoc, guardarWordFinal, wordFinalAtual } from '../redacao.js';
+import { ultimaRedacao, guardarRedacao, desfazerRedacao, promptAplicarCorrecoes, lerTrocas, aplicarTrocas, redacoesDoCaso, restaurarVersao, guardarAuditoria, lerAuditoria, slugDoc, guardarWordFinal, wordsFinais, wordFinalDesatualizado } from '../redacao.js';
 import { textoDoCaso } from '../aiimport.js';
 import { gravarTudoAgora, salvar, TF, Sel } from './fields.jsx';
 import { FORMAS_PAGAMENTO, localVistoria, finalidadeArtDoCaso, rotuloArt } from '../schema.js';
@@ -612,7 +612,7 @@ function RedacaoDoc({ rec, chaves, titulo, tipo = 'laudo', peticao = false, gera
       await guardarRedacao(rec.id, md, { origem: `Word corrigido (${f.name})`, doc: chave, titulo });
       await guardarWordFinal(rec.id, f, { doc: chave });
       const n = (md.match(/^#{1,3} /gm) || []).length, q = (md.match(/^Quadro:/gm) || []).length;
-      setMsg(`✓ Word corrigido guardado como versão final do documento, e o texto dele${peticao ? '' : ` (${n} títulos e ${q} quadros)`} como nova versão – as próximas auditorias e correções partem dele. Baixe o Word final em "3. Word e versões".`);
+      setMsg(`✓ Word corrigido guardado como versão final do documento, e o texto dele${peticao ? '' : ` (${n} títulos e ${q} quadros)`} como nova versão – as próximas auditorias e correções partem dele. Baixe-o em "3. Word e versões" (Baixar o arquivo final).`);
     } catch (er) { setMsg(`Erro ao importar: ${er.message}`); }
   };
   const botaoImportar = (rot) => <label class="botao-arquivo sec">{rot}<input type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden onChange={importar} /></label>;
@@ -622,6 +622,7 @@ function RedacaoDoc({ rec, chaves, titulo, tipo = 'laudo', peticao = false, gera
       <summary><b>Revisar e corrigir{titulo ? ` – ${titulo}` : ''}</b> <small class="suave">– importar o Word</small></summary>
       <p class="dica">Ainda não há texto guardado deste documento. Redija com o Claude (o texto fica guardado) ou importe o Word corrigido (à mão ou numa conversa com o Claude): o app guarda o próprio Word como versão final e o texto dele como redação; {peticao ? 'endereçamento, fecho e assinatura' : 'capa, sumário, anexos, apêndices e assinatura'} o app monta de novo se você gerar outro Word.</p>
       {botaoImportar(`＋ Importar o Word corrigido ${peticao ? 'da petição' : 'do documento'} (.docx)`)}
+      <WordsFinais rec={rec} chave={chave} red={null} setMsg={setMsg} />
       {msg && <p class="ok-msg">{msg}</p>}
     </details>
   );
@@ -713,27 +714,7 @@ function RedacaoDoc({ rec, chaves, titulo, tipo = 'laudo', peticao = false, gera
         <button type="button" class="sec" onClick={() => baixarArquivo(new Blob([red.data.md], { type: 'text/markdown' }), `Texto_${slugDoc(titulo) || 'documento'}_${carimbo()}.md`)}>Baixar o texto (.md)</button>
         {botaoImportar('Importar o Word corrigido (.docx)')}
       </div>
-      {(() => {
-        const w = wordFinalAtual(red);
-        if (!w) return <p class="dica">Corrigiu o Word fora do app (à mão ou numa conversa com o Claude)? Importe-o: o próprio Word fica guardado como versão final, e o texto dele vira nova versão.</p>;
-        return (
-          <div class="mt">
-            <div class="linha-botoes">
-              <button type="button" class="primario" onClick={async () => {
-                try { const b = await obterAnexo(w.id); baixarArquivo(b, w.nome); } catch (e) { setMsg(`Erro ao baixar: ${e.message}`); }
-              }}>Baixar o Word final ({w.nome})</button>
-            </div>
-            <p class="dica">Importado em {quando(w.em)}.{w.desatualizado ? ' O texto mudou depois disso (correções ou auditoria): o Word final não tem essas mudanças – gere o Word do último texto ou importe o Word corrigido de novo.' : ''}</p>
-            {(red.data.wordFinal || []).length > 1 && (
-              <details><summary>Words finais anteriores ({red.data.wordFinal.length - 1})</summary>
-                <ul class="historico">{red.data.wordFinal.slice(1).map((x) => (
-                  <li>{quando(x.em)} – {x.nome} <button type="button" class="link" onClick={async () => { try { baixarArquivo(await obterAnexo(x.id), x.nome); } catch (e) { setMsg(`Erro ao baixar: ${e.message}`); } }}>Baixar</button></li>
-                ))}</ul>
-              </details>
-            )}
-          </div>
-        );
-      })()}
+      <WordsFinais rec={rec} chave={chave} red={red} setMsg={setMsg} />
       {(versoes.length > 0 || red.data.anterior) && (
         <details class="mt"><summary>Histórico de versões ({versoes.length})</summary>
           <ul class="historico">
@@ -748,6 +729,34 @@ function RedacaoDoc({ rec, chaves, titulo, tipo = 'laudo', peticao = false, gera
       {msg && <p class="ok-msg">{msg}</p>}
       {falhas.length > 0 && <div class="evidencias alerta"><b>Não aplicado (o trecho não foi encontrado igual no texto; corrija pelas correções livres ou no Word):</b><ul>{falhas.map((x) => <li>{x}</li>)}</ul></div>}
     </details>
+  );
+}
+
+// Arquivos finais do documento (Word corrigido fora do app): baixar o último, os anteriores, e guardar só o arquivo
+// (sem trocar o texto guardado – ex.: o PPP em documento separado)
+function WordsFinais({ rec, chave, red, setMsg }) {
+  const lista = useLive(() => wordsFinais(rec.id, chave), [rec.id, chave], []);
+  const quando = (em) => new Date(em).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+  const baixar = async (x) => { try { baixarArquivo(await obterAnexo(x.id), x.data.nome); } catch (e) { setMsg(`Erro ao baixar: ${e.message}`); } };
+  const soArquivo = async (e) => {
+    const f = e.currentTarget.files[0]; e.currentTarget.value = '';
+    if (!f) return;
+    try { await guardarWordFinal(rec.id, f, { doc: chave, comTexto: false }); setMsg(`✓ ${f.name} guardado como arquivo final; o texto guardado não mudou.`); } catch (er) { setMsg(`Erro ao guardar: ${er.message}`); }
+  };
+  const w = lista[0];
+  return (
+    <div class="mt">
+      {w ? <>
+        <p><b>Arquivos finais guardados</b></p>
+        <ul class="historico">{lista.map((x) => (
+          <li>
+            <button type="button" class="link" onClick={() => baixar(x)}>Baixar {x.data.nome}</button>
+            {' '}<small class="suave">– {quando(x.data.em)}{x.data.textoEm ? ', com o texto importado' : ', só o arquivo'}{wordFinalDesatualizado(x, red) ? ' · o texto mudou depois (correções ou auditoria): este arquivo não tem essas mudanças' : ''}</small>
+          </li>
+        ))}</ul>
+      </> : <p class="dica">Corrigiu o Word fora do app (à mão ou numa conversa com o Claude)? "Importar o Word corrigido" guarda o arquivo como versão final e o texto dele como nova versão. Para guardar um arquivo sem trocar o texto (ex.: o PPP em documento separado), use "Guardar só o arquivo final".</p>}
+      <label class="botao-arquivo sec">Guardar só o arquivo final (sem trocar o texto)<input type="file" accept=".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden onChange={soArquivo} /></label>
+    </div>
   );
 }
 

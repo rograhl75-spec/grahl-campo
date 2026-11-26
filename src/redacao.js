@@ -35,26 +35,29 @@ export async function guardarRedacao(caseId, md, { origem = 'Claude', doc = '', 
   return r.id;
 }
 
-// Word corrigido fora do app (à mão ou numa conversa com o Claude): o próprio .docx fica guardado no caso como
-// versão final (com a formatação, os anexos e as fotos, sincronizado como os demais arquivos), e o texto lido dele
-// vira nova versão da redação, para as próximas auditorias partirem do texto corrigido. Guarda os 10 últimos.
+// Arquivo final de um documento, corrigido fora do app (à mão ou numa conversa com o Claude): o próprio .docx fica
+// guardado no caso (anexo sincronizado como os demais arquivos), com a formatação, os anexos e as fotos.
+// - "Importar o Word corrigido": o texto lido dele também vira nova versão da redação ("textoEm" marca essa versão,
+//   para avisar quando o texto mudar depois);
+// - "Guardar só o arquivo final": nada muda no texto (ex.: PPP em documento separado, que o app gera dos dados).
 export const DESC_WORD_FINAL = 'wordFinal';
-export async function guardarWordFinal(caseId, file, { doc = '' } = {}) {
+export async function guardarWordFinal(caseId, file, { doc = '', rotulo = '', comTexto = true } = {}) {
   const { guardarAnexo } = await import('./paradigmas.js');
-  const atual = await ultimaRedacao(caseId, doc);
-  if (!atual) throw new Error('Guarde primeiro o texto do documento.');
   const mime = file.type || 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
   const arq = file.type ? file : new File([file], file.name, { type: mime });
   const id = await guardarAnexo(arq, DESC_WORD_FINAL, caseId);
-  const item = { id, nome: file.name, em: new Date().toISOString(), textoEm: (await ultimaRedacao(caseId, doc)).data.em };
-  await updateFields(atual.id, { wordFinal: [item, ...(atual.data.wordFinal || [])].slice(0, 10) });
-  return item;
+  const red = comTexto ? await ultimaRedacao(caseId, doc) : null;
+  await updateFields(id, { doc, rotulo, em: new Date().toISOString(), textoEm: red ? red.data.em : '' });
+  return id;
 }
-// o Word final ainda corresponde ao texto atual? (o texto mudou depois de importado → gere de novo ou importe outro)
-export function wordFinalAtual(red) {
-  const w = (red?.data?.wordFinal || [])[0];
-  if (!w) return null;
-  return { ...w, desatualizado: String(red.data.em || '') > String(w.textoEm || w.em) };
+export async function wordsFinais(caseId, doc = '') {
+  return (await db.records.where('[caseId+kind]').equals([caseId, 'anexo']).toArray())
+    .filter((r) => !r.deleted && r.data.descricao === DESC_WORD_FINAL && (r.data.doc || '') === doc)
+    .sort((x, y) => String(y.data.em || '').localeCompare(String(x.data.em || '')));
+}
+// o Word final com texto ainda corresponde ao texto atual? (o texto mudou depois → gere de novo ou importe outro)
+export function wordFinalDesatualizado(w, red) {
+  return !!(w?.data.textoEm && red && String(red.data.em || '') > String(w.data.textoEm));
 }
 
 // volta à versão "i" do histórico (0 = a anterior); a atual entra no histórico, então dá para refazer

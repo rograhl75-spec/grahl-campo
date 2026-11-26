@@ -24,7 +24,6 @@ export async function duplicarCaso(caseId, { nome = '' } = {}) {
     // o Word final importado é do outro segurado: não vai para a cópia (o texto da redação vai)
     if (r.kind === 'anexo' && r.data.descricao === 'wordFinal') continue;
     const dadosCopia = { ...r.data };
-    if (r.kind === 'redacao') delete dadosCopia.wordFinal;
     const n = await createRecord(r.kind, novo.id, dadosCopia);
     mapa.set(r.id, n.id);
     criados.push(n);

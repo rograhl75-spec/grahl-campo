@@ -633,6 +633,10 @@ function RedacaoDoc({ rec, chaves, titulo, tipo = 'laudo', peticao = false, gera
     relatar(res);
     if (!res.feitas.length) { setMsg('Nenhuma troca pôde ser aplicada; o texto e o Word não mudaram.'); return; }
     await guardarRedacao(rec.id, res.md, { origem: `auditoria (${res.feitas.length} correção(ões))`, doc: chave });
+    // os pontos não aplicados continuam na lista, para decidir depois
+    const feitos = new Set(res.feitas.map((f) => f.buscar));
+    const resto = itens.filter((x) => !feitos.has(x.buscar));
+    if (resto.length) await guardarAuditoria(red.id, resto);
     const nome = await gerarWord(res.md);
     setMsg(`✓ ${res.feitas.length} de ${sel.length} correção(ões) aplicada(s); ${nome} gerado de novo.${res.falhas.length ? ' Veja abaixo o que não foi aplicado.' : ''}${/\[\[/.test(res.md) ? ' Ainda há trechos em amarelo para completar.' : ''}`);
   };

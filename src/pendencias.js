@@ -244,7 +244,9 @@ export async function pendenciasDoCaso(caseId) {
     });
     // descrição do art. 68 só para o agente que caracteriza: sem resultado, a pendência é o resultado (abaixo);
     // não enquadrável, não avaliado ou não se aplica não vão ao quadro do art. 68
-    const caracteriza = (a) => [a.data.resAte97, a.data.resDesde97, a.data.resDesde2014].includes('Caracteriza');
+    // época sem vínculo no caso (ex.: "até 1997" num período que começa em 2004) não conta
+    const temAte97Desc = dados.periodos.some((r) => (r.data.inicio || '9999') <= '1997-03-05');
+    const caracteriza = (a) => (temAte97Desc && a.data.resAte97 === 'Caracteriza') || a.data.resDesde97 === 'Caracteriza' || a.data.resDesde2014 === 'Caracteriza';
     const semDescricao = agentesDoArt68(dados.agentes).filter(caracteriza).filter((a) => ['circunstancias', 'fonte', 'vias', 'frequencia'].some((k) => !String(a.data[k] || '').trim() && !(k === 'vias' && viasPadrao(a))));
     if (semDescricao.length && profissaoDoCaso(c, dados.periodos)) {
       itens.push({ id: 'art68-banco', grupo: g, tipo: 'aviso', rec: caseId, respondido: false, link: `#/caso/${encodeURIComponent(caseId)}/preparacao`, rotuloLink: 'Ir para o banco de profissões',

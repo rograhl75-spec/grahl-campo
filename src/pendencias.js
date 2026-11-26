@@ -242,7 +242,10 @@ export async function pendenciasDoCaso(caseId) {
         titulo: `Agente repetido: "${a.data.nome}" e "${outro.data.nome}"`,
         explicacao: 'O mesmo agente cadastrado duas vezes sai duas vezes no laudo e no PPP. Abra os dois na etapa 1. Autos e exclua o que tem menos informação (o de nome curto costuma ter vindo de uma importação).' });
     });
-    const semDescricao = agentesDoArt68(dados.agentes).filter((a) => ['circunstancias', 'fonte', 'vias', 'frequencia'].some((k) => !String(a.data[k] || '').trim() && !(k === 'vias' && viasPadrao(a))));
+    // descrição do art. 68 só para o agente que caracteriza: sem resultado, a pendência é o resultado (abaixo);
+    // não enquadrável, não avaliado ou não se aplica não vão ao quadro do art. 68
+    const caracteriza = (a) => [a.data.resAte97, a.data.resDesde97, a.data.resDesde2014].includes('Caracteriza');
+    const semDescricao = agentesDoArt68(dados.agentes).filter(caracteriza).filter((a) => ['circunstancias', 'fonte', 'vias', 'frequencia'].some((k) => !String(a.data[k] || '').trim() && !(k === 'vias' && viasPadrao(a))));
     if (semDescricao.length && profissaoDoCaso(c, dados.periodos)) {
       itens.push({ id: 'art68-banco', grupo: g, tipo: 'aviso', rec: caseId, respondido: false, link: `#/caso/${encodeURIComponent(caseId)}/preparacao`, rotuloLink: 'Ir para o banco de profissões',
         titulo: `${semDescricao.length} agente(s) sem a descrição do art. 68 – o banco de profissões completa`,

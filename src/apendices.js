@@ -1,6 +1,7 @@
 // Apêndices do laudo: relatórios das medições (dosimetria de ruído, vibração, IBUTG, certificados de
 // calibração...) anexados na aba Campo. Cada página do PDF (ou cada imagem) vira uma página do documento.
 import { db } from './db.js';
+import { acentuar } from './ortografia.js';
 
 export const DESC_APENDICE = 'apendice';
 // documentos de terceiros que acompanham o laudo (ART, CNIS, certidões, declarações): saem como Anexo A, B, C…
@@ -149,7 +150,7 @@ export async function apendicesRegistros(caseId, desc = DESC_APENDICE) {
 // ("… – Rene Arcanjo   ruido"): limpo na hora de montar o documento
 const semAcento = (t) => String(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 export function tituloApendice(t = '') {
-  let s = String(t).replace(/\s{2,}/g, ' ').trim();
+  let s = acentuar(String(t).replace(/\s{2,}/g, ' ').trim());
   if (/\d{4}\s?\d{2}\s?\d{2}T\d|\breport\b/i.test(s) && !/^relat[óo]rio de|^certificado/i.test(s)) s = tituloSugerido(s);
   // "Relatório de calor (IBUTG) – Relatorio Calor Fulano" → "Relatório de calor (IBUTG) – Fulano"
   s = s.replace(/^(relat[óo]rio de ([\p{L}]+)[^–]*–\s*)relat[óo]rio\s+\2\s+/iu, '$1').replace(/^(relat[óo]rio de dosimetria de ru[íi]do[^–]*–\s*)relat[óo]rio\s+ru[íi]do\s+/iu, '$1');

@@ -7,30 +7,66 @@ import { db, createRecord, updateFields } from './db.js';
 import { CONVENCOES_CLAUDE } from './docx/claudeDoc.js';
 import { extrairJson } from './basesUsuario.js';
 
-export async function ultimaRedacao(caseId) {
+const MAX_VERSOES = 30;
+
+// Um texto guardado por documento (doc = id do cartão do documento, "peticao:<assunto>"…). Sem "doc", o mais
+// recente de qualquer documento. Registros antigos sem "doc" valem para o documento pedido, se não houver o dele.
+export async function redacoesDoCaso(caseId) {
   const l = (await db.records.where('[caseId+kind]').equals([caseId, 'redacao']).toArray()).filter((r) => !r.deleted);
-  return l.sort((a, b) => String(b.data.em || '').localeCompare(String(a.data.em || '')))[0] || null;
+  return l.sort((a, b) => String(b.data.em || '').localeCompare(String(a.data.em || '')));
+}
+export async function ultimaRedacao(caseId, doc) {
+  const l = await redacoesDoCaso(caseId);
+  if (doc === undefined) return l[0] || null;
+  return l.find((r) => (r.data.doc || '') === doc) || (doc ? l.find((r) => !r.data.doc) : null) || null;
 }
 
-// guarda o texto (uma redação por caso; a anterior fica para desfazer)
-export async function guardarRedacao(caseId, md, { origem = 'Claude', doc = '' } = {}) {
+// guarda o texto; a versão anterior vai para o histórico (até 30), para voltar a qualquer uma
+export async function guardarRedacao(caseId, md, { origem = 'Claude', doc = '', titulo = '' } = {}) {
   const em = new Date().toISOString();
-  const atual = await ultimaRedacao(caseId);
+  const atual = await ultimaRedacao(caseId, doc);
   if (atual) {
     if (atual.data.md === md) return atual.id;
-    await updateFields(atual.id, { md, anterior: atual.data.md, em, origem, ...(doc ? { doc } : {}) });
+    const versoes = [{ md: atual.data.md, em: atual.data.em, origem: atual.data.origem }, ...(atual.data.versoes || [])].slice(0, MAX_VERSOES);
+    await updateFields(atual.id, { md, anterior: atual.data.md, em, origem, versoes, auditoria: null, ...(doc ? { doc } : {}), ...(titulo ? { titulo } : {}) });
     return atual.id;
   }
-  const r = await createRecord('redacao', caseId, { md, em, origem, doc });
+  const r = await createRecord('redacao', caseId, { md, em, origem, doc, titulo, versoes: [] });
   return r.id;
 }
 
-export async function desfazerRedacao(caseId) {
-  const atual = await ultimaRedacao(caseId);
-  if (!atual || !atual.data.anterior) return false;
+// volta à versão "i" do histórico (0 = a anterior); a atual entra no histórico, então dá para refazer
+export async function restaurarVersao(caseId, doc, i = 0) {
+  const atual = await ultimaRedacao(caseId, doc);
+  const v = atual?.data.versoes?.[i];
+  if (!v) return false;
+  const resto = atual.data.versoes.filter((_, k) => k !== i);
+  const versoes = [{ md: atual.data.md, em: atual.data.em, origem: atual.data.origem }, ...resto].slice(0, MAX_VERSOES);
+  await updateFields(atual.id, { md: v.md, anterior: atual.data.md, em: new Date().toISOString(), origem: `restaurada a versão de ${new Date(v.em).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}`, versoes, auditoria: null });
+  return true;
+}
+export async function desfazerRedacao(caseId, doc) {
+  const atual = await ultimaRedacao(caseId, doc);
+  if (!atual) return false;
+  if (atual.data.versoes?.length) return restaurarVersao(caseId, doc ?? (atual.data.doc || ''), 0);
+  if (!atual.data.anterior) return false;
   await updateFields(atual.id, { md: atual.data.anterior, anterior: atual.data.md, em: new Date().toISOString(), origem: 'desfeito' });
   return true;
 }
+
+// auditoria guardada com o texto (sobrevive a recarregar a página; some quando o texto muda)
+export async function guardarAuditoria(redId, itens) { await updateFields(redId, { auditoria: { em: new Date().toISOString(), itens } }); }
+
+export function lerAuditoria(texto) {
+  const o = extrairJson(texto);
+  const itens = (Array.isArray(o.itens) ? o.itens : []).filter((x) => x && (x.problema || x.buscar)).map((x, k) => ({
+    n: k + 1, onde: String(x.onde || ''), problema: String(x.problema || ''), gravidade: /alta/i.test(x.gravidade) ? 'alta' : /baixa/i.test(x.gravidade) ? 'baixa' : 'média',
+    buscar: String(x.buscar || ''), substituir: String(x.substituir ?? ''), pergunta: String(x.pergunta || ''),
+  }));
+  return itens;
+}
+
+export const slugDoc = (t) => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 50);
 
 // Instrução: o Claude devolve só as trocas, não o texto inteiro (barato e sem mexer no resto do laudo)
 export function promptAplicarCorrecoes(md, correcoes, textoCaso = '') {

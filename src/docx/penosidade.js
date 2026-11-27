@@ -16,10 +16,15 @@ const RE_MOT = /motorista|caminh|carreteir|cobrador|ônibus|onibus|truck|carreta
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 const f1 = (x) => (isFinite(x) ? x.toFixed(1).replace('.', ',') : '');
 
+// vínculo de motorista / cobrador (veículo, condução, paradigma e penosidade) – avaliado vínculo a vínculo: num caso com
+// outros empregos (indústria, serraria…), só estes recebem a entrevista do motorista
+export function ehVinculoMotorista(r) {
+  const x = r.data || {};
+  return x.penosidade !== 'Não' && (x.penosidade === 'Sim' || RE_MOT.test(`${x.cargo || ''} ${x.atividades || ''} ${x.veiculoTipo || ''}`)
+    || !!x.paradigmaRuido || !!x.paradigmaVibracao);
+}
 export function vinculosMotorista(dados) {
-  return dados.periodos.filter((r) => r.data.penosidade !== 'Não'
-    && (r.data.penosidade === 'Sim' || RE_MOT.test(`${r.data.cargo || ''} ${r.data.atividades || ''} ${r.data.veiculoTipo || ''}`)
-      || r.data.paradigmaRuido || r.data.paradigmaVibracao));
+  return dados.periodos.filter(ehVinculoMotorista);
 }
 
 export function avaliaPenosidade(dados) {

@@ -1,4 +1,6 @@
 import { BotaoClaudeDireto, ModoManual } from './ClaudeDireto.jsx';
+import { ehVinculoMotorista } from '../docx/penosidade.js';
+import { CAMPOS_PERIODO } from '../schema.js';
 import { horasDia } from '../calc.js';
 import { useState, useEffect, useRef } from 'preact/hooks';
 import { termoPresenca } from '../docx/modelos2.js';
@@ -840,7 +842,7 @@ function AnotacoesDiligencia({ rec }) {
 
 // Parecer de motorista: o "campo" é a entrevista do segurado, vínculo a vínculo
 const ehEntrevistaMotorista = (c) => ehParecerTecnico(c) || (c.objeto || []).includes('Penosidade (motorista)');
-const RE_MOT_CAMPO = /motorista|caminh|carreteir|cobrador|ônibus|onibus|carreta|bitrem|rodotrem|operador de m[áa]quina|tratorista/i;
+const RE_MOT_CAMPO = /motorista|caminh|carreteir|cobrador|ônibus|onibus|carreta|bitrem|rodotrem|operador de (trator|escavadeira|retroescavadeira|p[áa] carregadeira|motoniveladora|empilhadeira|guindaste|rolo compactador|colheitadeira|m[áa]quinas? pesadas?)|tratorista/i;
 
 function EntrevistaVinculos({ rec }) {
   const ps = useLive(async () => (await db.records.where('[caseId+kind]').equals([rec.id, 'periodo']).toArray())
@@ -852,28 +854,34 @@ function EntrevistaVinculos({ rec }) {
     x.noturnoPernoite && `pernoite: ${x.noturnoPernoite}`,
     x.penosidadeResultado && `penosidade: ${String(x.penosidadeResultado).split(' –')[0]}`,
   ].filter(Boolean).join(' · ');
+  // vínculo que não é de motorista (indústria, serraria…): entrevista das atividades, dos agentes e da jornada
+  const resumoComum = (x) => [x.cargo, x.atividades && `atividades: ${String(x.atividades).slice(0, 90)}${String(x.atividades).length > 90 ? '…' : ''}`, x.agentes && `agentes: ${String(x.agentes).slice(0, 70)}`].filter(Boolean).join(' · ');
+  const faltandoComum = (x) => [!String(x.atividades || x.profissiografia || '').trim() && 'atividades', !String(x.agentes || '').trim() && 'agentes'].filter(Boolean);
+  const CAMPOS_ENTREVISTA_COMUM = [...CAMPOS_PERIODO.filter(([k]) => ['cargo', 'funcao', 'setor', 'atividades', 'agentes', 'local', 'profissiografia'].includes(k)),
+    ['jornadaSemanal', 'Jornada (horas por dia, dias por semana, tempo na tarefa com exposição)', 'text'], ...CAMPOS_PERIODO.filter(([k]) => k === 'notas')];
   const faltando = (x) => [!x.grupoVeiculo && 'grupo do veículo', !x.tipoCarga && 'carga', !x.vias && 'trajetos', !x.jornadaSemanal && !x.conducaoH && 'jornada', !isFinite(horasDia(x.conducaoH)) && !(rec.data.foraDirecaoH && x.jornadaSemanal) && 'horas de condução por dia', paradigmasPermitidos(rec.data) && (x.paradigmaRuido || x.paradigmaVibracao) && !x.paradigmaVibracao && 'paradigma de vibração',
     !x.noturnoPernoite && 'pernoite', paradigmasPermitidos(rec.data) && !x.paradigmaRuido && !(x.fim && x.fim <= '1995-04-28') && 'paradigma'].filter(Boolean);
   return (
     <section class="bloco largo destaque">
       <div class="linha-botoes entre"><h3>Entrevista do segurado – vínculos <span class="contador">{ps.length}</span></h3>
       </div>
-      <p class="dica">Toque no vínculo para registrar ou corrigir a entrevista: veículo da época (e a troca de veículo, se houve), carga, trajetos, jornada, pernoite, horas de condução e os fatores de penosidade. As respostas vão direto para o laudo ou o parecer. Os vínculos (empresa e datas) vêm da CTPS/CNIS, na etapa 1. Autos.</p>
+      <p class="dica">Toque no vínculo para registrar ou corrigir a entrevista. Vínculo de motorista: veículo da época (e a troca de veículo, se houve), carga, trajetos, jornada, pernoite, horas de condução e os fatores de penosidade. Outros vínculos (indústria, serraria…): atividades, agentes e jornada. As respostas vão direto para o laudo ou o parecer. Os vínculos (empresa e datas) vêm da CTPS/CNIS, na etapa 1. Autos.</p>
       <div class="regra-caso">
         <TF rec={rec} k="foraDirecaoH" label="Regra do caso: horas por dia fora da direção (carga, descarga, paradas) – ex.: 5" inputMode="decimal" />
         <small class="dica">Com a regra, o tempo de condução de cada vínculo sem horas digitadas = jornada da entrevista − estas horas (sai no parecer com a explicação).</small>
       </div>
       {!ps.length && <p class="vazio">Nenhum vínculo cadastrado. Importe a CTPS/CNIS e a entrevista na etapa 1. Autos, ou gere o "Roteiro de entrevista do motorista" em 4. Petições → Outros documentos do caso.</p>}
       {ps.map((r) => {
-        const x = r.data; const f = faltando(x);
+        const x = r.data; const mot = ehVinculoMotorista(r); const f = mot ? faltando(x) : faltandoComum(x);
         return (
           <div class={`item ${aberto === r.id ? 'aberto' : ''}`} key={r.id}>
             <div class="item-topo" onClick={() => setAberto(aberto === r.id ? null : r.id)}>
               <span class="item-titulo"><b>{x.empresa || '(empresa)'}</b> <small class="suave">{dataBR(x.inicio)} a {x.fim ? dataBR(x.fim) : 'atual'}{x.cargo ? ` · ${x.cargo}` : ''}</small>
-                <br /><small class="suave">{resumo(x) || 'entrevista não registrada'}</small>
+                <br /><small class="suave">{(mot ? resumo(x) : resumoComum(x)) || 'entrevista não registrada'}{mot ? '' : ' · não é vínculo de motorista'}</small>
                 {f.length > 0 && <><br /><small class="alerta-txt">Falta: {f.join(', ')}</small></>}</span>
             </div>
-            {aberto === r.id && <div class="item-corpo"><VeiculoDoPeriodo r={r} abertoInicial /></div>}
+            {aberto === r.id && <div class="item-corpo">{mot ? <VeiculoDoPeriodo r={r} abertoInicial />
+              : <CamposCompactos rec={r} campos={CAMPOS_ENTREVISTA_COMUM} sempre={['atividades', 'agentes', 'jornadaSemanal']} />}</div>}
           </div>
         );
       })}

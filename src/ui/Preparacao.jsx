@@ -1,3 +1,4 @@
+import { ehVinculoMotorista } from '../docx/penosidade.js';
 import { horasDia, fmtHoras } from '../calc.js';
 import { useState } from 'preact/hooks';
 import { db } from '../db.js';
@@ -95,7 +96,7 @@ function CarregarProfissao({ rec }) {
   );
 }
 
-const RE_MOTORISTA = /motorista|caminh|carreteir|cobrador|ônibus|onibus|truck|carreta|bitrem|rodotrem|condutor|operador de m[áa]quina/i;
+const RE_MOTORISTA = /motorista|caminh|carreteir|cobrador|ônibus|onibus|truck|carreta|bitrem|rodotrem|condutor|operador de (trator|escavadeira|retroescavadeira|p[áa] carregadeira|motoniveladora|empilhadeira|guindaste|rolo compactador|colheitadeira|m[áa]quinas? pesadas?)/i;
 export function Preparacao({ rec, dadosDoCaso = null }) {
   const sintese = CAMPOS_SINTESE.filter(([k]) => k !== 'roteiro' && k !== 'analiseEpi');
   const vazio = !(rec.data.funcoes || '').trim() && !(rec.data.pedidos || '').trim();
@@ -120,7 +121,7 @@ export function Preparacao({ rec, dadosDoCaso = null }) {
         resumo={(r) => [r.data.empresa, r.data.inicio && `${dataBR(r.data.inicio)} a ${r.data.fim ? dataBR(r.data.fim) : 'atual'}`, r.data.cargo,
           (r.data.paradigmaRuido || r.data.paradigmaVibracao) && `paradigmas ${[r.data.paradigmaRuido, r.data.paradigmaVibracao].filter(Boolean).join('/')}`].filter(Boolean).join(' · ')}
         extra={(r) => (motorista
-          ? <p class="dica">Veículo, entrevista do motorista e penosidade deste vínculo: em <a href={`#/caso/${encodeURIComponent(rec.id)}/campo`}>2. Campo → Entrevista do segurado – vínculos</a>.</p>
+          ? <p class="dica">{ehVinculoMotorista(r) ? 'Veículo, entrevista do motorista e penosidade deste vínculo' : 'Entrevista deste vínculo (atividades, agentes e jornada; não é de motorista)'}: em <a href={`#/caso/${encodeURIComponent(rec.id)}/campo`}>2. Campo → Entrevista do segurado – vínculos</a>.</p>
           : <VeiculoDoPeriodo r={r} />)} />
       {/* motorista: paradigmas e medições dos laudos dos autos ficam junto da entrevista, em 2. Campo */}
       {contextoLegal(rec.data).prev && <CarregarProfissao rec={rec} />}

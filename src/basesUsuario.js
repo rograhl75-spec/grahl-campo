@@ -13,7 +13,7 @@ import { resumoMedicao } from './medicoes.js';
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 const br = (iso) => v(iso).split('-').reverse().join('/');
 const ativos = async (kind) => (await db.records.where('kind').equals(kind).toArray()).filter((r) => !r.deleted);
-export const RE_MOTORISTA = /motorista|caminh|carreteir|cobrador|ônibus|onibus|carreta|bitrem|rodotrem|operador de m[áa]quina|tratorista/i;
+export const RE_MOTORISTA = /motorista|caminh|carreteir|cobrador|ônibus|onibus|carreta|bitrem|rodotrem|operador de (trator|escavadeira|retroescavadeira|p[áa] carregadeira|motoniveladora|empilhadeira|guindaste|rolo compactador|colheitadeira|m[áa]quinas? pesadas?)|tratorista/i;
 
 // ---------- 1. veículo avaliado → paradigma (ruído e VCI juntos) ----------
 function fonteDoCaso(c, m) {

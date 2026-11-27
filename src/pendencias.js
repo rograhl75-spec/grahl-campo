@@ -5,6 +5,7 @@
 //    sugestões do app (confirmar ou recusar) e conclusão da penosidade (adotar a proposta ou redigir);
 // 2) o que ainda restar marcado no documento ([[...]]), agrupado, para conferir.
 // ======================================================================
+import { suspeitaTomCalibracao } from './medicoes.js';
 import JSZip from 'jszip';
 import { carregar } from './docx/base.js';
 import { vinculosMotorista, tempoConducao, jornadaDia, matrizIAC } from './docx/penosidade.js';
@@ -157,6 +158,11 @@ export async function pendenciasDoCaso(caseId) {
     if (x.dataMedicao && datasVist.size && !datasVist.has(x.dataMedicao)) {
       itens.push({ id: `med-data-${m.id}`, grupo: 'Diligência', tipo: 'aviso', titulo: `${rot}: data ${x.dataMedicao.split('-').reverse().join('/')} fora das datas da vistoria`,
         explicacao: 'Confira o relógio do aparelho e o relatório; corrija a data da medição em 2. Campo → posto → medição.' });
+    }
+    // ruído com Lmax igual ao nível do calibrador: o tom da aferição pode ter ficado dentro da medição
+    if (suspeitaTomCalibracao(x)) {
+      itens.push({ id: `med-calib-${m.id}`, grupo: 'Diligência', tipo: 'aviso', titulo: `${rot}: Lmax ${String(x.lmax).replace('.', ',')} dB igual ao nível do calibrador`,
+        explicacao: 'O tom da aferição de campo pode ter ficado gravado no 1º ou no último intervalo e elevar o Lavg e o NEN. Leia de novo o relatório do dosímetro em 3. Laudo → Relatórios dos medidores: o app identifica o intervalo pela tabela do relatório e o tira do cálculo. Se o tom não entrou, ignore.' });
     }
     // vibração: vale o "Tempo de exposição diária" (o campo da tela); ruído: a "Jornada" do dosímetro
     const jRel = horasDia(/Vibra/i.test(x.agente || '') ? (x.tempoExposicao || x.jornada) : (x.jornada || x.tempoExposicao));

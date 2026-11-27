@@ -694,7 +694,7 @@ function LerMedicoesDosRelatorios({ rec, lista }) {
       {!nMed && <p class="alerta-txt">Os relatórios anexados só entram no fim do laudo como apêndices: os valores de ruído e vibração do laudo vêm das medições cadastradas nos postos, e ainda não há nenhuma. Use o botão abaixo para o Claude ler os relatórios e cadastrar as medições.</p>}
       {alertas.length > 0 && (
         <div class="evidencias alerta" role="status">
-          <b>Discrepâncias entre os relatórios e a vistoria – corrija o relatório ou o cadastro e leia de novo:</b>
+          <b>Avisos da leitura dos relatórios (discrepâncias com a vistoria: corrija o relatório ou o cadastro e leia de novo; tom do calibrador: já tirado do cálculo):</b>
           {alertas.map((a) => <span>{a}</span>)}
           <span class="linha-botoes"><button type="button" class="mini sec" onClick={async () => { await updateFields(rec.id, { alertasRelatorios: '' }); avisarAlteracao(); }}>Corrigido – limpar os alertas</button></span>
         </div>
@@ -703,10 +703,12 @@ function LerMedicoesDosRelatorios({ rec, lista }) {
         instrucao={() => promptRelatoriosMedicao(rec)}
         anexos={async () => Promise.all(lista.map(async (r) => ({ blob: await obterAnexo(r.id), nome: r.data.titulo || r.data.nome, mime: r.data.mime || 'application/pdf' })))}
         onResposta={async (t) => {
-          const r = await aplicarIA(rec.id, lerJsonIA(t), { substituir: false, criarPeriodos: false, atualizarMedicoes: true });
+          const dadosIA = lerJsonIA(t);
+          const r = await aplicarIA(rec.id, dadosIA, { substituir: false, criarPeriodos: false, atualizarMedicoes: true });
           // discrepâncias entre os relatórios e a vistoria: ficam no caso até você marcar como corrigidas
           let alertas = [];
           try { const b = t.match(/```(?:json)?\s*([\s\S]*?)```/i); const j = b ? b[1] : t; alertas = (JSON.parse(j.slice(j.indexOf('{'), j.lastIndexOf('}') + 1)).alertas || []).map(String).filter(Boolean); } catch { alertas = []; }
+          alertas = [...alertas, ...(dadosIA.alertasCalibracao || [])];
           await updateFields(rec.id, { alertasRelatorios: alertas.join('\n') });
           avisarAlteracao();
           return `${alertas.length ? `ATENÇÃO – ${alertas.length} discrepância(s) entre os relatórios e a vistoria (abaixo). ` : ''}${r.medicoes} medição(ões) nova(s)${r.medicoesAtualizadas ? ` e ${r.medicoesAtualizadas} atualizada(s) pela nova leitura` : ''}${r.postos ? ` em ${r.postos} posto(s)` : ''}. Confira em 2. Campo → Postos / atividades e marque, em cada posto, os vínculos que ele representa.`;

@@ -110,3 +110,55 @@ export function resumoMedicao(m, ctx = {}) {
   else if (d.horaInicio) partes.push(`Início: ${d.horaInicio}`);
   return partes.join('; ');
 }
+
+// ---------- Tom do calibrador dentro da dosimetria ----------
+// A aferição de campo (tom de 94 ou 114 dB) às vezes fica gravada no 1º ou no último intervalo do registro: Lmax igual
+// ao nível do calibrador e Lavg do intervalo muito acima dos demais. Esse intervalo não é exposição: sai do cálculo,
+// e Lavg, NEN, dose da amostragem, Lmax e tempo de amostragem são refeitos com os intervalos restantes (mesma duração).
+const NIVEIS_CALIBRADOR = [94, 104, 114];
+function kQ(q) { return String(q || '5').trim().startsWith('3') ? 10 : 16.61; }
+export function excluirTomCalibracao(m) {
+  const ints = (Array.isArray(m.intervalos) ? m.intervalos : []).map((x) => (Array.isArray(x) ? x : [x?.lavg, x?.lmax]).map(num))
+    .filter(([l]) => isFinite(l));
+  if (ints.length < 4 || !/^Ru[íi]do/i.test(m.agente || 'Ruído')) return null;
+  const calib = [num(m.calibInicial), num(m.calibFinal)].filter(isFinite);
+  const niveis = calib.length ? calib : NIVEIS_CALIBRADOR;
+  const ord = ints.map(([l]) => l).sort((a, b) => a - b);
+  const mediana = ord[Math.floor(ord.length / 2)];
+  const ehTom = ([l, lmax]) => isFinite(lmax) && niveis.some((n) => Math.abs(lmax - n) <= 0.5) && l - mediana >= 6;
+  let ini = 0, fim = ints.length;
+  while (ini < fim - 3 && ehTom(ints[ini])) ini += 1;
+  while (fim - 1 > ini + 3 && ehTom(ints[fim - 1])) fim -= 1;
+  const fora = ini + (ints.length - fim);
+  if (!fora) return null;
+  const resto = ints.slice(ini, fim);
+  const k = kQ(m.q);
+  const lavg = k * Math.log10(resto.reduce((s, [l]) => s + 10 ** (l / k), 0) / resto.length);
+  // tempo de amostragem: "00:13:30" (relatório), número puro em minutos (leitura do Claude) ou "6h10"
+  const ta = String(m.tempoAmostragem ?? '').trim();
+  const hms = ta.match(/^(\d+):(\d{1,2}):(\d{1,2})$/);
+  const tTot = hms ? Number(hms[1]) * 60 + Number(hms[2]) + Number(hms[3]) / 60 : /^\d+([.,]\d+)?$/.test(ta) ? num(ta) : minutos(ta);
+  const dur = num(m.duracaoIntervalo) > 0 ? num(m.duracaoIntervalo) / 60 : (isFinite(tTot) ? tTot / ints.length : NaN);
+  const t = isFinite(dur) ? dur * resto.length : NaN;
+  const lmaxResto = Math.max(...resto.map(([, x]) => x).filter(isFinite));
+  const n = (v, c = 2) => (isFinite(v) ? v.toFixed(c) : '');
+  const novo = { lavg: n(lavg) };
+  if (isFinite(t)) { const seg = Math.round(t * 60); novo.tempoAmostragem = `${String(Math.floor(seg / 3600)).padStart(2, '0')}:${String(Math.floor((seg % 3600) / 60)).padStart(2, '0')}:${String(seg % 60).padStart(2, '0')}`; }
+  const te = minutos(m.jornada);
+  if (isFinite(te) && te > 0) novo.nen = n(lavg + k * Math.log10(te / 480));
+  if (isFinite(t) && String(m.dose ?? '').trim()) novo.dose = n(100 * (t / 480) * 2 ** ((lavg - 85) / (k === 10 ? 3 : 5)));
+  if (isFinite(lmaxResto)) novo.lmax = n(lmaxResto);
+  const quais = [ini && `${ini === 1 ? '1º intervalo' : `${ini} primeiros intervalos`}`, fora - ini && `${fora - ini === 1 ? 'último intervalo' : `${fora - ini} últimos intervalos`}`].filter(Boolean).join(' e ');
+  const ex = [...ints.slice(0, ini), ...ints.slice(fim)];
+  const aviso = `Tom do calibrador dentro da medição de ruído (${quais}: Lavg ${ex.map(([l]) => fmt(l, 1)).join(' / ')} dB; Lmax ${ex.map(([, x]) => fmt(x, 1)).join(' / ')} dB) – excluído do cálculo: Lavg ${fmt(lavg, 1)} dB(A)${novo.nen ? `, NEN ${fmt(num(novo.nen), 1)} dB(A)` : ''} (relatório do instrumento, com o tom: Lavg ${fmt(num(m.lavg), 1)}${String(m.nen ?? '').trim() ? `, NEN ${fmt(num(m.nen), 1)}` : ''}).`;
+  const obs = `Excluído do cálculo o ${quais} do registro, com o tom do calibrador (Lmax ${ex.map(([, x]) => fmt(x, 1)).join(' / ')} dB). Relatório do instrumento, com esse intervalo: Lavg ${fmt(num(m.lavg), 1)} dB(A)${String(m.nen ?? '').trim() ? `; NEN ${fmt(num(m.nen), 1)} dB(A)` : ''}${String(m.dose ?? '').trim() ? `; dose ${fmt(num(m.dose), 1)} %` : ''}${String(m.lmax ?? '').trim() ? `; Lmax ${fmt(num(m.lmax), 1)} dB` : ''}.`;
+  return { campos: { ...novo, tomCalibracao: quais, obs: [m.obs, obs].filter(Boolean).join('\n') }, aviso };
+}
+// medição já gravada sem a tabela de intervalos: Lmax igual ao nível do calibrador = conferir o registro
+export function suspeitaTomCalibracao(m) {
+  if (!/^Ru[íi]do/i.test(m.agente || '') || m.tomCalibracao) return false;
+  const lmax = num(m.lmax);
+  if (!isFinite(lmax)) return false;
+  const calib = [num(m.calibInicial), num(m.calibFinal)].filter(isFinite);
+  return (calib.length ? calib : NIVEIS_CALIBRADOR).some((n) => Math.abs(lmax - n) <= 0.3);
+}

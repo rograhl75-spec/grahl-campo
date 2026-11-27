@@ -2,7 +2,7 @@ import { db, createRecord, updateFields, caseChildren, softDelete } from './db.j
 import { CONVENCOES_CLAUDE } from './docx/claudeDoc.js';
 import { ORIGEM_QUESITO, contextoLegal, ehSuplementar, FASE, CAMPOS_DILIGENCIA, CAMPOS_POSTO, AGENTES_MEDICAO, ehAcidente, CAMPOS_ACIDENTE, chaveVistoria, qtdVistorias, vistoriasDoCaso,
   CAMPOS_PPP, CAMPOS_AGENTE_AVALIADO, RESULTADO_AGENTE, CATEGORIAS_SEGURADO, EMITENTE_PPP, MODALIDADE_AVALIACAO, DOCS_EMPRESA, AUTORIA_FOTOS } from './schema.js';
-import { resumoMedicao } from './medicoes.js';
+import { resumoMedicao, excluirTomCalibracao } from './medicoes.js';
 import { dataIso } from './migrate.js';
 import { citacaoDe } from './paradigmas.js';
 import { profissaoDoCaso, referenciaProfissao } from './data/profissoes.js';
@@ -346,6 +346,8 @@ export function lerJsonIA(texto) {
   const agenteOk = agenteMedicao;
   const KS_MED = ['dataMedicao', 'horaInicio', 'horaFim', 'tempoAmostragem', 'jornada', 'dose', 'q', 'lavg', 'nen', 'relatorio', 'lmax', 'calibInicial', 'calibFinal', 'posicao',
     'tbn', 'tbs', 'tg', 'ibutgLido', 'atividade', 'regime', 'veiculo', 'aren', 'vdv', 'eixo', 'tempoExposicao', 'condicaoVia', 'carga', 'descricao', 'metodo', 'valor', 'unidade', 'limite'];
+  // tom do calibrador gravado no 1º ou no último intervalo da dosimetria: sai do cálculo (avisos vão para a tela)
+  const alertasCalibracao = [];
   const postos = lista(obj.postos).map((x) => ({
     ...pegar(x, CAMPOS_POSTO.map(([k]) => k)),
     medicoes: lista(x.medicoes).map((m) => {
@@ -355,6 +357,10 @@ export function lerJsonIA(texto) {
       if (r.q) r.q = String(r.q).trim().startsWith('3') ? '3 (NHO-01)' : '5 (NR-15, Anexo 1)';
       const obs = [s(m.equipamento) && `Equipamento: ${s(m.equipamento)}`, s(m.obs)].filter(Boolean).join('\n');
       if (obs) r.obs = obs;
+      if (Array.isArray(m.intervalos) && m.intervalos.length) {
+        const t = excluirTomCalibracao({ ...r, intervalos: m.intervalos, duracaoIntervalo: m.duracaoIntervalo });
+        if (t) { Object.assign(r, t.campos); alertasCalibracao.push(t.aviso); }
+      }
       r.importadaDoLaudo = true;
       return r;
     }).filter((m) => Object.keys(m).length > 2),
@@ -389,6 +395,7 @@ export function lerJsonIA(texto) {
     epis: lista(obj.epis).map((x) => ({ descricao: s(x.descricao), ca: s(x.ca), dataEntrega: s(x.dataEntrega), obs: s(x.obs) })),
     quesitos: lista(obj.quesitos).map((x) => ({ origem: origem(x.origem), numero: s(x.numero), texto: s(x.texto), resposta: s(x.resposta) })).filter((q) => q.texto),
     postos,
+    alertasCalibracao,
   };
 }
 

@@ -461,3 +461,9 @@ details.secao-etapa > .importar-fotos { border: 0; background: var(--cartao); bo
 .item-auditoria .alerta-pend { background: #fff6c2; padding: .25rem .5rem; border-radius: 6px; margin: .3rem 0; }
 .historico { margin: .4rem 0; padding-left: 1.1rem; }
 .historico li { margin: .2rem 0; }
+
+/* tela inicial: casos por tipo */
+.tipos-caso { margin-bottom: 12px; }
+.tipos-caso .sigla { font-size: 0.72em; padding: 2px 6px; }
+.grupo-tipo { margin-top: 22px; }
+.grupo-tipo-titulo { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 1.1rem; }

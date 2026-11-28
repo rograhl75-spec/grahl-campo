@@ -24,6 +24,12 @@ export function siglaTipo(d) {
   return ['TRAB', 't-trab', d.materia || 'Trabalhista'];
 }
 
+// grupos da tela inicial (mesma ordem da sigla): cada tipo com a sua agenda e os seus cartões
+export const CLASSE_TIPO = { EXTRA: 't-extra', PREV: 't-prev', TRAB: 't-trab', FAZ: 't-faz' };
+export const TIPOS_CASO = [['EXTRA', 'Extrajudicial'], ['PREV', 'Judicial – previdenciário'], ['TRAB', 'Judicial – trabalhista'], ['FAZ', 'Judicial – Fazenda Pública']];
+const lerTipo = () => { try { return localStorage.getItem('casos.tipo') || 'todos'; } catch { return 'todos'; } };
+const gravarTipo = (t) => { try { localStorage.setItem('casos.tipo', t); } catch { /* sem armazenamento */ } };
+
 export function papelCurto(p) {
   if (p === 'Perito do Juízo') return 'Perito';
   if (/autor/i.test(p || '')) return 'Assist. autor';
@@ -66,6 +72,8 @@ export function Casos() {
   const casos = useLive(async () => (await db.records.where('kind').equals('caso').toArray()).filter((c) => !c.deleted), [], null);
   const [busca, setBusca] = useState('');
   const [fase, setFase] = useState('ativos');
+  const [tipo, setTipoEstado] = useState(lerTipo);
+  const setTipo = (t) => { setTipoEstado(t); gravarTipo(t); };
 
   const novo = async () => {
     const r = await createRecord('caso', null, { ...NOVO_CASO, objeto: [] });
@@ -75,10 +83,17 @@ export function Casos() {
 
   if (!casos) return <p class="vazio">Carregando…</p>;
   const termo = semAcento(busca.trim());
+  const emAndamento = (c) => !['Concluído', 'Arquivado'].includes(c.data.fase);
+  // contagem por tipo: casos em andamento
+  const porTipo = {};
+  for (const c of casos) if (emAndamento(c)) { const t = siglaTipo(c.data)[0]; porTipo[t] = (porTipo[t] || 0) + 1; }
+  const tiposPresentes = TIPOS_CASO.filter(([t]) => casos.some((c) => siglaTipo(c.data)[0] === t));
+  const tipoAtivo = tipo !== 'todos' && tiposPresentes.some(([t]) => t === tipo) ? tipo : 'todos';
+  const doTipo = tipoAtivo === 'todos' ? casos : casos.filter((c) => siglaTipo(c.data)[0] === tipoAtivo);
   const contagem = {};
-  for (const c of casos) contagem[c.data.fase || 'A preparar'] = (contagem[c.data.fase || 'A preparar'] || 0) + 1;
-  const ativos = casos.filter((c) => !['Concluído', 'Arquivado'].includes(c.data.fase)).length;
-  let lista = casos.filter((c) => {
+  for (const c of doTipo) contagem[c.data.fase || 'A preparar'] = (contagem[c.data.fase || 'A preparar'] || 0) + 1;
+  const ativos = doTipo.filter(emAndamento).length;
+  let lista = doTipo.filter((c) => {
     const d = c.data;
     if (fase === 'ativos' && ['Concluído', 'Arquivado'].includes(d.fase)) return false;
     if (fase !== 'ativos' && fase !== 'todos' && (d.fase || 'A preparar') !== fase) return false;
@@ -88,7 +103,10 @@ export function Casos() {
   // ordem: prazos vencidos, depois a próxima data, depois os sem data (mais recentes primeiro)
   const chave = (c) => { const p = proximaData(c.data); return p ? (p[2] ? '0' : '1') + p[1] : '2'; };
   lista = lista.sort((a, b) => chave(a).localeCompare(chave(b)) || b.updatedAt - a.updatedAt);
-  const prox = compromissos(casos);
+  const prox = compromissos(doTipo);
+  // "todos os tipos": cartões em seções por tipo, cada uma na ordem das datas
+  const secoes = tipoAtivo === 'todos' && tiposPresentes.length > 1 && !termo
+    ? TIPOS_CASO.map(([t, rot]) => [t, rot, lista.filter((c) => siglaTipo(c.data)[0] === t)]).filter(([, , l]) => l.length) : null;
 
   return (
     <div class="pagina">
@@ -97,10 +115,22 @@ export function Casos() {
         <button type="button" class="primario grande" onClick={novo}>＋ Novo caso</button>
       </div>
 
+      {tiposPresentes.length > 1 && (
+        <div class="chips filtros tipos-caso">
+          {[['todos', 'Todos os tipos'], ...tiposPresentes].map(([t, rot]) => (
+            <button type="button" class={`chip ${tipoAtivo === t ? 'on' : ''}`} onClick={() => setTipo(t)}>
+              {t !== 'todos' && <span class={`sigla ${CLASSE_TIPO[t]}`}>{t}</span>}
+              {' '}{rot}
+              {t !== 'todos' && porTipo[t] ? <span class="chip-n">{porTipo[t]}</span> : null}
+            </button>
+          ))}
+        </div>
+      )}
+
       {!busca && (
         <section class="painel">
           <div class="painel-titulo">
-            <h2>Agenda – vencidos e próximos 30 dias</h2>
+            <h2>Agenda – vencidos e próximos 30 dias{tipoAtivo !== 'todos' ? ` – ${TIPOS_CASO.find(([t]) => t === tipoAtivo)[1]}` : ''}</h2>
             <span class="painel-resumo">{ativos} caso(s) em andamento</span>
           </div>
           {!prox.length && <p class="vazio">Nenhuma diligência ou prazo cadastrado para os próximos 30 dias.</p>}
@@ -138,9 +168,16 @@ export function Casos() {
           {casos.length ? 'Nenhum caso com esse filtro.' : 'Nenhum caso ainda. Toque em "Novo caso" ou traga os casos do app antigo em Configurações.'}
         </div>
       )}
-      <div class="cartoes">
-        {lista.map((c) => <CartaoCaso c={c} key={c.id} />)}
-      </div>
+      {secoes ? secoes.map(([t, rot, l]) => (
+        <section class="grupo-tipo" key={t}>
+          <h3 class="grupo-tipo-titulo"><span class={`sigla ${CLASSE_TIPO[t]}`}>{t}</span> {rot} <span class="chip-n">{l.length}</span></h3>
+          <div class="cartoes">{l.map((c) => <CartaoCaso c={c} key={c.id} />)}</div>
+        </section>
+      )) : (
+        <div class="cartoes">
+          {lista.map((c) => <CartaoCaso c={c} key={c.id} />)}
+        </div>
+      )}
     </div>
   );
 }

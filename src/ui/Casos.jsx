@@ -4,6 +4,7 @@ import { avisarAlteracao } from '../sync.js';
 import { FASE, NOVO_CASO } from '../schema.js';
 import { dataBR } from '../docx/reports.js';
 import { useLive, ir } from './hooks.js';
+import { usosDaArt, situacaoArt } from '../artUso.js';
 
 function semAcento(s) {
   return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
@@ -115,6 +116,8 @@ export function Casos() {
         <button type="button" class="primario grande" onClick={novo}>＋ Novo caso</button>
       </div>
 
+      <AvisoArts casos={casos} />
+
       {tiposPresentes.length > 1 && (
         <div class="chips filtros tipos-caso">
           {[['todos', 'Todos os tipos'], ...tiposPresentes].map(([t, rot]) => (
@@ -201,5 +204,26 @@ function CartaoCaso({ c }) {
         {prox ? <span class={prox[2] || diasAte(prox[1]) <= 7 ? 'data-alerta' : ''}>{prox[2] ? '⚠ ' : ''}{prox[0]}{prox[2] ? ' vencido' : ''}: <b>{dataBR(prox[1])}</b></span> : <span class="suave">Sem data marcada</span>}
       </div>
     </a>
+  );
+}
+
+// ARTs esgotadas ou perto do fim (só as que já têm uso e o nº de trabalhos informado)
+function AvisoArts({ casos }) {
+  const lista = useLive(async () => {
+    const arts = (await db.records.where('kind').equals('artCad').toArray()).filter((a) => !a.deleted);
+    const out = [];
+    for (const a of arts) {
+      const n = (await usosDaArt(a.id, casos)).length;
+      const s = situacaoArt(a, n);
+      if (n && s.previstos && s.nivel !== 'ok') out.push({ a, s });
+    }
+    return out;
+  }, [casos.length, casos.map((c) => c.data.artId || '').join('|')], []);
+  if (!lista.length) return null;
+  return (
+    <div class="evidencias alerta" role="status">
+      {lista.map(({ a, s }) => <span><b>ART nº {a.data.numero || '—'}</b>{a.data.finalidade ? ` (${a.data.finalidade})` : ''}: {s.texto}.</span>)}
+      <span><a href="#/config/arts">Configurações → ARTs</a>: relatório de uso e cadastro da nova ART.</span>
+    </div>
   );
 }

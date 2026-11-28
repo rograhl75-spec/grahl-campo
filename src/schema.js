@@ -394,6 +394,7 @@ export const FINALIDADES_ART = ['Perícias judiciais (perito do juízo)', 'Assis
 export const CAMPOS_ART = [
   ['numero', 'Nº da ART', 'text'],
   ['finalidade', 'Finalidade', 'select', FINALIDADES_ART],
+  ['trabalhos', 'Nº de trabalhos previstos na ART (quantidade) – cada caso que escolher a ART conta um', 'num'],
   ['conselho', 'Conselho (ex.: CREA-PR)', 'text'],
   ['descricao', 'Descrição / atividades cobertas', 'area'],
   ['inicio', 'Início da vigência', 'date'],

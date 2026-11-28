@@ -467,3 +467,12 @@ details.secao-etapa > .importar-fotos { border: 0; background: var(--cartao); bo
 .tipos-caso .sigla { font-size: 0.72em; padding: 2px 6px; }
 .grupo-tipo { margin-top: 22px; }
 .grupo-tipo-titulo { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 1.1rem; }
+
+/* controle de uso da ART */
+.barra-uso { height: 8px; background: #E5E9F0; border-radius: 4px; overflow: hidden; margin: 4px 0 8px; }
+.barra-uso span { display: block; height: 100%; background: #1E8C72; }
+.barra-uso span.acabando { background: #C98A1E; } .barra-uso span.esgotada { background: #B3261E; }
+.aviso-txt { color: #8A5A00; } .aviso-pend { color: #8A5A00; background: #FFF6E0; padding: 6px 10px; border-radius: 6px; }
+.tabela-simples { border-collapse: collapse; width: 100%; font-size: 0.9em; }
+.tabela-simples th, .tabela-simples td { border-bottom: 1px solid #E5E9F0; padding: 4px 6px; text-align: left; vertical-align: top; }
+.tabela-rolagem { overflow-x: auto; }

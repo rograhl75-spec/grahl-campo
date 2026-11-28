@@ -12,6 +12,7 @@ import { dataBR } from '../docx/reports.js';
 import { RecordList } from './RecordList.jsx';
 import { useLive } from './hooks.js';
 import { confirmar } from './dialogo.jsx';
+import { usosDaArt, situacaoArt, linhaDoUso, relatorioUsoArt } from '../artUso.js';
 import { guardarAnexo } from '../paradigmas.js';
 import { obterAnexo } from '../sync.js';
 import { updateFields, softDelete } from '../db.js';
@@ -111,9 +112,13 @@ export function Config({ aba }) {
       {aba === 'arts' && (
         <div class="grade"><div class="largo">
           <p class="dica">Cadastre aqui as suas ARTs (uma por finalidade: perícias judiciais, LTCAT, laudos extrajudiciais…), com o PDF. Em cada caso, escolha a ART em Laudo → Redigir e gerar → "ART deste documento": o número sai no documento e o PDF, como anexo.</p>
+          <PainelUsoArts />
           <RecordList kind="artCad" caseId={null} campos={CAMPOS_ART} titulo="ARTs" novo="Adicionar ART"
             resumo={(r) => [r.data.numero && `nº ${r.data.numero}`, r.data.finalidade, r.data.conselho, r.data.fim ? `até ${dataBR(r.data.fim)}` : '', r.data.anexoId ? 'PDF anexado' : 'sem PDF'].filter(Boolean).join(' · ')}
-            extra={(r) => <ArquivoDoRegistro r={r} campo="anexoId" desc="ART" rotulo="PDF da ART – sai como anexo nos documentos dos casos que a escolherem" ok="✓ PDF anexado." />} />
+            extra={(r) => <>
+              <ArquivoDoRegistro r={r} campo="anexoId" desc="ART" rotulo="PDF da ART – sai como anexo nos documentos dos casos que a escolherem" ok="✓ PDF anexado." />
+              <UsoDaArt art={r} />
+            </>} />
         </div></div>
       )}
       {aba === 'lixeira' && <Lixeira />}
@@ -478,5 +483,55 @@ function ClaudeApi() {
         <p class="dica">A chave fica guardada só neste aparelho (não vai para a nuvem do app nem para o backup): configure em cada aparelho que for usar. Os arquivos vão dentro da própria pergunta e não ficam guardados na conta da Anthropic. PDFs de até ~22 MB e 550 páginas vão inteiros (texto e imagens); acima disso vai o texto extraído, e páginas digitalizadas sem texto ficam de fora (o app avisa). Custo aproximado com o Opus 5.5: LTCAT com cerca de 50 páginas de documentos, US$ 0,30 a 0,60; autos com cerca de 300 páginas, US$ 2 a 4. Cada envio mostra o custo estimado.</p>
       </section>
     </div>
+  );
+}
+
+// Controle de uso da ART: um trabalho por caso que a escolheu (não por Word gerado)
+function UsoDaArt({ art }) {
+  const usos = useLive(async () => usosDaArt(art.id), [art.id], null);
+  const [msg, setMsg] = useState('');
+  if (!usos) return null;
+  const s = situacaoArt(art, usos.length);
+  const linhas = usos.map(linhaDoUso);
+  return (
+    <div class="uso-art">
+      <p class={s.nivel === 'esgotada' ? 'alerta-pend' : s.nivel === 'acabando' ? 'aviso-pend' : 'dica'}><b>Uso da ART:</b> {s.texto}.{s.nivel === 'esgotada' ? ' Cadastre a nova ART aqui e escolha-a nos próximos casos.' : ''}</p>
+      {s.previstos > 0 && <div class="barra-uso"><span style={{ width: `${Math.min(100, Math.round((100 * s.usados) / s.previstos))}%` }} class={s.nivel} /></div>}
+      {linhas.length > 0 && (
+        <details class="mt"><summary>Trabalhos em que foi usada ({linhas.length})</summary>
+          <div class="tabela-rolagem"><table class="tabela-simples">
+            <thead><tr><th>Nº</th><th>Data</th><th>Tipo</th><th>Segurado / autor</th><th>Réu / empresa</th><th>Processo</th><th>Fase</th></tr></thead>
+            <tbody>{linhas.map((x) => <tr><td>{x.n}</td><td>{x.data}</td><td>{x.tipo}</td><td><a href={`#/caso/${encodeURIComponent(x.id)}/cadastro`}>{x.quem}</a></td><td>{x.contra || '—'}</td><td>{x.processo}</td><td>{x.fase}</td></tr>)}</tbody>
+          </table></div>
+        </details>
+      )}
+      <div class="linha-botoes">
+        <button type="button" class="sec" onClick={async () => { try { const r = await relatorioUsoArt(art); baixarArquivo(r.blob, r.nome); setMsg(`✓ ${r.nome}`); } catch (e) { setMsg(`Erro: ${e.message}`); } }}>Baixar o relatório de uso (Word)</button>
+      </div>
+      {msg && <p class="ok-msg">{msg}</p>}
+    </div>
+  );
+}
+
+// resumo do uso de todas as ARTs (um trabalho por caso que a escolheu), visível sem abrir cada ART
+function PainelUsoArts() {
+  const lista = useLive(async () => {
+    const arts = (await db.records.where('kind').equals('artCad').toArray()).filter((a) => !a.deleted);
+    const casos = await db.records.where('kind').equals('caso').toArray();
+    return Promise.all(arts.map(async (a) => ({ a, s: situacaoArt(a, (await usosDaArt(a.id, casos)).length) })));
+  }, [], []);
+  if (!lista.length) return null;
+  return (
+    <section class="bloco">
+      <h3>Uso das ARTs</h3>
+      <p class="dica">Cada caso que escolhe a ART conta um trabalho (gerar o documento de novo não conta). Abra a ART abaixo para ver os processos e baixar o relatório.</p>
+      {lista.map(({ a, s }) => (
+        <div class="mt">
+          <b>ART nº {a.data.numero || '—'}</b> <small class="suave">{a.data.finalidade || ''}</small>
+          <div class={s.nivel === 'esgotada' ? 'alerta-txt' : s.nivel === 'acabando' ? 'aviso-txt' : 'dica'}>{s.texto}</div>
+          {s.previstos > 0 && <div class="barra-uso"><span style={{ width: `${Math.min(100, Math.round((100 * s.usados) / s.previstos))}%` }} class={s.nivel} /></div>}
+        </div>
+      ))}
+    </section>
   );
 }

@@ -2,7 +2,9 @@ import { useState, useEffect } from 'preact/hooks';
 import { pendenciasDoCaso, marcacoesNoDocumento, trechosPendentes } from '../pendencias.js';
 import { horasDia, horasForaTexto, fmtHoras } from '../calc.js';
 import { avisarAlteracao, obterAnexo } from '../sync.js';
-import { confirmar } from './dialogo.jsx';
+import { confirmar, avisar } from './dialogo.jsx';
+import { usosDaArt, situacaoArt } from '../artUso.js';
+import { dataBR } from '../docx/reports.js';
 import { softDelete, createRecord, updateFields } from '../db.js';
 import { RelatoriosMedicao } from './Campo.jsx';
 import { Suplementares } from './Quesitos.jsx';
@@ -298,20 +300,43 @@ function PeticaoLivre({ rec }) {
 // ART do caso: escolhida entre as cadastradas em Configurações → ARTs (sugestão pela finalidade do caso)
 function EscolherArt({ rec }) {
   const arts = useLive(async () => (await db.records.where('kind').equals('artCad').toArray()).filter((r) => !r.deleted), [], []);
+  // usos de cada ART (um por caso que a escolheu), para a contagem e o aviso de ART esgotada
+  const usos = useLive(async () => {
+    const casos = await db.records.where('kind').equals('caso').toArray();
+    const m = {};
+    for (const a of arts) m[a.id] = (await usosDaArt(a.id, casos)).map((x) => x.id);
+    return m;
+  }, [arts.map((a) => a.id).join('|'), rec.data.artId], {});
   const c = rec.data;
   const sug = finalidadeArtDoCaso(c);
   const ordem = [...arts].sort((a, b) => (b.data.finalidade === sug) - (a.data.finalidade === sug));
+  const situ = (a, extra = 0) => situacaoArt(a, (usos[a.id] || []).length + extra);
   const escolher = async (id) => {
     const a = arts.find((x) => x.id === id);
-    await updateFields(rec.id, { artId: id || '', ...(a ? { art: a.data.numero || '' } : {}) }); avisarAlteracao();
+    // trocar para outra ART conta um uso nela; a ART anterior deixa de contar este caso
+    if (a && id !== c.artId) {
+      const s = situ(a, 1);
+      if (s.previstos && s.restantes < 0 && !await confirmar(`A ART nº ${a.data.numero || ''} já está esgotada (${s.previstos} trabalhos previstos, ${s.usados - 1} usados). Solicite nova ART. Usar esta mesmo assim neste caso?`, { ok: 'Usar mesmo assim' })) return;
+      if (s.vencida && !await confirmar(`A vigência da ART nº ${a.data.numero || ''} terminou em ${dataBR(a.data.fim)}. Usar mesmo assim?`, { ok: 'Usar mesmo assim' })) return;
+      await updateFields(rec.id, { artId: id, art: a.data.numero || '', artUsoEm: new Date().toISOString().slice(0, 10) }); avisarAlteracao();
+      if (s.previstos && s.restantes === 0) await avisar(`Este é o último trabalho previsto na ART nº ${a.data.numero || ''} (${s.previstos} de ${s.previstos}). Solicite nova ART e cadastre-a em Configurações → ARTs.`);
+      else if (s.nivel === 'acabando') await avisar(`ART nº ${a.data.numero || ''}: ${s.texto}. Providencie a nova ART.`);
+      return;
+    }
+    await updateFields(rec.id, { artId: id || '', ...(a ? { art: a.data.numero || '' } : { artUsoEm: '' }) }); avisarAlteracao();
   };
+  const atual = arts.find((x) => x.id === c.artId);
   if (!arts.length) return <p class="dica">ART: cadastre as suas ARTs (com o PDF) em Configurações → ARTs e escolha aqui a deste caso.{c.art ? ` Nº informado no caso: ${c.art}.` : ''}</p>;
   return (
     <label class="campo"><span class="rotulo">ART deste documento (o número sai no documento e o PDF, como anexo)</span>
       <select value={c.artId || ''} onChange={(e) => escolher(e.currentTarget.value)}>
         <option value="">— sem ART anexada —</option>
-        {ordem.map((a) => <option value={a.id}>{rotuloArt(a)}{a.data.finalidade === sug ? ' (sugerida para este caso)' : ''}{a.data.anexoId ? '' : ' – sem PDF'}</option>)}
+        {ordem.map((a) => { const s = situ(a); return <option value={a.id}>{rotuloArt(a)}{a.data.finalidade === sug ? ' (sugerida para este caso)' : ''}{a.data.anexoId ? '' : ' – sem PDF'}{s.previstos ? ` – ${s.usados}/${s.previstos}${s.nivel === 'esgotada' && a.id !== c.artId ? ' (esgotada)' : ''}` : ''}</option>; })}
       </select>
+      {atual && (() => {
+        const lista = usos[atual.id] || []; const s = situ(atual); const pos = lista.indexOf(rec.id) + 1;
+        return <small class={s.nivel === 'esgotada' && s.restantes < 0 ? 'alerta-txt' : s.nivel !== 'ok' ? 'aviso-txt' : 'dica'}>{pos ? `Este caso é o trabalho nº ${pos}` : 'Uso'}{s.previstos ? ` de ${s.previstos} desta ART` : ' desta ART'}{s.previstos && s.restantes <= 0 ? ' – ART esgotada: solicite nova ART para os próximos casos' : s.nivel === 'acabando' ? ` – restam ${s.restantes}` : ''}. Gerar o documento de novo não conta outro uso. Relatório em Configurações → ARTs.</small>;
+      })()}
     </label>
   );
 }

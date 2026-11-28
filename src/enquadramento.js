@@ -1,6 +1,6 @@
 import { NAO_AVALIADO } from './schema.js';
 // Enquadramento previdenciário além do ruído e da vibração medidos:
-//  - categoria profissional da área da saúde (até 28/04/1995);
+//  - categoria profissional da área da saúde e da veterinária (até 28/04/1995);
 //  - agentes avaliados de forma qualitativa ou sem medição (biológicos, químicos, físicos), cadastrados no caso
 //    com o resultado até 05/03/1997 e a partir de 06/03/1997;
 //  - afastamentos por benefício que não contam como tempo especial.
@@ -10,8 +10,10 @@ import { avaliacaoPeloManual, cancerigenoAnexoIV, codigosNosDecretos } from './n
 const v = (x) => (x === undefined || x === null ? '' : String(x).trim());
 const dia = (iso, n) => { const d = new Date(`${iso}T12:00:00`); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
 
-// Decreto 53.831/1964, cód. 2.1.3 (medicina, odontologia, enfermagem) e Decreto 83.080/1979, Anexo II, cód. 2.1.3
+// Decreto 53.831/1964, cód. 2.1.3 (medicina, odontologia, enfermagem, veterinária) e Decreto 83.080/1979, Anexo II, cód. 2.1.3
 const SAUDE = [
+  // veterinário antes de médico: "médico-veterinário" também casa com /médico/
+  { re: /veterin[aá]ri/i, t: 'Categoria profissional de médico-veterinário – enquadramento por presunção' },
   { re: /dentista|odont[oó]log|cirurgi[aã]o[- ]dentista/i, t: 'Categoria profissional de cirurgião-dentista – enquadramento por presunção' },
   { re: /\bm[eé]dic[oa]\b/i, t: 'Categoria profissional de médico – enquadramento por presunção' },
   { re: /enfermeir|enfermagem/i, t: 'Categoria profissional de enfermagem – enquadramento por presunção' },

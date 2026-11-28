@@ -707,7 +707,7 @@ function quadroDiligenciaLtcat(d, c, seg) {
   const doc = /^Documental/.test(c.modalidade);
   const linhas = [
     ['Data e horário', [dataBR(c.vistoriaData), [c.vistoriaInicio, c.vistoriaFim].filter(Boolean).join(' às ')].filter(Boolean).join(', ') || (doc ? 'Não se aplica' : '[[data da entrevista]]')],
-    ['Modalidade', doc ? 'Avaliação documental, sem vistoria e sem entrevista' : 'Entrevista do segurado por videoconferência, sem vistoria no local de trabalho'],
+    ['Modalidade', doc ? 'Avaliação documental, sem vistoria e sem entrevista' : /^Entrevista presencial/.test(c.modalidade) ? 'Entrevista presencial do segurado, sem vistoria no local de trabalho, que não existe mais' : 'Entrevista do segurado por videoconferência, sem vistoria no local de trabalho'],
   ];
   if (!doc) linhas.push(['Participantes', presentes || `${seg} – segurado`]);
   if (v(c.vistoriaCondicoes)) linhas.push(['Observações', c.vistoriaCondicoes]);
@@ -757,6 +757,10 @@ function naturezaLtcat(dados, seg) {
   const anteriores = dados.periodos.some((r) => c.vistoriaData && (r.data.inicio || '') < c.vistoriaData);
   const locais = [...new Set(dados.periodos.map((r) => v(r.data.local)).filter(Boolean))];
   const partes = [`Este laudo avalia, de forma individual (art. 276, I, da IN 128/2022), a exposição de ${seg} a agentes nocivos nas atividades de ${cargosDoCaso(dados).map((x) => x.toLowerCase()).join(' e ') || '[[cargo]]'}, nos períodos do item 1.3, e fundamenta o Perfil Profissiográfico Previdenciário (PPP) emitido com ele.`];
+  if (/^Entrevista presencial/.test(c.modalidade || '')) {
+    partes.push(`A avaliação foi feita sem vistoria no local de trabalho, que não existe mais, com base na entrevista presencial do segurado${vist ? `, realizada em ${vist}` : ''}, nas declarações do item 2.3, nos documentos apresentados e nas características dos produtos e dos equipamentos utilizados em cada época. É, portanto, extemporânea e indireta quanto a todo o período avaliado, e a conclusão depende da veracidade das informações prestadas.`);
+    return partes.join(' ');
+  }
   if (/^Remota/.test(c.modalidade || '')) {
     partes.push(`A avaliação foi feita sem vistoria no local de trabalho, com base na entrevista do segurado${vist ? `, realizada por videoconferência em ${vist}` : ' por videoconferência'}, nas declarações do item 2.3, nos documentos apresentados e nas características dos produtos e dos equipamentos utilizados em cada época. É, portanto, extemporânea e indireta quanto a todo o período avaliado, e a conclusão depende da veracidade das informações prestadas.`);
     return partes.join(' ');
